@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { auth, signOut } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { getOnboardingState, resolvePostAuthPath } from "@/lib/onboarding";
 import { BusinessOSMark } from "@/components/business-os-mark";
 
@@ -67,24 +67,9 @@ export default async function DashboardPage() {
           </div>
         </div>
 
-        <div className="text-[11px] text-[var(--bos-text-tertiary)] mb-8 border-t border-[var(--bos-line)] pt-6">
+        <div className="text-[11px] text-[var(--bos-text-tertiary)] border-t border-[var(--bos-line)] pt-6">
           The full dashboard is under development.
         </div>
-
-        {/* Sign out */}
-        <form
-          action={async () => {
-            "use server";
-            await signOut({ redirectTo: "/login" });
-          }}
-        >
-          <button
-            type="submit"
-            className="bos-link text-xs"
-          >
-            Sign out
-          </button>
-        </form>
       </div>
     </div>
   );

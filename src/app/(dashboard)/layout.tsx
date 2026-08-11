@@ -1,20 +1,18 @@
-import { BusinessOSLogo } from "@/components/business-os-mark";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { auth } from "@/lib/auth";
+import { getOnboardingState } from "@/lib/onboarding";
+import { AppNavbar } from "@/components/app-navbar";
 
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const session = await auth();
+  const state = session?.user?.id ? await getOnboardingState(session.user.id) : null;
+
   return (
     <div className="min-h-screen bg-[var(--bos-bg)] flex flex-col">
-      {/* Top bar */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-[var(--bos-line)]">
-        <BusinessOSLogo size="md" />
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-        </div>
-      </header>
+      <AppNavbar user={session?.user ?? undefined} companyName={state?.companyName ?? null} />
 
       <main className="flex-1">
         {children}

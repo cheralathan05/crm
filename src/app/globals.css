@@ -355,6 +355,15 @@ body {
   background: var(--bos-text-tertiary);
 }
 
+/* Hide scrollbars on horizontal nav rails (mobile) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 /* ── Reduce motion ─────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
