@@ -33,8 +33,8 @@ echo
 echo "== 6. dashboard render =="
 curl -s -b "$JAR" "$BASE/dashboard" | grep -o "Nova Systems workspace\|Signed in as [^<]*" | head -3
 
-echo "== 7. duplicate workspace guard: /onboarding/company should redirect =="
-curl -s -o /dev/null -w "status=%{http_code} location=%{redirect_url}\n" -b "$JAR" "$BASE/onboarding/company"
+echo "== 7. duplicate workspace guard: /onboarding/workspace should redirect =="
+curl -s -o /dev/null -w "status=%{http_code} location=%{redirect_url}\n" -b "$JAR" "$BASE/onboarding/workspace"
 
 echo "== 8. completed overview guard: /onboarding/overview should redirect =="
 curl -s -o /dev/null -w "status=%{http_code} location=%{redirect_url}\n" -b "$JAR" "$BASE/onboarding/overview"

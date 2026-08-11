@@ -28,6 +28,8 @@ export function WorkspaceReview({
 }) {
   const [revealed, setRevealed] = useState(0);
   const revealedRef = useRef(0);
+  const readyCount = READINESS.filter((r) => r.check(config)).length;
+  const allChecks = readyCount === READINESS.length;
 
   // Readiness sequence — deterministic, one check at a time.
   useEffect(() => {
@@ -42,6 +44,7 @@ export function WorkspaceReview({
   }, []);
 
   const done = revealed >= READINESS.length;
+  const pct = Math.round((readyCount / READINESS.length) * 100);
 
   const sections: { title: string; step: number; values: string[] }[] = [
     {
@@ -132,7 +135,7 @@ export function WorkspaceReview({
           </div>
           <div className="mt-3 flex items-center justify-between text-[9px] font-mono tracking-[0.16em] uppercase text-[var(--bos-text-tertiary)]">
             <span>Workspace configuration</span>
-            <span className="text-[var(--bos-accent)]">{done ? "100%" : `${Math.round((revealed / READINESS.length) * 100)}%`}</span>
+            <span className="text-[var(--bos-accent)]">{pct}%</span>
           </div>
         </motion.div>
 
@@ -198,10 +201,10 @@ export function WorkspaceReview({
           <button
             type="button"
             onClick={onComplete}
-            disabled={completing || !done}
+            disabled={completing || !done || !allChecks}
             className={cn(
               "w-full h-11 rounded-sm text-[12px] font-semibold flex items-center justify-center gap-2 transition-all",
-              completing || !done
+              completing || !done || !allChecks
                 ? "bg-[var(--bos-overlay)] text-[var(--bos-text-tertiary)] cursor-not-allowed"
                 : "bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)] cursor-pointer",
             )}

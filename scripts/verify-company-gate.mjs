@@ -39,7 +39,7 @@ const cookie = setCookies.map((c) => c.split(";")[0]).join("; ");
 console.log("cookies captured:", setCookies.map((c) => c.split(";")[0].split("=")[0]).join(", "));
 
 // 4. Company page with overview incomplete → must redirect to /onboarding/overview
-const company = await fetch(`${BASE}/onboarding/company`, {
+const company = await fetch(`${BASE}/onboarding/workspace`, {
   headers: { Cookie: cookie },
   redirect: "manual",
 });

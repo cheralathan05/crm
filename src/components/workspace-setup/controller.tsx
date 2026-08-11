@@ -27,6 +27,15 @@ const STEP_COMPONENTS = [
 
 const STEP_CODES = ["01 / IDENTITY", "02 / BUSINESS DNA", "03 / OPERATING MODEL", "04 / TEAM", "05 / WORK MODEL", "06 / PERSONALIZE"];
 
+const STEP_TITLES = [
+  "Start with your company.",
+  "What kind of business are you building?",
+  "How does work move through your business?",
+  "Who will work inside this workspace?",
+  "What kind of work will your workspace manage?",
+  "Make Business OS feel like yours.",
+];
+
 function canContinue(step: number, config: WorkspaceConfig): boolean {
   switch (step) {
     case 0: return config.companyName.trim().length >= 2;
@@ -73,6 +82,7 @@ export function WorkspaceSetupController({
   const saveTimer = useRef<number | null>(null);
   const lastSavedRef = useRef<string>(JSON.stringify(config));
   const busyRef = useRef(false);
+  const advancingRef = useRef(false);
 
   const update = useCallback((fn: (prev: WorkspaceConfig) => WorkspaceConfig) => {
     setConfig((prev) => fn(prev));
@@ -134,6 +144,9 @@ export function WorkspaceSetupController({
   const next = useCallback(() => {
     if (phase !== "steps") return;
     if (!canContinue(step, config)) return;
+    // Guard against double-click / double-keypress in the same tick.
+    if (advancingRef.current) return;
+    advancingRef.current = true;
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     persist(config);
     if (step < 5) {
@@ -144,6 +157,11 @@ export function WorkspaceSetupController({
       setPhase("review");
     }
   }, [phase, step, config, persist]);
+
+  // Re-arm navigation after the step/phase actually changes.
+  useEffect(() => {
+    advancingRef.current = false;
+  }, [step, phase]);
 
   const back = useCallback(() => {
     if (phase === "review") {
@@ -185,9 +203,6 @@ export function WorkspaceSetupController({
         return;
       }
       setPhase("creating");
-      // Creation sequence → ready.
-      const t = window.setTimeout(() => setPhase("ready"), 2000);
-      return () => window.clearTimeout(t);
     } catch {
       busyRef.current = false;
       setCreating(false);
@@ -195,29 +210,57 @@ export function WorkspaceSetupController({
     }
   }, [creating, config]);
 
-  /* ── Keyboard navigation ── */
+  // creating → ready transition — cleaned up if the user leaves mid-creation.
+  useEffect(() => {
+    if (phase !== "creating") return;
+    const t = window.setTimeout(() => setPhase("ready"), 2000);
+    return () => window.clearTimeout(t);
+  }, [phase]);
+
+  /* ── Keyboard navigation (subscribed once; reads refs for latest state) ── */
+
+  const phaseRef = useRef(phase);
+  const configRef = useRef(config);
+  const creatingRef = useRef(creating);
+  const nextRef = useRef(next);
+  const backRef = useRef(back);
+  const completeRef = useRef(complete);
+  const persistRef = useRef(persist);
+
+  // Keep the latest values in the refs after every render (the listener is
+  // subscribed once, so the refs carry the current state without re-subscribing).
+  useEffect(() => {
+    phaseRef.current = phase;
+    configRef.current = config;
+    creatingRef.current = creating;
+    nextRef.current = next;
+    backRef.current = back;
+    completeRef.current = complete;
+    persistRef.current = persist;
+  });
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
       if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.tagName === "BUTTON")) return;
+      const p = phaseRef.current;
       if (e.key === "ArrowRight" || e.key === " ") {
         e.preventDefault();
-        if (phase === "review" && !creating) complete();
-        else next();
+        if (p === "review" && !creatingRef.current) completeRef.current();
+        else nextRef.current();
       } else if (e.key === "ArrowLeft") {
-        back();
+        backRef.current();
       } else if (e.key === "Escape") {
-        if (phase === "steps") {
+        if (p === "steps") {
           if (saveTimer.current) window.clearTimeout(saveTimer.current);
-          persist(config);
+          persistRef.current(configRef.current);
           setPhase("review");
         }
       }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [phase, step, config, next, back, complete, creating, persist]);
+  }, []);
 
   const ActiveStep = STEP_COMPONENTS[step];
 
@@ -267,6 +310,7 @@ export function WorkspaceSetupController({
                 transition={{ duration: 0.32, ease: [0.25, 0.1, 0.25, 1] }}
                 className="w-full px-5 sm:px-10 py-6 grid lg:grid-cols-[1.05fr_1fr] gap-8 lg:gap-14 items-center min-h-[520px]"
               >
+                <h1 className="sr-only">Workspace setup — {STEP_TITLES[step]}</h1>
                 <WorkspacePreview config={config} activeStep={step} />
                 <div className="w-full max-w-md justify-self-end">
                   <div className="max-h-[520px] overflow-y-auto pr-1">
@@ -285,6 +329,7 @@ export function WorkspaceSetupController({
                 transition={{ duration: 0.4 }}
                 className="w-full px-5 sm:px-10 py-8"
               >
+                <h1 className="sr-only">Review your workspace</h1>
                 <WorkspaceReview
                   config={config}
                   onEditStep={editStep}
@@ -306,6 +351,7 @@ export function WorkspaceSetupController({
                 animate={{ opacity: 1 }}
                 className="absolute inset-0 flex items-center justify-center"
               >
+                <h1 className="sr-only">Creating your workspace</h1>
                 <CreatingScene companyName={config.companyName} />
               </motion.div>
             )}
