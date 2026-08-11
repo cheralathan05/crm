@@ -50,21 +50,92 @@ model User {
 }
 
 model Workspace {
-  id          String   @id @default(cuid())
-  companyName String
-  owner       User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  ownerId     String   @unique
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id            String   @id @default(cuid())
+  companyName   String
+  owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       String   @unique
+  profile       WorkspaceProfile?
+  business      BusinessProfile?
+  preferences   WorkspacePreferences?
+  notifications NotificationPreferences?
+  setup         WorkspaceSetup?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Onboarding {
-  id               String   @id @default(cuid())
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId           String   @unique
-  overviewComplete Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  id                       String    @id @default(cuid())
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   String    @unique
+  overviewComplete         Boolean   @default(false)
+  workspaceSetupComplete   Boolean   @default(false)
+  workspaceSetupCompletedAt DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model WorkspaceProfile {
+  id            String    @id @default(cuid())
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId   String    @unique
+  legalName     String?
+  website       String?
+  businessEmail String?
+  businessPhone String?
+  updatedAt     DateTime  @updatedAt
+}
+
+model BusinessProfile {
+  id              String    @id @default(cuid())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId     String    @unique
+  industry        String?
+  businessType    String?
+  businessModel   String?
+  description     String?
+  services        String? @default("[]")
+  targetCustomers String? @default("[]")
+  updatedAt       DateTime  @updatedAt
+}
+
+model WorkspacePreferences {
+  id             String    @id @default(cuid())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String    @unique
+  theme          String    @default("SYSTEM")
+  defaultLanding String    @default("OVERVIEW")
+  timezone       String?
+  dateFormat     String    @default("DD/MM/YYYY")
+  updatedAt      DateTime  @updatedAt
+}
+
+model NotificationPreferences {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String    @unique
+  email       Boolean   @default(true)
+  tasks       Boolean   @default(true)
+  clients     Boolean   @default(true)
+  projects    Boolean   @default(true)
+  proposals   Boolean   @default(true)
+  system      Boolean   @default(true)
+  updatedAt   DateTime  @updatedAt
+}
+
+model WorkspaceSetup {
+  id              String    @id @default(cuid())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId     String    @unique
+  leadSources     String? @default("[]")
+  approvalFlow    String? @default("[]")
+  executionMode   String?
+  teamSize        String?
+  roles           String? @default("[]")
+  workTypes       String? @default("[]")
+  projectDuration String?
+  clientVolume    String?
+  currentTools    String? @default("[]")
+  updatedAt       DateTime  @updatedAt
 }
 
 model VerificationToken {

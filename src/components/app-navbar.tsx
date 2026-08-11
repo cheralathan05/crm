@@ -55,11 +55,10 @@ export function AppNavbar({ user, companyName, fallbackLabel = "WORKSPACE SETUP"
         </div>
 
         {/* ── Module navigation · desktop ───────────── */}
-        <nav aria-label="Primary" className="hidden md:flex items-center gap-0.5 mx-auto">
+        <nav aria-label="Modules" className="hidden md:flex items-center gap-0.5 mx-auto">
           {MODULES.map((m) => (
             <span
               key={m}
-              aria-disabled="true"
               className="px-3 py-1.5 rounded-sm text-[9px] font-mono tracking-[0.16em] uppercase text-[var(--bos-text-tertiary)] cursor-default transition-colors hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)]"
             >
               {m}
@@ -71,11 +70,10 @@ export function AppNavbar({ user, companyName, fallbackLabel = "WORKSPACE SETUP"
         </nav>
 
         {/* ── Module navigation · mobile (scrolls) ──── */}
-        <nav aria-label="Primary" className="md:hidden flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar min-w-0">
+        <nav aria-label="Modules" className="md:hidden flex-1 flex items-center gap-1 overflow-x-auto no-scrollbar min-w-0">
           {MODULES.map((m) => (
             <span
               key={m}
-              aria-disabled="true"
               className="shrink-0 px-2 py-1 text-[8px] font-mono tracking-[0.14em] uppercase text-[var(--bos-text-tertiary)] cursor-default"
             >
               {m}

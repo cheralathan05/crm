@@ -1,36 +1,60 @@
+/**
+ * One-time backfill for the Workspace Creation Engine.
+ *
+ * - Ensures every user has an Onboarding row.
+ * - Users who already created a workspace (old single-step flow) are marked
+ *   workspaceSetupComplete so they go straight to /dashboard.
+ */
 import "dotenv/config";
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-// One-time backfill: existing users get a Workspace (from User.companyName)
-// and an Onboarding row so the new post-auth flow works for everyone.
-const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL ?? "file:./dev.db" });
+const adapter = new PrismaBetterSqlite3({
+  url: process.env.DATABASE_URL ?? "file:./dev.db",
+});
 const db = new PrismaClient({ adapter });
 
 async function main() {
   const users = await db.user.findMany({
-    select: { id: true, companyName: true },
+    select: { id: true },
   });
 
-  let workspaces = 0;
-  let onboarding = 0;
+  let created = 0;
+  let completed = 0;
 
   for (const user of users) {
-    const ws = await db.workspace.findUnique({ where: { ownerId: user.id } });
-    if (!ws) {
-      await db.workspace.create({
-        data: { ownerId: user.id, companyName: user.companyName },
-      });
-      workspaces++;
+    const onboarding = await db.onboarding.upsert({
+      where: { userId: user.id },
+      create: { userId: user.id },
+      update: {},
+    });
+
+    if (onboarding.workspaceSetupComplete) {
+      continue;
     }
-    const ob = await db.onboarding.findUnique({ where: { userId: user.id } });
-    if (!ob) {
-      await db.onboarding.create({ data: { userId: user.id } });
-      onboarding++;
+
+    const workspace = await db.workspace.findUnique({
+      where: { ownerId: user.id },
+      select: { id: true },
+    });
+
+    if (workspace) {
+      await db.onboarding.update({
+        where: { userId: user.id },
+        data: {
+          workspaceSetupComplete: true,
+          workspaceSetupCompletedAt: new Date(),
+        },
+      });
+      completed++;
+    } else {
+      created++;
     }
   }
 
-  console.log(`BACKFILL: users=${users.length} workspaces_created=${workspaces} onboarding_created=${onboarding}`);
+  console.log(
+    `backfill done — ${created} users in setup, ${completed} existing workspaces marked complete (${users.length} total users)`,
+  );
 }
 
 main()
@@ -38,4 +62,4 @@ main()
     console.error(e);
     process.exit(1);
   })
-  .finally(() => process.exit(0));
+  .finally(() => db.$disconnect());

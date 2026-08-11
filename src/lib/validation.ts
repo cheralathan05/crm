@@ -70,6 +70,63 @@ export const workspaceNameSchema = z
   .min(2, "Enter your company name.")
   .max(80, "Company name is too long.");
 
+const optionList = z
+  .array(z.string().trim().min(1).max(40))
+  .max(24, "Too many selections.");
+
+const optionalString = z.string().trim().max(200).optional().default("");
+
+/**
+ * The workspace configuration (autosave + final transaction).
+ * Every field defaults, so any subset of the config validates; the route
+ * merges the result over the full defaults before persisting.
+ */
+export const workspaceConfigSchema = z
+  .object({
+    companyName: z.string().trim().max(80).default(""),
+    profile: z.object({
+      legalName: optionalString,
+      website: optionalString,
+      businessEmail: optionalString,
+      businessPhone: optionalString,
+    }),
+    business: z.object({
+      industry: optionalString,
+      businessType: optionalString,
+      businessModel: optionalString,
+      description: optionalString,
+      services: optionList.default([]),
+      targetCustomers: optionList.default([]),
+    }),
+    setup: z.object({
+      leadSources: optionList.default([]),
+      approvalFlow: optionList.default([]),
+      executionMode: optionalString,
+      teamSize: optionalString,
+      roles: optionList.default([]),
+      workTypes: optionList.default([]),
+      projectDuration: optionalString,
+      clientVolume: optionalString,
+      currentTools: optionList.default([]),
+    }),
+    preferences: z.object({
+      theme: z.enum(["SYSTEM", "LIGHT", "DARK"]).default("SYSTEM"),
+      defaultLanding: optionalString,
+      timezone: optionalString,
+      dateFormat: optionalString,
+    }),
+    notifications: z.object({
+      email: z.boolean().default(true),
+      tasks: z.boolean().default(true),
+      clients: z.boolean().default(true),
+      projects: z.boolean().default(true),
+      proposals: z.boolean().default(true),
+      system: z.boolean().default(true),
+    }),
+  })
+  .partial()
+  .default({});
+
 export type PasswordStrength = 0 | 1 | 2 | 3;
 
 export function scorePassword(value: string): PasswordStrength {

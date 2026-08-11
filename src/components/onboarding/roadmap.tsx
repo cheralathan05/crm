@@ -82,7 +82,7 @@ export function Roadmap({ user }: { user: RoadmapUser }) {
         finishingRef.current = false;
         setCompleting(false);
       } else {
-        router.push("/onboarding/company");
+        router.push("/onboarding/workspace");
       }
     } catch {
       finishingRef.current = false;
