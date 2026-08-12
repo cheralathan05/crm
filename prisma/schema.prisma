@@ -29,6 +29,169 @@ enum UserProvider {
   GOOGLE
 }
 
+/* ── Client Command Center ────────────────────────────────────── */
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ClientStage {
+  LEAD
+  QUALIFIED
+  REQUIREMENTS
+  PROPOSAL
+  APPROVAL
+  PROJECT
+  DELIVERY
+}
+
+enum ClientHealth {
+  HEALTHY
+  NEEDS_ATTENTION
+  AT_RISK
+  INACTIVE
+}
+
+enum ContactChannel {
+  EMAIL
+  PHONE
+  WHATSAPP
+}
+
+enum ActivityType {
+  CALL
+  MEETING
+  NOTE
+  FOLLOW_UP
+  EMAIL
+  MESSAGE
+}
+
+enum RequirementStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum RequirementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProposalStatus {
+  DRAFT
+  SENT
+  VIEWED
+  APPROVED
+  CHANGES_REQUESTED
+  REJECTED
+}
+
+enum ProjectStage {
+  PLANNING
+  DISCOVERY
+  DESIGN
+  DEVELOPMENT
+  TESTING
+  DELIVERY
+  COMPLETED
+}
+
+enum ProjectHealth {
+  ON_TRACK
+  AT_RISK
+  BLOCKED
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentType {
+  CONTRACT
+  INVOICE
+  PARTIAL
+  MILESTONE
+}
+
+enum DocumentCategory {
+  REQUIREMENT
+  PROPOSAL
+  CONTRACT
+  INVOICE
+  PROJECT_FILE
+  CLIENT_UPLOAD
+}
+
+enum MessageChannel {
+  EMAIL
+  WHATSAPP
+  CALL
+  MEETING
+  INTERNAL_NOTE
+}
+
+enum AuditEntity {
+  CLIENT
+  CONTACT
+  ACTIVITY
+  REQUIREMENT
+  PROPOSAL
+  PROJECT
+  TASK
+  PAYMENT
+  DOCUMENT
+  MESSAGE
+  NOTE
+}
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  OWNER_CHANGED
+  CONTACT_ADDED
+  REQUIREMENT_CREATED
+  PROPOSAL_CREATED
+  PROPOSAL_SENT
+  PROPOSAL_APPROVED
+  PROJECT_CREATED
+  TASK_ASSIGNED
+  PAYMENT_UPDATED
+  DOCUMENT_UPLOADED
+  CLIENT_ARCHIVED
+  CLIENT_RESTORED
+  ACTIVITY_ADDED
+  NOTE_ADDED
+  MESSAGE_ADDED
+  STAGE_CHANGED
+  CUSTOM_FIELD_UPDATED
+}
+
 model User {
   id             String              @id @default(cuid())
   name           String
@@ -59,8 +222,260 @@ model Workspace {
   preferences   WorkspacePreferences?
   notifications NotificationPreferences?
   setup         WorkspaceSetup?
+  clients       Client[]
+  customFieldDefs ClientCustomFieldDef[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+/* ── Client Command Center models ────────────────────────────── */
+
+/**
+ * A client — the center of one complete business relationship.
+ * Everything else in the Command Center hangs off this record.
+ */
+model Client {
+  id             String           @id @default(cuid())
+  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  companyName    String
+  industry       String?
+  businessType   String?
+  description    String?
+  website        String?
+  domain         String?
+  email          String?
+  phone          String?
+  status         ClientStatus     @default(LEAD)
+  stage          ClientStage      @default(LEAD)
+  leadSource     String?
+  leadScore      Int?             @default(0)
+  ownerId        String?
+  ownerName      String?
+  primaryContactId String?
+  tags           String?          @default("[]")
+  customFields   String?          @default("{}")
+  relationshipScore Int?          @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  lastActivityAt DateTime?
+
+  contacts       Contact[]
+  activities     ClientActivity[]
+  requirements   ClientRequirement[]
+  proposals      ClientProposal[]
+  projects       ClientProject[]
+  tasks          ClientTask[]
+  payments       ClientPayment[]
+  documents      ClientDocument[]
+  messages       ClientMessage[]
+  notes          ClientNote[]
+  auditEvents    ClientAuditEvent[]
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, companyName])
+}
+
+/** People inside the client company. */
+model Contact {
+  id            String          @id @default(cuid())
+  client        Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  name          String
+  role          String?
+  email         String?
+  phone         String?
+  whatsapp      String?
+  preferredChannel ContactChannel? @default(EMAIL)
+  isPrimary     Boolean         @default(false)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([clientId])
+}
+
+/** Composed business activities — calls, meetings, follow-ups, notes. */
+model ClientActivity {
+  id          String       @id @default(cuid())
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  type        ActivityType
+  title       String
+  note        String?
+  actorId     String?
+  actorName   String?
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+/** What the client needs — from submission to approval. */
+model ClientRequirement {
+  id            String              @id @default(cuid())
+  client        Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  title         String
+  description   String?
+  status        RequirementStatus   @default(SUBMITTED)
+  priority      RequirementPriority @default(MEDIUM)
+  questionCount Int                 @default(0)
+  answeredCount Int                 @default(0)
+  reviewerId    String?
+  reviewerName  String?
+  submittedAt   DateTime            @default(now())
+  approvedAt    DateTime?
+
+  @@index([clientId, status])
+}
+
+/** Priced proposals sent to the client. */
+model ClientProposal {
+  id              String          @id @default(cuid())
+  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        String
+  title           String
+  amount          Float?          @default(0)
+  currency        String          @default("INR")
+  status          ProposalStatus  @default(DRAFT)
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  validUntil      DateTime?
+  createdAt       DateTime        @default(now())
+
+  @@index([clientId, status])
+}
+
+/** Client work — projects, stages, tasks. */
+model ClientProject {
+  id           String        @id @default(cuid())
+  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId     String
+  name         String
+  stage        ProjectStage  @default(PLANNING)
+  health       ProjectHealth @default(ON_TRACK)
+  progress     Int           @default(0)
+  deadline     DateTime?
+  startedAt    DateTime?
+  completedAt  DateTime?
+  createdAt    DateTime      @default(now())
+
+  tasks        ClientTask[]
+
+  @@index([clientId])
+}
+
+/** Tasks across client projects. */
+model ClientTask {
+  id          String        @id @default(cuid())
+  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  project     ClientProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId   String?
+  title       String
+  status      TaskStatus    @default(TODO)
+  priority    TaskPriority  @default(MEDIUM)
+  teamRole    String?
+  assigneeId  String?
+  assigneeName String?
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@index([clientId, status])
+}
+
+/** Money — contract, invoices, payments. */
+model ClientPayment {
+  id            String        @id @default(cuid())
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  type          PaymentType
+  label         String?
+  amount        Float
+  currency      String        @default("INR")
+  status        PaymentStatus @default(PENDING)
+  invoiceNumber String?
+  dueAt         DateTime?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+
+  @@index([clientId, status])
+}
+
+/** Files organized by relationship. */
+model ClientDocument {
+  id          String            @id @default(cuid())
+  client      Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  category    DocumentCategory
+  name        String
+  url         String?
+  size        Int?              @default(0)
+  uploadedByName String?
+  createdAt   DateTime          @default(now())
+
+  @@index([clientId, category])
+}
+
+/** Communication with the client. */
+model ClientMessage {
+  id        String         @id @default(cuid())
+  client    Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  channel   MessageChannel
+  subject   String
+  body      String?
+  direction String         @default("IN") // IN | OUT
+  fromName  String?
+  at        DateTime       @default(now())
+
+  @@index([clientId, at])
+}
+
+/** Internal notes / client memory. */
+model ClientNote {
+  id        String    @id @default(cuid())
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  content   String
+  authorId  String?
+  authorName String?
+  createdAt DateTime  @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+/** Audit trail — who changed what and when (separate from activity). */
+model ClientAuditEvent {
+  id         String       @id @default(cuid())
+  client     Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId   String
+  entity     AuditEntity
+  action     AuditAction
+  entityId   String?
+  actorId    String?
+  actorName  String?
+  before     String?      @default("{}")
+  after      String?      @default("{}")
+  createdAt  DateTime     @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+/** Workspace-defined custom client fields (stored dynamically as JSON). */
+model ClientCustomFieldDef {
+  id          String   @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  label       String
+  type        String   @default("text") // text | number | select | date | tags
+  options     String?  @default("[]")
+  createdAt   DateTime @default(now())
+
+  @@unique([workspaceId, label])
 }
 
 model Onboarding {
