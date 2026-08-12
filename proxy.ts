@@ -1,11 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
+/** All authenticated application routes (dashboard modules + onboarding). */
+const PROTECTED_ROUTES = [
+  "/dashboard",
+  "/onboarding",
+  "/clients",
+  "/requirements",
+  "/proposals",
+  "/projects",
+  "/tasks",
+  "/employees",
+  "/messages",
+  "/documents",
+  "/payments",
+  "/automations",
+  "/analytics",
+  "/github",
+  "/settings",
+];
+
+/** Routes restricted to OWNER/ADMIN — enforced here, not just hidden in UI. */
+const STAFF_ONLY_ROUTES = [
+  "/clients",
+  "/requirements",
+  "/proposals",
+  "/employees",
+  "/payments",
+  "/automations",
+  "/analytics",
+];
+
+function matches(path: string, prefix: string): boolean {
+  return path === prefix || path.startsWith(prefix + "/");
+}
+
 /**
  * Business OS — Proxy (middleware)
  *
- * Protects authenticated routes and redirects authenticated users
- * away from public auth pages.
+ * Protects authenticated routes, redirects authenticated users away from
+ * public auth pages, and enforces role-based access on the server.
  */
 export default async function proxy(req: NextRequest) {
   const session = await auth();
@@ -19,9 +53,7 @@ export default async function proxy(req: NextRequest) {
     path === "/reset-password" ||
     path === "/verify-email";
 
-  // Protected routes requiring authentication
-  const isProtectedRoute =
-    path.startsWith("/dashboard") || path.startsWith("/onboarding");
+  const isProtectedRoute = PROTECTED_ROUTES.some((r) => matches(path, r));
 
   // Auth API routes
   const isAuthApiRoute = path.startsWith("/api/auth");
@@ -42,6 +74,16 @@ export default async function proxy(req: NextRequest) {
     const loginUrl = new URL("/login", req.url);
     loginUrl.searchParams.set("from", path);
     return NextResponse.redirect(loginUrl);
+  }
+
+  // Server-side authorization: staff-only modules require OWNER/ADMIN.
+  // The sidebar hides these for members, but the backend enforces it too.
+  if (
+    session?.user &&
+    session.user.role === "MEMBER" &&
+    STAFF_ONLY_ROUTES.some((r) => matches(path, r))
+  ) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   // Redirect authenticated users away from auth pages — "/" resolves the
