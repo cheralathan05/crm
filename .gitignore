@@ -39,6 +39,9 @@ yarn-error.log*
 /prisma/dev.db-journal
 /src/generated
 
+# requirement uploads
+/uploads
+
 # vercel
 .vercel
 

@@ -364,6 +364,22 @@ body {
   display: none;
 }
 
+/* ── Section entrance (requirement workspace) ─ */
+.req-enter {
+  animation: req-enter var(--bos-duration-normal) ease both;
+}
+
+@keyframes req-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* ── Reduce motion ─────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,

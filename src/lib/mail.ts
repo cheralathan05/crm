@@ -272,6 +272,32 @@ export function emailConfigStatus() {
   } as const;
 }
 
+export async function sendRequirementRequestEmail(input: {
+  to: string;
+  subject: string;
+  message: string;
+  link: string;
+  projectTitle: string;
+  companyName: string;
+}): Promise<MailResult> {
+  const { to, subject, message, link, projectTitle, companyName } = input;
+  const safeMessage = message.trim() ? escapeHtml(message).replace(/\n/g, "<br/>") : "";
+  return send(
+    {
+      to,
+      subject,
+      text: `Hi,\n\n${safeMessage || `We're collecting a few details about the ${projectTitle} project to make sure we build the right thing.`}\n\nOpen your private project workspace to begin:\n\n${link}\n\nThis link is secure and expires automatically. You can save your progress and continue later.`,
+      html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 8px;">${escapeHtml(projectTitle)} — project discovery</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 16px;">${escapeHtml(companyName)} has prepared a private workspace for you. We'll guide you through a few focused steps to understand your business, goals and requirements. You can save progress and return any time.</p>
+${safeMessage ? `<p style="font-size:13px;color:#55504a;border-left:3px solid #e7e2d8;padding:10px 14px;background:#faf7f1;margin:0 0 16px;">${safeMessage}</p>` : ""}
+${actionButton(link, "Open Project Workspace")}
+<p style="font-size:12px;color:#8a8377;margin:16px 0 0;">Or open this link directly: <a href="${link}" style="color:#b5452a;">${link}</a></p>
+<p style="font-size:12px;color:#8a8377;margin:12px 0 0;">This link is secure, expires automatically, and is only valid for ${escapeHtml(companyName)}'s project discovery workspace.</p>`),
+    },
+    link,
+  );
+}
+
 export async function sendResetEmail(
   to: string,
   name: string,

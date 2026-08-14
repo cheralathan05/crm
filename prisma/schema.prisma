@@ -224,6 +224,8 @@ model Workspace {
   setup         WorkspaceSetup?
   clients       Client[]
   customFieldDefs ClientCustomFieldDef[]
+  requirementRequests RequirementRequest[]
+  copilotMessages ClientCopilotMessage[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -271,6 +273,8 @@ model Client {
   messages       ClientMessage[]
   notes          ClientNote[]
   auditEvents    ClientAuditEvent[]
+  requirementRequests RequirementRequest[]
+  copilotMessages ClientCopilotMessage[]
 
   @@index([workspaceId, status])
   @@index([workspaceId, companyName])
@@ -466,6 +470,208 @@ model ClientAuditEvent {
 }
 
 /** Workspace-defined custom client fields (stored dynamically as JSON). */
+/* ── Client Requirement Workspace ──────────────────────────────
+   The guided project-discovery flow. Admin configures a request,
+   the client completes it through a secure token link, and the
+   structured result feeds proposals and projects.
+──────────────────────────────────────────────────────────────── */
+
+enum RequirementProjectType {
+  WEBSITE
+  WEB_APP
+  MOBILE_APP
+  SAAS
+  ECOMMERCE
+  INTERNAL_SYSTEM
+  OTHER
+}
+
+enum RequirementRequestStatus {
+  DRAFT
+  SENT
+  IN_PROGRESS
+  SUBMITTED
+  CHANGES_REQUESTED
+  REVISION_SUBMITTED
+  APPROVED
+  REVOKED
+}
+
+enum FeaturePriority {
+  MUST_HAVE
+  SHOULD_HAVE
+  NICE_TO_HAVE
+}
+
+enum RequirementEventType {
+  REQUEST_CREATED
+  REQUEST_SENT
+  REQUEST_REMINDED
+  LINK_OPENED
+  SECTION_SAVED
+  SECTION_COMPLETED
+  FILE_UPLOADED
+  CHANGES_REQUESTED
+  CLIENT_COMMENTED
+  SUBMITTED
+  REVISION_SUBMITTED
+  APPROVED
+  PROPOSAL_CREATED
+  REQUEST_REVOKED
+}
+
+/** One guided requirement collection for a client, accessed by secure token. */
+model RequirementRequest {
+  id             String   @id @default(cuid())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  reference      String
+  title          String
+  projectType    RequirementProjectType @default(OTHER)
+  status         RequirementRequestStatus @default(DRAFT)
+  revision       Int      @default(1)
+  tokenHash      String   @unique
+  tokenExpiresAt DateTime?
+  tokenRevokedAt DateTime?
+  tokenRevokedReason String?
+  sentTo         String?
+  sentAt         DateTime?
+  lastOpenedAt   DateTime?
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  currentSection String   @default("business")
+  completeness   Int      @default(0)
+  readiness      Int      @default(0)
+  responderName  String?
+  responderRole  String?
+  responderEmail String?
+  createdById    String?
+  createdByName  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  answers     RequirementAnswer[]
+  features    RequirementFeature[]
+  attachments RequirementAttachment[]
+  comments    RequirementComment[]
+  revisions   RequirementRevision[]
+  events      RequirementEvent[]
+
+  @@index([workspaceId, status])
+  @@index([clientId])
+}
+
+/** One section's structured answers (JSON data, typed by section config). */
+model RequirementAnswer {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  section     String
+  data        String   @default("{}")
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requestId, section])
+}
+
+/** A feature the client selected and configured — task-ready data. */
+model RequirementFeature {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  name        String
+  priority    FeaturePriority @default(SHOULD_HAVE)
+  users       String   @default("[]")
+  description String   @default("")
+  config      String   @default("{}")
+  acceptanceCriteria String @default("[]")
+  dependencies String  @default("[]")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([requestId])
+}
+
+/** Files uploaded by the client or admin into the request. */
+model RequirementAttachment {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  section     String
+  name        String
+  mime        String
+  size        Int
+  path        String
+  uploadedByName String?
+  createdAt   DateTime @default(now())
+
+  @@index([requestId])
+}
+
+/** Clarification threads — admin requests, client replies. */
+model RequirementComment {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  author      String   @default("ADMIN") // ADMIN | CLIENT
+  authorName  String
+  section     String?
+  message     String
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+/** Immutable snapshots of every submission — the revision system. */
+model RequirementRevision {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  revision    Int
+  submittedByName String?
+  submittedAt DateTime @default(now())
+  snapshot    String   @default("{}")
+  changes     String   @default("[]")
+
+  @@unique([requestId, revision])
+}
+
+/** Activity timeline — every real event in the request's life. */
+model RequirementEvent {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  type        RequirementEventType
+  label       String
+  detail      String?
+  meta        String   @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+/** One message in the lead's private AI conversation — scoped to
+ *  workspace + client + user. Never mixes lead contexts. */
+model ClientCopilotMessage {
+  id          String   @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  userId      String
+  role        String   @default("USER") // USER | ASSISTANT
+  via         String   @default("text") // text | voice
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([clientId, userId, createdAt])
+}
+
 model ClientCustomFieldDef {
   id          String   @id @default(cuid())
   workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)

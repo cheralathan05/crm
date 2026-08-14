@@ -26,21 +26,25 @@ export type SidebarData = {
 /**
  * Real, workspace-scoped notification-style counts for sidebar badges.
  *
- * The module tables (Requirement, Task, Message, …) do not exist in the
- * schema yet — so the true count for every badge is zero today. When a
- * module ships, replace its zero with the real workspace-scoped query;
- * the badge pipeline already hides zero values, so nothing fake appears.
+ * Requirements badge: submissions that need attention — newly submitted,
+ * awaiting re-review after changes, or resubmitted. All other module
+ * tables (Task, Message, …) do not exist in the schema yet, so their
+ * true count is zero today; the badge pipeline hides zero values.
  */
 async function getSidebarCounts(userId: string): Promise<SidebarCounts> {
-  void userId; // workspace-scoped queries arrive with the module tables
-  // Once the module tables exist, resolve the workspace like this and count:
-  //   const workspace = await db.workspace.findUnique({ where: { ownerId: userId }, select: { id: true } });
-  //   const workspaceId = workspace?.id ?? null;
-  //   requirements: await db.requirement.count({ where: { workspaceId, status: "NEEDS_REVIEW" } })
-  //   tasks:        await db.task.count({ where: { workspaceId, assigneeId: userId, status: { not: "DONE" } } })
-  //   messages:     await db.message.count({ where: { workspaceId, recipientId: userId, readAt: null } })
-  //   notifications: await db.notification.count({ where: { userId, readAt: null } })
-  return { requirements: 0, tasks: 0, messages: 0, notifications: 0 };
+  const workspace = await db.workspace.findUnique({ where: { ownerId: userId }, select: { id: true } });
+  const workspaceId = workspace?.id ?? null;
+  const [requirements] = await Promise.all([
+    workspaceId
+      ? db.requirementRequest.count({
+          where: {
+            workspaceId,
+            status: { in: ["SUBMITTED", "CHANGES_REQUESTED", "REVISION_SUBMITTED"] },
+          },
+        })
+      : Promise.resolve(0),
+  ]);
+  return { requirements, tasks: 0, messages: 0, notifications: 0 };
 }
 
 /**
