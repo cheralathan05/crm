@@ -108,6 +108,15 @@ export function RequirementCommandCenter({
     void load();
   }, [load]);
 
+  // Live view — silently re-poll so the client's progress and submitted
+  // responses show up here without a manual refresh.
+  useEffect(() => {
+    const t = window.setInterval(() => {
+      void load();
+    }, 10_000);
+    return () => window.clearInterval(t);
+  }, [load]);
+
   const act = async (path: string, body?: Record<string, unknown>): Promise<{ ok: boolean; data?: Record<string, unknown>; message?: string }> => {
     setBusy(true);
     try {

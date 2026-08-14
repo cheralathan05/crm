@@ -33,7 +33,10 @@ export function RequirementRequests({
   onConfigOpenChange?: (open: boolean) => void;
   onChanged: () => Promise<void>;
 }) {
-  const configuring = configOpen ?? false;
+  // Only one requirement request per client — the secure workspace is a
+  // single relationship. Once one exists, creation is hidden.
+  const canCreate = requests.length === 0;
+  const configuring = (configOpen ?? false) && canCreate;
   const setConfiguring = (open: boolean) => {
     onConfigOpenChange?.(open);
     if (!open) setTitle("");
@@ -70,7 +73,11 @@ export function RequirementRequests({
       setLinks((l) => ({ ...l, [data.id]: data.link }));
       setConfiguring(false);
       setOpenRequestId(data.id);
-      notify(`✓ ${data.reference} created — link ready to send.`);
+      notify(
+        data.sent
+          ? `✓ ${data.reference} created — secure link sent to ${data.sentTo}.`
+          : `✓ ${data.reference} created — ${data.dev ? "link printed to the server console (email not configured)." : (data.message ?? "no email on file — copy the link to send it.")}`,
+      );
       await onChanged();
     } catch {
       setCreateError("Network error — please try again.");
@@ -98,10 +105,12 @@ export function RequirementRequests({
       title="Requirement requests"
       meta={`${requests.length} total`}
       action={
-        <MicroButton variant="accent" onClick={() => setConfiguring(!configuring)}>
-          {configuring ? <X className="w-3 h-3" aria-hidden="true" /> : <Plus className="w-3 h-3" aria-hidden="true" />}
-          {configuring ? "Cancel" : "Request requirements"}
-        </MicroButton>
+        canCreate ? (
+          <MicroButton variant="accent" onClick={() => setConfiguring(!configuring)}>
+            {configuring ? <X className="w-3 h-3" aria-hidden="true" /> : <Plus className="w-3 h-3" aria-hidden="true" />}
+            {configuring ? "Cancel" : "Request requirements"}
+          </MicroButton>
+        ) : undefined
       }
     >
       {/* Configure */}
@@ -157,6 +166,14 @@ export function RequirementRequests({
               {creating ? "Creating…" : "Create & generate secure link"}
             </MicroButton>
           </div>
+        </div>
+      )}
+
+      {/* One-per-client note */}
+      {!configuring && requests.length > 0 && (
+        <div className="mb-3 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-overlay)]/40 px-3 py-2 text-[11px] text-[var(--bos-text-secondary)]">
+          One requirement request per client — this client already has{" "}
+          <span className="font-mono text-[var(--bos-text-tertiary)]">{requests[0].reference}</span>. Send reminders or regenerate its secure link instead of creating a new one.
         </div>
       )}
 
