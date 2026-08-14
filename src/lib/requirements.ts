@@ -1,7 +1,8 @@
 import { db } from "./db";
 import { generateToken, hashToken, tokenExpiry } from "./tokens";
 import { recordAudit } from "./clients";
-import { buildProposalDocument, nextProposalReference, estimateBudgetAmount } from "./proposal";
+import { buildProposalDocument, nextProposalReference } from "./proposal";
+import { estimateBudgetAmount } from "./proposal-doc";
 import {
   computeCompleteness,
   computeReadiness,

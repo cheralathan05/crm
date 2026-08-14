@@ -28,7 +28,7 @@ export async function GET(_req: Request, { params }: Ctx) {
   }
 
   const safeName = (proposal.reference ?? "proposal").replace(/[^A-Za-z0-9-]/g, "_");
-  return new NextResponse(stored.buffer, {
+  return new NextResponse(new Uint8Array(stored.buffer), {
     headers: {
       "Content-Type": "application/pdf",
       "Content-Disposition": `inline; filename="${safeName}.pdf"`,

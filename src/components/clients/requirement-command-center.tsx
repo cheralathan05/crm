@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   AlertTriangle,
@@ -199,6 +200,7 @@ export function RequirementCommandCenter({
   const [dialogSection, setDialogSection] = useState<string | null>(null);
   const [ceremony, setCeremony] = useState<Ceremony>(null);
   const [link, setLink] = useState<string | null>(initialLink ?? null);
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -641,7 +643,7 @@ export function RequirementCommandCenter({
                 onApprove={approve}
                 onProposal={() => setDialog("proposal")}
                 onOpenProposal={() => {
-                  if (newestProposal) window.location.href = `/proposals/${newestProposal.id}`;
+                  if (newestProposal) router.push(`/proposals/${newestProposal.id}`);
                 }}
               />
             )}
@@ -928,7 +930,6 @@ function SectionView({
   reviewState: ReviewState;
   onAskClient: () => void;
 }) {
-  const data = (bundle.answers[section.key] ?? {}) as Record<string, unknown>;
   const openComments = bundle.comments.filter((c) => c.section === section.key && !c.resolvedAt);
   const complete = bundle.states[section.key] === true;
 
@@ -1316,10 +1317,12 @@ function ReviewView({
   onAskClient: (section?: string | null) => void;
   onApprove: () => void;
   onProposal: () => void;
-  onOpenProposal: () => void;
-}) {
+  onOpenProposal: () => void;}) {
   const r = bundle.request;
   const weightSections = SECTIONS.filter((s) => s.weight > 0);
+  const router = useRouter();
+
+
 
   return (
     <div className="space-y-6 req-enter">
@@ -1438,7 +1441,7 @@ function ReviewView({
                 <span className="flex items-center gap-2 shrink-0">
                   {p.amount !== null && <span className="tabular-nums text-[var(--bos-text-secondary)]">₹{p.amount.toLocaleString("en-IN")}</span>}
                   <StatusChip status={p.status} />
-                  <MicroButton onClick={() => (window.location.href = `/proposals/${p.id}`)}>
+                  <MicroButton onClick={() => router.push(`/proposals/${p.id}`)}>
                     <ArrowRight className="w-3 h-3" aria-hidden="true" />
                   </MicroButton>
                 </span>
@@ -1639,8 +1642,9 @@ function CeremonyView({
 
   useEffect(() => {
     if (ceremony.phase !== "building") return;
-    setChecked(0);
+    // Reset and tick are both deferred so the effect only schedules timers.
     const timers: ReturnType<typeof setTimeout>[] = [];
+    timers.push(setTimeout(() => setChecked(0), 0));
     BUILD_STEPS.forEach((_, i) => {
       timers.push(setTimeout(() => setChecked(i + 1), 260 * (i + 1)));
     });

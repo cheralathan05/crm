@@ -1,7 +1,16 @@
 import { db } from "./db";
 import { loadAnswers, loadFeatures } from "./requirements";
 import { PDFDocument } from "pdf-lib";
-import type { Client, ClientProposal, Contact, RequirementRequest, Workspace } from "@/generated/prisma/client";
+import {
+  amountLabel,
+  estimateBudgetAmount,
+  timelineLabel,
+  type ProposalBlock,
+  type ProposalDoc,
+  type ProposalSection,
+  type ProposalSource,
+} from "./proposal-doc";
+import type { Client, ClientProposal, Contact, Workspace } from "@/generated/prisma/client";
 
 /* ────────────────────────────────────────────────────────────────
    PROPOSAL STUDIO — DOMAIN LOGIC
@@ -11,71 +20,6 @@ import type { Client, ClientProposal, Contact, RequirementRequest, Workspace } f
    so the studio can show honest provenance. PDF generation is
    server-side via pdfmake with a professional editorial layout.
 ──────────────────────────────────────────────────────────────── */
-
-export type ProposalBlock =
-  | { type: "paragraph"; text: string }
-  | { type: "list"; items: string[] }
-  | { type: "table"; headers: string[]; rows: string[][] }
-  | { type: "spacer" };
-
-export type ProposalSource = "REQUIREMENT" | "CLIENT" | "WORKSPACE" | "MANUAL" | "AI_DRAFT";
-
-export type ProposalSection = {
-  id: string;
-  number: string;
-  title: string;
-  kicker: string;
-  source: ProposalSource;
-  visible: boolean;
-  blocks: ProposalBlock[];
-};
-
-export type ProposalDoc = {
-  version: number;
-  meta: {
-    reference: string;
-    title: string;
-    clientName: string;
-    preparedBy: string;
-    preparedFor: string | null;
-    amount: number | null;
-    currency: string;
-    amountLabel: string;
-    timelineLabel: string;
-    date: string; // ISO
-  };
-  sections: ProposalSection[];
-};
-
-/* ── Money / timeline helpers ─────────────────────────────────── */
-
-/** Upper bound of a budget range string ("₹1L – ₹3L" → 3_00_000). */
-export function estimateBudgetAmount(budgetRange: string): number | null {
-  const parts = budgetRange.split(/[\u2013\u2014\-–—]/);
-  const lastWithDigits = [...parts].reverse().find((p) => /\d/.test(p));
-  if (!lastWithDigits) return null;
-  const match = lastWithDigits.match(/(\d+(?:\.\d+)?)\s*[LK]/);
-  if (!match) return null;
-  const raw = Number(match[1]);
-  return match[0].toUpperCase().includes("L") ? raw * 100_000 : raw * 1_000;
-}
-
-export function formatINR(n: number): string {
-  return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
-}
-
-export function amountLabel(amount: number | null): string {
-  if (amount === null) return "To be confirmed";
-  return formatINR(amount);
-}
-
-export function timelineLabel(answers: Record<string, Record<string, unknown>>): string {
-  const t = answers.timeline ?? {};
-  const launch = String(t.launchWindow ?? "");
-  const deadline = String(t.deadlineDate ?? "");
-  if (launch && deadline) return `${launch} · fixed ${deadline}`;
-  return launch || "To be discussed";
-}
 
 /* ── Reference ────────────────────────────────────────────────── */
 
@@ -452,6 +396,7 @@ export async function serializeProposalForStudio(
   }
 
   if (!document.sections || document.sections.length === 0) {
+    if (!client || !workspace) throw new Error("Proposal context missing.");
     const answers = request ? await loadAnswers(request.id) : {};
     const features = request ? await loadFeatures(request.id) : [];
     document = buildProposalDocument({
@@ -499,60 +444,6 @@ export async function serializeProposalForStudio(
       website: workspace?.profile?.website ?? null,
     },
   };
-}
-
-/* ── Quality score — deterministic, explainable ───────────────── */
-
-export function computeProposalQuality(doc: ProposalDoc): {
-  total: number;
-  items: { label: string; ok: boolean; note: string }[];
-} {
-  const visible = doc.sections.filter((s) => s.visible);
-  const hasContent = (s: ProposalSection) =>
-    s.blocks.some((b) =>
-      b.type === "paragraph" ? b.text.trim().length > 0 : b.type === "list" ? b.items.length > 0 : b.type === "table" ? b.rows.length > 0 : false,
-    );
-
-  const items: { label: string; ok: boolean; note: string }[] = [];
-  items.push({
-    label: "Content",
-    ok: visible.filter(hasContent).length >= Math.max(4, Math.ceil(visible.length / 2)),
-    note: `${visible.filter(hasContent).length} of ${visible.length} sections have content`,
-  });
-  items.push({
-    label: "Branding",
-    ok: !!doc.meta.preparedBy && !!doc.meta.clientName,
-    note: doc.meta.preparedBy ? `Prepared by ${doc.meta.preparedBy}` : "Add your company name",
-  });
-  items.push({
-    label: "Scope",
-    ok: (() => {
-      const s = doc.sections.find((x) => x.id === "scope");
-      return !!s && hasContent(s);
-    })(),
-    note: "Scope carries requirement data",
-  });
-  items.push({
-    label: "Pricing",
-    ok: doc.meta.amount !== null,
-    note: doc.meta.amount !== null ? doc.meta.amountLabel : "Set the investment amount",
-  });
-  items.push({
-    label: "Timeline",
-    ok: !!doc.meta.timelineLabel && doc.meta.timelineLabel !== "To be discussed",
-    note: doc.meta.timelineLabel || "Add the timeline",
-  });
-  items.push({
-    label: "Terms",
-    ok: (() => {
-      const s = doc.sections.find((x) => x.id === "terms");
-      return !!s && hasContent(s);
-    })(),
-    note: "Confirm terms before sending",
-  });
-
-  const total = Math.round((items.filter((i) => i.ok).length / items.length) * 100);
-  return { total, items };
 }
 
 /* ── PDF generation — server-side, professional layout ───────── */
@@ -624,11 +515,11 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
   const date = new Date(doc.meta.date);
   const dateLabel = date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
 
-  const header = (currentPage: number, pageCount: number) => ({
+  const header = (_currentPage: number, _pageCount: number) => ({
     columns: [
       { text: doc.meta.reference.toUpperCase(), style: "micro", color: FAINT },
       { text: doc.meta.title, style: "micro", color: MUTED, alignment: "center" },
-      { text: `${currentPage} / ${pageCount}`, style: "micro", color: FAINT, alignment: "right" },
+      { text: `${_currentPage} / ${_pageCount}`, style: "micro", color: FAINT, alignment: "right" },
     ],
     margin: [0, 0, 0, 12],
   });
@@ -718,7 +609,7 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
       coverValue: { fontSize: 13, bold: true, color: INK, margin: [2, 0, 0, 0] },
     },
     header: (currentPage: number, pageCount: number) => (currentPage <= 1 ? null : header(currentPage, pageCount)),
-    footer: (currentPage: number, pageCount: number) => ({
+    footer: () => ({
       columns: [
         { text: doc.meta.clientName.toUpperCase(), style: "micro", color: FAINT },
         { text: doc.meta.reference, style: "micro", color: FAINT, alignment: "right" },
