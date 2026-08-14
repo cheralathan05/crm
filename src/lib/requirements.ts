@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { generateToken, hashToken, tokenExpiry } from "./tokens";
 import { recordAudit } from "./clients";
+import { buildProposalDocument, nextProposalReference, estimateBudgetAmount } from "./proposal";
 import {
   computeCompleteness,
   computeReadiness,
@@ -760,43 +761,56 @@ export async function transitionRequest(input: {
   }
 }
 
-/** Build the proposal from an approved requirement — zero manual re-entry. */
+/** Build the proposal from an approved requirement — zero manual re-entry.
+ *  The reference, estimated amount and full editable document (sections bound
+ *  to real requirement data) are created together in one step. */
 export async function createProposalFromRequirement(input: {
   request: RequirementRequest;
   actorName: string;
 }) {
   const { request } = input;
-  const [answers, features, attachments] = await Promise.all([
+  const [answers, features, attachments, client, workspace, contact] = await Promise.all([
     loadAnswers(request.id),
     loadFeatures(request.id),
     db.requirementAttachment.findMany({ where: { requestId: request.id }, select: { name: true } }),
+    db.client.findUnique({ where: { id: request.clientId } }),
+    db.workspace.findUnique({ where: { id: request.workspaceId }, include: { profile: true } }),
+    db.contact.findFirst({ where: { clientId: request.clientId, isPrimary: true } }),
   ]);
+  if (!client || !workspace) throw new Error("Client or workspace not found.");
 
   const commercial = answers.commercial ?? {};
   const scope = answers.scope ?? {};
   const stakeholders = answers.stakeholders ?? {};
   const design = answers.design ?? {};
 
-  // A budget range may contain a number (e.g. "₹1L – ₹3L" → 3_00_000 ceiling).
-  // Use the UPPER bound of the range so the estimate reflects the top of the
-  // client's budget, never the floor.
-  const budgetRange = String(commercial.budgetRange ?? "");
-  const budgetParts = budgetRange.split(/[\u2013\u2014\-–—]/);
-  const budgetMatch = [...budgetParts].reverse().find((p) => /\d/.test(p));
-  const rawMatch = budgetMatch?.match(/(\d+(?:\.\d+)?)\s*[LK]/);
-  let estimatedAmount: number | null = null;
-  if (rawMatch) {
-    const raw = Number(rawMatch[1]);
-    estimatedAmount = rawMatch[0].toUpperCase().includes("L") ? raw * 100_000 : raw * 1_000;
-  }
+  const reference = await nextProposalReference(request.workspaceId);
+  const estimatedAmount = estimateBudgetAmount(String(commercial.budgetRange ?? ""));
 
   const proposal = await db.clientProposal.create({
     data: {
       clientId: request.clientId,
+      requirementRequestId: request.id,
+      reference,
       title: `${request.title} — Proposal`,
       amount: estimatedAmount,
       status: "DRAFT",
     },
+  });
+
+  // Build the editable document straight from the approved requirement — the
+  // studio receives a real structure, never an empty form.
+  const document = buildProposalDocument({
+    proposal,
+    client,
+    workspace,
+    contact,
+    answers,
+    features: features.map((f) => ({ name: f.name, priority: f.priority, description: f.description, users: f.users })),
+  });
+  await db.clientProposal.update({
+    where: { id: proposal.id },
+    data: { document: JSON.stringify(document) },
   });
 
   // Preserve the full context as an internal note on the client so nothing
