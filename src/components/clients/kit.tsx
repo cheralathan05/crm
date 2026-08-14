@@ -12,6 +12,20 @@ const STATUS_TONES: Record<string, { dot: string; text: string; bg: string; labe
   ARCHIVED: { dot: "bg-[var(--bos-text-tertiary)]", text: "text-[var(--bos-text-tertiary)]", bg: "bg-[var(--bos-overlay)]", label: "Archived" },
   ON_TRACK: { dot: "bg-[var(--bos-success)]", text: "text-[var(--bos-success)]", bg: "bg-[var(--bos-success)]/8", label: "On Track" },
   BLOCKED: { dot: "bg-[var(--bos-error)]", text: "text-[var(--bos-error)]", bg: "bg-[var(--bos-error)]/8", label: "Blocked" },
+
+  // Requirement request statuses
+  SUBMITTED: { dot: "bg-[var(--bos-warning)]", text: "text-[var(--bos-warning)]", bg: "bg-[var(--bos-warning)]/8", label: "Submitted" },
+  REVISION_SUBMITTED: { dot: "bg-[var(--bos-warning)]", text: "text-[var(--bos-warning)]", bg: "bg-[var(--bos-warning)]/8", label: "Resubmitted" },
+  CHANGES_REQUESTED: { dot: "bg-[var(--bos-warning)]", text: "text-[var(--bos-warning)]", bg: "bg-[var(--bos-warning)]/8", label: "Changes requested" },
+  APPROVED: { dot: "bg-[var(--bos-success)]", text: "text-[var(--bos-success)]", bg: "bg-[var(--bos-success)]/8", label: "Approved" },
+  DRAFT: { dot: "bg-[var(--bos-text-tertiary)]", text: "text-[var(--bos-text-tertiary)]", bg: "bg-[var(--bos-overlay)]", label: "Draft" },
+  SENT: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "Sent" },
+  IN_PROGRESS: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "In progress" },
+  REVOKED: { dot: "bg-[var(--bos-error)]", text: "text-[var(--bos-error)]", bg: "bg-[var(--bos-error)]/8", label: "Revoked" },
+
+  // Proposal statuses
+  VIEWED: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "Viewed" },
+  REJECTED: { dot: "bg-[var(--bos-error)]", text: "text-[var(--bos-error)]", bg: "bg-[var(--bos-error)]/8", label: "Rejected" },
 };
 
 export function StatusChip({ status, className }: { status: string; className?: string }) {

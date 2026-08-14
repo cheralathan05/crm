@@ -421,6 +421,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       responderName: request.responderName,
       responderRole: request.responderRole,
       createdAt: request.createdAt,
+      createdByName: request.createdByName,
       token: null as string | null, // never expose the token in admin bundles
       link: null as string | null,
       canSend: request.status === "DRAFT",

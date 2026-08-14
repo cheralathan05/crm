@@ -340,14 +340,24 @@ model ClientProposal {
   id              String          @id @default(cuid())
   client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
   clientId        String
+  /** The approved requirement this proposal was built from. */
+  requirementRequestId String?
+  reference       String?         // e.g. PROP-2026-001
   title           String
   amount          Float?          @default(0)
   currency        String          @default("INR")
   status          ProposalStatus  @default(DRAFT)
+  /** The full editable proposal document (JSON). */
+  document        String          @default("{}")
+  /** Stored PDF (relative path under uploads/). */
+  pdfPath         String?
+  pdfPages        Int?            @default(0)
+  finalizedAt     DateTime?
   sentAt          DateTime?
   viewedAt        DateTime?
   validUntil      DateTime?
   createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
   @@index([clientId, status])
 }
