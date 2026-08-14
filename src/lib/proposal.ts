@@ -333,6 +333,43 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
   return { version: 1, meta, sections };
 }
 
+/* ── Listing (workspace-scoped) ───────────────────────────────── */
+
+export async function listProposalsForUser(userId: string) {
+  const workspace = await db.workspace.findUnique({ where: { ownerId: userId } });
+  if (!workspace) return { rows: [], counts: { all: 0, DRAFT: 0, SENT: 0, APPROVED: 0 } };
+
+  const [rows, group] = await Promise.all([
+    db.clientProposal.findMany({
+      where: { client: { workspaceId: workspace.id } },
+      include: { client: { select: { companyName: true, id: true } } },
+      orderBy: { updatedAt: "desc" },
+      take: 100,
+    }),
+    db.clientProposal.groupBy({ by: ["status"], where: { client: { workspaceId: workspace.id } }, _count: { _all: true } }),
+  ]);
+
+  const counts: Record<string, number> = { all: rows.length };
+  for (const g of group) counts[g.status] = g._count._all;
+
+  return {
+    rows: rows.map((p) => ({
+      id: p.id,
+      reference: p.reference,
+      title: p.title,
+      status: p.status,
+      amount: p.amount,
+      pdfPages: p.pdfPages,
+      finalizedAt: p.finalizedAt ? p.finalizedAt.toISOString() : null,
+      clientId: p.client.id,
+      companyName: p.client.companyName,
+      createdAt: p.createdAt.toISOString(),
+      updatedAt: p.updatedAt.toISOString(),
+    })),
+    counts,
+  };
+}
+
 /* ── Serialization for the studio ─────────────────────────────── */
 
 export type ProposalStudioBundle = {
@@ -452,12 +489,13 @@ export async function serializeProposalForStudio(
 // src/types/pdfmake.d.ts. The fonts are embedded in vfs_fonts.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfMake = require("pdfmake/build/pdfmake") as {
-  createPdf(doc: unknown): { getBuffer(cb: (b: Buffer) => void): void };
+  createPdf(doc: unknown): { getBuffer(): Promise<Buffer> };
   vfs: Record<string, string>;
 };
+// pdfmake ≥0.3 ships the font map directly (Roboto base64 entries).
 // eslint-disable-next-line @typescript-eslint/no-require-imports
-const pdfFonts = require("pdfmake/build/vfs_fonts") as { pdfMake: { vfs: Record<string, string> } };
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+const pdfFonts = require("pdfmake/build/vfs_fonts") as Record<string, string>;
+pdfMake.vfs = pdfFonts;
 
 const ACCENT = "#b5452a";
 const INK = "#1a1714";
@@ -622,13 +660,16 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
 
 export async function generateProposalPdf(doc: ProposalDoc): Promise<{ buffer: Buffer; pages: number }> {
   const definition = proposalToPdfDefinition(doc);
-  const buffer = await new Promise<Buffer>((resolve, reject) => {
-    try {
-      pdfMake.createPdf(definition).getBuffer((b: Buffer) => resolve(b));
-    } catch (err) {
-      reject(err);
-    }
-  });
+  let buffer: Buffer;
+  try {
+    // pdfmake ≥0.3: getBuffer() returns a Promise<Buffer> — but its build
+    // bundles its own Buffer polyfill. Normalize to a real Node Buffer so
+    // the bytes are safe to write to disk and serve.
+    const raw = await pdfMake.createPdf(definition).getBuffer();
+    buffer = Buffer.from(new Uint8Array(raw as unknown as ArrayBuffer));
+  } catch (err) {
+    throw err;
+  }
 
   // Count pages accurately with pdf-lib — never guess.
   let pages = 0;
