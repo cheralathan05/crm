@@ -2,15 +2,52 @@
    PROPOSAL DOCUMENT — PURE TYPES & HELPERS
    No server-only imports — safe to share between the API layer and
    the Proposal Studio client component. All functions are pure.
+
+   The document is a structured block model, never raw HTML. Every
+   block is typed, addressable (id), and can carry its provenance
+   (source + sourceRequirementIds) so proposal facts stay traceable
+   to the approved requirement. Section groups (OVERVIEW / SOLUTION /
+   DELIVERY / COMMERCIAL / CLOSING) organize the navigator, and the
+   coverage/readiness functions are derived deterministically from
+   the real data — never fabricated.
 ──────────────────────────────────────────────────────────────── */
 
-export type ProposalBlock =
+export type ProposalBlockShape =
   | { type: "paragraph"; text: string }
-  | { type: "list"; items: string[] }
+  | { type: "heading"; text: string; level?: 1 | 2 | 3 }
+  | { type: "list"; items: string[]; ordered?: boolean }
   | { type: "table"; headers: string[]; rows: string[][] }
+  | { type: "feature_card"; title: string; purpose: string; capabilities: string[]; priority: string; users: string; status: string }
+  | { type: "objective_card"; title: string; description: string; successIndicator: string; requirement: string }
+  | { type: "callout"; title: string; text: string; tone: "info" | "warning" | "success" }
+  | { type: "statistic"; label: string; value: string; detail?: string }
+  | { type: "process_flow"; steps: string[] }
+  | { type: "timeline"; phases: { title: string; description: string; duration?: string }[] }
+  | { type: "milestone"; title: string; description: string; date?: string; status?: string }
+  | { type: "deliverable"; id: string; name: string; description: string; status: string }
+  | { type: "requirement_reference"; reference: string; title: string; status?: string }
+  | { type: "quote"; text: string; attribution?: string }
+  | { type: "pricing_table"; headers: string[]; rows: string[][]; total?: string }
+  | { type: "assumption"; id: string; description: string; owner?: string; impact?: string; status?: string }
+  | { type: "risk"; title: string; description: string; impact?: string; mitigation?: string; status?: string }
+  | { type: "signature"; role: "CLIENT" | "PROVIDER"; name?: string; title?: string }
+  | { type: "page_break" }
   | { type: "spacer" };
 
+export type ProposalBlock = ProposalBlockShape & Partial<BlockMeta>;
+
+/** Provenance metadata attached to every block — what fact it came from. */
+export type BlockMeta = {
+  id?: string;
+  source?: ProposalSource;
+  sourceRequirementIds?: string[];
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export type ProposalSource = "REQUIREMENT" | "CLIENT" | "WORKSPACE" | "MANUAL" | "AI_DRAFT";
+
+export type SectionStatus = "DRAFT" | "READY" | "REVIEW_REQUIRED" | "AI_ENHANCED";
 
 export type ProposalSection = {
   id: string;
@@ -20,6 +57,10 @@ export type ProposalSection = {
   source: ProposalSource;
   visible: boolean;
   blocks: ProposalBlock[];
+  /** Navigator group — OVERVIEW / SOLUTION / DELIVERY / COMMERCIAL / CLOSING. */
+  group?: string;
+  status?: SectionStatus;
+  updatedAt?: string;
 };
 
 export type ProposalDoc = {
@@ -47,38 +88,299 @@ export const SOURCE_LABELS: Record<ProposalSource, string> = {
   AI_DRAFT: "AI draft",
 };
 
-/** Upper bound of a budget range string ("₹1L – ₹3L" → 3_00_000). */
-export function estimateBudgetAmount(budgetRange: string): number | null {
-  const parts = budgetRange.split(/[\u2013\u2014\-–—]/);
-  const lastWithDigits = [...parts].reverse().find((p) => /\d/.test(p));
-  if (!lastWithDigits) return null;
-  const match = lastWithDigits.match(/(\d+(?:\.\d+)?)\s*[LK]/);
-  if (!match) return null;
-  const raw = Number(match[1]);
-  return match[0].toUpperCase().includes("L") ? raw * 100_000 : raw * 1_000;
+/* ── Section groups (spec 04) ─────────────────────────────────── */
+
+export const SECTION_GROUPS = [
+  { key: "OVERVIEW", label: "Overview" },
+  { key: "SOLUTION", label: "Solution" },
+  { key: "DELIVERY", label: "Delivery" },
+  { key: "COMMERCIAL", label: "Commercial" },
+  { key: "CLOSING", label: "Closing" },
+] as const;
+
+export type SectionGroupKey = (typeof SECTION_GROUPS)[number]["key"];
+
+/** Default group for the known template section ids. */
+export const DEFAULT_SECTION_GROUP: Record<string, SectionGroupKey> = {
+  cover: "OVERVIEW",
+  contents: "OVERVIEW",
+  "executive-summary": "OVERVIEW",
+  overview: "OVERVIEW",
+  objectives: "OVERVIEW",
+  scope: "SOLUTION",
+  deliverables: "SOLUTION",
+  methodology: "SOLUTION",
+  timeline: "DELIVERY",
+  "activity-plan": "DELIVERY",
+  roles: "DELIVERY",
+  communication: "DELIVERY",
+  investment: "COMMERCIAL",
+  terms: "COMMERCIAL",
+  contact: "CLOSING",
+  closing: "CLOSING",
+};
+
+export function sectionGroupKey(s: ProposalSection): SectionGroupKey {
+  return (s.group as SectionGroupKey) ?? DEFAULT_SECTION_GROUP[s.id] ?? "CLOSING";
 }
 
-export function formatINR(n: number): string {
-  return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+export function groupLabel(key: string): string {
+  return SECTION_GROUPS.find((g) => g.key === key)?.label ?? key;
 }
 
-export function amountLabel(amount: number | null): string {
-  if (amount === null) return "To be confirmed";
-  return formatINR(amount);
+/* ── Block helpers ────────────────────────────────────────────── */
+
+export function blockId(b: ProposalBlock, fallback: string): string {
+  return b.id ?? fallback;
 }
 
-export function timelineLabel(answers: Record<string, Record<string, unknown>>): string {
-  const t = answers.timeline ?? {};
-  const launch = String(t.launchWindow ?? "");
-  const deadline = String(t.deadlineDate ?? "");
-  if (launch && deadline) return `${launch} · fixed ${deadline}`;
-  return launch || "To be discussed";
+/** Human-readable text of a block — used for search + requirement coverage. */
+export function blockText(b: ProposalBlock): string {
+  switch (b.type) {
+    case "paragraph":
+    case "heading":
+    case "quote":
+      return b.text;
+    case "list":
+    case "process_flow":
+      return ("items" in b ? (b as { items: string[] }).items : (b as { steps: string[] }).steps).join(" ");
+    case "table":
+    case "pricing_table":
+      return [...(b.headers ?? []), ...b.rows.flat().filter(Boolean)].join(" ");
+    case "feature_card":
+      return [b.title, b.purpose, b.users, ...(b.capabilities ?? [])].filter(Boolean).join(" ");
+    case "objective_card":
+      return [b.title, b.description, b.successIndicator, b.requirement].filter(Boolean).join(" ");
+    case "callout":
+      return [b.title, b.text].filter(Boolean).join(" ");
+    case "statistic":
+      return [b.label, b.value, b.detail].filter(Boolean).join(" ");
+    case "timeline":
+      return b.phases.map((p) => [p.title, p.description, p.duration].filter(Boolean).join(" ")).join(" ");
+    case "milestone":
+      return [b.title, b.description, b.date].filter(Boolean).join(" ");
+    case "deliverable":
+      return [b.id, b.name, b.description].filter(Boolean).join(" ");
+    case "requirement_reference":
+      return [b.reference, b.title].filter(Boolean).join(" ");
+    case "assumption":
+      return [b.id, b.description, b.owner, b.impact].filter(Boolean).join(" ");
+    case "risk":
+      return [b.title, b.description, b.impact, b.mitigation].filter(Boolean).join(" ");
+    case "signature":
+      return [b.name, b.title, b.role].filter(Boolean).join(" ");
+    default:
+      return "";
+  }
+}
+
+/** Does the block carry any real content? Empty scaffold blocks are treated
+    as absent so completion/readiness numbers are honest. */
+export function blockHasContent(b: ProposalBlock): boolean {
+  switch (b.type) {
+    case "paragraph":
+    case "heading":
+    case "quote":
+      return b.text.trim().length > 0;
+    case "list":
+    case "process_flow": {
+      const items = ("items" in b ? (b as { items: string[] }).items : (b as { steps: string[] }).steps) ?? [];
+      return items.some((x) => String(x).trim().length > 0);
+    }
+    case "table":
+    case "pricing_table":
+      return b.rows.some((r) => r.some((c) => String(c).trim().length > 0));
+    case "feature_card":
+      return b.title.trim().length > 0;
+    case "objective_card":
+      return b.title.trim().length > 0;
+    case "callout":
+      return b.text.trim().length > 0;
+    case "statistic":
+      return b.value.trim().length > 0;
+    case "timeline":
+      return b.phases.length > 0;
+    case "milestone":
+      return b.title.trim().length > 0;
+    case "deliverable":
+      return b.name.trim().length > 0;
+    case "requirement_reference":
+      return b.reference.trim().length > 0 || b.title.trim().length > 0;
+    case "assumption":
+      return b.description.trim().length > 0;
+    case "risk":
+      return b.title.trim().length > 0 || b.description.trim().length > 0;
+    case "signature":
+      return Boolean(b.name) || Boolean(b.title);
+    case "page_break":
+    case "spacer":
+      return true;
+  }
+}
+
+/** Section completion — share of content-bearing blocks (spec: navigator %). */
+export function sectionCompletion(s: ProposalSection): number {
+  if (s.blocks.length === 0) return 0;
+  const done = s.blocks.filter(blockHasContent).length;
+  return Math.round((done / s.blocks.length) * 100);
 }
 
 export function hasContent(s: ProposalSection): boolean {
-  return s.blocks.some((b) =>
-    b.type === "paragraph" ? b.text.trim().length > 0 : b.type === "list" ? b.items.length > 0 : b.type === "table" ? b.rows.length > 0 : false,
-  );
+  return s.blocks.some(blockHasContent);
+}
+
+/** Derived section status — from real state, never hardcoded. */
+export function deriveSectionStatus(s: ProposalSection): SectionStatus {
+  if (s.source === "AI_DRAFT") return "AI_ENHANCED";
+  if (!hasContent(s)) return "DRAFT";
+  if (sectionCompletion(s) < 100) return "REVIEW_REQUIRED";
+  return "READY";
+}
+
+/** Deterministic id for a block based on its position — used as the initial
+    key when old documents (without ids) are loaded. */
+export function blockFallbackId(sectionId: string, index: number): string {
+  return `${sectionId}-b${index}`;
+}
+
+/** Normalize a document loaded from storage: backfill group/status on
+    sections and stable ids + source on blocks. Idempotent and pure. */
+export function normalizeDoc(doc: ProposalDoc): ProposalDoc {
+  const sections = doc.sections.map((s, i) => {
+    const blocks = s.blocks.map((b, j) => {
+      const withId = { ...b, id: b.id ?? blockFallbackId(s.id, j) } as ProposalBlock;
+      if (!withId.source) withId.source = s.source;
+      if (!withId.updatedAt) withId.updatedAt = doc.meta.date ?? new Date().toISOString();
+      return withId;
+    });
+    return {
+      ...s,
+      blocks,
+      group: s.group ?? DEFAULT_SECTION_GROUP[s.id] ?? "CLOSING",
+      status: s.status ?? deriveSectionStatus({ ...s, blocks }),
+    };
+  });
+  return { ...doc, sections };
+}
+
+/* ── Coverage + readiness (spec 20, 21) ───────────────────────── */
+
+export type RequirementFeatureRef = { name: string; priority: string; status?: string };
+
+export type RequirementCoverage = {
+  percent: number;
+  total: number;
+  represented: number;
+  uncovered: string[];
+};
+
+/**
+ * Requirement coverage — how many approved requirement features are
+ * represented somewhere in the proposal document. Honest: only real
+ * feature names count, matched against feature cards and any text.
+ */
+export function computeRequirementCoverage(doc: ProposalDoc, features: RequirementFeatureRef[]): RequirementCoverage {
+  if (features.length === 0) return { percent: 100, total: 0, represented: 0, uncovered: [] };
+
+  const docText = doc.sections
+    .filter((s) => s.visible)
+    .flatMap((s) => s.blocks)
+    .map(blockText)
+    .join(" \u0000 ")
+    .toLowerCase();
+
+  const normalized = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+  const haystack = normalized(docText);
+
+  const represented = features.filter((f) => {
+    const name = normalized(f.name);
+    if (!name) return false;
+    if (name.length <= 3) return haystack.includes(name);
+    return haystack.includes(name) || haystack.includes(name.replace(/[^a-z0-9]+/g, ""));
+  }).length;
+
+  const uncovered = features
+    .filter((f) => {
+      const name = normalized(f.name);
+      if (!name) return false;
+      if (name.length <= 3) return !haystack.includes(name);
+      return !haystack.includes(name) && !haystack.includes(name.replace(/[^a-z0-9]+/g, ""));
+    })
+    .map((f) => f.name);
+
+  return {
+    percent: Math.round((represented / features.length) * 100),
+    total: features.length,
+    represented,
+    uncovered,
+  };
+}
+
+export type ReadinessArea = { key: string; label: string; ok: boolean; note: string };
+export type ProposalReadiness = { percent: number; areas: ReadinessArea[] };
+
+/** Full readiness model — real sub-scores the studio and finalization use. */
+export function computeProposalReadiness(doc: ProposalDoc, coverage?: RequirementCoverage): ProposalReadiness {
+  const visible = doc.sections.filter((s) => s.visible);
+
+  const areas: ReadinessArea[] = [];
+
+  areas.push({
+    key: "content",
+    label: "Content",
+    ok: visible.filter(hasContent).length >= Math.max(4, Math.ceil(visible.length / 2)),
+    note: `${visible.filter(hasContent).length} of ${visible.length} sections have content`,
+  });
+
+  const cov = coverage ?? computeRequirementCoverage(doc, []);
+  areas.push({
+    key: "coverage",
+    label: "Requirement coverage",
+    ok: cov.total === 0 || cov.percent >= 90,
+    note: cov.total === 0 ? "No approved requirement features to cover" : `${cov.percent}% of ${cov.total} features represented`,
+  });
+
+  areas.push({
+    key: "client",
+    label: "Client information",
+    ok: Boolean(doc.meta.clientName) && Boolean(doc.meta.preparedFor ?? doc.meta.clientName),
+    note: doc.meta.clientName ? `Prepared for ${doc.meta.clientName}` : "Client name is missing",
+  });
+
+  const scope = doc.sections.find((s) => s.id === "scope");
+  areas.push({
+    key: "scope",
+    label: "Scope",
+    ok: Boolean(scope && hasContent(scope)),
+    note: scope && hasContent(scope) ? "Scope carries requirement data" : "Scope is empty",
+  });
+
+  const deliverables = doc.sections.find((s) => s.id === "deliverables");
+  areas.push({
+    key: "deliverables",
+    label: "Deliverables",
+    ok: Boolean(deliverables && hasContent(deliverables)),
+    note: deliverables && hasContent(deliverables) ? "Deliverables defined" : "Add the deliverables",
+  });
+
+  const investment = doc.sections.find((s) => s.id === "investment");
+  areas.push({
+    key: "commercial",
+    label: "Commercials",
+    ok: doc.meta.amount !== null || (Boolean(investment) && hasContent(investment!)),
+    note: doc.meta.amount !== null ? doc.meta.amountLabel : "Set the investment amount",
+  });
+
+  const terms = doc.sections.find((s) => s.id === "terms");
+  areas.push({
+    key: "terms",
+    label: "Terms",
+    ok: Boolean(terms && hasContent(terms)),
+    note: terms && hasContent(terms) ? "Terms confirmed" : "Confirm terms before sending",
+  });
+
+  const percent = Math.round((areas.filter((a) => a.ok).length / areas.length) * 100);
+  return { percent, areas };
 }
 
 /** Deterministic, explainable quality score — mirrors the server version. */
@@ -128,4 +430,34 @@ export function computeProposalQuality(doc: ProposalDoc): {
 
   const total = Math.round((items.filter((i) => i.ok).length / items.length) * 100);
   return { total, items };
+}
+
+/* ── Money helpers ────────────────────────────────────────────── */
+
+/** Upper bound of a budget range string ("₹1L – ₹3L" → 3_00_000). */
+export function estimateBudgetAmount(budgetRange: string): number | null {
+  const parts = budgetRange.split(/[\u2013\u2014\-–—]/);
+  const lastWithDigits = [...parts].reverse().find((p) => /\d/.test(p));
+  if (!lastWithDigits) return null;
+  const match = lastWithDigits.match(/(\d+(?:\.\d+)?)\s*[LK]/);
+  if (!match) return null;
+  const raw = Number(match[1]);
+  return match[0].toUpperCase().includes("L") ? raw * 100_000 : raw * 1_000;
+}
+
+export function formatINR(n: number): string {
+  return `₹${n.toLocaleString("en-IN", { maximumFractionDigits: 0 })}`;
+}
+
+export function amountLabel(amount: number | null): string {
+  if (amount === null) return "To be confirmed";
+  return formatINR(amount);
+}
+
+export function timelineLabel(answers: Record<string, Record<string, unknown>>): string {
+  const t = answers.timeline ?? {};
+  const launch = String(t.launchWindow ?? "");
+  const deadline = String(t.deadlineDate ?? "");
+  if (launch && deadline) return `${launch} · fixed ${deadline}`;
+  return launch || "To be discussed";
 }

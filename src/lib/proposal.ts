@@ -5,6 +5,7 @@ import { PDFDocument } from "pdf-lib";
 import {
   amountLabel,
   estimateBudgetAmount,
+  normalizeDoc,
   timelineLabel,
   type ProposalBlock,
   type ProposalDoc,
@@ -72,6 +73,21 @@ function section(input: {
     source: input.source,
     visible: input.visible ?? true,
     blocks: input.blocks,
+  };
+}
+
+/** A capability card for one approved feature — requirement-backed (spec 18). */
+function featureCard(f: { name: string; priority: string; description: string; users: string[] }): ProposalBlock {
+  return {
+    type: "feature_card",
+    title: f.name,
+    purpose: f.description?.trim() ? f.description : "Approved as part of the requirement.",
+    capabilities: f.users.filter(Boolean),
+    priority: f.priority.replace(/_/g, " "),
+    users: f.users.filter(Boolean).join(", ") || "—",
+    status: "Approved",
+    source: "REQUIREMENT",
+    sourceRequirementIds: [],
   };
 }
 
@@ -220,10 +236,7 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
         features.length > 0
           ? [
               paragraph("The project will deliver the following capabilities:"),
-              table(
-                ["Capability", "Priority", "Users"],
-                features.map((f) => [f.name, f.priority.replace(/_/g, " ").toLowerCase(), f.users.join(", ") || "—"]),
-              ),
+              ...features.map((f) => featureCard(f)),
             ]
           : [paragraph("Deliverables will be defined together during project kickoff.")],
     }),
@@ -398,6 +411,7 @@ export type ProposalStudioBundle = {
     readiness: number;
     approvedAt: string | null;
     responderName: string | null;
+    features: { name: string; priority: string; status: string }[];
   } | null;
   client: { id: string; companyName: string; industry: string | null; email: string | null } | null;
   workspace: { companyName: string; email: string | null; phone: string | null; website: string | null };
@@ -428,6 +442,10 @@ export async function serializeProposalForStudio(
     db.contact.findFirst({ where: { clientId: proposal.clientId, isPrimary: true } }),
   ]);
 
+  // The requirement's approved features — the studio uses these to compute
+  // honest requirement coverage against the document content.
+  const requirementFeatures = request ? await loadFeatures(request.id) : [];
+
   let document: ProposalDoc;
   try {
     document = JSON.parse(proposal.document || "{}") as ProposalDoc;
@@ -438,16 +456,17 @@ export async function serializeProposalForStudio(
   if (!document.sections || document.sections.length === 0) {
     if (!client || !workspace) throw new Error("Proposal context missing.");
     const answers = request ? await loadAnswers(request.id) : {};
-    const features = request ? await loadFeatures(request.id) : [];
     document = buildProposalDocument({
       proposal,
       client,
       workspace,
       contact,
       answers,
-      features,
+      features: requirementFeatures,
     });
   }
+
+  document = normalizeDoc(document);
 
   return {
     ok: true,
@@ -475,6 +494,7 @@ export async function serializeProposalForStudio(
           readiness: request.readiness,
           approvedAt: request.approvedAt ? request.approvedAt.toISOString() : null,
           responderName: request.responderName,
+          features: requirementFeatures.map((f) => ({ name: f.name, priority: f.priority, status: "APPROVED" })),
         }
       : null,
     client: { id: proposal.client.id, companyName: proposal.client.companyName, industry: proposal.client.industry, email: proposal.client.email },
@@ -508,29 +528,185 @@ const MUTED = "#6b655c";
 const FAINT = "#9a948a";
 const RULE = "#e7e2d8";
 
+function cardTable(rows: { label: string; value: string }[]): unknown {
+  return {
+    table: {
+      widths: ["auto", "*"],
+      body: rows.map((r) => [
+        { text: r.label.toUpperCase(), style: "micro", color: FAINT },
+        { text: r.value, style: "tableCell" },
+      ]),
+    },
+    layout: { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 1.5, paddingBottom: () => 1.5 },
+  };
+}
+
 function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
   const out: unknown[] = [];
+  let breakNext = false;
+  const push = (item: unknown) => {
+    if (breakNext) {
+      out.push({ text: "", pageBreak: "before" });
+      breakNext = false;
+    }
+    out.push(item);
+  };
   for (const b of blocks) {
+    if (b.type === "page_break") {
+      breakNext = true;
+      continue;
+    }
     if (b.type === "paragraph") {
       const text = b.text.trim();
       if (!text) continue;
-      out.push({ text, style: "body", margin: [0, 0, 0, 8] });
+      push({ text, style: "body", margin: [0, 0, 0, 8] });
+    } else if (b.type === "heading") {
+      const level = b.level ?? 2;
+      const size = level === 1 ? 16 : level === 2 ? 13.5 : 11.5;
+      push({ text: b.text, style: "body", fontSize: size, bold: true, color: INK, margin: [0, 12, 0, 6] });
+    } else if (b.type === "quote") {
+      push({
+        stack: [
+          { text: b.text, style: "body", italics: true, color: MUTED },
+          ...(b.attribution ? [{ text: `— ${b.attribution}`, style: "micro", color: FAINT, margin: [0, 4, 0, 0] }] : []),
+        ],
+        margin: [0, 2, 0, 12],
+      });
     } else if (b.type === "list") {
-      out.push(
+      push(
         b.items.map((item, i) => ({
           text: [{ text: `${String(i + 1).padStart(2, "0")}  `, color: ACCENT }, { text: item }],
           style: "body",
           margin: [0, 0, 0, 4],
         })),
       );
-    } else if (b.type === "table") {
-      out.push({
+    } else if (b.type === "callout") {
+      const tone = b.tone ?? "info";
+      const bg = tone === "warning" ? "#fdf3e7" : tone === "success" ? "#eef6ec" : "#f5edea";
+      const fg = tone === "warning" ? "#9a5b13" : tone === "success" ? "#3f6e35" : ACCENT;
+      push({
+        stack: [
+          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: fg, margin: [0, 0, 0, 4] }] : []),
+          { text: b.text, style: "body" },
+        ],
+        margin: [0, 4, 0, 12],
+        background: bg,
+        padding: [10, 10, 10, 10],
+        borderColor: fg,
+        borderWidth: [2, 0, 0, 0],
+      });
+    } else if (b.type === "feature_card") {
+      push({
+        stack: [
+          { canvas: [{ type: "rect", x: 0, y: 0, w: 4, h: 100, color: ACCENT }] },
+          { text: b.title, style: "cardTitle" },
+          { text: b.purpose, style: "body", margin: [0, 2, 0, 4] },
+          ...(b.capabilities.length > 0
+            ? [{ text: b.capabilities.map((c) => `• ${c}`).join("\n"), style: "body", color: MUTED, margin: [0, 0, 0, 6] }]
+            : []),
+          cardTable([
+            { label: "Priority", value: b.priority },
+            { label: "Users", value: b.users },
+            { label: "Status", value: b.status },
+          ]),
+        ],
+        margin: [0, 2, 0, 12],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [12, 10, 12, 10],
+      });
+    } else if (b.type === "objective_card") {
+      push({
+        stack: [
+          { text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 3] },
+          { text: b.description, style: "body" },
+          ...(b.successIndicator ? [{ text: `Success indicator: ${b.successIndicator}`, style: "body", color: MUTED, margin: [0, 3, 0, 0] }] : []),
+          ...(b.requirement ? [{ text: b.requirement, style: "micro", color: FAINT, margin: [0, 3, 0, 0] }] : []),
+        ],
+        margin: [0, 2, 0, 12],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [12, 10, 12, 10],
+      });
+    } else if (b.type === "statistic") {
+      push({
         table: {
-          widths: b.headers.map((_, i) => (i === 0 ? "*" : "auto")),
+          widths: ["*"],
+          body: [[{ stack: [{ text: b.value, fontSize: 24, bold: true, color: ACCENT }, { text: b.label.toUpperCase(), style: "micro", color: FAINT, margin: [0, 2, 0, 0] }] }]],
+        },
+        layout: { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
+        margin: [0, 2, 0, 12],
+      });
+    } else if (b.type === "process_flow") {
+      const items = b.steps.filter((s) => s.trim()).map((s, i) => ({
+        text: [{ text: `${String(i + 1).padStart(2, "0")}  `, color: ACCENT }, { text: s }],
+        style: "body",
+        margin: [0, 0, 0, 4],
+      }));
+      push(items);
+    } else if (b.type === "timeline") {
+      push(
+        b.phases.map((p, i) => ({
+          columns: [
+            { width: "auto", text: String(i + 1).padStart(2, "0"), style: "micro", bold: true, color: ACCENT, margin: [0, 2, 10, 0] },
+            {
+              width: "*",
+              stack: [
+                { text: p.title, bold: true, fontSize: 10.5, color: INK },
+                ...(p.duration ? [{ text: p.duration, style: "micro", color: FAINT }] : []),
+                ...(p.description ? [{ text: p.description, style: "body", margin: [0, 2, 0, 0] }] : []),
+              ],
+            },
+          ],
+          margin: [0, 0, 0, 8],
+        })),
+      );
+    } else if (b.type === "milestone") {
+      push({
+        columns: [
+          { width: "auto", text: b.status ?? "", style: "micro", bold: true, color: ACCENT, margin: [0, 2, 10, 0] },
+          {
+            width: "*",
+            stack: [
+              { text: b.title, bold: true, fontSize: 10.5, color: INK },
+              ...(b.date ? [{ text: b.date, style: "micro", color: FAINT }] : []),
+              ...(b.description ? [{ text: b.description, style: "body" }] : []),
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 8],
+      });
+    } else if (b.type === "deliverable") {
+      push({
+        stack: [
+          { columns: [{ text: b.id.toUpperCase(), style: "micro", bold: true, color: ACCENT }, { text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] },
+          { text: b.name, style: "cardTitle" },
+          ...(b.description ? [{ text: b.description, style: "body" }] : []),
+        ],
+        margin: [0, 2, 0, 12],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [12, 10, 12, 10],
+      });
+    } else if (b.type === "requirement_reference") {
+      push({
+        columns: [
+          { width: "auto", text: b.reference.toUpperCase(), style: "micro", bold: true, color: ACCENT, background: "#f5edea", padding: [4, 2, 4, 2] },
+          { width: "*", text: b.title, style: "body", margin: [8, 1, 0, 0] },
+        ],
+        margin: [0, 2, 0, 8],
+      });
+    } else if (b.type === "table" || b.type === "pricing_table") {
+      const headers = b.headers ?? [];
+      const rows = b.rows ?? [];
+      const isPricing = b.type === "pricing_table";
+      push({
+        table: {
+          widths: headers.map((_, i) => (i === 0 ? "*" : "auto")),
           headerRows: 1,
           body: [
-            b.headers.map((h) => ({ text: h, style: "tableHeader" })),
-            ...b.rows.map((row) => row.map((cell) => ({ text: cell, style: "tableCell" }))),
+            headers.map((h) => ({ text: h, style: isPricing ? "tableHeader" : "tableHeader" })),
+            ...rows.map((row) => row.map((cell) => ({ text: cell, style: "tableCell" }))),
           ],
         },
         layout: {
@@ -545,10 +721,58 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         },
         margin: [0, 4, 0, 14],
       });
+      if (isPricing && b.total) {
+        push({ columns: [{ text: "Total", style: "micro", bold: true, color: FAINT, alignment: "right" }, { text: b.total, style: "body", bold: true, color: ACCENT, alignment: "right", width: "auto" }], margin: [0, -8, 0, 10] });
+      }
+    } else if (b.type === "assumption") {
+      push({
+        columns: [
+          { width: "auto", text: b.id.toUpperCase(), style: "micro", bold: true, color: FAINT, margin: [0, 2, 10, 0] },
+          {
+            width: "*",
+            stack: [
+              { text: b.description, style: "body" },
+              ...(b.owner || b.impact
+                ? [{ text: [b.owner ? `Owner: ${b.owner}` : null, b.impact ? `Impact: ${b.impact}` : null].filter(Boolean).join(" · "), style: "micro", color: FAINT, margin: [0, 2, 0, 0] }]
+                : []),
+            ],
+          },
+        ],
+        margin: [0, 0, 0, 8],
+      });
+    } else if (b.type === "risk") {
+      push({
+        stack: [
+          { columns: [{ text: b.title, style: "cardTitle" }, ...(b.status ? [{ text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] : [])] },
+          ...(b.description ? [{ text: b.description, style: "body" }] : []),
+          ...(b.impact ? [{ text: `Impact: ${b.impact}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
+          ...(b.mitigation ? [{ text: `Mitigation: ${b.mitigation}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
+        ],
+        margin: [0, 2, 0, 12],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [12, 10, 12, 10],
+      });
+    } else if (b.type === "signature") {
+      push({
+        columns: [
+          {
+            width: "*",
+            stack: [
+              { text: b.role === "CLIENT" ? "CLIENT" : "PROVIDER", style: "micro", bold: true, color: ACCENT },
+              ...(b.name ? [{ text: b.name, style: "body", bold: true, margin: [0, 10, 0, 0] }] : [{ text: "", margin: [0, 10, 0, 0] }]),
+              { canvas: [{ type: "rect", x: 0, y: 0, w: 180, h: 0.6, color: RULE }], margin: [0, 2, 0, 2] },
+              { text: b.title ?? "", style: "micro", color: FAINT },
+            ],
+          },
+        ],
+        margin: [0, 6, 0, 12],
+      });
     } else if (b.type === "spacer") {
       out.push({ text: "", margin: [0, 0, 0, 18] });
     }
   }
+  if (breakNext) out.push({ text: "", pageBreak: "before" });
   return out;
 }
 
@@ -643,6 +867,7 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
       micro: { fontSize: 7.5, characterSpacing: 1.2, margin: [0, 2, 0, 2] },
       kicker: { fontSize: 8, characterSpacing: 1.6, color: ACCENT, bold: true, margin: [0, 0, 0, 4] },
       sectionTitle: { fontSize: 21, bold: true, color: INK, margin: [0, 2, 0, 14] },
+      cardTitle: { fontSize: 13.5, bold: true, color: INK, margin: [0, 2, 0, 4] },
       body: { fontSize: 10, color: INK, lineHeight: 1.6 },
       tableHeader: { color: "#ffffff", fontSize: 9, bold: true, characterSpacing: 0.4 },
       tableCell: { fontSize: 9.5, color: INK },
