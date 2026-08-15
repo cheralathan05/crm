@@ -7,14 +7,17 @@ import {
   AlertTriangle,
   ArrowRight,
   BadgeCheck,
+  Ban,
   Banknote,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   ClipboardList,
+  Clock,
   Copy,
   Download,
+  Eye,
   FileStack,
   FileText,
   Lightbulb,
@@ -22,6 +25,7 @@ import {
   Mail,
   MessageCircle,
   Pencil,
+  RefreshCw,
   RotateCcw,
   Send,
   ShieldX,
@@ -52,7 +56,7 @@ type AdminBundle = {
     responderName: string | null; responderRole: string | null; createdAt: string;
     createdByName: string | null; canSend: boolean;
   };
-  client: { id: string; companyName: string; industry: string | null; status: string } | null;
+  client: { id: string; companyName: string; industry: string | null; status: string; email: string | null } | null;
   answers: Record<string, Record<string, unknown>>;
   features: {
     id: string; name: string; priority: string; users: string[];
@@ -62,9 +66,18 @@ type AdminBundle = {
   attachments: { id: string; name: string; size: number; mime: string; section: string; uploadedByName: string | null; createdAt: string }[];
   comments: { id: string; author: string; authorName: string; section: string | null; message: string; resolvedAt: string | null; createdAt: string }[];
   revisions: { id: string; revision: number; submittedByName: string | null; submittedAt: string; changes: string[] }[];
-  events: { id: string; type: string; label: string; detail: string | null; createdAt: string }[];
+  events: { id: string; type: string; label: string; detail: string | null; meta: Record<string, unknown>; createdAt: string }[];
   states: Record<string, boolean>;
   proposals: { id: string; title: string; status: string; amount: number | null; createdAt: string }[];
+  questions: {
+    id: string; section: string; sectionLabel: string; question: string;
+    internalNote: string | null; recipientName: string; recipientEmail: string;
+    createdByName: string | null; status: string;
+    sentAt: string | null; respondedAt: string | null;
+    response: string | null; respondedByName: string | null;
+    createdAt: string; updatedAt: string;
+  }[];
+  clientContacts: { id: string; name: string; role: string | null; email: string | null; isPrimary: boolean }[];
 };
 
 type ViewId = "overview" | "review" | "activity" | string; // section keys included
@@ -85,6 +98,33 @@ const PROJECT_TYPE_LABELS: Record<string, string> = {
   OTHER: "Custom Project",
 };
 
+function formatDateTime(value: string | Date | null | undefined): string {
+  if (!value) return "—";
+  const d = new Date(value);
+  return `${d.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })} · ${d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
+}
+
+const QUESTION_STATUS_TONES: Record<string, { label: string; cls: string }> = {
+  READY_TO_SEND: { label: "Ready to send", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
+  SENDING: { label: "Sending", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
+  SENT: { label: "Awaiting response", cls: "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6" },
+  DELIVERED: { label: "Delivered", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
+  OPENED: { label: "Opened", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
+  ANSWERED: { label: "Answered", cls: "text-[var(--bos-success)] border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6" },
+  FAILED: { label: "Delivery failed", cls: "text-[var(--bos-error)] border-[var(--bos-error)]/25 bg-[var(--bos-error)]/6" },
+  CANCELLED: { label: "Cancelled", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
+  EXPIRED: { label: "Expired", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
+};
+
+function QuestionStatusChip({ status }: { status: string }) {
+  const tone = QUESTION_STATUS_TONES[status] ?? { label: status.replace(/_/g, " "), cls: "text-[var(--bos-text-secondary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" };
+  return (
+    <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded-[3px] border text-[9px] font-mono uppercase tracking-[0.1em]", tone.cls)}>
+      {tone.label}
+    </span>
+  );
+}
+
 /* ── Deterministic intelligence ─────────────────────────────────
    Every number and label below is computed from the bundle's real
    stored data. Nothing is fabricated. */
@@ -97,9 +137,19 @@ function openAdminComments(bundle: AdminBundle, section?: string) {
   );
 }
 
-/** Per-section review state — complete + no open clarification = confirmed. */
+const OPEN_Q_STATUSES = ["READY_TO_SEND", "SENDING", "SENT", "DELIVERED", "OPENED"];
+
+/** Questions awaiting the client's answer for one section. */
+function openQuestionsForSection(bundle: AdminBundle, section?: string) {
+  return bundle.questions.filter(
+    (q) => OPEN_Q_STATUSES.includes(q.status) && (section ? q.section === section : true),
+  );
+}
+
+/** Per-section review state — complete + no open clarification/question = confirmed. */
 function sectionReview(bundle: AdminBundle, key: string): ReviewState {
   if (openAdminComments(bundle, key).length > 0) return "clarify";
+  if (openQuestionsForSection(bundle, key).length > 0) return "clarify";
   if (bundle.states[key]) return "confirmed";
   return "pending";
 }
@@ -131,6 +181,10 @@ function attentionItems(bundle: AdminBundle) {
     const label = c.section ? getSection(c.section)?.label ?? c.section : "Requirement";
     items.push({ kind: "clarify", text: `${label} — awaiting client response`, section: c.section });
   }
+  for (const q of openQuestionsForSection(bundle)) {
+    const label = getSection(q.section)?.label ?? q.section;
+    items.push({ kind: "clarify", text: `${label} — awaiting response from ${q.recipientName}`, section: q.section });
+  }
   return items;
 }
 
@@ -148,7 +202,12 @@ function intentSignal(bundle: AdminBundle) {
 }
 
 function scopeSignal(bundle: AdminBundle) {
-  const open = SECTIONS.filter((s) => s.weight > 0).filter((s) => !bundle.states[s.key]).length;
+  const openSections = new Set<string>();
+  for (const s of SECTIONS.filter((sec) => sec.weight > 0)) {
+    if (!bundle.states[s.key]) openSections.add(s.key);
+  }
+  for (const q of openQuestionsForSection(bundle)) openSections.add(q.section);
+  const open = openSections.size;
   return {
     label: open === 0 ? "Clear" : "Needs attention",
     open,
@@ -196,8 +255,9 @@ export function RequirementCommandCenter({
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<ViewId>("overview");
   const [reviewMode, setReviewMode] = useState(false);
-  const [dialog, setDialog] = useState<null | "send" | "remind" | "changes" | "revoke" | "proposal">(null);
+  const [dialog, setDialog] = useState<null | "send" | "remind" | "ask" | "revoke" | "proposal">(null);
   const [dialogSection, setDialogSection] = useState<string | null>(null);
+  const [viewQuestionId, setViewQuestionId] = useState<string | null>(null);
   const [ceremony, setCeremony] = useState<Ceremony>(null);
   const [link, setLink] = useState<string | null>(initialLink ?? null);
   const router = useRouter();
@@ -238,7 +298,7 @@ export function RequirementCommandCenter({
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setNotice(`⚠ ${data.message ?? "Action failed."}`);
-        return { ok: false, message: data.message };
+        return { ok: false, message: data.message, data };
       }
       setNotice(null);
       await load();
@@ -264,8 +324,9 @@ export function RequirementCommandCenter({
   };
 
   const openAskClient = (section: string | null = null) => {
+    setViewQuestionId(null);
     setDialogSection(section);
-    setDialog("changes");
+    setDialog("ask");
   };
 
   const approve = () => {
@@ -503,6 +564,16 @@ export function RequirementCommandCenter({
             defaultEmail={defaultEmail ?? r.sentTo ?? undefined}
             initialSection={dialogSection}
             busy={busy}
+            clientContacts={bundle.clientContacts}
+            questions={bundle.questions}
+            onAsk={(payload) =>
+              act(`/api/requirements/${r.id}/questions`, payload).then((res) => {
+                if (res.ok && res.data?.dev) {
+                  setNotice(`⚠ ${String(res.data.message ?? "Email provider not configured — the question was saved and the response link printed to the server console.")}`);
+                }
+                return res;
+              })
+            }
             onSend={(payload) =>
               void act(`/api/requirements/${r.id}/send`, payload).then((res) => {
                 if (res.ok) {
@@ -520,15 +591,7 @@ export function RequirementCommandCenter({
                 }
               })
             }
-            onChanges={(payload) =>
-              void act(`/api/requirements/${r.id}/request-changes`, payload).then((res) => {
-                if (res.ok) {
-                  setDialog(null);
-                  setDialogSection(null);
-                  setNotice("✓ Clarification requested — the client will see it next time they open the workspace.");
-                }
-              })
-            }
+            onViewQuestion={(qid) => { setDialog(null); setDialogSection(null); setViewQuestionId(qid); }}
             onRevoke={(payload) => handleAction(`/api/requirements/${r.id}/revoke`, payload)}
             onProposal={createProposal}
             onClose={() => { setDialog(null); setDialogSection(null); }}
@@ -632,33 +695,45 @@ export function RequirementCommandCenter({
               </div>
             )}
 
-            {view === "overview" && <OverviewView bundle={bundle} />}
-            {view === "review" && (
-              <ReviewView
+            {viewQuestionId ? (
+              <QuestionDetailPanel
+                questionId={viewQuestionId}
                 bundle={bundle}
-                review={review}
-                attention={attention}
-                canReview={canReview}
-                onAskClient={openAskClient}
-                onApprove={approve}
-                onProposal={() => setDialog("proposal")}
-                onOpenProposal={() => {
-                  if (newestProposal) router.push(`/proposals/${newestProposal.id}`);
-                }}
+                onClose={() => setViewQuestionId(null)}
+                onChanged={load}
               />
-            )}
-            {view === "activity" && <ActivityView bundle={bundle} />}
-            {SECTIONS.map((s) =>
-              view === s.key ? (
-                <SectionView
-                  key={s.key}
-                  bundle={bundle}
-                  section={s}
-                  inReview={inReview}
-                  reviewState={sectionReview(bundle, s.key)}
-                  onAskClient={() => openAskClient(s.key)}
-                />
-              ) : null,
+            ) : (
+              <>
+                {view === "overview" && <OverviewView bundle={bundle} />}
+                {view === "review" && (
+                  <ReviewView
+                    bundle={bundle}
+                    review={review}
+                    attention={attention}
+                    canReview={canReview}
+                    onAskClient={openAskClient}
+                    onApprove={approve}
+                    onProposal={() => setDialog("proposal")}
+                    onOpenProposal={() => {
+                      if (newestProposal) router.push(`/proposals/${newestProposal.id}`);
+                    }}
+                  />
+                )}
+                {view === "activity" && <ActivityView bundle={bundle} onViewQuestion={(qid) => setViewQuestionId(qid)} />}
+                {SECTIONS.map((s) =>
+                  view === s.key ? (
+                    <SectionView
+                      key={s.key}
+                      bundle={bundle}
+                      section={s}
+                      inReview={inReview}
+                      reviewState={sectionReview(bundle, s.key)}
+                      onAskClient={() => openAskClient(s.key)}
+                      onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    />
+                  ) : null,
+                )}
+              </>
             )}
           </div>
 
@@ -697,7 +772,13 @@ export function RequirementCommandCenter({
                 <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-accent)] mb-1.5">
                   Recommended next action
                 </div>
-                <NextAction bundle={bundle} onAskClient={openAskClient} onReview={() => { setView("review"); setReviewMode(true); }} onCreateProposal={() => setDialog("proposal")} />
+                <NextAction
+                  bundle={bundle}
+                  onAskClient={openAskClient}
+                  onReview={() => { setView("review"); setReviewMode(true); }}
+                  onCreateProposal={() => setDialog("proposal")}
+                  onViewQuestion={(qid) => setViewQuestionId(qid)}
+                />
               </div>
 
               {/* Scope health */}
@@ -737,7 +818,14 @@ export function RequirementCommandCenter({
                     {bundle.events.slice(0, 5).map((e) => (
                       <li key={e.id} className="pl-3.5 relative">
                         <span className="absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full bg-[var(--bos-accent)]" aria-hidden="true" />
-                        <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">{e.label}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">{e.label}</div>
+                          {typeof e.meta?.questionId === "string" && (
+                            <MicroButton onClick={() => setViewQuestionId(String(e.meta.questionId))}>
+                              <Eye className="w-3 h-3" aria-hidden="true" /> View
+                            </MicroButton>
+                          )}
+                        </div>
                         <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
                           {new Date(e.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ·{" "}
                           {new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
@@ -923,14 +1011,18 @@ function SectionView({
   inReview,
   reviewState,
   onAskClient,
+  onViewQuestion,
 }: {
   bundle: AdminBundle;
   section: SectionDef;
   inReview: boolean;
   reviewState: ReviewState;
   onAskClient: () => void;
+  onViewQuestion: (questionId: string) => void;
 }) {
   const openComments = bundle.comments.filter((c) => c.section === section.key && !c.resolvedAt);
+  const openQuestions = openQuestionsForSection(bundle, section.key);
+  const history = bundle.questions.filter((q) => q.section === section.key);
   const complete = bundle.states[section.key] === true;
 
   const stateMeta =
@@ -967,7 +1059,7 @@ function SectionView({
         <SectionBody bundle={bundle} section={section} />
       </div>
 
-      {/* Section clarification thread */}
+      {/* Section clarification thread — workspace comments */}
       {(openComments.length > 0 || inReview) && (
         <div className="max-w-prose">
           <div className="mb-2 flex items-center gap-2">
@@ -991,20 +1083,91 @@ function SectionView({
         </div>
       )}
 
+      {/* Emailed clarification — pending status */}
+      {openQuestions.length > 0 && (
+        <div className="max-w-prose">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-warning)]">Client response required</span>
+            <span className="h-px flex-1 bg-[var(--bos-line)]" aria-hidden="true" />
+          </div>
+          <ul className="space-y-2">
+            {openQuestions.map((q) => (
+              <li key={q.id} className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-2.5">
+                <div className="flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-warning)]">
+                  <Clock className="w-3 h-3" aria-hidden="true" /> Question sent to {q.recipientName} · waiting
+                </div>
+                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">“{q.question}”</p>
+                <div className="mt-2 flex items-center gap-2">
+                  <span className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
+                    {q.sentAt ? `Sent ${formatDateTime(q.sentAt)}` : "Not sent yet"}
+                  </span>
+                  <MicroButton onClick={() => onViewQuestion(q.id)}>
+                    <Eye className="w-3 h-3" aria-hidden="true" /> View
+                  </MicroButton>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Clarification history — a permanent business record */}
+      {history.length > 0 && (
+        <div className="max-w-prose">
+          <div className="mb-2 flex items-center gap-2">
+            <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-secondary)]">Clarification history</span>
+            <span className="h-px flex-1 bg-[var(--bos-line)]" aria-hidden="true" />
+          </div>
+          <ul className="space-y-2">
+            {history.map((q, i) => (
+              <li key={q.id} className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 px-3.5 py-2.5">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">Question {history.length - i}</span>
+                  <QuestionStatusChip status={q.status} />
+                  <span className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
+                    {q.sentAt ? `Sent ${formatDateTime(q.sentAt)}` : "Draft"}
+                    {q.respondedAt ? ` · Answered ${formatDateTime(q.respondedAt)}` : ""}
+                  </span>
+                </div>
+                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">“{q.question}”</p>
+                {q.response && (
+                  <div className="mt-1.5 rounded-sm border border-[var(--bos-success)]/20 bg-[var(--bos-success)]/5 px-2.5 py-1.5">
+                    <div className="text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-success)]">
+                      Response · {q.respondedByName ?? q.recipientName}
+                    </div>
+                    <p className="mt-0.5 text-[12px] text-[var(--bos-text-secondary)]">{q.response}</p>
+                  </div>
+                )}
+                <div className="mt-1.5">
+                  <MicroButton onClick={() => onViewQuestion(q.id)}>
+                    <Eye className="w-3 h-3" aria-hidden="true" /> View
+                  </MicroButton>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
       {/* Review actions */}
       {inReview && (
         <div className="flex items-center gap-2 max-w-prose">
-          {!complete && (
+          {openQuestions.length === 0 && !complete && (
             <MicroButton variant="accent" onClick={onAskClient}>
               <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask client
             </MicroButton>
           )}
-          {complete && reviewState === "confirmed" && (
+          {openQuestions.length === 0 && complete && reviewState === "confirmed" && (
             <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-success)]">
               <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Confirmed — this section is ready
             </span>
           )}
-          {complete && reviewState !== "confirmed" && (
+          {complete && reviewState !== "confirmed" && openQuestions.length > 0 && (
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-warning)]">
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" /> Awaiting client response
+            </span>
+          )}
+          {complete && reviewState !== "confirmed" && openQuestions.length === 0 && (
             <MicroButton variant="accent" onClick={onAskClient}>
               <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask client
             </MicroButton>
@@ -1456,7 +1619,7 @@ function ReviewView({
 
 /* ═══ CENTER — Activity ═══ */
 
-function ActivityView({ bundle }: { bundle: AdminBundle }) {
+function ActivityView({ bundle, onViewQuestion }: { bundle: AdminBundle; onViewQuestion: (questionId: string) => void }) {
   return (
     <div className="space-y-8 req-enter">
       <section>
@@ -1468,7 +1631,14 @@ function ActivityView({ bundle }: { bundle: AdminBundle }) {
             {bundle.events.map((e) => (
               <li key={e.id} className="pl-4 relative">
                 <span className="absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full bg-[var(--bos-accent)]" aria-hidden="true" />
-                <div className="text-[12px] text-[var(--bos-text-primary)]">{e.label}</div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <div className="text-[12px] text-[var(--bos-text-primary)]">{e.label}</div>
+                  {typeof e.meta?.questionId === "string" && (
+                    <MicroButton onClick={() => onViewQuestion(String(e.meta.questionId))}>
+                      <Eye className="w-3 h-3" aria-hidden="true" /> View
+                    </MicroButton>
+                  )}
+                </div>
                 {e.detail && <div className="text-[10px] text-[var(--bos-text-tertiary)]">{e.detail}</div>}
                 <div className="text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">
                   {new Date(e.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ·{" "}
@@ -1546,14 +1716,35 @@ function NextAction({
   onAskClient,
   onReview,
   onCreateProposal,
+  onViewQuestion,
 }: {
   bundle: AdminBundle;
   onAskClient: (section?: string | null) => void;
   onReview: () => void;
   onCreateProposal: () => void;
+  onViewQuestion: (questionId: string) => void;
 }) {
   const r = bundle.request;
   const attention = attentionItems(bundle);
+  const openQuestions = openQuestionsForSection(bundle);
+  const answeredQuestions = bundle.questions.filter((q) => q.status === "ANSWERED");
+
+  // The client has an open emailed question — the one thing that matters.
+  if (openQuestions.length > 0) {
+    const q = openQuestions[0];
+    return (
+      <>
+        <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
+          Awaiting client — {q.sectionLabel} clarification sent to {q.recipientName}.
+        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <MicroButton variant="accent" onClick={() => onViewQuestion(q.id)}>
+            <Eye className="w-3 h-3" aria-hidden="true" /> View question
+          </MicroButton>
+        </div>
+      </>
+    );
+  }
 
   switch (r.status) {
     case "DRAFT":
@@ -1581,6 +1772,18 @@ function NextAction({
       );
     case "SUBMITTED":
     case "REVISION_SUBMITTED":
+      if (answeredQuestions.length > 0) {
+        return (
+          <>
+            <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
+              Client responded — review the answer on the {answeredQuestions[0].sectionLabel} section.
+            </p>
+            <MicroButton variant="accent" onClick={onReview} className="mt-2">
+              <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review response
+            </MicroButton>
+          </>
+        );
+      }
       return (
         <>
           <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
@@ -1592,11 +1795,23 @@ function NextAction({
         </>
       );
     case "CHANGES_REQUESTED":
+      if (answeredQuestions.length > 0) {
+        return (
+          <>
+            <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
+              Client responded to your clarification — review the answer, then continue.
+            </p>
+            <MicroButton variant="accent" onClick={onReview} className="mt-2">
+              <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review response
+            </MicroButton>
+          </>
+        );
+      }
       return (
         <>
           <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">Clarification was requested — waiting for the client to respond.</p>
           <MicroButton onClick={() => onAskClient()} className="mt-2">
-            <Mail className="w-3 h-3" aria-hidden="true" /> Remind client
+            <Mail className="w-3 h-3" aria-hidden="true" /> Ask again
           </MicroButton>
         </>
       );
@@ -1803,22 +2018,28 @@ function Dialog({
   defaultEmail,
   initialSection,
   busy,
+  clientContacts,
+  questions,
   onSend,
   onRemind,
-  onChanges,
+  onAsk,
+  onViewQuestion,
   onRevoke,
   onProposal,
   onClose,
 }: {
-  kind: "send" | "remind" | "changes" | "revoke" | "proposal";
+  kind: "send" | "remind" | "ask" | "revoke" | "proposal";
   bundle: AdminBundle;
   link: string | null;
   defaultEmail?: string;
   initialSection?: string | null;
   busy: boolean;
+  clientContacts: AdminBundle["clientContacts"];
+  questions: AdminBundle["questions"];
   onSend: (payload: { to: string; subject: string; message: string; link?: string }) => void;
   onRemind: (payload: { to: string; message: string; link?: string }) => void;
-  onChanges: (payload: { section: string | null; message: string }) => void;
+  onAsk: (payload: { section: string; question: string; internalNote?: string; contactId?: string; send: boolean }) => Promise<{ ok: boolean; data?: Record<string, unknown>; message?: string }>;
+  onViewQuestion: (questionId: string) => void;
   onRevoke: (payload: { reason?: string }) => void;
   onProposal: () => void;
   onClose: () => void;
@@ -1829,6 +2050,23 @@ function Dialog({
   const [section, setSection] = useState(initialSection ?? "");
   const [reason, setReason] = useState("");
   const [copied, setCopied] = useState(false);
+  const [askStep, setAskStep] = useState<"compose" | "review" | "sending" | "success">("compose");
+  const [askContactId, setAskContactId] = useState("");
+  const [internalNote, setInternalNote] = useState("");
+  const [askError, setAskError] = useState<string | null>(null);
+  const [existingQuestion, setExistingQuestion] = useState<{ id: string; sectionLabel: string; question: string; recipientName: string } | null>(null);
+  const [sentQuestion, setSentQuestion] = useState<{ id: string; sectionLabel: string; recipientName: string; recipientEmail: string } | null>(null);
+
+  const askRecipients: { id: string; name: string; role: string | null; email: string; isPrimary: boolean }[] = [
+    ...clientContacts.filter((c) => c.email).map((c) => ({ ...c, email: c.email as string })),
+    // Fallback: the client record itself when no contact has an email.
+    ...(clientContacts.some((c) => c.email)
+      ? []
+      : bundle.client?.email
+        ? [{ id: "", name: bundle.client.companyName, role: null as string | null, email: bundle.client.email, isPrimary: true }]
+        : []),
+  ];
+  const askContact = askRecipients.find((c) => c.id === askContactId) ?? askRecipients.find((c) => c.isPrimary) ?? askRecipients[0] ?? null;
 
   const suggested = section ? SUGGESTED_QUESTIONS[section] ?? "" : "";
 
@@ -1849,14 +2087,14 @@ function Dialog({
   const title =
     kind === "send" ? "Send secure link"
     : kind === "remind" ? "Send reminder"
-    : kind === "changes" ? "Ask the client"
+    : kind === "ask" ? "Ask the client"
     : kind === "revoke" ? "Revoke access"
     : "Create proposal from requirements";
 
   const kicker =
     kind === "send" ? "The client opens a private guided workspace"
     : kind === "remind" ? "A gentle nudge to complete the workspace"
-    : kind === "changes" ? "What do you need to clarify?"
+    : kind === "ask" ? "Clarify something before moving forward"
     : kind === "revoke" ? "Retire the secure link immediately"
     : "Everything carries over automatically";
 
@@ -1928,48 +2166,68 @@ function Dialog({
               </MicroButton>
             </div>
           </div>
-        ) : kind === "changes" ? (
-          <div className="space-y-3 max-w-xl">
-            <div>
-              <label className="bos-label">Target section</label>
-              <div className="relative">
-                <select value={section} onChange={(e) => setSection(e.target.value)} className={cn(inputCls, "appearance-none pr-8")}>
-                  <option value="">Whole submission</option>
-                  {SECTIONS.map((s) => (
-                    <option key={s.key} value={s.key}>
-                      {s.number} — {s.label}
-                    </option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--bos-text-tertiary)] pointer-events-none" aria-hidden="true" />
-              </div>
-            </div>
-            <div>
-              <label className="bos-label">Question for the client</label>
-              <textarea
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                rows={4}
-                placeholder={suggested || "What do you need the client to confirm?"}
-                className={cn(inputCls, "h-24 py-2 resize-none")}
-              />
-              {suggested && (
-                <button
-                  type="button"
-                  onClick={() => setMessage(suggested)}
-                  className="mt-1.5 inline-flex items-center gap-1.5 text-[10px] text-[var(--bos-accent)] hover:text-[var(--bos-accent-hover)]"
-                >
-                  <Lightbulb className="w-3 h-3" aria-hidden="true" /> Use suggested question
-                </button>
-              )}
-            </div>
-            <div className="flex justify-end gap-2">
-              <MicroButton onClick={onClose}>Cancel</MicroButton>
-              <MicroButton variant="accent" disabled={busy || !message.trim()} onClick={() => onChanges({ section: section || null, message })}>
-                {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Send className="w-3 h-3" aria-hidden="true" />} Send to client
-              </MicroButton>
-            </div>
-          </div>
+        ) : kind === "ask" ? (
+          <AskClientPanel
+            bundle={bundle}
+            section={section}
+            setSection={setSection}
+            suggested={suggested}
+            question={message}
+            setQuestion={setMessage}
+            internalNote={internalNote}
+            setInternalNote={setInternalNote}
+            recipients={askRecipients}
+            setContactId={setAskContactId}
+            contact={askContact}
+            questions={questions}
+            step={askStep}
+            setStep={setAskStep}
+            error={askError}
+            busy={busy}
+            sentQuestion={sentQuestion}
+            existingQuestion={existingQuestion}
+            onSend={async () => {
+              if (!section || !message.trim() || !askContact) return;
+              setAskError(null);
+              setAskStep("sending");
+              const res = await onAsk({
+                section,
+                question: message.trim(),
+                internalNote: internalNote.trim() || undefined,
+                contactId: askContact.id || undefined,
+                send: true,
+              });
+              if (!res.ok) {
+                const code = (res.data as { code?: string } | undefined)?.code;
+                if (code === "OPEN_QUESTION_EXISTS") {
+                  const q = (res.data as { question?: { id?: string; sectionLabel?: string; question?: string; recipientName?: string } } | undefined)?.question;
+                  setExistingQuestion({
+                    id: q?.id ?? "",
+                    sectionLabel: q?.sectionLabel ?? section,
+                    question: q?.question ?? "",
+                    recipientName: q?.recipientName ?? "",
+                  });
+                  setAskStep("compose");
+                  return;
+                }
+                setAskError(res.message ?? "Unable to send the question.");
+                setAskStep("review");
+                return;
+              }
+              const q = (res.data as { question?: { id?: string; sectionLabel?: string; recipientName?: string; recipientEmail?: string } } | undefined)?.question;
+              if (q?.id) {
+                setSentQuestion({
+                  id: q.id,
+                  sectionLabel: q.sectionLabel ?? section,
+                  recipientName: q.recipientName ?? askContact.name,
+                  recipientEmail: q.recipientEmail ?? askContact.email,
+                });
+              }
+              setAskStep("success");
+            }}
+            onViewQuestion={onViewQuestion}
+            onClose={onClose}
+          />
         ) : kind === "revoke" ? (
           <div className="space-y-3 max-w-xl">
             <p className="text-[12px] text-[var(--bos-text-secondary)]">
@@ -2008,5 +2266,500 @@ function Dialog({
         )}
       </div>
     </motion.div>
+  );
+}
+
+/* ═══ Ask the client — compose → review → send → success ═══ */
+
+function AskClientPanel({
+  bundle,
+  section,
+  setSection,
+  suggested,
+  question,
+  setQuestion,
+  internalNote,
+  setInternalNote,
+  recipients,
+  setContactId,
+  contact,
+  questions,
+  step,
+  setStep,
+  error,
+  busy,
+  sentQuestion,
+  existingQuestion,
+  onSend,
+  onViewQuestion,
+  onClose,
+}: {
+  bundle: AdminBundle;
+  section: string;
+  setSection: (s: string) => void;
+  suggested: string;
+  question: string;
+  setQuestion: (s: string) => void;
+  internalNote: string;
+  setInternalNote: (s: string) => void;
+  recipients: { id: string; name: string; role: string | null; email: string; isPrimary: boolean }[];
+  setContactId: (s: string) => void;
+  contact: { id: string; name: string; role: string | null; email: string; isPrimary: boolean } | null;
+  questions: AdminBundle["questions"];
+  step: "compose" | "review" | "sending" | "success";
+  setStep: (s: "compose" | "review" | "sending" | "success") => void;
+  error: string | null;
+  busy: boolean;
+  sentQuestion: { id: string; sectionLabel: string; recipientName: string; recipientEmail: string } | null;
+  existingQuestion: { id: string; sectionLabel: string; question: string; recipientName: string } | null;
+  onSend: () => Promise<void>;
+  onViewQuestion: (questionId: string) => void;
+  onClose: () => void;
+}) {
+  const inputCls =
+    "w-full h-9 px-3 rounded-sm border border-[var(--bos-line-strong)] bg-[var(--bos-bg)] text-[13px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-colors duration-150";
+
+  const openForSection = questions.find((q) => OPEN_Q_STATUSES.includes(q.status) && q.section === section);
+  const sectionLabel = section ? getSection(section)?.label ?? section : "";
+
+  // A clarification is already awaiting a response for this section.
+  if (existingQuestion) {
+    return (
+      <div className="space-y-3 max-w-xl">
+        <div className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6 px-3.5 py-3">
+          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-warning)]">
+            <Clock className="w-3.5 h-3.5" aria-hidden="true" /> Already awaiting response
+          </div>
+          <p className="mt-1.5 text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
+            A clarification for <strong>{existingQuestion.sectionLabel}</strong> was already sent to {existingQuestion.recipientName || "the client"} and is still waiting for an answer. Send a reminder instead of a duplicate question.
+          </p>
+          {existingQuestion.question && (
+            <p className="mt-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] px-3 py-2 text-[12px] text-[var(--bos-text-primary)]">
+              “{existingQuestion.question}”
+            </p>
+          )}
+        </div>
+        <div className="flex justify-end gap-2">
+          <MicroButton onClick={onClose}>Close</MicroButton>
+          {existingQuestion.id && (
+            <MicroButton variant="accent" onClick={() => onViewQuestion(existingQuestion.id)}>
+              <Eye className="w-3 h-3" aria-hidden="true" /> View existing question
+            </MicroButton>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // Live guard while composing — the selected section already has an open question.
+  if (step === "compose" && openForSection && !existingQuestion) {
+    return (
+      <div className="space-y-3 max-w-xl">
+        <div className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6 px-3.5 py-3">
+          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-warning)]">
+            <Clock className="w-3.5 h-3.5" aria-hidden="true" /> Already awaiting response
+          </div>
+          <p className="mt-1.5 text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
+            A clarification for <strong>{openForSection.sectionLabel}</strong> is already awaiting a response from {openForSection.recipientName}. You can remind the client instead of asking again.
+          </p>
+        </div>
+        <div className="flex justify-end gap-2">
+          <MicroButton onClick={onClose}>Close</MicroButton>
+          <MicroButton variant="accent" onClick={() => onViewQuestion(openForSection.id)}>
+            <Eye className="w-3 h-3" aria-hidden="true" /> View existing question
+          </MicroButton>
+        </div>
+      </div>
+    );
+  }
+
+  if (step === "sending") {
+    return (
+      <div className="space-y-4 max-w-xl py-2">
+        <div className="flex items-center gap-3">
+          <Loader2 className="w-4 h-4 animate-spin text-[var(--bos-accent)]" aria-hidden="true" />
+          <div className="text-[12px] font-medium text-[var(--bos-text-primary)]">Sending your question</div>
+        </div>
+        <ol className="space-y-1.5 text-[11px] text-[var(--bos-text-tertiary)]">
+          <li className="flex items-center gap-2"><Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> Preparing message</li>
+          <li className="flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> Sending securely</li>
+          <li className="flex items-center gap-2 text-[var(--bos-text-tertiary)]"><span className="w-3" aria-hidden="true" /> Confirming delivery</li>
+        </ol>
+      </div>
+    );
+  }
+
+  if (step === "success" && sentQuestion) {
+    return (
+      <div className="space-y-4 max-w-xl">
+        <div className="req-enter">
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-9 h-9 rounded-full bg-[var(--bos-success)] text-white shrink-0">
+              <Check className="w-5 h-5" aria-hidden="true" />
+            </span>
+            <div>
+              <div className="text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)]">Question sent</div>
+              <div className="text-[11px] text-[var(--bos-text-tertiary)]">Awaiting client response</div>
+            </div>
+          </div>
+        </div>
+        <div className="rounded-sm border border-[var(--bos-line)] p-3.5 space-y-2">
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Sent to</span>
+            <span className="text-[12px] text-[var(--bos-text-primary)]">{sentQuestion.recipientName} · {sentQuestion.recipientEmail}</span>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Section</span>
+            <span className="text-[12px] text-[var(--bos-text-primary)]">{sentQuestion.sectionLabel}</span>
+          </div>
+          <div className="flex items-start justify-between gap-3">
+            <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Status</span>
+            <span className="text-[12px] text-[var(--bos-warning)]">Waiting for client</span>
+          </div>
+        </div>
+        <div className="flex justify-end gap-2">
+          <MicroButton onClick={onClose}>Done</MicroButton>
+          <MicroButton variant="accent" onClick={() => onViewQuestion(sentQuestion.id)}>
+            <Eye className="w-3 h-3" aria-hidden="true" /> View question
+          </MicroButton>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Compose ── */
+  if (step === "compose") {
+    return (
+      <div className="space-y-3 max-w-xl">
+        {/* Recipient — resolved from the client's contacts, never typed by hand */}
+        <div className="rounded-sm border border-[var(--bos-line)] p-3">
+          <div className="flex items-center justify-between">
+            <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Client</div>
+            <span className="text-[12px] font-medium text-[var(--bos-text-primary)]">{bundle.client?.companyName}</span>
+          </div>
+          <div className="mt-2.5 flex items-center justify-between gap-3">
+            <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Contact</div>
+            {recipients.length > 1 ? (
+              <div className="relative min-w-0 flex-1 max-w-[260px]">
+                <select
+                  value={contact?.id ?? ""}
+                  onChange={(e) => setContactId(e.target.value)}
+                  className={cn(inputCls, "appearance-none pr-8")}
+                  aria-label="Recipient contact"
+                >
+                  {recipients.map((c) => (
+                    <option key={c.id || c.email} value={c.id}>
+                      {c.name}{c.role ? ` — ${c.role}` : ""} · {c.email}
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--bos-text-tertiary)] pointer-events-none" aria-hidden="true" />
+              </div>
+            ) : contact ? (
+              <div className="text-right">
+                <div className="text-[12px] text-[var(--bos-text-primary)]">{contact.name}{contact.role ? ` · ${contact.role}` : ""}</div>
+                <div className="text-[10px] text-[var(--bos-text-tertiary)]">{contact.email}</div>
+              </div>
+            ) : (
+              <span className="text-[11px] text-[var(--bos-error)]">No contact email on file</span>
+            )}
+          </div>
+        </div>
+
+        {/* Target section */}
+        <div>
+          <label className="bos-label">Target section</label>
+          <div className="relative">
+            <select value={section} onChange={(e) => setSection(e.target.value)} className={cn(inputCls, "appearance-none pr-8")}>
+              <option value="">Choose a section</option>
+              {SECTIONS.map((s) => (
+                <option key={s.key} value={s.key}>
+                  {s.number} — {s.label}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-[var(--bos-text-tertiary)] pointer-events-none" aria-hidden="true" />
+          </div>
+        </div>
+
+        {/* Question */}
+        <div>
+          <label className="bos-label">Question for the client</label>
+          <textarea
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+            rows={4}
+            placeholder={suggested || "What do you need the client to confirm?"}
+            className={cn(inputCls, "h-24 py-2 resize-none")}
+          />
+          {suggested && (
+            <button
+              type="button"
+              onClick={() => setQuestion(suggested)}
+              className="mt-1.5 inline-flex items-center gap-1.5 text-[10px] text-[var(--bos-accent)] hover:text-[var(--bos-accent-hover)]"
+            >
+              <Lightbulb className="w-3 h-3" aria-hidden="true" /> Use suggested question
+            </button>
+          )}
+        </div>
+
+        {/* Internal note — never sent to the client */}
+        <div>
+          <label className="bos-label">
+            Internal note <span className="text-[var(--bos-text-tertiary)]">(not sent to the client)</span>
+          </label>
+          <textarea
+            value={internalNote}
+            onChange={(e) => setInternalNote(e.target.value)}
+            rows={2}
+            placeholder="e.g. This is blocking proposal preparation"
+            className={cn(inputCls, "h-16 py-2 resize-none")}
+          />
+        </div>
+
+        <div className="flex justify-end gap-2">
+          <MicroButton onClick={onClose}>Cancel</MicroButton>
+          <MicroButton
+            variant="accent"
+            disabled={!section || !question.trim() || !contact}
+            onClick={() => setStep("review")}
+          >
+            <ArrowRight className="w-3 h-3" aria-hidden="true" /> Review &amp; send
+          </MicroButton>
+        </div>
+      </div>
+    );
+  }
+
+  /* ── Review ── */
+  return (
+    <div className="space-y-3 max-w-xl">
+      <div className="rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] p-4 space-y-3">
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] pt-0.5">To</span>
+          <div className="text-right">
+            <div className="text-[12px] font-medium text-[var(--bos-text-primary)]">{contact?.name}</div>
+            <div className="text-[10px] text-[var(--bos-text-tertiary)]">{contact?.email}</div>
+          </div>
+        </div>
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] pt-0.5">Re</span>
+          <div className="text-right">
+            <div className="text-[12px] text-[var(--bos-text-primary)]">{bundle.request.title}</div>
+            <div className="text-[10px] text-[var(--bos-text-tertiary)]">Requirement clarification</div>
+          </div>
+        </div>
+        <div className="flex items-start justify-between gap-3">
+          <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] pt-0.5">Section</span>
+          <div className="text-[12px] text-[var(--bos-text-primary)]">{sectionLabel}</div>
+        </div>
+        <div className="border-t border-[var(--bos-line)] pt-3">
+          <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] mb-1.5">Question</div>
+          <p className="text-[13px] leading-relaxed text-[var(--bos-text-primary)]">“{question}”</p>
+        </div>
+      </div>
+
+      {/* What the client receives */}
+      <div className="rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)]/40 p-3.5">
+        <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-accent)] mb-1">
+          Client will receive
+        </div>
+        <p className="text-[11px] leading-relaxed text-[var(--bos-text-secondary)]">
+          An email from your team asking for one clarification about {sectionLabel}, with a secure link to respond. The internal note below is never included.
+        </p>
+      </div>
+
+      {internalNote && (
+        <div className="rounded-sm border border-[var(--bos-line)] px-3 py-2">
+          <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)]">Internal note (not sent)</div>
+          <p className="mt-0.5 text-[11px] text-[var(--bos-text-tertiary)]">{internalNote}</p>
+        </div>
+      )}
+
+      {error && (
+        <div className="rounded-sm border border-[var(--bos-error)]/30 bg-[var(--bos-error)]/5 px-3 py-2 text-[11px] text-[var(--bos-error)]">
+          {error}
+        </div>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <MicroButton onClick={() => setStep("compose")}>Edit</MicroButton>
+        <MicroButton variant="accent" disabled={busy} onClick={() => void onSend()}>
+          {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Send className="w-3 h-3" aria-hidden="true" />} Send question
+        </MicroButton>
+      </div>
+    </div>
+  );
+}
+
+/* ═══ Question detail — status, delivery trail, actions ═══ */
+
+function QuestionDetailPanel({
+  questionId,
+  bundle,
+  onClose,
+  onChanged,
+}: {
+  questionId: string;
+  bundle: AdminBundle;
+  onClose: () => void;
+  onChanged: () => Promise<void>;
+}) {
+  const [detail, setDetail] = useState<null | {
+    question: AdminBundle["questions"][number];
+    timeline: { at: string; label: string; kind: string; detail?: string | null }[];
+  }>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  const summary = bundle.questions.find((q) => q.id === questionId) ?? null;
+
+  const loadDetail = useCallback(async () => {
+    const res = await fetch(`/api/requirements/questions/${questionId}/timeline`);
+    const data = await res.json();
+    if (res.ok && data.ok) {
+      setDetail(data);
+      setError(null);
+    } else {
+      setError(data.message ?? "Unable to load this question.");
+    }
+  }, [questionId]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void loadDetail();
+  }, [loadDetail]);
+
+  const doAction = async (path: string) => {
+    setBusy(true);
+    setNotice(null);
+    try {
+      const res = await fetch(path, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        setNotice(`⚠ ${data.message ?? "Action failed."}`);
+        return;
+      }
+      setNotice("✓ Done — the question state was updated.");
+      await loadDetail();
+      await onChanged();
+    } catch {
+      setNotice("⚠ Network error — please retry.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const isOpen = summary ? OPEN_Q_STATUSES.includes(summary.status) : false;
+  const isFailed = summary?.status === "FAILED";
+
+  return (
+    <div className="space-y-5 req-enter max-w-2xl">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">Clarification question</span>
+            {summary && <QuestionStatusChip status={summary.status} />}
+          </div>
+          <p className="mt-1.5 text-[16px] font-medium tracking-tight text-[var(--bos-text-primary)] leading-snug">
+            {summary?.question ?? "Loading…"}
+          </p>
+          {summary && (
+            <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">
+              {summary.sectionLabel} · {summary.recipientName} · {summary.recipientEmail}
+              {summary.sentAt ? ` · Sent ${formatDateTime(summary.sentAt)}` : ""}
+            </div>
+          )}
+        </div>
+        <MicroButton onClick={onClose}>
+          <X className="w-3 h-3" aria-hidden="true" /> Close
+        </MicroButton>
+      </div>
+
+      {notice && (
+        <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/50 px-3 py-2 text-[11px] text-[var(--bos-text-secondary)]">
+          {notice}
+        </div>
+      )}
+      {error && (
+        <div className="rounded-sm border border-[var(--bos-error)]/30 bg-[var(--bos-error)]/5 px-3 py-2 text-[11px] text-[var(--bos-error)]">
+          {error}
+        </div>
+      )}
+
+      {/* Response — the reason this question exists */}
+      {summary?.status === "ANSWERED" ? (
+        <div className="rounded-sm border border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 p-4">
+          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-success)]">
+            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Client response{summary.respondedByName ? ` · ${summary.respondedByName}` : ""}
+          </div>
+          <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-primary)]">{summary.response}</p>
+          {summary.respondedAt && (
+            <div className="mt-2 text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(summary.respondedAt)}</div>
+          )}
+        </div>
+      ) : summary?.status === "FAILED" ? (
+        <div className="rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 p-4">
+          <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-error)]">Message not sent</div>
+          <p className="mt-1.5 text-[12px] text-[var(--bos-text-secondary)]">
+            The clarification could not be delivered — the email provider did not confirm it. Retry once the email configuration is fixed.
+          </p>
+        </div>
+      ) : null}
+
+      {summary?.internalNote && (
+        <div className="rounded-sm border border-[var(--bos-line)] px-3 py-2">
+          <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)]">Internal note</div>
+          <p className="mt-0.5 text-[11px] text-[var(--bos-text-tertiary)]">{summary.internalNote}</p>
+        </div>
+      )}
+
+      {/* Delivery trail */}
+      <div>
+        <div className="mb-2 text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">Delivery trail</div>
+        {!detail ? (
+          <p className="text-[11px] text-[var(--bos-text-tertiary)]">Loading…</p>
+        ) : detail.timeline.length === 0 ? (
+          <p className="text-[11px] text-[var(--bos-text-tertiary)]">No delivery attempts yet.</p>
+        ) : (
+          <ol className="relative border-l border-[var(--bos-line)] ml-1 space-y-2.5">
+            {detail.timeline.map((t, i) => (
+              <li key={i} className="pl-3.5 relative">
+                <span
+                  className={cn(
+                    "absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full",
+                    t.kind === "failed" ? "bg-[var(--bos-error)]" : t.kind === "answered" ? "bg-[var(--bos-success)]" : "bg-[var(--bos-accent)]",
+                  )}
+                  aria-hidden="true"
+                />
+                <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">{t.label}</div>
+                {t.detail && <div className="text-[9px] text-[var(--bos-text-tertiary)]">{t.detail}</div>}
+                <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(t.at)}</div>
+              </li>
+            ))}
+          </ol>
+        )}
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 flex-wrap">
+        {isFailed && (
+          <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/requirements/questions/${questionId}/send`)}>
+            {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <RefreshCw className="w-3 h-3" aria-hidden="true" />} Retry send
+          </MicroButton>
+        )}
+        {isOpen && (
+          <>
+            <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/requirements/questions/${questionId}/remind`)}>
+              {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Mail className="w-3 h-3" aria-hidden="true" />} Send reminder
+            </MicroButton>
+            <MicroButton disabled={busy} onClick={() => void doAction(`/api/requirements/questions/${questionId}/cancel`)}>
+              {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Ban className="w-3 h-3" aria-hidden="true" />} Cancel question
+            </MicroButton>
+          </>
+        )}
+      </div>
+    </div>
   );
 }

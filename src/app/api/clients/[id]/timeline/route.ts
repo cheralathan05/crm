@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
-import { getClientForUser } from "@/lib/clients";
-import { formatRelative } from "@/lib/clients";
+import { getClientForUser, formatRelative } from "@/lib/clients";
+import { getSection } from "@/lib/requirement-config";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export async function GET(req: Request, { params }: Ctx) {
   const filter = url.searchParams.get("filter") ?? "all";
 
   // The timeline is built from real business events across the client's records.
-  const [activities, requirements, proposals, projects, tasks, messages, payments, documents, notes, audit] =
+  const [activities, requirements, proposals, projects, tasks, messages, payments, documents, notes, audit, clarifications] =
     await Promise.all([
       db.clientActivity.findMany({ where: { clientId: id }, orderBy: { createdAt: "desc" }, take: 60 }),
       db.clientRequirement.findMany({ where: { clientId: id }, select: { id: true, title: true, status: true, submittedAt: true, approvedAt: true }, orderBy: { submittedAt: "desc" } }),
@@ -35,6 +35,12 @@ export async function GET(req: Request, { params }: Ctx) {
       db.clientDocument.findMany({ where: { clientId: id }, select: { id: true, name: true, category: true, uploadedByName: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 40 }),
       db.clientNote.findMany({ where: { clientId: id }, select: { id: true, content: true, authorName: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 20 }),
       db.clientAuditEvent.findMany({ where: { clientId: id }, select: { id: true, entity: true, action: true, actorName: true, createdAt: true }, orderBy: { createdAt: "desc" }, take: 60 }),
+      db.requirementQuestion.findMany({
+        where: { clientId: id },
+        select: { id: true, section: true, status: true, sentAt: true, respondedAt: true, recipientName: true, requirement: { select: { title: true } } },
+        orderBy: { createdAt: "desc" },
+        take: 40,
+      }),
     ]);
 
   type Event = {
@@ -89,6 +95,29 @@ export async function GET(req: Request, { params }: Ctx) {
   }
   for (const au of audit) {
     events.push({ id: `aud-${au.id}`, at: au.createdAt, label: `${au.action.replace(/_/g, " ").toLowerCase()} (${au.entity.toLowerCase()})`, group: "System", actor: au.actorName ?? "System", kind: "system" });
+  }
+  for (const c of clarifications) {
+    const sectionLabel = getSection(c.section)?.label ?? c.section;
+    if (c.sentAt && c.status !== "FAILED") {
+      events.push({
+        id: `cq-sent-${c.id}`,
+        at: c.sentAt,
+        label: `Clarification requested — ${c.requirement.title} · ${sectionLabel}`,
+        group: "Requirements",
+        actor: `Sent to ${c.recipientName}`,
+        kind: "requirement",
+      });
+    }
+    if (c.respondedAt) {
+      events.push({
+        id: `cq-ans-${c.id}`,
+        at: c.respondedAt,
+        label: `Clarification answered — ${c.requirement.title} · ${sectionLabel}`,
+        group: "Requirements",
+        actor: c.recipientName,
+        kind: "client",
+      });
+    }
   }
 
   events.sort((a, b) => b.at.getTime() - a.at.getTime());

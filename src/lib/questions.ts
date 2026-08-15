@@ -227,7 +227,7 @@ export async function sendClarificationEmail(input: {
   // stays usable — but the response tells the UI exactly what happened.
   if (mail.sent || mail.devUrl) {
     const now = new Date();
-    const delivery = await db.questionDelivery.create({
+    await db.questionDelivery.create({
       data: {
         workspaceId: question.workspaceId,
         questionId: question.id,
@@ -301,7 +301,7 @@ export async function sendClarificationEmail(input: {
   }
 
   // Real delivery failure — never claim sent.
-  const delivery = await db.questionDelivery.create({
+  await db.questionDelivery.create({
     data: {
       workspaceId: question.workspaceId,
       questionId: question.id,
@@ -476,20 +476,32 @@ export function serializeAdminQuestion(question: RequirementQuestion) {
   };
 }
 
-export function serializeQuestionDetail(question: RequirementQuestion, deliveries: unknown[]) {
+type DeliveryRow = {
+  id: string;
+  kind: string;
+  recipient: string;
+  provider: string | null;
+  status: string;
+  sentAt: Date | null;
+  failedAt: Date | null;
+  failureReason: string | null;
+  createdAt: Date;
+};
+
+export function serializeQuestionDetail(question: RequirementQuestion, deliveries: DeliveryRow[]) {
   return {
     ok: true,
     question: serializeAdminQuestion(question),
     deliveries: deliveries.map((d) => ({
-      id: (d as { id: string }).id,
-      kind: (d as { kind: string }).kind,
-      recipient: (d as { recipient: string }).recipient,
-      provider: (d as { provider: string | null }).provider,
-      status: (d as { status: string }).status,
-      sentAt: (d as { sentAt: Date | null }).sentAt,
-      failedAt: (d as { failedAt: Date | null }).failedAt,
-      failureReason: (d as { failureReason: string | null }).failureReason,
-      createdAt: (d as { createdAt: Date }).createdAt,
+      id: d.id,
+      kind: d.kind,
+      recipient: d.recipient,
+      provider: d.provider,
+      status: d.status,
+      sentAt: d.sentAt,
+      failedAt: d.failedAt,
+      failureReason: d.failureReason,
+      createdAt: d.createdAt,
     })),
   };
 }

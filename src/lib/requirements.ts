@@ -366,7 +366,7 @@ export async function serializePublicRequest(request: RequirementRequest) {
 
 /** Full admin bundle for the Requirement Command Center. */
 export async function serializeAdminRequest(request: RequirementRequest) {
-  const [answers, features, attachments, comments, revisions, events, client, proposals] =
+  const [answers, features, attachments, comments, revisions, events, client, proposals, questions, clientContacts] =
     await Promise.all([
       loadAnswers(request.id),
       loadFeatures(request.id),
@@ -383,7 +383,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       db.requirementRevision.findMany({ where: { requestId: request.id }, orderBy: { revision: "asc" } }),
       db.requirementEvent.findMany({
         where: { requestId: request.id },
-        select: { id: true, type: true, label: true, detail: true, createdAt: true },
+        select: { id: true, type: true, label: true, detail: true, meta: true, createdAt: true },
         orderBy: { createdAt: "desc" },
       }),
       db.client.findUnique({ where: { id: request.clientId } }),
@@ -391,6 +391,21 @@ export async function serializeAdminRequest(request: RequirementRequest) {
         where: { clientId: request.clientId },
         select: { id: true, title: true, status: true, amount: true, createdAt: true },
         orderBy: { createdAt: "desc" },
+      }),
+      db.requirementQuestion.findMany({
+        where: { requirementId: request.id },
+        select: {
+          id: true, section: true, question: true, internalNote: true,
+          recipientName: true, recipientEmail: true, createdByName: true,
+          status: true, sentAt: true, respondedAt: true, response: true,
+          respondedByName: true, tokenExpiresAt: true, createdAt: true, updatedAt: true,
+        },
+        orderBy: { createdAt: "desc" },
+      }),
+      db.contact.findMany({
+        where: { clientId: request.clientId },
+        select: { id: true, name: true, role: true, email: true, isPrimary: true },
+        orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
       }),
     ]);
 
@@ -434,6 +449,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
           companyName: client.companyName,
           industry: client.industry,
           status: client.status,
+          email: client.email,
         }
       : null,
     answers,
@@ -460,10 +476,36 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       type: e.type,
       label: e.label,
       detail: e.detail,
+      meta: safeJsonObject(e.meta),
       createdAt: e.createdAt,
     })),
     states,
     proposals,
+    questions: questions.map((q) => ({
+      id: q.id,
+      section: q.section,
+      sectionLabel: getSection(q.section)?.label ?? q.section,
+      question: q.question,
+      internalNote: q.internalNote,
+      recipientName: q.recipientName,
+      recipientEmail: q.recipientEmail,
+      createdByName: q.createdByName,
+      status: q.status,
+      sentAt: q.sentAt,
+      respondedAt: q.respondedAt,
+      response: q.response,
+      respondedByName: q.respondedByName,
+      expiresAt: q.tokenExpiresAt,
+      createdAt: q.createdAt,
+      updatedAt: q.updatedAt,
+    })),
+    clientContacts: clientContacts.map((c) => ({
+      id: c.id,
+      name: c.name,
+      role: c.role,
+      email: c.email,
+      isPrimary: c.isPrimary,
+    })),
   };
 }
 
