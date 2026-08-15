@@ -460,7 +460,7 @@ export async function sendProposalChangeRequestReceivedEmail(input: {
   version?: number;
   link: string;
 }): Promise<MailResult> {
-  const { to, clientName, projectTitle, proposalReference, companyName, version, link } = input;
+  const { to, clientName, projectTitle, proposalReference, version, link } = input;
   return send({
     to,
     subject: `Change request received — ${projectTitle}`,
@@ -488,7 +488,7 @@ export async function sendProposalChangeRequestDecisionEmail(input: {
   response?: string | null;
   link: string;
 }): Promise<MailResult> {
-  const { to, clientName, projectTitle, proposalReference, companyName, accepted, response, link } = input;
+  const { to, clientName, projectTitle, proposalReference, accepted, response, link } = input;
   return send({
     to,
     subject: accepted ? `Change request accepted — ${projectTitle}` : `Change request update — ${projectTitle}`,

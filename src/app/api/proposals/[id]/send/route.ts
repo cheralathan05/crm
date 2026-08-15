@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
-import { db } from "@/lib/db";
 import { getProposalForUser } from "@/lib/proposal";
 import { sendProposalToClient } from "@/lib/proposal-delivery";
 

@@ -397,7 +397,9 @@ export async function approveProposal(token: string, input: { clientName?: strin
     where: { proposalId: proposal.id, proposalVersion: proposal.version },
     orderBy: { approvedAt: "desc" },
   });
-  if (existing) return existing;
+  if (existing) {
+    return { approval: existing, proposal, alreadyApproved: true };
+  }
 
   const now = new Date();
   const approval = await db.proposalApproval.create({
@@ -470,7 +472,7 @@ export async function approveProposal(token: string, input: { clientName?: strin
     }).catch(() => undefined);
   }
 
-  return { approval, proposal: saved };
+  return { approval, proposal: saved, alreadyApproved: false };
 }
 
 /* ── Client decision — REQUEST CHANGES (structured) ──────────── */
@@ -757,6 +759,15 @@ export async function decideChangeRequest(input: {
       after: { changeRequest: changeRequest.id, decision: input.decision, status: proposal.status },
     });
     await db.client.update({ where: { id: client.id }, data: { lastActivityAt: now } });
+    if (proposal.requirementRequestId) {
+      await recordEvent(
+        proposal.requirementRequestId,
+        input.decision === "accept" ? "UPDATE_APPLIED" : "UPDATE_PROPOSED",
+        input.decision === "accept" ? "Proposal changes accepted" : "Proposal changes decision",
+        `${proposal.reference ?? "PROP"} — change request ${changeRequest.reference ?? ""} ${input.decision === "accept" ? "accepted, revision started" : input.decision === "decline" ? "declined" : "needs clarification"}`,
+        { proposalId: proposal.id, changeRequestId: changeRequest.id, decision: input.decision },
+      );
+    }
 
     if (client.email && workspace) {
       await sendProposalChangeRequestDecisionEmail({
@@ -804,7 +815,6 @@ export async function createProposalRevision(input: {
     throw new Error("An approved or declined proposal cannot be revised.");
   }
 
-  const now = new Date();
   const nextVersion = proposal.version + 1;
   const saved = await db.clientProposal.update({
     where: { id: proposal.id },
@@ -908,6 +918,8 @@ export async function snapshotProposalVersion(input: {
 }
 
 /* ── Serialization — the delivery journey for the studio ─────── */
+
+export type ProposalDeliveryBundle = Awaited<ReturnType<typeof serializeProposalDelivery>>;
 
 export async function serializeProposalDelivery(
   proposal: ClientProposal & { client: { id: string; companyName: string; email: string | null; workspaceId: string } },
@@ -1066,9 +1078,9 @@ export async function serializeClientProposal(token: string) {
       pdfPages: proposal.pdfPages,
       clientName: client?.companyName ?? "",
       preparedBy: workspace?.companyName ?? "",
-      sentAt: proposal.sentAt,
-      viewedAt: proposal.viewedAt,
-      lastApprovedAt: approvals[0]?.approvedAt ?? null,
+      sentAt: proposal.sentAt ? proposal.sentAt.toISOString() : null,
+      viewedAt: proposal.viewedAt ? proposal.viewedAt.toISOString() : null,
+      lastApprovedAt: approvals[0]?.approvedAt ? approvals[0].approvedAt.toISOString() : null,
       approved: proposal.status === "APPROVED",
       rejected: proposal.status === "REJECTED",
       changeRequests: changeRequests.map((cr) => ({
@@ -1077,7 +1089,7 @@ export async function serializeClientProposal(token: string) {
         status: cr.status,
         message: cr.message,
         adminResponse: cr.adminResponse,
-        submittedAt: cr.submittedAt,
+        submittedAt: cr.submittedAt ? cr.submittedAt.toISOString() : "",
         reasons: safeJsonArray(cr.reasons),
         sections: safeJsonArray(cr.sections),
       })),

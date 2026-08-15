@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { loadAnswers, loadFeatures } from "./requirements";
+import { serializeProposalDelivery, type ProposalDeliveryBundle } from "./proposal-delivery";
 import { PDFDocument } from "pdf-lib";
 import {
   amountLabel,
@@ -380,6 +381,7 @@ export type ProposalStudioBundle = {
     amount: number | null;
     currency: string;
     status: string;
+    version: number;
     reference: string | null;
     pdfPath: string | null;
     pdfPages: number | null;
@@ -399,6 +401,7 @@ export type ProposalStudioBundle = {
   } | null;
   client: { id: string; companyName: string; industry: string | null; email: string | null } | null;
   workspace: { companyName: string; email: string | null; phone: string | null; website: string | null };
+  delivery: ProposalDeliveryBundle;
 };
 
 /** Load a proposal only if it belongs to the user's workspace. */
@@ -454,6 +457,7 @@ export async function serializeProposalForStudio(
       amount: proposal.amount,
       currency: proposal.currency,
       status: proposal.status,
+      version: proposal.version,
       reference: proposal.reference,
       pdfPath: proposal.pdfPath,
       pdfPages: proposal.pdfPages,
@@ -480,6 +484,7 @@ export async function serializeProposalForStudio(
       phone: workspace?.profile?.businessPhone ?? null,
       website: workspace?.profile?.website ?? null,
     },
+    delivery: await serializeProposalDelivery(proposal),
   };
 }
 

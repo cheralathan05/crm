@@ -26,6 +26,18 @@ const STATUS_TONES: Record<string, { dot: string; text: string; bg: string; labe
   // Proposal statuses
   VIEWED: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "Viewed" },
   REJECTED: { dot: "bg-[var(--bos-error)]", text: "text-[var(--bos-error)]", bg: "bg-[var(--bos-error)]/8", label: "Rejected" },
+  FINALIZED: { dot: "bg-[var(--bos-success)]", text: "text-[var(--bos-success)]", bg: "bg-[var(--bos-success)]/8", label: "Finalized" },
+  DELIVERED: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "Delivered" },
+  RESENT: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "Resent" },
+  REVISION_IN_PROGRESS: { dot: "bg-[var(--bos-warning)]", text: "text-[var(--bos-warning)]", bg: "bg-[var(--bos-warning)]/8", label: "Revision in progress" },
+  REVISION_READY: { dot: "bg-[var(--bos-info)]", text: "text-[var(--bos-info)]", bg: "bg-[var(--bos-info)]/8", label: "Revision ready" },
+  EXPIRED: { dot: "bg-[var(--bos-text-tertiary)]", text: "text-[var(--bos-text-tertiary)]", bg: "bg-[var(--bos-overlay)]", label: "Expired" },
+  ACCEPTED: { dot: "bg-[var(--bos-success)]", text: "text-[var(--bos-success)]", bg: "bg-[var(--bos-success)]/8", label: "Accepted" },
+  DECLINED: { dot: "bg-[var(--bos-error)]", text: "text-[var(--bos-error)]", bg: "bg-[var(--bos-error)]/8", label: "Declined" },
+  CLARIFICATION_REQUIRED: { dot: "bg-[var(--bos-warning)]", text: "text-[var(--bos-warning)]", bg: "bg-[var(--bos-warning)]/8", label: "Clarification needed" },
+  IMPLEMENTED: { dot: "bg-[var(--bos-success)]", text: "text-[var(--bos-success)]", bg: "bg-[var(--bos-success)]/8", label: "Implemented" },
+  PENDING: { dot: "bg-[var(--bos-warning)]", text: "text-[var(--bos-warning)]", bg: "bg-[var(--bos-warning)]/8", label: "Pending" },
+  FAILED: { dot: "bg-[var(--bos-error)]", text: "text-[var(--bos-error)]", bg: "bg-[var(--bos-error)]/8", label: "Failed" },
 };
 
 export function StatusChip({ status, className }: { status: string; className?: string }) {
