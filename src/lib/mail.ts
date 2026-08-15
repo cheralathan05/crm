@@ -298,6 +298,69 @@ ${actionButton(link, "Open Project Workspace")}
   );
 }
 
+/* ── Clarification emails — the Ask the Client loop ────────── */
+
+type ClarificationEmailInput = {
+  to: string;
+  clientName: string;
+  projectTitle: string;
+  sectionLabel: string;
+  question: string;
+  link: string;
+  companyName: string;
+  senderName: string;
+  senderEmail?: string | null;
+};
+
+/**
+ * Send the initial clarification question to the client. The identity used
+ * is the workspace's company — never a system/notification persona. The only
+ * actionable element is the secure response link (token-based, no internal
+ * ids in the URL).
+ */
+export async function sendClarificationQuestionEmail(input: ClarificationEmailInput): Promise<MailResult> {
+  const { to, clientName, projectTitle, sectionLabel, question, link, companyName, senderName, senderEmail } = input;
+  const signOff = senderEmail ? `${escapeHtml(senderName)}<br/>${escapeHtml(companyName)} · ${escapeHtml(senderEmail)}` : `${escapeHtml(senderName)}<br/>${escapeHtml(companyName)}`;
+  return send(
+    {
+      to,
+      subject: `Clarification needed for ${projectTitle}`,
+      text: `Hi ${clientName},\n\nWe're currently reviewing the requirements for:\n\n${projectTitle}\n\nBefore we can finalize the ${sectionLabel} section, we need one clarification:\n\n“${question}”\n\nRespond securely here:\n${link}\n\nThank you,\n${senderName}\n${companyName}`,
+      html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 4px;">Requirement clarification</p>
+<p style="font-size:12px;color:#8a8377;margin:0 0 20px;">${escapeHtml(projectTitle)} · ${escapeHtml(sectionLabel)}</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 10px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">We're currently reviewing the requirements for <strong>${escapeHtml(projectTitle)}</strong>. Before we can finalize the ${escapeHtml(sectionLabel)} section, we need one clarification:</p>
+<p style="font-size:14px;color:#23201c;border-left:3px solid #b5452a;background:#faf7f1;padding:12px 14px;margin:14px 0 18px;">${escapeHtml(question)}</p>
+${actionButton(link, "Respond to this question")}
+<p style="font-size:12px;color:#8a8377;margin:16px 0 0;">You can respond securely using the button above — no account needed.</p>
+<p style="font-size:13px;color:#55504a;margin:22px 0 0;">Thank you,<br/>${signOff}</p>`),
+    },
+    link,
+  );
+}
+
+/** Send a gentle reminder about an existing clarification question. */
+export async function sendClarificationReminderEmail(input: ClarificationEmailInput): Promise<MailResult> {
+  const { to, clientName, projectTitle, sectionLabel, question, link, companyName, senderName, senderEmail } = input;
+  const signOff = senderEmail ? `${escapeHtml(senderName)}<br/>${escapeHtml(companyName)} · ${escapeHtml(senderEmail)}` : `${escapeHtml(senderName)}<br/>${escapeHtml(companyName)}`;
+  return send(
+    {
+      to,
+      subject: `Reminder — clarification needed for ${projectTitle}`,
+      text: `Hi ${clientName},\n\nThis is a quick reminder that we're waiting on one clarification before we can finalize the ${sectionLabel} section of ${projectTitle}:\n\n“${question}”\n\nRespond securely here:\n${link}\n\nThank you,\n${senderName}\n${companyName}`,
+      html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 4px;">Reminder — requirement clarification</p>
+<p style="font-size:12px;color:#8a8377;margin:0 0 20px;">${escapeHtml(projectTitle)} · ${escapeHtml(sectionLabel)}</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 10px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">A quick reminder that we're waiting on your answer before we can finalize the ${escapeHtml(sectionLabel)} section of <strong>${escapeHtml(projectTitle)}</strong>:</p>
+<p style="font-size:14px;color:#23201c;border-left:3px solid #b5452a;background:#faf7f1;padding:12px 14px;margin:14px 0 18px;">${escapeHtml(question)}</p>
+${actionButton(link, "Respond to this question")}
+<p style="font-size:12px;color:#8a8377;margin:16px 0 0;">You can respond securely using the button above — no account needed.</p>
+<p style="font-size:13px;color:#55504a;margin:22px 0 0;">Thank you,<br/>${signOff}</p>`),
+    },
+    link,
+  );
+}
+
 export async function sendResetEmail(
   to: string,
   name: string,

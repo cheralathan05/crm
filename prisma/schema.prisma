@@ -225,6 +225,8 @@ model Workspace {
   clients       Client[]
   customFieldDefs ClientCustomFieldDef[]
   requirementRequests RequirementRequest[]
+  requirementQuestions RequirementQuestion[]
+  questionDeliveries QuestionDelivery[]
   copilotMessages ClientCopilotMessage[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -274,6 +276,7 @@ model Client {
   notes          ClientNote[]
   auditEvents    ClientAuditEvent[]
   requirementRequests RequirementRequest[]
+  requirementQuestions RequirementQuestion[]
   copilotMessages ClientCopilotMessage[]
 
   @@index([workspaceId, status])
@@ -523,6 +526,9 @@ enum RequirementEventType {
   FILE_UPLOADED
   CHANGES_REQUESTED
   CLIENT_COMMENTED
+  CLARIFICATION_REQUESTED
+  CLARIFICATION_ANSWERED
+  CLARIFICATION_REMINDED
   SUBMITTED
   REVISION_SUBMITTED
   APPROVED
@@ -568,6 +574,7 @@ model RequirementRequest {
   comments    RequirementComment[]
   revisions   RequirementRevision[]
   events      RequirementEvent[]
+  questions    RequirementQuestion[]
 
   @@index([workspaceId, status])
   @@index([clientId])
@@ -620,6 +627,97 @@ model RequirementAttachment {
   createdAt   DateTime @default(now())
 
   @@index([requestId])
+}
+
+/** Clarification threads — admin requests, client replies. */
+enum QuestionStatus {
+  DRAFT
+  READY_TO_SEND
+  SENDING
+  SENT
+  DELIVERED
+  OPENED
+  ANSWERED
+  EXPIRED
+  FAILED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  SENDING
+  SENT
+  FAILED
+}
+
+enum DeliveryKind {
+  INITIAL
+  REMINDER
+}
+
+/**
+ * A clarification question emailed to the client — the Ask the Client loop.
+ * Every question is bound to one workspace + client + requirement + section,
+ * carries its own secure response token, and keeps a delivery trail. Never
+ * an unassociated email.
+ */
+model RequirementQuestion {
+  id                 String            @id @default(cuid())
+  workspace          Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId        String
+  client             Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId           String
+  requirement        RequirementRequest @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId      String
+  section            String
+  question           String
+  /** Visible to the internal team only — never sent to the client. */
+  internalNote       String?
+  recipientContactId String?
+  recipientName      String
+  recipientEmail     String
+  createdById        String?
+  createdByName      String?
+  status             QuestionStatus    @default(READY_TO_SEND)
+  sentAt             DateTime?
+  deliveredAt        DateTime?
+  openedAt           DateTime?
+  respondedAt        DateTime?
+  response           String?
+  respondedByName    String?
+  tokenHash          String            @unique
+  tokenExpiresAt     DateTime?
+  tokenRevokedAt     DateTime?
+  tokenRevokedReason String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  deliveries QuestionDelivery[]
+
+  @@index([workspaceId, status])
+  @@index([requirementId, status])
+  @@index([clientId, createdAt])
+}
+
+/** Honest delivery trail — one row per send attempt (initial + reminders). */
+model QuestionDelivery {
+  id                String            @id @default(cuid())
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId       String
+  question          RequirementQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId        String
+  kind              DeliveryKind      @default(INITIAL)
+  recipient         String
+  provider          String?
+  providerMessageId String?
+  status            DeliveryStatus    @default(SENDING)
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  createdAt         DateTime          @default(now())
+
+  @@index([questionId, createdAt])
 }
 
 /** Clarification threads — admin requests, client replies. */
