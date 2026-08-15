@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { getProposalForUser, generateProposalPdf, serializeProposalForStudio } from "@/lib/proposal";
+import { snapshotProposalVersion } from "@/lib/proposal-delivery";
 
 export const dynamic = "force-dynamic";
 
@@ -11,8 +12,9 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /* ── POST /api/proposals/[id]/finalize ─────────────────────────
    Final check → generate the PDF from the saved document → store it
-   under uploads/proposals/ → mark the proposal finalized. Real PDF,
-   real page count, real persistence. */
+   under uploads/proposals/ as {id}-v{version}.pdf → freeze one
+   immutable ProposalVersion snapshot → mark the proposal FINALIZED.
+   Every finalize creates a new version record; nothing is overwritten. */
 
 export async function POST(_req: Request, { params }: Ctx) {
   const session = await auth();
@@ -48,23 +50,33 @@ export async function POST(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "The PDF could not be generated. Please try again." }, { status: 500 });
   }
 
-  // Persist the PDF on disk and record its path + accurate page count.
+  // Persist the PDF on disk with a versioned filename — v1, v2, … never clash.
   const dir = path.join(process.cwd(), "uploads", "proposals");
   await mkdir(dir, { recursive: true });
-  const fileName = `${proposal.id}.pdf`;
+  const fileName = `${proposal.id}-v${proposal.version}.pdf`;
   await writeFile(path.join(dir, fileName), result.buffer, { flag: "wx" }).catch(async () => {
-    // Regenerate over an existing file.
     await writeFile(path.join(dir, fileName), result.buffer);
   });
   const pdfPath = `proposals/${fileName}`;
 
+  const now = new Date();
   const saved = await db.clientProposal.update({
     where: { id: proposal.id },
     data: {
       pdfPath,
       pdfPages: result.pages,
-      finalizedAt: new Date(),
+      finalizedAt: now,
+      status: "FINALIZED",
     },
+  });
+
+  // Freeze the immutable version snapshot.
+  await snapshotProposalVersion({
+    proposal: saved,
+    document: JSON.stringify(doc),
+    pdfPath,
+    pages: result.pages,
+    actorName: session.user.name ?? "Owner",
   });
 
   return NextResponse.json({
@@ -75,6 +87,8 @@ export async function POST(_req: Request, { params }: Ctx) {
       pdfPath: saved.pdfPath,
       pdfPages: saved.pdfPages,
       finalizedAt: saved.finalizedAt,
+      version: saved.version,
+      status: saved.status,
       pages: result.pages,
     },
   });

@@ -472,8 +472,9 @@ ${proposalReference ? `<p style="font-size:13px;color:#8a8377;margin:10px 0 0;">
 <p style="font-size:13px;color:#8a8377;margin:6px 0 0;">Status: <strong>Under review</strong></p>
 <p style="font-size:14px;color:#55504a;margin:16px 0 0;">We'll review your feedback and prepare a revised proposal if required.</p>
 ${actionButton(link, "View Your Request")}`),
+    },
     link,
-  });
+  );
 }
 
 /** Update sent to the client when a change request is accepted or declined. */
@@ -503,8 +504,9 @@ export async function sendProposalChangeRequestDecisionEmail(input: {
 ${proposalReference ? `<p style="font-size:13px;color:#8a8377;margin:10px 0 0;">Proposal: ${escapeHtml(proposalReference)}</p>` : ""}
 ${response ? `<p style="font-size:13px;color:#55504a;border-left:3px solid #e7e2d8;padding:10px 14px;background:#faf7f1;margin:12px 0 0;">${escapeHtml(response)}</p>` : ""}
 ${actionButton(link, "View Details")}`),
+    },
     link,
-  });
+  );
 }
 
 /** Sent to the client when their proposal is declined outright (they chose not to proceed). */
