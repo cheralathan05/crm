@@ -6,6 +6,7 @@ import { estimateBudgetAmount } from "./proposal-doc";
 import {
   computeCompleteness,
   computeReadiness,
+  DATA_SECTIONS,
   getSection,
   requestStatusLabel,
   sectionStates,
@@ -14,7 +15,47 @@ import {
   type Readiness,
 } from "./requirement-config";
 import { categoryLabel } from "./clarification-rules";
-import { buildRequirementIntel } from "./requirement-intel";
+import { buildRequirementIntel, sectionStatesWithAccepted } from "./requirement-intel";
+
+/**
+ * Recompute the stored readiness/completeness of a requirement request using
+ * the authoritative section-state map — data-complete OR accepted-clarification
+ * satisfied. Called after any mutation that can change section completion
+ * (accepted clarification answers, revisions) so stored numbers always match
+ * what the intelligence engine derives.
+ */
+export async function recomputeRequestMetrics(requestId: string) {
+  const [answers, features, attachments, questions] = await Promise.all([
+    loadAnswers(requestId),
+    db.requirementFeature.findMany({ where: { requestId } }),
+    db.requirementAttachment.count({ where: { requestId } }),
+    db.requirementQuestion.findMany({
+      where: { requirementId: requestId },
+      select: { section: true, status: true, response: true },
+    }),
+  ]);
+  const states = sectionStatesWithAccepted(
+    sectionStates(
+      answers,
+      completionContext(
+        features.length,
+        attachments,
+        features.filter((f) => f.priority === "MUST_HAVE").length,
+      ),
+    ),
+    questions,
+  );
+  const weightSections = SECTIONS.filter((s) => s.weight > 0);
+  const totalWeight = weightSections.reduce((a, s) => a + s.weight, 0);
+  const readyWeight = weightSections.reduce((a, s) => a + (states[s.key] ? s.weight : 0), 0);
+  const readiness = totalWeight > 0 ? Math.round((readyWeight / totalWeight) * 100) : 0;
+  const completeSections = DATA_SECTIONS.filter((s) => states[s.key]).length;
+  const completeness = Math.round((completeSections / DATA_SECTIONS.length) * 100);
+  return db.requirementRequest.update({
+    where: { id: requestId },
+    data: { completeness, readiness },
+  });
+}
 import type { RequirementProjectType, RequirementRequest, RequirementRequestStatus } from "@/generated/prisma/client";
 
 /* ────────────────────────────────────────────────────────────────
@@ -411,13 +452,19 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       }),
     ]);
 
-  const states = sectionStates(
-    answers,
-    completionContext(
-      features.length,
-      attachments.length,
-      features.filter((f) => f.priority === "MUST_HAVE").length,
+  // Section completion with accepted clarifications overlaid — a section is
+  // confirmed when its data is complete OR an admin-accepted clarification
+  // answer satisfied it (and no other question on it is still open).
+  const states = sectionStatesWithAccepted(
+    sectionStates(
+      answers,
+      completionContext(
+        features.length,
+        attachments.length,
+        features.filter((f) => f.priority === "MUST_HAVE").length,
+      ),
     ),
+    questions,
   );
 
   // Proposal readiness: unresolved blocking clarifications gate the proposal.

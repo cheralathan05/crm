@@ -237,6 +237,19 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     else if (OPEN_QUESTION_STATUSES.includes(q.status)) item.status = "WAITING";
   }
 
+  /* Accepted clarifications — an admin-accepted answer confirms the section
+     item it targets. A RESOLVED question with a stored response is the
+     accepted answer; it only confirms the section when no OTHER question on
+     that section is still open or awaiting review (spec 28/29). */
+  const acceptedKeys = acceptedClarificationKeys(questions);
+  for (const item of items) {
+    if (item.mode === "REQUIRED" && item.status === "ACTION_REQUIRED" && item.section && acceptedKeys.has(item.section)) {
+      item.status = "CONFIRMED";
+      item.source = "Client clarification";
+      item.detail = "Confirmed from an accepted client answer";
+    }
+  }
+
   /* Real blockers — unresolved blocking clarifications + missing required
      items. Optional and inactive items never block (spec 10, 11). */
   const blockers: Blocker[] = proposalBlock.blockers.map((b) => ({
@@ -279,12 +292,15 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     health = { level: "GOOD", reason: "All required information is confirmed." };
   }
 
-  /* Proposal readiness check (spec 40, 68) — exact reasons when not ready. */
+  /* Proposal readiness check (spec 40, 68) — exact reasons when not ready.
+     A section is confirmed when its data is complete OR an accepted
+     clarification satisfied it — same rule as the items above. */
+  const sectionConfirmed = (key: string) => states[key] === true || acceptedKeys.has(key);
   const submitted = ["SUBMITTED", "CHANGES_REQUESTED", "REVISION_SUBMITTED", "APPROVED"].includes(request.status);
-  const scopeOk = states.scope === true;
+  const scopeOk = sectionConfirmed("scope");
   const featuresOk = features.length > 0;
-  const timelineOk = states.timeline === true;
-  const commercialOk = states.commercial === true;
+  const timelineOk = sectionConfirmed("timeline");
+  const commercialOk = sectionConfirmed("commercial");
   const blockersOk = blockers.length === 0;
   const conflictsOk = conflicts.length === 0;
 
@@ -394,4 +410,55 @@ export function buildRequirementIntel(input: IntelInput): Intel {
 /** Export the section list so the UI can render section-level status too. */
 export function sectionLabel(key: string): string {
   return getSection(key)?.label ?? key;
+}
+
+/* ── Accepted-clarification keys ───────────────────────────────
+   The single source of truth for "has this section been satisfied by an
+   admin-accepted client answer?". A RESOLVED question with a non-empty
+   response is the accepted answer; it only counts when no other question
+   on that section is still open or awaiting review. The backend accept
+   transaction and every derived surface use this same rule. */
+
+export const UNRESOLVED_QUESTION_STATUSES = [
+  "DRAFT",
+  "READY_FOR_REVIEW",
+  "APPROVED",
+  "READY_TO_SEND",
+  "SENDING",
+  "SENT",
+  "DELIVERED",
+  "OPENED",
+  "ANSWERED",
+  "UNDER_REVIEW",
+];
+
+export function acceptedClarificationKeys(
+  questions: Pick<IntelQuestion, "section" | "status" | "response">[],
+): Set<string> {
+  const unresolved = new Set<string>();
+  const resolved: { section: string; response: string | null }[] = [];
+  for (const q of questions) {
+    if (UNRESOLVED_QUESTION_STATUSES.includes(q.status)) unresolved.add(q.section);
+    if (q.status === "RESOLVED" && (q.response ?? "").trim().length > 0) resolved.push(q);
+  }
+  const out = new Set<string>();
+  for (const r of resolved) {
+    if (!unresolved.has(r.section)) out.add(r.section);
+  }
+  return out;
+}
+
+/**
+ * Section completion states with accepted clarifications overlaid.
+ * The single authoritative "is this section satisfied" map: a section is
+ * confirmed when its stored data is complete OR an accepted clarification
+ * answer satisfied it (and no other question on the section is still open).
+ */
+export function sectionStatesWithAccepted(
+  states: Record<string, boolean>,
+  questions: Pick<IntelQuestion, "section" | "status" | "response">[],
+): Record<string, boolean> {
+  const out: Record<string, boolean> = { ...states };
+  for (const key of acceptedClarificationKeys(questions)) out[key] = true;
+  return out;
 }

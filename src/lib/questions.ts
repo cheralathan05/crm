@@ -1,7 +1,7 @@
 import { db } from "./db";
 import { generateToken, hashToken, tokenExpiry } from "./tokens";
 import { recordAudit } from "./clients";
-import { recordEvent } from "./requirements";
+import { recordEvent, recomputeRequestMetrics } from "./requirements";
 import {
   sendClarificationQuestionEmail,
   sendClarificationReminderEmail,
@@ -839,6 +839,22 @@ export async function resolveClarification(input: {
   const { question } = input;
   const now = new Date();
 
+  // The accepted answer becomes part of the requirement — it is never left
+  // dangling in a PENDING proposal. The client's answer is recorded on the
+  // section's stored answers (traceable, versioned) and the request metrics
+  // are recomputed immediately, so "accepted" and "still missing" can never
+  // be true at the same time.
+  await applyAcceptedAnswerToRequirement({
+    requirementId: question.requirementId,
+    section: question.section,
+    questionId: question.id,
+    questionText: question.clientQuestion ?? question.question,
+    answer: question.response ?? "",
+    actorName: input.actorName,
+  });
+
+  // The update proposal remains as the audit/traceability record — but it is
+  // created already decided (ACCEPTED), so no second manual step is needed.
   const proposal = await db.requirementUpdateProposal.create({
     data: {
       workspaceId: question.workspaceId,
@@ -851,7 +867,8 @@ export async function resolveClarification(input: {
       impact: question.impact,
       createdById: input.actorId,
       createdByName: input.actorName,
-      status: "PENDING",
+      status: "ACCEPTED",
+      decidedAt: now,
     },
   });
 
@@ -863,6 +880,12 @@ export async function resolveClarification(input: {
       resolvedAt: now,
     },
   });
+
+  // Recompute AFTER the question is RESOLVED — the accepted-clarification
+  // overlay in the section-state engine only counts resolved questions, so
+  // running this any earlier would store stale readiness/completeness and
+  // resurrect the very bug it exists to prevent.
+  await recomputeRequestMetrics(question.requirementId);
 
   // The doubt this answer resolves is now closed — also resolve any open
   // workspace comment threads for the same section so the requirement stops
@@ -881,9 +904,9 @@ export async function resolveClarification(input: {
   );
   await recordEvent(
     question.requirementId,
-    "UPDATE_PROPOSED",
-    "Requirement update proposed",
-    `From resolved clarification — ${question.section}`,
+    "UPDATE_APPLIED",
+    "Answer applied to requirement",
+    `${getSection(question.section)?.label ?? question.section} — accepted answer recorded`,
     { proposalId: proposal.id, questionId: question.id },
   );
   await recordAudit({
@@ -893,10 +916,54 @@ export async function resolveClarification(input: {
     entityId: question.requirementId,
     actorId: input.actorId,
     actorName: input.actorName,
-    after: { clarification: "resolved", questionId: question.id, proposalId: proposal.id },
+    after: { clarification: "resolved", questionId: question.id, proposalId: proposal.id, applied: true },
   });
 
   return { question: updated, proposal };
+}
+
+/**
+ * Apply an accepted clarification answer to the requirement's stored section
+ * answers. The accepted value is appended to a structured `acceptedClarifications`
+ * list on the section so the requirement actually contains the confirmed value
+ * (source: CLIENT_CLARIFICATION) and nothing historical is overwritten.
+ */
+async function applyAcceptedAnswerToRequirement(input: {
+  requirementId: string;
+  section: string;
+  questionId: string;
+  questionText: string;
+  answer: string;
+  actorName: string;
+}) {
+  if (!input.answer.trim()) return;
+  const existing = await db.requirementAnswer.findUnique({
+    where: { requestId_section: { requestId: input.requirementId, section: input.section } },
+  });
+  let sectionData: Record<string, unknown> = {};
+  if (existing?.data) {
+    try {
+      sectionData = JSON.parse(existing.data);
+    } catch {
+      sectionData = {};
+    }
+  }
+  const accepted = Array.isArray(sectionData.acceptedClarifications)
+    ? (sectionData.acceptedClarifications as unknown[])
+    : [];
+  accepted.push({
+    questionId: input.questionId,
+    question: input.questionText,
+    answer: input.answer,
+    acceptedAt: new Date().toISOString(),
+    by: input.actorName,
+  });
+  const data = JSON.stringify({ ...sectionData, acceptedClarifications: accepted });
+  await db.requirementAnswer.upsert({
+    where: { requestId_section: { requestId: input.requirementId, section: input.section } },
+    create: { requestId: input.requirementId, section: input.section, data },
+    update: { data },
+  });
 }
 
 export async function decideUpdateProposal(input: {

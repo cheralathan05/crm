@@ -35,7 +35,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SECTIONS, getSection, type SectionDef } from "@/lib/requirement-config";
 import type { Intel, NextAction } from "@/lib/requirement-intel";
-import { sectionLabel } from "@/lib/requirement-intel";
+import { acceptedClarificationKeys, sectionLabel } from "@/lib/requirement-intel";
 import { StatusChip, MicroButton, EmptyState } from "./kit";
 
 /* ────────────────────────────────────────────────────────────────
@@ -174,7 +174,10 @@ function awaitingClientQuestions(bundle: AdminBundle) {
 function sectionReview(bundle: AdminBundle, key: string): ReviewState {
   if (openAdminComments(bundle, key).length > 0) return "clarify";
   if (inFlightQuestions(bundle, key).length > 0) return "clarify";
-  if (bundle.states[key]) return "confirmed";
+  // Accepted clarification answers confirm the section item — the same rule
+  // the backend uses, so the review checklist can never contradict the
+  // intelligence engine (spec 08: one authoritative blocker calculation).
+  if (bundle.states[key] || acceptedClarificationKeys(bundle.questions).has(key)) return "confirmed";
   return "pending";
 }
 
@@ -196,8 +199,9 @@ function reviewProgress(bundle: AdminBundle) {
 /** Things that genuinely need attention, derived from the data. */
 function attentionItems(bundle: AdminBundle) {
   const items: { kind: "incomplete" | "clarify"; text: string; section: string | null }[] = [];
+  const accepted = acceptedClarificationKeys(bundle.questions);
   for (const s of SECTIONS.filter((sec) => sec.weight > 0)) {
-    if (!bundle.states[s.key]) {
+    if (!bundle.states[s.key] && !accepted.has(s.key)) {
       items.push({ kind: "incomplete", text: `${s.label} not confirmed`, section: s.key });
     }
   }
@@ -233,8 +237,9 @@ function intentSignal(bundle: AdminBundle) {
 
 function scopeSignal(bundle: AdminBundle) {
   const openSections = new Set<string>();
+  const accepted = acceptedClarificationKeys(bundle.questions);
   for (const s of SECTIONS.filter((sec) => sec.weight > 0)) {
-    if (!bundle.states[s.key]) openSections.add(s.key);
+    if (!bundle.states[s.key] && !accepted.has(s.key)) openSections.add(s.key);
   }
   for (const q of inFlightQuestions(bundle)) openSections.add(q.section);
   const open = openSections.size;

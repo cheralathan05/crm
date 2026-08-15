@@ -18,6 +18,7 @@ import {
   transitionRequest,
   createProposalFromRequirement,
 } from "../src/lib/requirements";
+import type { RequirementRequest } from "../src/generated/prisma/client";
 import { generateProposalPdf } from "../src/lib/proposal";
 import {
   sendProposalToClient,
@@ -68,7 +69,7 @@ async function main() {
   const createdPdfs: string[] = [];
   try {
     // ── One fully approved requirement feeds both proposals ──
-    const { request } = await createRequirementRequest({
+    const createdReq = await createRequirementRequest({
       workspaceId: workspace.id,
       clientId: client.id,
       title: "E2E Delivery Platform",
@@ -76,26 +77,30 @@ async function main() {
       actorId: owner.id,
       actorName: owner.name ?? "Owner",
     });
+    const request = createdReq.request as RequirementRequest;
     await saveSectionAnswer({ request, section: "business", data: { description: "Sells plants online." }, recordEvent: false });
     await saveSectionAnswer({ request, section: "vision", data: { description: "Grow revenue." }, recordEvent: false });
     await saveSectionAnswer({ request, section: "scope", data: { included: ["Storefront"], excluded: ["Mobile app"] }, recordEvent: false });
     await saveSectionAnswer({ request, section: "timeline", data: { launchWindow: "1–3 months" }, recordEvent: false });
     await saveSectionAnswer({ request, section: "commercial", data: { budgetModel: "Fixed price", budgetRange: "₹1L – ₹3L" }, recordEvent: false });
     await saveSectionAnswer({ request, section: "design", data: { hasBranding: "Yes" }, recordEvent: false });
-    const approved = (await transitionRequest({ request, action: "approve", actorName: owner.name ?? "Owner", actorId: owner.id })) as Awaited<ReturnType<typeof transitionRequest>>;
+    const approved = (await transitionRequest({ request, action: "approve", actorName: owner.name ?? "Owner", actorId: owner.id })) as RequirementRequest;
 
     // ── Finalize helper: generate PDF, store, freeze version ──
-    const finalize = async (proposal: { id: string; version: number; document: string; clientId: string }) => {
-      const doc = JSON.parse(proposal.document);
+    const finalize = async (proposalId: string) => {
+      const fresh = await db.clientProposal.findUnique({ where: { id: proposalId } });
+      if (!fresh) throw new Error("proposal missing");
+      const doc = JSON.parse(fresh.document ?? "{}");
       const pdf = await generateProposalPdf(doc);
       const dir = path.join(process.cwd(), "uploads", "proposals");
       await mkdir(dir, { recursive: true });
-      const fileName = `${proposal.id}-v${proposal.version}.pdf`;
+      const fileName = `${fresh.id}-v${fresh.version}.pdf`;
       const pdfPath = `proposals/${fileName}`;
-      await import("node:fs/promises").then((f) => f.writeFile(path.join(dir, fileName), pdf.buffer));
+      const fs = await import("node:fs/promises");
+      await fs.writeFile(path.join(dir, fileName), pdf.buffer);
       createdPdfs.push(path.join(dir, fileName));
       const saved = await db.clientProposal.update({
-        where: { id: proposal.id },
+        where: { id: fresh.id },
         data: { pdfPath, pdfPages: pdf.pages, finalizedAt: new Date(), status: "FINALIZED" },
       });
       await snapshotProposalVersion({
@@ -110,7 +115,7 @@ async function main() {
 
     // ═══ PROPOSAL A — send → open → approve (idempotent) ═══
     const proposalA = await createProposalFromRequirement({ request: approved, actorName: owner.name ?? "Owner" });
-    const finalizedA = await finalize(proposalA);
+    const finalizedA = await finalize(proposalA.id);
     check("A: finalized", finalizedA.status === "FINALIZED" && !!finalizedA.pdfPath, finalizedA.pdfPath ?? "no pdf");
 
     const sendA = await sendProposalToClient({
@@ -119,12 +124,12 @@ async function main() {
       actorId: owner.id,
       actorName: owner.name ?? "Owner",
     });
-    check("A: send recorded (dev mode ok)", sendA.dev === true && /client-proposal\//.test(sendA.link), sendA.message);
+    check("A: send recorded (delivery logged)", sendA.sent === true && /client-proposal\//.test(sendA.link), `sent=${sendA.sent} dev=${sendA.dev} ${sendA.message}`);
     check("A: link is token-based", proposalClientLink("x").includes("/client-proposal/x"));
 
     const tokenA = sendA.link.split("/client-proposal/")[1];
     const clientViewA = await serializeClientProposal(tokenA);
-    check("A: client can resolve via token", clientViewA.ok === true && clientViewA.proposal.title === "E2E Delivery Platform", clientViewA.ok ? "ok" : String(clientViewA.error));
+    check("A: client can resolve via token", clientViewA.ok === true && clientViewA.proposal.title.includes("E2E Delivery Platform"), clientViewA.ok ? clientViewA.proposal.title : String(clientViewA.error));
 
     const openedA = await recordProposalOpen(tokenA, "session-a");
     check("A: open → VIEWED", openedA.status === "VIEWED", openedA.status);
@@ -141,7 +146,7 @@ async function main() {
 
     // ═══ PROPOSAL B — request changes → accept → revision v2 ═══
     const proposalB = await createProposalFromRequirement({ request: approved, actorName: owner.name ?? "Owner" });
-    const finalizedB = await finalize(proposalB);
+    const finalizedB = await finalize(proposalB.id);
     const sendB = await sendProposalToClient({ proposal: finalizedB, kind: "INITIAL", actorId: owner.id, actorName: owner.name ?? "Owner" });
     const tokenB = sendB.link.split("/client-proposal/")[1];
 

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
+import { db } from "@/lib/db";
 import { getQuestionForUser, reviewClarificationAnswer } from "@/lib/questions";
+import { acceptedClarificationKeys } from "@/lib/requirement-intel";
 
 export const dynamic = "force-dynamic";
 
@@ -49,10 +51,32 @@ export async function POST(req: Request, { params }: Ctx) {
     );
   }
 
+  // Return the authoritative requirement state so the frontend never has to
+  // guess: the resolved question, the fresh metrics the accept transaction
+  // wrote, and the section keys now confirmed by the accepted answer.
+  let requirementState: Record<string, unknown> | null = null;
+  if (decision === "accept") {
+    const fresh = await db.requirementRequest.findUnique({
+      where: { id: question.requirementId },
+      select: { id: true, status: true, completeness: true, readiness: true },
+    });
+    if (fresh) {
+      const questions = await db.requirementQuestion.findMany({
+        where: { requirementId: question.requirementId },
+        select: { section: true, status: true, response: true },
+      });
+      requirementState = {
+        ...fresh,
+        confirmedSections: [...acceptedClarificationKeys(questions)],
+      };
+    }
+  }
+
   return NextResponse.json({
     ok: true,
     status: result.question.status,
     proposalId: result.proposal?.id ?? null,
     proposalStatus: result.proposal?.status ?? null,
+    requirement: requirementState,
   });
 }
