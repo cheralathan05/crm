@@ -17,10 +17,12 @@ import {
   EyeOff,
   FileText,
   History,
+  List,
   Loader2,
   Mail,
   Maximize2,
   Minimize2,
+  Plus,
   RefreshCw,
   Send,
   Sparkles,
@@ -40,7 +42,7 @@ import {
   type ProposalSource,
 } from "@/lib/proposal-doc";
 import type { ProposalDeliveryBundle } from "@/lib/proposal-delivery";
-import { StatusChip } from "@/components/clients/kit";
+import { MicroButton, StatusChip } from "@/components/clients/kit";
 
 /* ────────────────────────────────────────────────────────────────
    PROPOSAL STUDIO — A4 document editor
@@ -197,6 +199,40 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
             : s,
         ),
       }));
+    },
+    [updateDoc],
+  );
+
+  /** Add a brand-new section — the admin can extend the proposal beyond what
+      the requirement generated (spec: add more content, never blocked). */
+  const addSection = useCallback(() => {
+    const id = `custom-${Date.now().toString(36)}`;
+    const number = String(doc.sections.length + 1);
+    const section: ProposalSection = {
+      id,
+      number,
+      title: "New section",
+      kicker: "",
+      source: "MANUAL",
+      visible: true,
+      blocks: [{ type: "paragraph", text: "" }],
+    };
+    updateDoc((d) => ({ ...d, sections: [...d.sections, section] }), "Section added");
+    setActiveSection(id);
+    setPanelTab("content");
+  }, [doc.sections.length, updateDoc]);
+
+  /** Append a paragraph or list block to the active section. */
+  const addBlock = useCallback(
+    (sectionId: string, type: "paragraph" | "list") => {
+      const block: ProposalBlock =
+        type === "list" ? { type: "list", items: [""] } : { type: "paragraph", text: "" };
+      updateDoc((d) => ({
+        ...d,
+        sections: d.sections.map((s) =>
+          s.id === sectionId ? { ...s, blocks: [...s.blocks, block] } : s,
+        ),
+      }), "Block added");
     },
     [updateDoc],
   );
@@ -563,6 +599,15 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
                 );
               })}
             </nav>
+            <div className="px-2 pb-3">
+              <button
+                type="button"
+                onClick={addSection}
+                className="flex items-center gap-1.5 h-8 px-2 rounded-sm w-full text-[11px] font-medium text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 border border-dashed border-[var(--bos-line-strong)]"
+              >
+                <Plus className="w-3 h-3" aria-hidden="true" /> Add section
+              </button>
+            </div>
             <div className="px-3.5 pb-4 space-y-2 border-t border-[var(--bos-line)] pt-3">
               <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">Quality</div>
               <div className="flex items-center gap-2">
@@ -728,6 +773,14 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
                       )}
                     </div>
                   ))}
+                  <div className="flex gap-2 pt-1">
+                    <MicroButton onClick={() => addBlock(activeDef.id, "paragraph")}>
+                      <Plus className="w-3 h-3" aria-hidden="true" /> Add paragraph
+                    </MicroButton>
+                    <MicroButton onClick={() => addBlock(activeDef.id, "list")}>
+                      <List className="w-3 h-3" aria-hidden="true" /> Add list
+                    </MicroButton>
+                  </div>
                 </div>
               )}
 

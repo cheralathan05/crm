@@ -296,7 +296,12 @@ export function buildRequirementIntel(input: IntelInput): Intel {
      A section is confirmed when its data is complete OR an accepted
      clarification satisfied it — same rule as the items above. */
   const sectionConfirmed = (key: string) => states[key] === true || acceptedKeys.has(key);
-  const submitted = ["SUBMITTED", "CHANGES_REQUESTED", "REVISION_SUBMITTED", "APPROVED"].includes(request.status);
+  // The client's data counts as received when they submitted OR when the
+  // required sections are all confirmed — the submit click is a formality;
+  // a fully-confirmed requirement is reviewable either way.
+  const allRequiredConfirmed = SECTIONS.filter((s) => s.weight > 0).every((s) => sectionConfirmed(s.key));
+  const submitted =
+    ["SUBMITTED", "CHANGES_REQUESTED", "REVISION_SUBMITTED", "APPROVED"].includes(request.status) || allRequiredConfirmed;
   const scopeOk = sectionConfirmed("scope");
   const featuresOk = features.length > 0;
   const timelineOk = sectionConfirmed("timeline");
@@ -338,6 +343,14 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     }
     if (conflicts.length > 0) return { kind: "resolve-conflict", text: "Resolve the flagged requirement conflict." };
     if (request.status === "SUBMITTED" || request.status === "REVISION_SUBMITTED") {
+      return readiness.ok
+        ? { kind: "approve", text: "Everything is complete — approve the requirement." }
+        : { kind: "review", text: "Review the requirement before approval." };
+    }
+    // Collected but never formally submitted — the admin is the review
+    // authority and may approve once everything is confirmed (spec: admin
+    // reviews, not the submit button).
+    if (request.status === "SENT" || request.status === "IN_PROGRESS") {
       return readiness.ok
         ? { kind: "approve", text: "Everything is complete — approve the requirement." }
         : { kind: "review", text: "Review the requirement before approval." };

@@ -415,7 +415,10 @@ export function RequirementCommandCenter({
   const intent = intentSignal(bundle);
   const scopeSig = scopeSignal(bundle);
   const readiness = readinessSignal(r.readiness);
-  const canReview = ["SUBMITTED", "REVISION_SUBMITTED"].includes(r.status);
+  // Admin is the review authority: a requirement that has been collected
+  // (client filling the workspace, submitted, or awaiting changes) can be
+  // reviewed and approved — the submit click is not the gate.
+  const canReview = ["SENT", "IN_PROGRESS", "SUBMITTED", "REVISION_SUBMITTED", "CHANGES_REQUESTED"].includes(r.status);
   const inReview = reviewMode && canReview;
   const newestProposal = bundle.proposals[0] ?? null;
 
