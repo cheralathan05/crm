@@ -14,6 +14,7 @@ import {
   type Readiness,
 } from "./requirement-config";
 import { categoryLabel } from "./clarification-rules";
+import { buildRequirementIntel } from "./requirement-intel";
 import type { RequirementProjectType, RequirementRequest, RequirementRequestStatus } from "@/generated/prisma/client";
 
 /* ────────────────────────────────────────────────────────────────
@@ -431,6 +432,40 @@ export async function serializeAdminRequest(request: RequirementRequest) {
     return { blocked: blockers.length > 0, blockers };
   })();
 
+  // Requirement intelligence — derived from the real data above, never invented.
+  const intel = buildRequirementIntel({
+    request: {
+      id: request.id,
+      status: request.status,
+      title: request.title,
+      revision: request.revision,
+      completeness: request.completeness,
+      readiness: request.readiness,
+    },
+    client: client
+      ? { id: client.id, companyName: client.companyName }
+      : null,
+    answers,
+    features,
+    states,
+    questions: questions.map((q) => ({
+      id: q.id,
+      section: q.section,
+      sectionLabel: getSection(q.section)?.label ?? q.section,
+      categoryLabel: q.category ? categoryLabel(q.category) : null,
+      clientQuestion: q.clientQuestion ?? q.question,
+      isBlocking: q.isBlocking,
+      status: q.status,
+      recipientName: q.recipientName,
+      response: q.response,
+      respondedAt: q.respondedAt ? q.respondedAt.toISOString() : null,
+      createdAt: q.createdAt.toISOString(),
+    })),
+    conflicts: conflicts.map((c) => ({ id: c.id, description: c.description, detail: c.detail })),
+    proposalBlock,
+    revisions: revisions.map((r) => ({ revision: r.revision, changes: safeJsonArray(r.changes) })),
+  });
+
   return {
     ok: true,
     request: {
@@ -547,6 +582,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       detail: c.detail,
       createdAt: c.createdAt,
     })),
+    intel,
   };
 }
 

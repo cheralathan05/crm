@@ -864,6 +864,14 @@ export async function resolveClarification(input: {
     },
   });
 
+  // The doubt this answer resolves is now closed — also resolve any open
+  // workspace comment threads for the same section so the requirement stops
+  // asking the client about it.
+  await db.requirementComment.updateMany({
+    where: { requestId: question.requirementId, section: question.section, author: "ADMIN", resolvedAt: null },
+    data: { resolvedAt: now },
+  });
+
   await recordEvent(
     question.requirementId,
     "CLARIFICATION_RESOLVED",
@@ -896,22 +904,111 @@ export async function decideUpdateProposal(input: {
   decision: "accept" | "reject";
   actorName: string;
 }) {
-  const proposal = await db.requirementUpdateProposal.findUnique({ where: { id: input.proposalId } });
-  if (!proposal) throw new Error("Proposal not found.");
-  const updated = await db.requirementUpdateProposal.update({
-    where: { id: proposal.id },
-    data: {
-      status: input.decision === "accept" ? "ACCEPTED" : "REJECTED",
-      decidedAt: new Date(),
+  const proposal = await db.requirementUpdateProposal.findUnique({
+    where: { id: input.proposalId },
+    include: {
+      question: {
+        select: { id: true, section: true, question: true, clientQuestion: true, response: true, category: true },
+      },
     },
   });
+  if (!proposal) throw new Error("Proposal not found.");
+
+  if (input.decision === "reject") {
+    const updated = await db.requirementUpdateProposal.update({
+      where: { id: proposal.id },
+      data: { status: "REJECTED", decidedAt: new Date() },
+    });
+    await recordAudit({
+      clientId: proposal.clientId,
+      entity: "REQUIREMENT",
+      action: "STATUS_CHANGED",
+      entityId: proposal.requirementId,
+      actorName: input.actorName,
+      after: { updateProposal: "reject", proposalId: proposal.id },
+    });
+    return updated;
+  }
+
+  // Accept — the client's answer becomes part of a NEW requirement
+  // version. Historical answers are never overwritten: the accepted
+  // value is appended to the section's answers, the request revision
+  // is bumped, and an immutable RequirementRevision is recorded.
+  const now = new Date();
+  const updated = await db.requirementUpdateProposal.update({
+    where: { id: proposal.id },
+    data: { status: "ACCEPTED", decidedAt: now },
+  });
+
+  const section = proposal.question?.section;
+  let sectionData: Record<string, unknown> = {};
+  if (section) {
+    const existing = await db.requirementAnswer.findUnique({
+      where: { requestId_section: { requestId: proposal.requirementId, section } },
+    });
+    if (existing?.data) {
+      try {
+        sectionData = JSON.parse(existing.data);
+      } catch {
+        sectionData = {};
+      }
+    }
+    const clarifications = Array.isArray(sectionData.clarifications) ? (sectionData.clarifications as unknown[]) : [];
+    clarifications.push({
+      questionId: proposal.questionId,
+      question: proposal.question?.clientQuestion ?? proposal.question?.question ?? proposal.summary,
+      answer: proposal.proposedValue,
+      acceptedAt: now.toISOString(),
+      by: input.actorName,
+    });
+    const data = JSON.stringify({ ...sectionData, clarifications });
+    await db.requirementAnswer.upsert({
+      where: { requestId_section: { requestId: proposal.requirementId, section } },
+      create: { requestId: proposal.requirementId, section, data },
+      update: { data },
+    });
+  }
+
+  const request = await db.requirementRequest.findUnique({ where: { id: proposal.requirementId } });
+  if (request) {
+    const nextRevision = request.revision + 1;
+    const label = section ? getSection(section)?.label ?? section : "Requirement";
+    const changeText =
+      `${label} — ${(proposal.question?.clientQuestion ?? proposal.question?.question ?? proposal.summary).slice(0, 120)}: ` +
+      `${(proposal.proposedValue ?? "").slice(0, 200)}`;
+    await db.requirementRevision.create({
+      data: {
+        requestId: proposal.requirementId,
+        revision: nextRevision,
+        submittedByName: input.actorName,
+        snapshot: JSON.stringify({
+          answers: section ? { [section]: sectionData } : {},
+          features: [],
+          files: [],
+        }),
+        changes: JSON.stringify(["Clarification applied", changeText]),
+      },
+    });
+    await db.requirementRequest.update({
+      where: { id: proposal.requirementId },
+      data: { revision: nextRevision },
+    });
+    await recordEvent(
+      proposal.requirementId,
+      "UPDATE_APPLIED",
+      "Clarification applied to requirement",
+      `${label} — v${nextRevision}`,
+      { proposalId: proposal.id, questionId: proposal.questionId, revision: nextRevision },
+    );
+  }
+
   await recordAudit({
     clientId: proposal.clientId,
     entity: "REQUIREMENT",
     action: "STATUS_CHANGED",
     entityId: proposal.requirementId,
     actorName: input.actorName,
-    after: { updateProposal: input.decision, proposalId: proposal.id },
+    after: { updateProposal: "accept", proposalId: proposal.id, applied: true },
   });
   return updated;
 }
@@ -1002,6 +1099,12 @@ export async function resolveClarificationBundleByToken(token: string) {
       status: { in: ["SENT", "DELIVERED", "OPENED", "ANSWERED", "UNDER_REVIEW"] },
     },
     orderBy: { createdAt: "asc" },
+    // The bundle serializer reads the project + client identity from
+    // every question — include them so /client/clarifications never 500s.
+    include: {
+      client: { select: { companyName: true } },
+      requirement: { select: { title: true } },
+    },
   });
   if (questions.length === 0) {
     return { error: "CLOSED" as const, errorLabel: null };

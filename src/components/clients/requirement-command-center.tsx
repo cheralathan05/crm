@@ -34,7 +34,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SECTIONS, getSection, type SectionDef } from "@/lib/requirement-config";
-import { StatusChip, MicroButton } from "./kit";
+import type { Intel, NextAction } from "@/lib/requirement-intel";
+import { sectionLabel } from "@/lib/requirement-intel";
+import { StatusChip, MicroButton, EmptyState } from "./kit";
 
 /* ────────────────────────────────────────────────────────────────
    REQUIREMENT COMMAND CENTER — ADMIN INTELLIGENCE
@@ -87,6 +89,7 @@ type AdminBundle = {
   clientContacts: { id: string; name: string; role: string | null; email: string | null; isPrimary: boolean }[];
   proposalBlock: { blocked: boolean; blockers: { id: string; label: string; category: string }[] };
   conflicts: { id: string; description: string; detail: string | null; createdAt: string }[];
+  intel: Intel;
 };
 
 type ViewId = "overview" | "review" | "activity" | string; // section keys included
@@ -114,12 +117,18 @@ function formatDateTime(value: string | Date | null | undefined): string {
 }
 
 const QUESTION_STATUS_TONES: Record<string, { label: string; cls: string }> = {
+  DRAFT: { label: "Draft", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
+  READY_FOR_REVIEW: { label: "Needs review", cls: "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6" },
+  APPROVED: { label: "Approved", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
   READY_TO_SEND: { label: "Ready to send", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
   SENDING: { label: "Sending", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
   SENT: { label: "Awaiting response", cls: "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6" },
   DELIVERED: { label: "Delivered", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
   OPENED: { label: "Opened", cls: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8" },
   ANSWERED: { label: "Answered", cls: "text-[var(--bos-success)] border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6" },
+  UNDER_REVIEW: { label: "Under review", cls: "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6" },
+  RESOLVED: { label: "Resolved", cls: "text-[var(--bos-success)] border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6" },
+  BLOCKED: { label: "Blocked", cls: "text-[var(--bos-error)] border-[var(--bos-error)]/25 bg-[var(--bos-error)]/6" },
   FAILED: { label: "Delivery failed", cls: "text-[var(--bos-error)] border-[var(--bos-error)]/25 bg-[var(--bos-error)]/6" },
   CANCELLED: { label: "Cancelled", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
   EXPIRED: { label: "Expired", cls: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]" },
@@ -362,6 +371,10 @@ export function RequirementCommandCenter({
   const createProposal = () => {
     if (!bundle) return;
     void act(`/api/requirements/${bundle.request.id}/proposal`).then((res) => {
+      if (!res.ok && (res.data as { code?: string } | undefined)?.code === "PROPOSAL_BLOCKED") {
+        setView("clarifications");
+        return;
+      }
       if (res.ok) {
         const proposal = res.data?.proposal as { id?: string } | undefined;
         const proposalId = proposal?.id ? String(proposal.id) : "";
@@ -587,10 +600,10 @@ export function RequirementCommandCenter({
             busy={busy}
             clientContacts={bundle.clientContacts}
             questions={bundle.questions}
-            onAsk={(payload) =>
-              act(`/api/requirements/${r.id}/questions`, payload).then((res) => {
+            onClarifyAction={(path, body) =>
+              act(path, body).then((res) => {
                 if (res.ok && res.data?.dev) {
-                  setNotice(`⚠ ${String(res.data.message ?? "Email provider not configured — the question was saved and the response link printed to the server console.")}`);
+                  setNotice(`⚠ ${String(res.data.message ?? "Email provider not configured — the question was sent in dev mode and the response link was printed to the server console.")}`);
                 }
                 return res;
               })
@@ -615,6 +628,7 @@ export function RequirementCommandCenter({
             onViewQuestion={(qid) => { setDialog(null); setDialogSection(null); setViewQuestionId(qid); }}
             onRevoke={(payload) => handleAction(`/api/requirements/${r.id}/revoke`, payload)}
             onProposal={createProposal}
+            onOpenClarifications={() => { setDialog(null); setDialogSection(null); setView("clarifications"); }}
             onClose={() => { setDialog(null); setDialogSection(null); }}
           />
         )}
@@ -659,6 +673,21 @@ export function RequirementCommandCenter({
                     </span>
                   ) : review.ready ? (
                     <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" />
+                  ) : undefined
+                }
+              />
+              <NavItem
+                active={view === "clarifications"}
+                onClick={() => setView("clarifications")}
+                icon={<MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />}
+                label="Clarifications"
+                right={
+                  bundle.proposalBlock?.blocked ? (
+                    <AlertTriangle className="w-3 h-3 text-[var(--bos-error)]" aria-hidden="true" />
+                  ) : bundle.questions.length > 0 ? (
+                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-[var(--bos-overlay)] text-[9px] font-mono text-[var(--bos-text-tertiary)]">
+                      {bundle.questions.length}
+                    </span>
                   ) : undefined
                 }
               />
@@ -725,7 +754,18 @@ export function RequirementCommandCenter({
               />
             ) : (
               <>
-                {view === "overview" && <OverviewView bundle={bundle} />}
+                {view === "overview" && (
+                  <DecisionCenterView
+                    bundle={bundle}
+                    onAskClient={openAskClient}
+                    onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    onReview={() => { setView("review"); setReviewMode(true); }}
+                    onApprove={approve}
+                    onProposal={() => setDialog("proposal")}
+                    onSend={() => setDialog("send")}
+                    onViewClarifications={() => setView("clarifications")}
+                  />
+                )}
                 {view === "review" && (
                   <ReviewView
                     bundle={bundle}
@@ -740,7 +780,20 @@ export function RequirementCommandCenter({
                     }}
                   />
                 )}
-                {view === "activity" && <ActivityView bundle={bundle} onViewQuestion={(qid) => setViewQuestionId(qid)} />}
+                {view === "activity" && (
+                  <ActivityView
+                    bundle={bundle}
+                    onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    onResolveComment={(cid) => void act(`/api/requirements/${r.id}/comments/${cid}/resolve`)}
+                  />
+                )}
+                {view === "clarifications" && (
+                  <ClarificationsView
+                    bundle={bundle}
+                    onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    onAskClient={openAskClient}
+                  />
+                )}
                 {SECTIONS.map((s) =>
                   view === s.key ? (
                     <SectionView
@@ -751,6 +804,7 @@ export function RequirementCommandCenter({
                       reviewState={sectionReview(bundle, s.key)}
                       onAskClient={() => openAskClient(s.key)}
                       onViewQuestion={(qid) => setViewQuestionId(qid)}
+                      onResolveComment={(cid) => void act(`/api/requirements/${r.id}/comments/${cid}/resolve`)}
                     />
                   ) : null,
                 )}
@@ -799,6 +853,7 @@ export function RequirementCommandCenter({
                   onReview={() => { setView("review"); setReviewMode(true); }}
                   onCreateProposal={() => setDialog("proposal")}
                   onViewQuestion={(qid) => setViewQuestionId(qid)}
+                  onViewClarifications={() => setView("clarifications")}
                 />
               </div>
 
@@ -945,81 +1000,319 @@ function MobileChip({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-/* ═══ CENTER — Overview ═══ */
+/* ═══ CENTER — Decision Center ═══
+   The intelligence overview (spec 77/95): real stats, what we know,
+   what needs attention, what we're waiting for, optional items, the
+   proposal readiness check and the next best action — every value
+   derived from stored data, with honest empty states. */
 
-function OverviewView({ bundle }: { bundle: AdminBundle }) {
+function DecisionCenterView({
+  bundle,
+  onAskClient,
+  onViewQuestion,
+  onReview,
+  onApprove,
+  onProposal,
+  onSend,
+  onViewClarifications,
+}: {
+  bundle: AdminBundle;
+  onAskClient: (section?: string | null) => void;
+  onViewQuestion: (questionId: string) => void;
+  onReview: () => void;
+  onApprove: () => void;
+  onProposal: () => void;
+  onSend: () => void;
+  onViewClarifications: () => void;
+}) {
+  const intel = bundle.intel;
   const r = bundle.request;
-  const data = (k: string) => (bundle.answers[k] ?? {}) as Record<string, unknown>;
-  const business = data("business");
-  const vision = data("vision");
-  const timeline = data("timeline");
-  const commercial = data("commercial");
-  const stakeholders = (data("stakeholders").stakeholders as { name?: string }[] | undefined) ?? [];
+  const health = intel.health;
+  const openClarifications = intel.waitingOnClient.length + intel.needsReview.length;
 
-  const story = String(vision.description || business.problem || business.description || "");
+  const healthTone =
+    health.level === "GOOD" ? "good"
+    : health.level === "WATCH" ? "warn"
+    : health.level === "AT_RISK" ? "warn"
+    : "danger";
+
+  const nextActionButton = (next: NextAction) => {
+    switch (next.kind) {
+      case "send": return { label: "Send link", icon: <Send className="w-3 h-3" aria-hidden="true" />, onClick: onSend };
+      case "review-question": return { label: "Review response", icon: <BadgeCheck className="w-3 h-3" aria-hidden="true" />, onClick: () => onViewQuestion(next.questionId) };
+      case "waiting": return { label: "View clarifications", icon: <MessageCircle className="w-3 h-3" aria-hidden="true" />, onClick: onViewClarifications };
+      case "ask": return { label: "Ask client", icon: <Mail className="w-3 h-3" aria-hidden="true" />, onClick: () => onAskClient(next.section) };
+      case "resolve-conflict": return { label: "Resolve conflict", icon: <AlertTriangle className="w-3 h-3" aria-hidden="true" />, onClick: onViewClarifications };
+      case "review": return { label: "Review requirement", icon: <BadgeCheck className="w-3 h-3" aria-hidden="true" />, onClick: onReview };
+      case "approve": return { label: "Approve requirement", icon: <Check className="w-3 h-3" aria-hidden="true" />, onClick: onApprove };
+      case "proposal": return { label: "Create proposal", icon: <Banknote className="w-3 h-3" aria-hidden="true" />, onClick: onProposal };
+      default: return null;
+    }
+  };
+  const nextButton = nextActionButton(intel.nextAction);
 
   return (
     <div className="space-y-8 req-enter">
-      {/* What the client wants */}
-      <section>
-        <div className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)] mb-1">Business OS understanding</div>
-        <h3 className="text-[17px] font-semibold tracking-tight text-[var(--bos-text-primary)]">What this client wants</h3>
-        <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-secondary)] max-w-prose">
-          {story || "The client hasn't described the project yet — the workspace is still in progress."}
-        </p>
-      </section>
+      {/* Header line — who, what version, what state */}
+      <div className="flex items-center gap-2 flex-wrap text-[11px] text-[var(--bos-text-tertiary)]">
+        <span className="font-medium text-[var(--bos-text-secondary)]">{bundle.client?.companyName ?? "No client"}</span>
+        <span>·</span>
+        <span>v{r.revision}</span>
+        <span>·</span>
+        <StatusChip status={r.status} />
+      </div>
 
-      {/* Key facts */}
-      <section>
-        <div className="mb-3 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">Captured so far</div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-          <Fact label="Client" value={bundle.client?.companyName ?? "—"} />
-          <Fact label="Project type" value={PROJECT_TYPE_LABELS[r.projectType] ?? r.projectType} />
-          <Fact label="Timeline" value={timeline.launchWindow ? String(timeline.launchWindow) : "—"} />
-          <Fact label="Budget model" value={commercial.budgetModel ? String(commercial.budgetModel) : "—"} />
-          <Fact label="Features" value={String(bundle.features.length)} />
-          <Fact label="Materials" value={String(bundle.attachments.length)} />
-          <Fact label="Stakeholders" value={String(stakeholders.length)} />
-          <Fact label="Revision" value={`v${r.revision}`} />
-        </div>
-      </section>
+      {/* Real stats strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+        <Stat label="Completeness" value={`${r.completeness}%`} tone={r.completeness >= 95 ? "good" : r.completeness >= 60 ? "warn" : "neutral"} />
+        <Stat label="Proposal readiness" value={`${intel.readiness.percent}%`} tone={intel.readiness.percent >= 95 ? "good" : intel.readiness.percent >= 60 ? "warn" : "neutral"} />
+        <Stat label="Blockers" value={String(intel.pendingCount)} tone={intel.pendingCount > 0 ? "danger" : "good"} />
+        <Stat label="Clarifications" value={String(openClarifications)} tone={openClarifications > 0 ? "warn" : "neutral"} />
+        <Stat label="Conflicts" value={String(bundle.conflicts.length)} tone={bundle.conflicts.length > 0 ? "danger" : "neutral"} />
+      </div>
 
-      {/* Readiness breakdown */}
-      <section>
-        <div className="mb-3 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">
-          Critical areas
+      {/* Requirement health — explainable */}
+      <div
+        className={cn(
+          "rounded-sm border px-4 py-3 flex items-start gap-3",
+          healthTone === "good" && "border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6",
+          healthTone === "warn" && "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6",
+          healthTone === "danger" && "border-[var(--bos-error)]/25 bg-[var(--bos-error)]/6",
+        )}
+      >
+        <span
+          className={cn(
+            "flex items-center justify-center w-7 h-7 rounded-full shrink-0",
+            healthTone === "good" && "bg-[var(--bos-success)]/15 text-[var(--bos-success)]",
+            healthTone === "warn" && "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]",
+            healthTone === "danger" && "bg-[var(--bos-error)]/15 text-[var(--bos-error)]",
+          )}
+        >
+          {healthTone === "good" ? <Check className="w-3.5 h-3.5" aria-hidden="true" /> : <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />}
+        </span>
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={cn("text-[11px] font-mono uppercase tracking-[0.16em]", healthTone === "good" ? "text-[var(--bos-success)]" : healthTone === "warn" ? "text-[var(--bos-warning)]" : "text-[var(--bos-error)]")}>
+              Requirement health — {health.level.replace("_", " ")}
+            </span>
+          </div>
+          <p className="mt-1 text-[12px] text-[var(--bos-text-secondary)] leading-snug">{health.reason}</p>
         </div>
-        <div className="space-y-2 max-w-xl">
-          {SECTIONS.filter((s) => s.weight > 0).map((s) => {
-            const complete = bundle.states[s.key] === true;
-            return (
-              <div key={s.key} className="flex items-center gap-2.5">
-                <span
-                  className={cn(
-                    "flex items-center justify-center w-4 h-4 rounded-full border shrink-0",
-                    complete ? "border-[var(--bos-success)] bg-[var(--bos-success)] text-white" : "border-[var(--bos-border-strong)] text-transparent",
-                  )}
-                >
-                  <Check className="w-2.5 h-2.5" aria-hidden="true" />
-                </span>
-                <span className={cn("flex-1 text-[12px]", complete ? "text-[var(--bos-text-primary)]" : "text-[var(--bos-text-tertiary)]")}>
-                  {s.label}
-                </span>
-                <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] tabular-nums">{s.weight}%</span>
+      </div>
+
+      {/* What we know — only real confirmed information */}
+      <section>
+        <SectionTitle title="What we know" hint="Only information actually provided" />
+        {intel.known.length === 0 ? (
+          <EmptyState title="No information provided yet" hint="The client has not submitted any answers — send the link or wait for the client to begin." />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {intel.known.map((k) => (
+              <div key={k.label} className="rounded-sm border border-[var(--bos-line)] px-3.5 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">{k.label}</span>
+                  <span className="text-[9px] text-[var(--bos-text-tertiary)] shrink-0">{k.source}</span>
+                </div>
+                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)] leading-snug">{k.value}</p>
               </div>
-            );
-          })}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
+
+      {/* What needs attention — real blockers and review items */}
+      <section>
+        <SectionTitle title="What needs attention" hint="Only actual action items" />
+        {intel.blockers.length === 0 && intel.needsReview.length === 0 ? (
+          <EmptyState title="Nothing requires attention" hint="Every required item is confirmed and no clarification is waiting." />
+        ) : (
+          <ul className="space-y-1.5">
+            {intel.blockers.map((b) => (
+              <li key={b.id} className="flex items-start gap-2 rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 px-3.5 py-2.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-error)] mt-0.5 shrink-0" aria-hidden="true" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">{b.label}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
+                    {b.kind === "clarification" ? "Blocking clarification — " : "Required information — "}
+                    {b.section ? sectionLabel(b.section) : ""}
+                  </div>
+                </div>
+                {b.questionId && (
+                  <MicroButton onClick={() => onViewQuestion(String(b.questionId))}>
+                    <Eye className="w-3 h-3" aria-hidden="true" /> View
+                  </MicroButton>
+                )}
+              </li>
+            ))}
+            {intel.needsReview.map((n) => (
+              <li key={n.questionId} className="flex items-start gap-2 rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-2.5">
+                <BadgeCheck className="w-3.5 h-3.5 text-[var(--bos-warning)] mt-0.5 shrink-0" aria-hidden="true" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">Client answered — {n.section}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5 truncate">{n.label}</div>
+                </div>
+                <MicroButton variant="accent" onClick={() => onViewQuestion(n.questionId)}>
+                  <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review
+                </MicroButton>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* What we're waiting for — real client clarifications */}
+      <section>
+        <SectionTitle title="What we're waiting for" hint="Clarifications sent to the client" />
+        {intel.waitingOnClient.length === 0 ? (
+          <EmptyState title="Nothing waiting on the client" hint="No clarification questions are awaiting a response." />
+        ) : (
+          <ul className="space-y-1.5">
+            {intel.waitingOnClient.map((w) => (
+              <li key={w.questionId} className="flex items-start gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
+                <Clock className="w-3.5 h-3.5 text-[var(--bos-info)] mt-0.5 shrink-0" aria-hidden="true" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">{w.section}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5 truncate">{w.label}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
+                    Sent to {w.recipient} · {formatDateTime(w.since)}
+                  </div>
+                </div>
+                <MicroButton onClick={() => onViewQuestion(w.questionId)}>
+                  <Eye className="w-3 h-3" aria-hidden="true" /> View
+                </MicroButton>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Optional — never shown as an error */}
+      <section>
+        <SectionTitle title="Optional" hint="Optional information does not gate approval" />
+        {intel.optional.length === 0 ? (
+          <EmptyState title="No optional items configured" hint="Nothing optional exists for this requirement right now." />
+        ) : (
+          <ul className="space-y-1.5">
+            {intel.optional.map((o) => (
+              <li key={o.id} className="flex items-center gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-text-tertiary)] shrink-0" aria-hidden="true" />
+                <span className="flex-1 text-[12px] text-[var(--bos-text-secondary)]">{o.label}</span>
+                <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-text-tertiary)]">
+                  {o.status === "CONFIRMED" ? "Provided" : "Optional · not provided"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Not applicable — never shown as missing */}
+      {intel.notApplicable.length > 0 && (
+        <section>
+          <SectionTitle title="Not applicable" hint="Genuinely irrelevant to this project" />
+          <ul className="space-y-1.5">
+            {intel.notApplicable.map((n) => (
+              <li key={n.id} className="flex items-center gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
+                <span className="text-[12px] text-[var(--bos-text-secondary)]">◇ {n.label}</span>
+                <span className="ml-auto text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-text-tertiary)]">Not applicable</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Proposal readiness check — exact reasons when not ready */}
+      <section>
+        <div className="flex items-center justify-between gap-2">
+          <SectionTitle title="Proposal readiness check" hint="Generated from the current requirement state" />
+          <span
+            className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded-[3px] text-[9px] font-mono uppercase tracking-[0.12em] border",
+              intel.readiness.ok
+                ? "text-[var(--bos-success)] border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6"
+                : "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6",
+            )}
+          >
+            {intel.readiness.ok ? "Ready" : "Not ready"}
+          </span>
+        </div>
+        <ul className="mt-3 space-y-1">
+          {intel.readiness.rows.map((row) => (
+            <li key={row.key} className="flex items-start gap-2.5 py-1">
+              <span
+                className={cn(
+                  "flex items-center justify-center w-4 h-4 rounded-full border shrink-0 mt-px",
+                  row.ok ? "border-[var(--bos-success)] bg-[var(--bos-success)] text-white" : "border-[var(--bos-warning)] bg-[var(--bos-warning)] text-white",
+                )}
+              >
+                {row.ok ? <Check className="w-2.5 h-2.5" aria-hidden="true" /> : <AlertTriangle className="w-2.5 h-2.5" aria-hidden="true" />}
+              </span>
+              <div className="min-w-0">
+                <span className={cn("text-[12px]", row.ok ? "text-[var(--bos-text-primary)]" : "text-[var(--bos-warning)]")}>{row.label}</span>
+                {!row.ok && <span className="ml-2 text-[11px] text-[var(--bos-text-tertiary)]">{row.note}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* What changed — from the real revision history */}
+      {intel.changed.length > 0 && (
+        <section>
+          <SectionTitle title="What changed" hint={`Latest revision v${r.revision}`} />
+          <ul className="space-y-1">
+            {intel.changed.map((c, i) => (
+              <li key={i} className="flex items-start gap-2 text-[12px] text-[var(--bos-text-secondary)] leading-snug">
+                <ArrowRight className="w-3 h-3 text-[var(--bos-text-tertiary)] mt-0.5 shrink-0" aria-hidden="true" />
+                {c}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Next best action — computed from real state */}
+      <div className="rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)]/50 p-4">
+        <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-accent)] mb-1.5">
+          Next best action
+        </div>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-[13px] text-[var(--bos-text-primary)] leading-snug">{intel.nextAction.text}</p>
+          {nextButton && (
+            <MicroButton variant="accent" onClick={nextButton.onClick}>
+              {nextButton.icon} {nextButton.label}
+            </MicroButton>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
 
-function Fact({ label, value }: { label: string; value: string }) {
+function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   return (
-    <div className="rounded-sm border border-[var(--bos-line)] px-3 py-2.5">
-      <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)]">{label}</div>
-      <div className="mt-0.5 text-[13px] font-medium text-[var(--bos-text-primary)] truncate">{value}</div>
+    <div className="mb-3">
+      <div className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">{title}</div>
+      {hint && <div className="mt-0.5 text-[10px] text-[var(--bos-text-tertiary)]">{hint}</div>}
+    </div>
+  );
+}
+
+function Stat({ label, value, tone }: { label: string; value: string; tone: "good" | "warn" | "danger" | "neutral" }) {
+  return (
+    <div className="rounded-sm border border-[var(--bos-line)] px-3.5 py-3">
+      <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-tertiary)]">{label}</div>
+      <div
+        className={cn(
+          "mt-1.5 text-[20px] font-semibold tracking-tight tabular-nums",
+          tone === "good" ? "text-[var(--bos-success)]"
+          : tone === "warn" ? "text-[var(--bos-warning)]"
+          : tone === "danger" ? "text-[var(--bos-error)]"
+          : "text-[var(--bos-text-primary)]",
+        )}
+      >
+        {value}
+      </div>
     </div>
   );
 }
@@ -1033,6 +1326,7 @@ function SectionView({
   reviewState,
   onAskClient,
   onViewQuestion,
+  onResolveComment,
 }: {
   bundle: AdminBundle;
   section: SectionDef;
@@ -1040,6 +1334,7 @@ function SectionView({
   reviewState: ReviewState;
   onAskClient: () => void;
   onViewQuestion: (questionId: string) => void;
+  onResolveComment: (commentId: string) => void;
 }) {
   const openComments = bundle.comments.filter((c) => c.section === section.key && !c.resolvedAt);
   const awaiting = bundle.questions.filter((q) => OPEN_Q_STATUSES.includes(q.status) && q.section === section.key);
@@ -1094,6 +1389,9 @@ function SectionView({
                 <li key={c.id} className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-2.5">
                   <div className="flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-warning)]">
                     <MessageCircle className="w-3 h-3" aria-hidden="true" /> Asked · {c.authorName}
+                    <MicroButton className="ml-auto" onClick={() => onResolveComment(c.id)}>
+                      <Check className="w-3 h-3" aria-hidden="true" /> Resolve
+                    </MicroButton>
                   </div>
                   <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">{c.message}</p>
                 </li>
@@ -1662,7 +1960,15 @@ function ReviewView({
 
 /* ═══ CENTER — Activity ═══ */
 
-function ActivityView({ bundle, onViewQuestion }: { bundle: AdminBundle; onViewQuestion: (questionId: string) => void }) {
+function ActivityView({
+  bundle,
+  onViewQuestion,
+  onResolveComment,
+}: {
+  bundle: AdminBundle;
+  onViewQuestion: (questionId: string) => void;
+  onResolveComment: (commentId: string) => void;
+}) {
   return (
     <div className="space-y-8 req-enter">
       <section>
@@ -1740,7 +2046,13 @@ function ActivityView({ bundle, onViewQuestion }: { bundle: AdminBundle; onViewQ
                     {c.author === "ADMIN" ? "Team" : "Client"}
                   </span>
                   {c.section && <span className="text-[var(--bos-text-tertiary)]">{getSection(c.section)?.label ?? c.section}</span>}
-                  {c.resolvedAt && <span className="text-[var(--bos-success)]">✓ resolved</span>}
+                  {c.resolvedAt ? (
+                    <span className="text-[var(--bos-success)]">✓ resolved</span>
+                  ) : c.author === "ADMIN" ? (
+                    <MicroButton className="ml-auto" onClick={() => onResolveComment(c.id)}>
+                      <Check className="w-3 h-3" aria-hidden="true" /> Resolve
+                    </MicroButton>
+                  ) : null}
                 </div>
                 <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">{c.message}</p>
               </div>
@@ -1855,9 +2167,9 @@ function NextAction({
         return (
           <>
             <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
-              Client responded — review the answer on the {answeredQuestions[0].sectionLabel} section.
+              Client responded — review the answer for {answeredQuestions[0].sectionLabel} and accept or reject it.
             </p>
-            <MicroButton variant="accent" onClick={onReview} className="mt-2">
+            <MicroButton variant="accent" onClick={() => onViewQuestion(answeredQuestions[0].id)} className="mt-2">
               <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review response
             </MicroButton>
           </>
@@ -1873,15 +2185,31 @@ function NextAction({
           </MicroButton>
         </>
       );
-    case "CHANGES_REQUESTED":
-      if (answeredQuestions.length > 0) {
+    case "CHANGES_REQUESTED": {
+      // A freshly answered question needs the admin's explicit review.
+      const pendingReview = bundle.questions.find((q) => q.status === "ANSWERED" || q.status === "UNDER_REVIEW");
+      if (pendingReview) {
         return (
           <>
             <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
-              Client responded to your clarification — review the answer, then continue.
+              Client responded — review the answer for {pendingReview.sectionLabel} and accept or reject it.
+            </p>
+            <MicroButton variant="accent" onClick={() => onViewQuestion(pendingReview.id)} className="mt-2">
+              <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review response
+            </MicroButton>
+          </>
+        );
+      }
+      // Everything already answered and reviewed — nothing left to ask.
+      const responses = bundle.questions.filter((q) => ["ANSWERED", "UNDER_REVIEW", "RESOLVED"].includes(q.status));
+      if (responses.length > 0) {
+        return (
+          <>
+            <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
+              Client responses received and reviewed — continue the requirement review.
             </p>
             <MicroButton variant="accent" onClick={onReview} className="mt-2">
-              <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review response
+              <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Continue review
             </MicroButton>
           </>
         );
@@ -1894,6 +2222,7 @@ function NextAction({
           </MicroButton>
         </>
       );
+    }
     case "APPROVED":
       return (
         <>
@@ -2105,6 +2434,7 @@ function Dialog({
   onViewQuestion,
   onRevoke,
   onProposal,
+  onOpenClarifications,
   onClose,
 }: {
   kind: "send" | "remind" | "ask" | "revoke" | "proposal";
@@ -2121,6 +2451,7 @@ function Dialog({
   onViewQuestion: (questionId: string) => void;
   onRevoke: (payload: { reason?: string }) => void;
   onProposal: () => void;
+  onOpenClarifications: () => void;
   onClose: () => void;
 }) {
   const [to, setTo] = useState(defaultEmail ?? "");
@@ -2129,9 +2460,11 @@ function Dialog({
   const [section, setSection] = useState(initialSection ?? "");
   const [reason, setReason] = useState("");
   const [copied, setCopied] = useState(false);
-  const [askStep, setAskStep] = useState<"compose" | "draft" | "sending" | "success">("compose");
+  const [askStep, setAskStep] = useState<"compose" | "review" | "sending" | "success">("compose");
   const [askContactId, setAskContactId] = useState("");
+  const [question, setQuestion] = useState("");
   const [internalNote, setInternalNote] = useState("");
+  const [createdQuestionId, setCreatedQuestionId] = useState("");
   const [askError, setAskError] = useState<string | null>(null);
   const [existingQuestion, setExistingQuestion] = useState<{ id: string; sectionLabel: string; question: string; recipientName: string } | null>(null);
   const [sentQuestion, setSentQuestion] = useState<{ id: string; sectionLabel: string; recipientName: string; recipientEmail: string } | null>(null);
@@ -2148,6 +2481,57 @@ function Dialog({
   const askContact = askRecipients.find((c) => c.id === askContactId) ?? askRecipients.find((c) => c.isPrimary) ?? askRecipients[0] ?? null;
 
   const suggested = section ? SUGGESTED_QUESTIONS[section] ?? "" : "";
+
+  // The structured Ask the Client flow: the note is classified and a
+  // professional client question is generated server-side, then admin
+  // approval happens at send. If the email fails the draft stays and a
+  // retry re-sends it — never a duplicate question.
+  const handleAskSend = async () => {
+    setAskError(null);
+    setAskStep("sending");
+    const sectionLabel = section ? getSection(section)?.label ?? section : "";
+    let qid = createdQuestionId;
+    if (!qid) {
+      const created = await onClarifyAction(`/api/requirements/${bundle.request.id}/clarifications`, {
+        section,
+        note: question,
+        internalNote: internalNote.trim() ? internalNote : undefined,
+        contactId: askContact?.id || undefined,
+      });
+      if (!created.ok) {
+        const data = created.data as Record<string, unknown> | undefined;
+        if (data?.code === "OPEN_QUESTION_EXISTS" && data.question) {
+          const q = data.question as { id: string; sectionLabel: string; question: string; recipientName: string };
+          setExistingQuestion(q);
+          setAskStep("compose");
+          return;
+        }
+        setAskError(created.message ?? "Unable to create the question.");
+        setAskStep("compose");
+        return;
+      }
+      qid = String((created.data?.question as { id?: string } | undefined)?.id ?? "");
+      if (!qid) {
+        setAskError("The question was created but returned no id — please retry.");
+        setAskStep("compose");
+        return;
+      }
+      setCreatedQuestionId(qid);
+    }
+    const sent = await onClarifyAction(`/api/clarifications/${qid}/send`, {});
+    if (!sent.ok) {
+      setAskError(`${sent.message ?? "The question was saved but could not be sent."} You can retry — it will not create a duplicate.`);
+      setAskStep("review");
+      return;
+    }
+    setSentQuestion({
+      id: qid,
+      sectionLabel,
+      recipientName: askContact?.name ?? bundle.client?.companyName ?? "",
+      recipientEmail: askContact?.email ?? "",
+    });
+    setAskStep("success");
+  };
 
   const inputCls =
     "w-full h-9 px-3 rounded-sm border border-[var(--bos-line-strong)] bg-[var(--bos-bg)] text-[13px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-colors duration-150";
@@ -2249,11 +2633,14 @@ function Dialog({
           <AskClientPanel
             bundle={bundle}
             section={section}
-            setSection={setSection}
-            note={message}
-            setNote={setMessage}
+            setSection={(s) => { setSection(s); setCreatedQuestionId(""); }}
+            suggested={suggested}
+            question={question}
+            setQuestion={setQuestion}
+            internalNote={internalNote}
+            setInternalNote={setInternalNote}
             recipients={askRecipients}
-            setContactId={setAskContactId}
+            setContactId={(id) => { setAskContactId(id); setCreatedQuestionId(""); }}
             contact={askContact}
             questions={questions}
             step={askStep}
@@ -2262,13 +2649,7 @@ function Dialog({
             busy={busy}
             sentQuestion={sentQuestion}
             existingQuestion={existingQuestion}
-            onClarifyAction={onClarifyAction}
-            onSendError={(msg) => setAskError(msg)}
-            onSent={(q) => setSentQuestion(q)}
-            onExisting={(q) => {
-              setExistingQuestion(q);
-              setAskStep("compose");
-            }}
+            onSend={handleAskSend}
             onViewQuestion={onViewQuestion}
             onClose={onClose}
           />
@@ -2290,21 +2671,50 @@ function Dialog({
           </div>
         ) : (
           <div className="space-y-3 max-w-xl">
-            <p className="text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
-              Create a draft proposal from these approved requirements. The client, project name, scope, features, stakeholders, commercial range, materials and design direction are carried over automatically — nothing is re-entered.
-            </p>
-            <div className="rounded-sm border border-[var(--bos-line)] p-3">
-              <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] mb-1">Will be created</div>
-              <div className="text-[13px] font-medium text-[var(--bos-text-primary)]">{bundle.request.title} — Proposal</div>
-              <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">
-                {bundle.features.length} features · {bundle.attachments.length} files · {bundle.request.completeness}% completeness carried over
+            {bundle.proposalBlock?.blocked && bundle.proposalBlock.blockers.length > 0 ? (
+              <div className="rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 px-3.5 py-3">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-error)]">
+                  <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> Proposal blocked
+                </div>
+                <p className="mt-1.5 text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
+                  A proposal cannot be created until {bundle.proposalBlock.blockers.length} blocking clarification{bundle.proposalBlock.blockers.length === 1 ? "" : "s"} {bundle.proposalBlock.blockers.length === 1 ? "is" : "are"} resolved:
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {bundle.proposalBlock.blockers.slice(0, 4).map((b) => (
+                    <li key={b.id} className="flex items-start gap-2 text-[11px] text-[var(--bos-text-secondary)] leading-snug">
+                      <AlertTriangle className="w-3 h-3 text-[var(--bos-error)] mt-0.5 shrink-0" aria-hidden="true" />
+                      <span>
+                        {b.label} <span className="text-[var(--bos-text-tertiary)]">({b.category})</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
+            ) : (
+              <>
+                <p className="text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
+                  Create a draft proposal from these approved requirements. The client, project name, scope, features, stakeholders, commercial range, materials and design direction are carried over automatically — nothing is re-entered.
+                </p>
+                <div className="rounded-sm border border-[var(--bos-line)] p-3">
+                  <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] mb-1">Will be created</div>
+                  <div className="text-[13px] font-medium text-[var(--bos-text-primary)]">{bundle.request.title} — Proposal</div>
+                  <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">
+                    {bundle.features.length} features · {bundle.attachments.length} files · {bundle.request.completeness}% completeness carried over
+                  </div>
+                </div>
+              </>
+            )}
             <div className="flex justify-end gap-2">
               <MicroButton onClick={onClose}>Cancel</MicroButton>
-              <MicroButton variant="accent" disabled={busy} onClick={onProposal}>
-                {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Banknote className="w-3 h-3" aria-hidden="true" />} Create proposal
-              </MicroButton>
+              {bundle.proposalBlock?.blocked && bundle.proposalBlock.blockers.length > 0 ? (
+                <MicroButton variant="accent" onClick={onOpenClarifications}>
+                  <AlertTriangle className="w-3 h-3" aria-hidden="true" /> View in Clarifications
+                </MicroButton>
+              ) : (
+                <MicroButton variant="accent" disabled={busy} onClick={onProposal}>
+                  {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Banknote className="w-3 h-3" aria-hidden="true" />} Create proposal
+                </MicroButton>
+              )}
             </div>
           </div>
         )}
@@ -2636,7 +3046,198 @@ function AskClientPanel({
   );
 }
 
+/* ═══ Clarifications — the admin clarification center ═══ */
+
+const PRIORITY_TONES: Record<string, string> = {
+  LOW: "text-[var(--bos-text-tertiary)] border-[var(--bos-line)] bg-[var(--bos-overlay)]",
+  MEDIUM: "text-[var(--bos-info)] border-[var(--bos-info)]/25 bg-[var(--bos-info)]/8",
+  HIGH: "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6",
+  BLOCKING: "text-[var(--bos-error)] border-[var(--bos-error)]/25 bg-[var(--bos-error)]/6",
+};
+
+const IMPACT_LABELS: Record<string, string> = {
+  scope: "Scope",
+  timeline: "Timeline",
+  budget: "Budget",
+  deliverables: "Deliverables",
+  technical: "Complexity",
+  risk: "Risk",
+};
+
+function ClarificationsView({
+  bundle,
+  onViewQuestion,
+  onAskClient,
+}: {
+  bundle: AdminBundle;
+  onViewQuestion: (questionId: string) => void;
+  onAskClient: (section?: string | null) => void;
+}) {
+  const [tab, setTab] = useState<"all" | "blocking" | "pending" | "drafts" | "answered" | "resolved" | "conflicts">("all");
+  const q = bundle.questions;
+
+  const pending = q.filter((x) => OPEN_Q_STATUSES.includes(x.status));
+  const drafts = q.filter((x) => ["DRAFT", "READY_FOR_REVIEW", "APPROVED"].includes(x.status));
+  const answered = q.filter((x) => ["ANSWERED", "UNDER_REVIEW"].includes(x.status));
+  const resolved = q.filter((x) => x.status === "RESOLVED");
+  const blocking = q.filter((x) => x.isBlocking && !["RESOLVED", "CANCELLED", "BLOCKED"].includes(x.status));
+
+  const list =
+    tab === "blocking" ? blocking
+    : tab === "pending" ? pending
+    : tab === "drafts" ? drafts
+    : tab === "answered" ? answered
+    : tab === "resolved" ? resolved
+    : tab === "conflicts" ? []
+    : q;
+
+  const tabs: { key: typeof tab; label: string; count: number; danger?: boolean }[] = [
+    { key: "all", label: "All", count: q.length },
+    { key: "blocking", label: "Blocking", count: blocking.length, danger: blocking.length > 0 },
+    { key: "pending", label: "Pending client", count: pending.length },
+    { key: "drafts", label: "Drafts", count: drafts.length },
+    { key: "answered", label: "Answered", count: answered.length },
+    { key: "resolved", label: "Resolved", count: resolved.length },
+    { key: "conflicts", label: "Conflicts", count: bundle.conflicts.length, danger: bundle.conflicts.length > 0 },
+  ];
+
+  return (
+    <div className="space-y-6 req-enter">
+      <header className="border-b border-[var(--bos-line)] pb-4">
+        <div className="text-[9px] font-mono uppercase tracking-[0.2em] text-[var(--bos-text-tertiary)]">Requirement clarifications</div>
+        <h3 className="mt-1.5 text-[19px] font-semibold tracking-tight text-[var(--bos-text-primary)]">Clarification center</h3>
+        <p className="mt-1 text-[12px] text-[var(--bos-text-tertiary)] max-w-prose">
+          Every question is classified, quality-gated and versioned. Blocking questions gate the proposal until resolved.
+        </p>
+      </header>
+
+      {/* Tabs */}
+      <div className="flex gap-1 overflow-x-auto no-scrollbar border-b border-[var(--bos-line)] pb-px">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={cn(
+              "flex items-center gap-1.5 h-8 px-2.5 rounded-t-sm text-[11px] font-medium transition-colors duration-150 shrink-0",
+              tab === t.key
+                ? "text-[var(--bos-accent)] border-b-2 border-[var(--bos-accent)]"
+                : "text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]",
+            )}
+          >
+            {t.label}
+            <span className={cn("text-[9px] font-mono tabular-nums", t.danger ? "text-[var(--bos-error)]" : "text-[var(--bos-text-tertiary)]")}>
+              {t.count}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {tab === "conflicts" ? (
+        <div className="space-y-2">
+          {bundle.conflicts.length === 0 ? (
+            <p className="text-[12px] text-[var(--bos-text-tertiary)]">No open conflicts detected.</p>
+          ) : (
+            bundle.conflicts.map((c) => (
+              <div key={c.id} className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-3">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-warning)]">
+                  <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> Possible requirement conflict
+                </div>
+                <p className="mt-1.5 text-[12px] text-[var(--bos-text-primary)] leading-relaxed">{c.description}</p>
+                {c.detail && <p className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">{c.detail}</p>}
+                <div className="mt-1 text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(c.createdAt)}</div>
+              </div>
+            ))
+          )}
+          <div className="flex justify-end pt-2">
+            <MicroButton variant="accent" onClick={() => onAskClient()}>
+              <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask client
+            </MicroButton>
+          </div>
+        </div>
+      ) : list.length === 0 ? (
+        <div className="rounded-sm border border-[var(--bos-line)] px-4 py-8 text-center">
+          <p className="text-[12px] text-[var(--bos-text-tertiary)]">Nothing here yet.</p>
+          <MicroButton onClick={() => onAskClient()} className="mt-3">
+            <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask the client
+          </MicroButton>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {list.map((question) => {
+            const impact = Object.entries(question.impact)
+              .filter(([, v]) => v && v !== "UNKNOWN")
+              .slice(0, 3);
+            return (
+              <div key={question.id} className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 p-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">
+                        {question.sectionLabel}
+                      </span>
+                      {question.categoryLabel && (
+                        <span className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-accent)]">
+                          {question.categoryLabel}
+                          {question.subcategory ? ` → ${question.subcategory}` : ""}
+                        </span>
+                      )}
+                      <QuestionStatusChip status={question.status} />
+                    </div>
+                    <p className="mt-1.5 text-[13px] font-medium text-[var(--bos-text-primary)] leading-snug">
+                      {question.clientQuestion ?? question.question}
+                    </p>
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+                      {question.priority && (
+                        <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded-[3px] border text-[9px] font-mono uppercase tracking-[0.1em]", PRIORITY_TONES[question.priority] ?? PRIORITY_TONES.MEDIUM)}>
+                          {question.priority}
+                        </span>
+                      )}
+                      {question.isBlocking && (
+                        <span className="inline-flex items-center gap-1 text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-error)]">
+                          <AlertTriangle className="w-3 h-3" aria-hidden="true" /> Required before proposal
+                        </span>
+                      )}
+                      {question.qualityScore != null && (
+                        <span className={cn("text-[9px] font-mono tabular-nums", question.qualityScore >= 70 ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>
+                          {question.qualityScore}/100 quality
+                        </span>
+                      )}
+                      {impact.map(([k, v]) => (
+                        <span key={k} className="text-[9px] font-mono uppercase tracking-[0.08em] text-[var(--bos-text-tertiary)]">
+                          {IMPACT_LABELS[k] ?? k} · {String(v)}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    {["ANSWERED", "UNDER_REVIEW"].includes(question.status) && (
+                      <MicroButton variant="accent" onClick={() => onViewQuestion(question.id)}>
+                        <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review
+                      </MicroButton>
+                    )}
+                    <MicroButton onClick={() => onViewQuestion(question.id)}>
+                      <Eye className="w-3 h-3" aria-hidden="true" /> Open
+                    </MicroButton>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ═══ Question detail — status, delivery trail, actions ═══ */
+
+type QuestionDetail = {
+  ok: true;
+  question: AdminBundle["questions"][number];
+  deliveries: { id: string; kind: string; recipient: string; provider: string | null; status: string; sentAt: string | null; failedAt: string | null; failureReason: string | null; createdAt: string }[];
+  updateProposals: { id: string; summary: string; currentValue: string | null; proposedValue: string | null; status: string; createdAt: string }[];
+};
 
 function QuestionDetailPanel({
   questionId,
@@ -2649,10 +3250,7 @@ function QuestionDetailPanel({
   onClose: () => void;
   onChanged: () => Promise<void>;
 }) {
-  const [detail, setDetail] = useState<null | {
-    question: AdminBundle["questions"][number];
-    timeline: { at: string; label: string; kind: string; detail?: string | null }[];
-  }>(null);
+  const [detail, setDetail] = useState<QuestionDetail | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
@@ -2660,7 +3258,7 @@ function QuestionDetailPanel({
   const summary = bundle.questions.find((q) => q.id === questionId) ?? null;
 
   const loadDetail = useCallback(async () => {
-    const res = await fetch(`/api/requirements/questions/${questionId}/timeline`);
+    const res = await fetch(`/api/clarifications/${questionId}`);
     const data = await res.json();
     if (res.ok && data.ok) {
       setDetail(data);
@@ -2675,11 +3273,15 @@ function QuestionDetailPanel({
     void loadDetail();
   }, [loadDetail]);
 
-  const doAction = async (path: string) => {
+  const doAction = async (path: string, body?: Record<string, unknown>) => {
     setBusy(true);
     setNotice(null);
     try {
-      const res = await fetch(path, { method: "POST" });
+      const res = await fetch(path, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: body ? JSON.stringify(body) : undefined,
+      });
       const data = await res.json();
       if (!res.ok || !data.ok) {
         setNotice(`⚠ ${data.message ?? "Action failed."}`);
@@ -2695,8 +3297,13 @@ function QuestionDetailPanel({
     }
   };
 
-  const isOpen = summary ? OPEN_Q_STATUSES.includes(summary.status) : false;
-  const isFailed = summary?.status === "FAILED";
+  const status = summary?.status ?? "";
+  const isOpen = OPEN_Q_STATUSES.includes(status);
+  const isFailed = status === "FAILED";
+  const isAnswered = status === "ANSWERED" || status === "UNDER_REVIEW";
+  const isResolved = status === "RESOLVED";
+
+  const impact = Object.entries(summary?.impact ?? {}).filter(([, v]) => v && v !== "UNKNOWN");
 
   return (
     <div className="space-y-5 req-enter max-w-2xl">
@@ -2707,7 +3314,7 @@ function QuestionDetailPanel({
             {summary && <QuestionStatusChip status={summary.status} />}
           </div>
           <p className="mt-1.5 text-[16px] font-medium tracking-tight text-[var(--bos-text-primary)] leading-snug">
-            {summary?.question ?? "Loading…"}
+            {summary?.clientQuestion ?? summary?.question ?? "Loading…"}
           </p>
           {summary && (
             <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">
@@ -2732,8 +3339,60 @@ function QuestionDetailPanel({
         </div>
       )}
 
+      {/* Scope classification — real engine data, shown for engine-created questions */}
+      {(summary?.categoryLabel || summary?.answerType !== "LONG_TEXT" || summary?.priority) && (
+        <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 px-3.5 py-3">
+          <div className="mb-2 text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-secondary)]">Classification</div>
+          <div className="flex items-center gap-2 flex-wrap">
+            {summary?.categoryLabel && (
+              <span className="text-[10px] font-mono uppercase tracking-[0.1em] text-[var(--bos-accent)]">
+                {summary.categoryLabel}{summary.subcategory ? ` → ${summary.subcategory}` : ""}
+              </span>
+            )}
+            {summary?.answerType && (
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded-[3px] border border-[var(--bos-line)] bg-[var(--bos-overlay)] text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-text-secondary)]">
+                {summary.answerType.replace(/_/g, " ")}
+              </span>
+            )}
+            {summary?.priority && (
+              <span className={cn("inline-flex items-center px-1.5 py-0.5 rounded-[3px] border text-[9px] font-mono uppercase tracking-[0.1em]", PRIORITY_TONES[summary.priority] ?? PRIORITY_TONES.MEDIUM)}>
+                {summary.priority}
+              </span>
+            )}
+            {summary?.qualityScore != null && (
+              <span className={cn("text-[9px] font-mono tabular-nums", summary.qualityScore >= 70 ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>
+                {summary.qualityScore}/100 quality
+              </span>
+            )}
+            {impact.map(([k, v]) => (
+              <span key={k} className="text-[9px] font-mono uppercase tracking-[0.08em] text-[var(--bos-text-tertiary)]">
+                {IMPACT_LABELS[k] ?? k} · {String(v)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Context the client saw */}
+      {(summary?.currentUnderstanding || summary?.whyWeAsk) && (
+        <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 px-3.5 py-3 space-y-2">
+          {summary.currentUnderstanding && (
+            <div>
+              <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)]">Current understanding</div>
+              <p className="mt-0.5 text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">{summary.currentUnderstanding}</p>
+            </div>
+          )}
+          {summary.whyWeAsk && (
+            <div>
+              <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)]">Why we&apos;re asking</div>
+              <p className="mt-0.5 text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">{summary.whyWeAsk}</p>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Response — the reason this question exists */}
-      {summary?.status === "ANSWERED" ? (
+      {summary && isAnswered ? (
         <div className="rounded-sm border border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 p-4">
           <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-success)]">
             <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Client response{summary.respondedByName ? ` · ${summary.respondedByName}` : ""}
@@ -2741,6 +3400,33 @@ function QuestionDetailPanel({
           <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-primary)]">{summary.response}</p>
           {summary.respondedAt && (
             <div className="mt-2 text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(summary.respondedAt)}</div>
+          )}
+          {/* The admin's explicit review — nothing is confirmed without it */}
+          <div className="mt-3 pt-3 border-t border-[var(--bos-success)]/15 flex items-center gap-2 flex-wrap">
+            <span className="text-[10px] text-[var(--bos-text-tertiary)]">Nothing is confirmed until you review it:</span>
+            <MicroButton
+              variant="accent"
+              disabled={busy}
+              onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "accept" })}
+            >
+              {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <BadgeCheck className="w-3 h-3" aria-hidden="true" />} Accept answer
+            </MicroButton>
+            <MicroButton
+              disabled={busy}
+              onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "reject" })}
+            >
+              <Ban className="w-3 h-3" aria-hidden="true" /> Reject &amp; re-ask
+            </MicroButton>
+          </div>
+        </div>
+      ) : isResolved ? (
+        <div className="rounded-sm border border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 p-4">
+          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-success)]">
+            <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" /> Answer accepted
+          </div>
+          <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-primary)]">{summary?.response}</p>
+          {summary?.resolvedAt && (
+            <div className="mt-2 text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">Resolved {formatDateTime(summary.resolvedAt)}</div>
           )}
         </div>
       ) : summary?.status === "FAILED" ? (
@@ -2759,29 +3445,85 @@ function QuestionDetailPanel({
         </div>
       )}
 
+      {/* Requirement update proposals from resolved answers */}
+      {detail && detail.updateProposals.length > 0 && (
+        <div>
+          <div className="mb-2 text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">Requirement update proposals</div>
+          <div className="space-y-2">
+            {detail.updateProposals.map((p) => (
+              <div key={p.id} className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 p-3.5">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[12px] font-medium text-[var(--bos-text-primary)]">{p.summary}</span>
+                  <span
+                    className={cn(
+                      "text-[9px] font-mono uppercase tracking-[0.1em]",
+                      p.status === "ACCEPTED" ? "text-[var(--bos-success)]" : "text-[var(--bos-text-tertiary)]",
+                    )}
+                  >
+                    {p.status === "ACCEPTED" ? "Applied to requirement" : p.status.replace(/_/g, " ")}
+                  </span>
+                </div>
+                <div className="mt-2 space-y-1 text-[11px] text-[var(--bos-text-secondary)]">
+                  <div><span className="text-[var(--bos-text-tertiary)]">Current: </span>{p.currentValue || "Not specified in requirement"}</div>
+                  <div><span className="text-[var(--bos-text-tertiary)]">Proposed: </span>{p.proposedValue || "—"}</div>
+                </div>
+                {p.status === "PENDING" && (
+                  <div className="mt-2.5 flex items-center gap-2">
+                    <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/clarifications/${p.id}/proposal`, { decision: "accept" })}>
+                      <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Accept update
+                    </MicroButton>
+                    <MicroButton disabled={busy} onClick={() => void doAction(`/api/clarifications/${p.id}/proposal`, { decision: "reject" })}>
+                      <Ban className="w-3 h-3" aria-hidden="true" /> Reject
+                    </MicroButton>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Delivery trail */}
       <div>
         <div className="mb-2 text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">Delivery trail</div>
         {!detail ? (
           <p className="text-[11px] text-[var(--bos-text-tertiary)]">Loading…</p>
-        ) : detail.timeline.length === 0 ? (
+        ) : detail.deliveries.length === 0 ? (
           <p className="text-[11px] text-[var(--bos-text-tertiary)]">No delivery attempts yet.</p>
         ) : (
           <ol className="relative border-l border-[var(--bos-line)] ml-1 space-y-2.5">
-            {detail.timeline.map((t, i) => (
-              <li key={i} className="pl-3.5 relative">
+            {detail.deliveries.map((d) => (
+              <li key={d.id} className="pl-3.5 relative">
                 <span
                   className={cn(
                     "absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full",
-                    t.kind === "failed" ? "bg-[var(--bos-error)]" : t.kind === "answered" ? "bg-[var(--bos-success)]" : "bg-[var(--bos-accent)]",
+                    d.status === "FAILED" ? "bg-[var(--bos-error)]" : "bg-[var(--bos-accent)]",
                   )}
                   aria-hidden="true"
                 />
-                <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">{t.label}</div>
-                {t.detail && <div className="text-[9px] text-[var(--bos-text-tertiary)]">{t.detail}</div>}
-                <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(t.at)}</div>
+                <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">
+                  {d.status === "FAILED" ? "Delivery failed" : d.kind === "REMINDER" ? "Reminder sent" : "Question sent"}
+                </div>
+                {d.failureReason && <div className="text-[9px] text-[var(--bos-text-tertiary)]">{d.failureReason}</div>}
+                <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
+                  {d.recipient} · {formatDateTime(d.createdAt)}
+                </div>
               </li>
             ))}
+            {detail.question.respondedAt && (
+              <li className="pl-3.5 relative">
+                <span className="absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full bg-[var(--bos-success)]" aria-hidden="true" />
+                <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">Client responded</div>
+                <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(detail.question.respondedAt)}</div>
+              </li>
+            )}
+            {detail.question.resolvedAt && (
+              <li className="pl-3.5 relative">
+                <span className="absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full bg-[var(--bos-success)]" aria-hidden="true" />
+                <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">Answer accepted — resolved</div>
+                <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(detail.question.resolvedAt)}</div>
+              </li>
+            )}
           </ol>
         )}
       </div>
@@ -2789,16 +3531,16 @@ function QuestionDetailPanel({
       {/* Actions */}
       <div className="flex items-center gap-2 flex-wrap">
         {isFailed && (
-          <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/requirements/questions/${questionId}/send`)}>
+          <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/clarifications/${questionId}/send`)}>
             {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <RefreshCw className="w-3 h-3" aria-hidden="true" />} Retry send
           </MicroButton>
         )}
         {isOpen && (
           <>
-            <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/requirements/questions/${questionId}/remind`)}>
+            <MicroButton variant="accent" disabled={busy} onClick={() => void doAction(`/api/clarifications/${questionId}/remind`)}>
               {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Mail className="w-3 h-3" aria-hidden="true" />} Send reminder
             </MicroButton>
-            <MicroButton disabled={busy} onClick={() => void doAction(`/api/requirements/questions/${questionId}/cancel`)}>
+            <MicroButton disabled={busy} onClick={() => void doAction(`/api/clarifications/${questionId}/cancel`)}>
               {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Ban className="w-3 h-3" aria-hidden="true" />} Cancel question
             </MicroButton>
           </>

@@ -87,11 +87,18 @@ enum RequirementPriority {
 
 enum ProposalStatus {
   DRAFT
+  FINALIZED
   SENT
+  DELIVERED
   VIEWED
-  APPROVED
   CHANGES_REQUESTED
+  REVISION_IN_PROGRESS
+  REVISION_READY
+  RESENT
+  APPROVED
   REJECTED
+  EXPIRED
+  ARCHIVED
 }
 
 enum ProjectStage {
@@ -363,10 +370,180 @@ model ClientProposal {
   sentAt          DateTime?
   viewedAt        DateTime?
   validUntil      DateTime?
+  /** Working version number — each finalized version is frozen. */
+  version         Int             @default(1)
+  /** Secure client access token — created on first send. */
+  tokenHash       String?         @unique
+  tokenExpiresAt  DateTime?
+  tokenRevokedAt  DateTime?
+  tokenRevokedReason String?
+  /** Delivery recipients for the latest send. */
+  sentTo          String?
+  sentToName      String?
+  /** Client view tracking. */
+  firstViewedAt   DateTime?
+  lastViewedAt    DateTime?
+  viewCount       Int             @default(0)
+  /** True rejection (client chose not to proceed). */
+  rejectedAt      DateTime?
+  rejectedReason  String?
+  rejectedDetails String?
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
+  deliveries      ProposalDelivery[]
+  views           ProposalView[]
+  approvals       ProposalApproval[]
+  changeRequests  ProposalChangeRequest[]
+  rejections      ProposalRejection[]
+  versions        ProposalVersion[]
+
   @@index([clientId, status])
+}
+
+/**
+ * One immutable finalized version of a proposal. Every finalize writes a
+ * frozen snapshot (document + PDF) — revisions never overwrite history.
+ */
+model ProposalVersion {
+  id               String   @id @default(cuid())
+  proposal         ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId       String
+  version          Int
+  title            String
+  amount           Float?
+  currency         String   @default("INR")
+  /** The exact document JSON at finalization time. */
+  document         String   @default("{}")
+  pdfPath          String?
+  pdfPages         Int?
+  status           String   @default("FINALIZED") // FINALIZED | SENT | VIEWED | CHANGES_REQUESTED | APPROVED | REJECTED
+  changeRequestIds String   @default("[]")
+  basedOnVersion   Int?
+  createdById      String?
+  createdByName    String?
+  finalizedAt      DateTime?
+  sentAt           DateTime?
+  approvedAt       DateTime?
+  createdAt        DateTime @default(now())
+
+  @@unique([proposalId, version])
+  @@index([proposalId, status])
+}
+
+/** Honest email delivery trail — one row per send attempt. */
+model ProposalDelivery {
+  id                String   @id @default(cuid())
+  proposal          ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId        String
+  workspaceId       String
+  clientId          String
+  proposalVersion   Int      @default(1)
+  recipientName     String
+  recipientEmail    String
+  kind              String   @default("INITIAL") // INITIAL | REVISION | RESEND
+  status            String   @default("SENT")    // QUEUED | SENDING | SENT | DELIVERED | FAILED | BOUNCED
+  provider          String?
+  providerMessageId String?
+  sentAt            DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  createdAt         DateTime @default(now())
+
+  @@index([proposalId, createdAt])
+  @@index([workspaceId, createdAt])
+}
+
+/** Client views of the secure proposal page — deduped into sessions. */
+model ProposalView {
+  id            String   @id @default(cuid())
+  proposal      ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId    String
+  workspaceId   String
+  clientId      String
+  sessionId     String?
+  firstViewedAt DateTime @default(now())
+  lastViewedAt  DateTime @default(now())
+  viewCount     Int      @default(1)
+  pdfOpened     Boolean  @default(false)
+  pdfViewedAt   DateTime?
+
+  @@index([proposalId])
+}
+
+/** Explicit client approval of a proposal version. */
+model ProposalApproval {
+  id              String   @id @default(cuid())
+  proposal        ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId      String
+  workspaceId     String
+  clientId        String
+  proposalVersion Int      @default(1)
+  approvedAt      DateTime @default(now())
+  approvalMethod  String   @default("SECURE_LINK")
+  clientName      String?
+
+  @@index([proposalId])
+}
+
+/** A structured client change request against a proposal version. */
+model ProposalChangeRequest {
+  id               String   @id @default(cuid())
+  proposal         ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId       String
+  workspaceId      String
+  clientId         String
+  proposalVersion  Int      @default(1)
+  reference        String   @default("")
+  /** Client-selected reason labels. */
+  reasons          String   @default("[]")
+  /** Affected proposal sections. */
+  sections         String   @default("[]")
+  message          String
+  priority         String   @default("MEDIUM") // LOW | MEDIUM | HIGH | BLOCKING
+  status           String   @default("SUBMITTED") // SUBMITTED | UNDER_REVIEW | ACCEPTED | CLARIFICATION_REQUIRED | DECLINED | IMPLEMENTED | RESOLVED | CANCELLED
+  adminResponse    String?
+  submittedByName  String?
+  submittedAt      DateTime @default(now())
+  decidedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  items            ProposalChangeRequestItem[]
+
+  @@index([proposalId, status])
+}
+
+/** One structured requested change (current → requested value). */
+model ProposalChangeRequestItem {
+  id               String   @id @default(cuid())
+  changeRequest    ProposalChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+  changeRequestId  String
+  section          String
+  field            String?
+  currentValue     String?
+  requestedValue   String?
+  reason           String?
+  status           String   @default("PENDING") // PENDING | ACCEPTED | DECLINED
+  adminResponse    String?
+
+  @@index([changeRequestId])
+}
+
+/** A true rejection — the client explicitly chose not to proceed. */
+model ProposalRejection {
+  id              String   @id @default(cuid())
+  proposal        ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId      String
+  workspaceId     String
+  clientId        String
+  proposalVersion Int      @default(1)
+  reason          String
+  details         String?
+  clientName      String?
+  rejectedAt      DateTime @default(now())
+
+  @@index([proposalId])
 }
 
 /** Client work — projects, stages, tasks. */
@@ -538,11 +715,18 @@ enum RequirementEventType {
   CLARIFICATION_REMINDED
   CLARIFICATION_RESOLVED
   UPDATE_PROPOSED
+  UPDATE_APPLIED
   PROPOSAL_BLOCKED
   SUBMITTED
   REVISION_SUBMITTED
   APPROVED
   PROPOSAL_CREATED
+  PROPOSAL_FINALIZED
+  PROPOSAL_SENT
+  PROPOSAL_VIEWED
+  PROPOSAL_CHANGES_REQUESTED
+  PROPOSAL_APPROVED
+  PROPOSAL_REJECTED
   REQUEST_REVOKED
 }
 

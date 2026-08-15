@@ -109,11 +109,14 @@ export function appName(): string {
   return process.env.APP_NAME ?? "Business OS";
 }
 
+type SendAttachment = { filename: string; content: Buffer; contentType: string };
+
 type SendEmailInput = {
   to: string;
   subject: string;
   text: string;
   html: string;
+  attachments?: SendAttachment[];
 };
 
 export type MailResult = { sent: true } | { sent: false; devUrl?: string };
@@ -133,6 +136,9 @@ async function send(input: SendEmailInput, devUrl?: string): Promise<MailResult>
         subject: input.subject,
         text: input.text,
         html: input.html,
+        ...(input.attachments?.length
+          ? { attachments: input.attachments.map((a) => ({ filename: a.filename, content: a.content })) }
+          : {}),
       });
       if (error) throw error;
       return { sent: true };
@@ -161,6 +167,9 @@ async function send(input: SendEmailInput, devUrl?: string): Promise<MailResult>
       subject: input.subject,
       text: input.text,
       html: input.html,
+      ...(input.attachments?.length
+        ? { attachments: input.attachments.map((a) => ({ filename: a.filename, content: a.content, contentType: a.contentType })) }
+        : {}),
     });
     return { sent: true };
   } catch (err) {
@@ -359,6 +368,163 @@ ${actionButton(link, "Respond to this question")}
     },
     link,
   );
+}
+
+/* ── Proposal delivery emails ───────────────────────────────── */
+
+type ProposalEmailInput = {
+  to: string;
+  clientName: string;
+  projectTitle: string;
+  proposalReference: string;
+  companyName: string;
+  timelineLabel?: string;
+  amountLabel?: string;
+  link: string;
+  senderName: string;
+  pdf?: { filename: string; buffer: Buffer };
+  version?: number;
+  revision?: boolean;
+};
+
+/**
+ * Send the finalized proposal to the client. The only actionable element is
+ * the secure token link — internal ids never appear. The stored PDF is
+ * attached exactly as generated; nothing is regenerated at send time.
+ */
+export async function sendProposalEmail(input: ProposalEmailInput): Promise<MailResult> {
+  const { to, clientName, projectTitle, proposalReference, companyName, link, senderName, pdf, version, revision } = input;
+  const versionNote = version && version > 1 ? ` (v${version})` : "";
+  const subject = revision
+    ? `Your revised proposal is ready — ${projectTitle}`
+    : `Proposal for ${projectTitle} — ${companyName}`;
+  const headline = revision ? "Your revised proposal is ready" : "Proposal ready for your review";
+  const metaRows = [
+    proposalReference ? `Proposal: <strong>${escapeHtml(proposalReference)}</strong>` : null,
+    version && version > 1 ? `<strong>Version: v${version}</strong>` : null,
+    input.timelineLabel ? `Timeline: <strong>${escapeHtml(input.timelineLabel)}</strong>` : null,
+    input.amountLabel ? `Investment: <strong>${escapeHtml(input.amountLabel)}</strong>` : null,
+  ].filter(Boolean).join("<br/>");
+  return send(
+    {
+      to,
+      subject,
+      text: `Hi ${clientName},\n\n${revision ? "Thank you for your feedback. We've updated the proposal based on your requested changes." : `Your proposal for:\n\n${projectTitle}${versionNote}\n\nis ready for review.`}\n\n${proposalReference ? `Proposal: ${proposalReference}` : ""}\n${input.timelineLabel ? `Timeline: ${input.timelineLabel}` : ""}\n${input.amountLabel ? `Investment: ${input.amountLabel}` : ""}\n\nReview and respond securely here:\n${link}\n\nThe finalized proposal PDF is attached.\n\nRegards,\n${senderName}\n${companyName}`,
+      html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 4px;">${headline}</p>
+<p style="font-size:12px;color:#8a8377;margin:0 0 20px;">${escapeHtml(projectTitle)}${versionNote}</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 10px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">${revision ? "Thank you for your feedback — we've updated the proposal based on your requested changes." : "Your proposal is ready for review."}</p>
+${metaRows ? `<p style="font-size:14px;color:#55504a;margin:10px 0 4px;">${metaRows}</p>` : ""}
+${actionButton(link, revision ? "Review Revised Proposal" : "View Proposal")}
+<p style="font-size:12px;color:#8a8377;margin:16px 0 0;">The finalized proposal PDF is attached to this email. You can also review it online or download it from the secure proposal page.</p>
+<p style="font-size:13px;color:#55504a;margin:22px 0 0;">Regards,<br/>${escapeHtml(senderName)}<br/>${escapeHtml(companyName)}</p>`),
+      ...(pdf
+        ? { attachments: [{ filename: pdf.filename, content: pdf.buffer, contentType: "application/pdf" }] }
+        : {}),
+    },
+    link,
+  );
+}
+
+/** Confirmation sent to the client after they approve a proposal. */
+export async function sendProposalApprovalConfirmationEmail(input: {
+  to: string;
+  clientName: string;
+  projectTitle: string;
+  proposalReference: string;
+  companyName: string;
+  version?: number;
+}): Promise<MailResult> {
+  const { to, clientName, projectTitle, proposalReference, companyName, version } = input;
+  const versionNote = version && version > 1 ? ` (v${version})` : "";
+  return send({
+    to,
+    subject: `Proposal approved — ${projectTitle}`,
+    text: `Hi ${clientName},\n\nThank you.\n\nYour proposal for:\n\n${projectTitle}${versionNote}\n\nhas been approved successfully.\n\n${proposalReference ? `Proposal: ${proposalReference}` : ""}\n\nThe project team will now proceed with the next stage of project setup.\n\nRegards,\n${companyName}`,
+    html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 8px;">Proposal approved ✓</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 8px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">Thank you — your proposal for <strong>${escapeHtml(projectTitle)}</strong>${versionNote} has been approved successfully.</p>
+${proposalReference ? `<p style="font-size:13px;color:#8a8377;margin:10px 0 0;">Proposal: ${escapeHtml(proposalReference)}</p>` : ""}
+<p style="font-size:14px;color:#55504a;margin:16px 0 0;">The project team will now proceed with the next stage of project setup.</p>
+<p style="font-size:13px;color:#55504a;margin:22px 0 0;">Regards,<br/>${escapeHtml(companyName)}</p>`),
+  });
+}
+
+/** Confirmation that the client's change request was received. */
+export async function sendProposalChangeRequestReceivedEmail(input: {
+  to: string;
+  clientName: string;
+  projectTitle: string;
+  proposalReference: string;
+  companyName: string;
+  version?: number;
+  link: string;
+}): Promise<MailResult> {
+  const { to, clientName, projectTitle, proposalReference, companyName, version, link } = input;
+  return send({
+    to,
+    subject: `Change request received — ${projectTitle}`,
+    text: `Hi ${clientName},\n\nWe've received your requested changes for:\n\n${projectTitle}${version && version > 1 ? ` (v${version})` : ""}\n\n${proposalReference ? `Proposal: ${proposalReference}` : ""}\n\nStatus: Under review\n\nWe'll review your feedback and prepare a revised proposal if required.\n\nTrack your request here:\n${link}`,
+    html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 8px;">Change request received</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 8px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">We've received your requested changes for <strong>${escapeHtml(projectTitle)}</strong>${version && version > 1 ? ` (v${version})` : ""}.</p>
+${proposalReference ? `<p style="font-size:13px;color:#8a8377;margin:10px 0 0;">Proposal: ${escapeHtml(proposalReference)}</p>` : ""}
+<p style="font-size:13px;color:#8a8377;margin:6px 0 0;">Status: <strong>Under review</strong></p>
+<p style="font-size:14px;color:#55504a;margin:16px 0 0;">We'll review your feedback and prepare a revised proposal if required.</p>
+${actionButton(link, "View Your Request")}`),
+    link,
+  });
+}
+
+/** Update sent to the client when a change request is accepted or declined. */
+export async function sendProposalChangeRequestDecisionEmail(input: {
+  to: string;
+  clientName: string;
+  projectTitle: string;
+  proposalReference: string;
+  companyName: string;
+  accepted: boolean;
+  response?: string | null;
+  link: string;
+}): Promise<MailResult> {
+  const { to, clientName, projectTitle, proposalReference, companyName, accepted, response, link } = input;
+  return send({
+    to,
+    subject: accepted ? `Change request accepted — ${projectTitle}` : `Change request update — ${projectTitle}`,
+    text: `Hi ${clientName},\n\n${accepted
+      ? `We've reviewed your requested changes for ${projectTitle}. The accepted changes will be included in a revised proposal.`
+      : `One of your requested changes for ${projectTitle} could not be included in the current proposal.`}
+\n${proposalReference ? `Proposal: ${proposalReference}` : ""}\n${response ? `\n${response}` : ""}\n\nView the full details here:\n${link}`,
+    html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 8px;">${accepted ? "Change request accepted" : "Change request update"}</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 8px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">${accepted
+      ? `We've reviewed your requested changes for <strong>${escapeHtml(projectTitle)}</strong>. The accepted changes will be included in a revised proposal.`
+      : `One of your requested changes for <strong>${escapeHtml(projectTitle)}</strong> could not be included in the current proposal.`}</p>
+${proposalReference ? `<p style="font-size:13px;color:#8a8377;margin:10px 0 0;">Proposal: ${escapeHtml(proposalReference)}</p>` : ""}
+${response ? `<p style="font-size:13px;color:#55504a;border-left:3px solid #e7e2d8;padding:10px 14px;background:#faf7f1;margin:12px 0 0;">${escapeHtml(response)}</p>` : ""}
+${actionButton(link, "View Details")}`),
+    link,
+  });
+}
+
+/** Sent to the client when their proposal is declined outright (they chose not to proceed). */
+export async function sendProposalRejectedAckEmail(input: {
+  to: string;
+  clientName: string;
+  projectTitle: string;
+  companyName: string;
+}): Promise<MailResult> {
+  const { to, clientName, projectTitle, companyName } = input;
+  return send({
+    to,
+    subject: `We've received your response — ${projectTitle}`,
+    text: `Hi ${clientName},\n\nThank you for letting us know. We've noted that you do not wish to proceed with ${projectTitle} at this time.\n\nIf anything changes, we'd be happy to revisit it.\n\nRegards,\n${companyName}`,
+    html: shell(`<p style="font-size:20px;font-weight:700;margin:0 0 8px;">Thank you for letting us know</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 8px;">Hi ${escapeHtml(clientName)},</p>
+<p style="font-size:14px;color:#55504a;margin:0 0 6px;">We've noted that you do not wish to proceed with <strong>${escapeHtml(projectTitle)}</strong> at this time.</p>
+<p style="font-size:14px;color:#55504a;margin:16px 0 0;">If anything changes, we'd be happy to revisit it.</p>
+<p style="font-size:13px;color:#55504a;margin:22px 0 0;">Regards,<br/>${escapeHtml(companyName)}</p>`),
+  });
 }
 
 export async function sendResetEmail(

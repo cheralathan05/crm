@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getRequirementForUser, createProposalFromRequirement } from "@/lib/requirements";
+import { proposalBlockForRequirement } from "@/lib/questions";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 /* ── POST /api/requirements/[id]/proposal — requirement → proposal ──
-   Only allowed once approved. The proposal inherits the client, project
-   name, scope, features, stakeholders, attachments, commercial range and
-   design direction — no manual re-entry. */
+   Only allowed once approved — and only when every blocking
+   clarification has been resolved. Unresolved blockers return 409 so
+   a proposal is never generated from an unstable scope. */
 
 export async function POST(_req: Request, { params }: Ctx) {
   const session = await auth();
@@ -23,6 +24,20 @@ export async function POST(_req: Request, { params }: Ctx) {
   }
   if (request.status !== "APPROVED") {
     return NextResponse.json({ ok: false, message: "Approve the requirements before creating a proposal." }, { status: 400 });
+  }
+
+  // Proposal blocker — never build on unresolved blocking clarifications.
+  const block = await proposalBlockForRequirement(request.id);
+  if (block.blocked) {
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "PROPOSAL_BLOCKED",
+        message: `Proposal blocked — ${block.blockers.length} blocking clarification${block.blockers.length === 1 ? "" : "s"} unresolved (${block.blockers.map((b) => b.category).join(", ")}).`,
+        proposalBlock: block,
+      },
+      { status: 409 },
+    );
   }
 
   const proposal = await createProposalFromRequirement({
