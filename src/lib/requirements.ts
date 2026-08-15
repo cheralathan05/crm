@@ -13,6 +13,7 @@ import {
   type CompletionContext,
   type Readiness,
 } from "./requirement-config";
+import { categoryLabel } from "./clarification-rules";
 import type { RequirementProjectType, RequirementRequest, RequirementRequestStatus } from "@/generated/prisma/client";
 
 /* ────────────────────────────────────────────────────────────────
@@ -366,7 +367,7 @@ export async function serializePublicRequest(request: RequirementRequest) {
 
 /** Full admin bundle for the Requirement Command Center. */
 export async function serializeAdminRequest(request: RequirementRequest) {
-  const [answers, features, attachments, comments, revisions, events, client, proposals, questions, clientContacts] =
+  const [answers, features, attachments, comments, revisions, events, client, proposals, questions, clientContacts, conflicts] =
     await Promise.all([
       loadAnswers(request.id),
       loadFeatures(request.id),
@@ -394,18 +395,18 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       }),
       db.requirementQuestion.findMany({
         where: { requirementId: request.id },
-        select: {
-          id: true, section: true, question: true, internalNote: true,
-          recipientName: true, recipientEmail: true, createdByName: true,
-          status: true, sentAt: true, respondedAt: true, response: true,
-          respondedByName: true, tokenExpiresAt: true, createdAt: true, updatedAt: true,
-        },
         orderBy: { createdAt: "desc" },
       }),
       db.contact.findMany({
         where: { clientId: request.clientId },
         select: { id: true, name: true, role: true, email: true, isPrimary: true },
         orderBy: [{ isPrimary: "desc" }, { createdAt: "asc" }],
+      }),
+      db.requirementConflict.findMany({
+        where: { requirementId: request.id, status: "OPEN" },
+        select: { id: true, description: true, detail: true, createdAt: true },
+        orderBy: { createdAt: "desc" },
+        take: 20,
       }),
     ]);
 
@@ -417,6 +418,18 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       features.filter((f) => f.priority === "MUST_HAVE").length,
     ),
   );
+
+  // Proposal readiness: unresolved blocking clarifications gate the proposal.
+  const proposalBlock = (() => {
+    const blockers = questions
+      .filter((q) => q.isBlocking && !["RESOLVED", "CANCELLED", "BLOCKED"].includes(q.status))
+      .map((q) => ({
+        id: q.id,
+        label: q.clientQuestion ?? "Unresolved blocking question",
+        category: categoryLabel(q.category) || q.subcategory || "Unclassified",
+      }));
+    return { blocked: blockers.length > 0, blockers };
+  })();
 
   return {
     ok: true,
@@ -485,8 +498,26 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       id: q.id,
       section: q.section,
       sectionLabel: getSection(q.section)?.label ?? q.section,
+      category: q.category,
+      categoryLabel: q.category ? categoryLabel(q.category) : null,
+      subcategory: q.subcategory,
+      featureId: q.featureId,
       question: q.question,
+      clientQuestion: q.clientQuestion ?? q.question,
       internalNote: q.internalNote,
+      currentUnderstanding: q.currentUnderstanding,
+      whyWeAsk: q.whyWeAsk,
+      helpText: q.helpText,
+      answerType: q.answerType,
+      options: safeJsonArray(q.options),
+      priority: q.priority,
+      isBlocking: q.isBlocking,
+      impact: safeJsonObject(q.impact),
+      qualityScore: q.qualityScore,
+      qualityFlags: safeJsonArray(q.qualityFlags),
+      version: q.version,
+      dependsOnQuestionId: q.dependsOnQuestionId,
+      dependsOnAnswer: q.dependsOnAnswer,
       recipientName: q.recipientName,
       recipientEmail: q.recipientEmail,
       createdByName: q.createdByName,
@@ -494,7 +525,10 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       sentAt: q.sentAt,
       respondedAt: q.respondedAt,
       response: q.response,
+      answerData: q.answerData ? safeJsonObject(q.answerData) : null,
       respondedByName: q.respondedByName,
+      approvedAt: q.approvedAt,
+      resolvedAt: q.resolvedAt,
       expiresAt: q.tokenExpiresAt,
       createdAt: q.createdAt,
       updatedAt: q.updatedAt,
@@ -505,6 +539,13 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       role: c.role,
       email: c.email,
       isPrimary: c.isPrimary,
+    })),
+    proposalBlock,
+    conflicts: conflicts.map((c) => ({
+      id: c.id,
+      description: c.description,
+      detail: c.detail,
+      createdAt: c.createdAt,
     })),
   };
 }

@@ -227,6 +227,8 @@ model Workspace {
   requirementRequests RequirementRequest[]
   requirementQuestions RequirementQuestion[]
   questionDeliveries QuestionDelivery[]
+  updateProposals RequirementUpdateProposal[]
+  conflicts RequirementConflict[]
   copilotMessages ClientCopilotMessage[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -277,6 +279,8 @@ model Client {
   auditEvents    ClientAuditEvent[]
   requirementRequests RequirementRequest[]
   requirementQuestions RequirementQuestion[]
+  updateProposals RequirementUpdateProposal[]
+  conflicts RequirementConflict[]
   copilotMessages ClientCopilotMessage[]
 
   @@index([workspaceId, status])
@@ -526,9 +530,15 @@ enum RequirementEventType {
   FILE_UPLOADED
   CHANGES_REQUESTED
   CLIENT_COMMENTED
+  CLARIFICATION_GENERATED
   CLARIFICATION_REQUESTED
+  CLARIFICATION_APPROVED
   CLARIFICATION_ANSWERED
+  CLARIFICATION_REVIEWED
   CLARIFICATION_REMINDED
+  CLARIFICATION_RESOLVED
+  UPDATE_PROPOSED
+  PROPOSAL_BLOCKED
   SUBMITTED
   REVISION_SUBMITTED
   APPROVED
@@ -575,6 +585,8 @@ model RequirementRequest {
   revisions   RequirementRevision[]
   events      RequirementEvent[]
   questions    RequirementQuestion[]
+  updateProposals RequirementUpdateProposal[]
+  conflicts    RequirementConflict[]
 
   @@index([workspaceId, status])
   @@index([clientId])
@@ -610,6 +622,8 @@ model RequirementFeature {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  clarificationQuestions RequirementQuestion[]
+
   @@index([requestId])
 }
 
@@ -632,15 +646,20 @@ model RequirementAttachment {
 /** Clarification threads — admin requests, client replies. */
 enum QuestionStatus {
   DRAFT
+  READY_FOR_REVIEW
+  APPROVED
   READY_TO_SEND
   SENDING
   SENT
   DELIVERED
   OPENED
   ANSWERED
+  UNDER_REVIEW
+  RESOLVED
   EXPIRED
   FAILED
   CANCELLED
+  BLOCKED
 }
 
 enum DeliveryStatus {
@@ -668,21 +687,53 @@ model RequirementQuestion {
   clientId           String
   requirement        RequirementRequest @relation(fields: [requirementId], references: [id], onDelete: Cascade)
   requirementId      String
+  /** The requirement item this question targets — a feature when available. */
+  feature            RequirementFeature? @relation(fields: [featureId], references: [id], onDelete: SetNull)
+  featureId          String?
   section            String
+  /** Scope classification — e.g. Features / Payments / User Roles. */
+  category           String?
+  subcategory        String?
+  /** The admin's working question — may be rough; never sent as-is. */
   question           String
-  /** Visible to the internal team only — never sent to the client. */
+  /** The professional client-facing question — what the client actually sees. */
+  clientQuestion     String?
+  /** Internal note — never sent to the client. */
   internalNote       String?
+  currentUnderstanding String?
+  whyWeAsk           String?
+  helpText           String?
+  answerType         String            @default("LONG_TEXT")
+  options            String            @default("[]")
+  priority           String            @default("MEDIUM")
+  isBlocking         Boolean           @default(false)
+  impact             String            @default("{}")
+  qualityScore       Int?
+  qualityFlags       String            @default("[]")
+  dependsOnQuestionId String?
+  dependsOnAnswer    String?
+  /** Question revision — only the latest approved version is sent. */
+  version            Int               @default(1)
+  editHistory        String            @default("[]")
+  generatedAt        DateTime?
+  generatedById      String?
+  approvedAt         DateTime?
+  approvedById       String?
+  reviewedAt         DateTime?
+  resolvedAt         DateTime?
   recipientContactId String?
   recipientName      String
   recipientEmail     String
   createdById        String?
   createdByName      String?
-  status             QuestionStatus    @default(READY_TO_SEND)
+  status             QuestionStatus    @default(DRAFT)
   sentAt             DateTime?
   deliveredAt        DateTime?
   openedAt           DateTime?
   respondedAt        DateTime?
   response           String?
+  /** Structured answer payload (options array, number, date, file…). */
+  answerData         String?
   respondedByName    String?
   tokenHash          String            @unique
   tokenExpiresAt     DateTime?
@@ -692,10 +743,61 @@ model RequirementQuestion {
   updatedAt          DateTime          @updatedAt
 
   deliveries QuestionDelivery[]
+  updateProposals RequirementUpdateProposal[]
 
   @@index([workspaceId, status])
   @@index([requirementId, status])
   @@index([clientId, createdAt])
+  @@index([featureId])
+}
+
+/** Controlled requirement changes proposed from resolved clarification answers. */
+enum UpdateProposalStatus {
+  PENDING
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
+model RequirementUpdateProposal {
+  id             String                @id @default(cuid())
+  workspace      Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  client         Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  requirement    RequirementRequest    @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId  String
+  question       RequirementQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId     String
+  summary        String
+  currentValue   String?
+  proposedValue  String?
+  impact         String                @default("{}")
+  status         UpdateProposalStatus  @default(PENDING)
+  createdById    String?
+  createdByName  String?
+  decidedAt      DateTime?
+  createdAt      DateTime              @default(now())
+
+  @@index([requirementId, status])
+}
+
+/** Flagged conflicts between client answers or against the approved requirement. */
+model RequirementConflict {
+  id             String              @id @default(cuid())
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  client         Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  requirement    RequirementRequest  @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId  String
+  description    String
+  detail         String?
+  status         String              @default("OPEN")
+  resolvedAt     DateTime?
+  createdAt      DateTime            @default(now())
+
+  @@index([requirementId, status])
 }
 
 /** Honest delivery trail — one row per send attempt (initial + reminders). */

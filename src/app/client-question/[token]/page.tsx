@@ -1,9 +1,7 @@
 import type { Metadata } from "next";
-import { db } from "@/lib/db";
-import { resolveQuestionByToken } from "@/lib/questions";
-import { getSection } from "@/lib/requirement-config";
+import { resolveClarificationBundleByToken } from "@/lib/questions";
 import { BusinessOSMark } from "@/components/business-os-mark";
-import { QuestionRespondForm } from "@/components/client-question/respond-form";
+import { ClarificationFlow } from "@/components/client-question/clarification-flow";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +12,9 @@ export const metadata: Metadata = {
 
 type Props = { params: Promise<{ token: string }> };
 
-/* ── /client-question/[token] — the client's secure response page ──
-   The client answers a clarification question emailed to them. Token
-   is resolved server-side by hash — internal ids and internal notes
-   never reach this page. */
+/* ── /client-question/[token] — the client's secure clarification page ──
+   The token resolves the requirement's whole clarification set. Internal
+   notes, ids, quality scores and admin prompts never reach this page. */
 
 function ErrorScreen({ title, heading, body }: { title: string; heading: string; body: string }) {
   return (
@@ -36,9 +33,9 @@ function ErrorScreen({ title, heading, body }: { title: string; heading: string;
 
 export default async function ClientQuestionPage({ params }: Props) {
   const { token } = await params;
-  const resolved = await resolveQuestionByToken(token);
+  const bundle = await resolveClarificationBundleByToken(token);
 
-  if (!resolved) {
+  if (!bundle) {
     return (
       <ErrorScreen
         title="Link not found"
@@ -47,8 +44,7 @@ export default async function ClientQuestionPage({ params }: Props) {
       />
     );
   }
-
-  if (resolved.error === "EXPIRED") {
+  if (bundle.error === "EXPIRED") {
     return (
       <ErrorScreen
         title="Link expired"
@@ -57,7 +53,7 @@ export default async function ClientQuestionPage({ params }: Props) {
       />
     );
   }
-  if (resolved.error === "REVOKED") {
+  if (bundle.error === "REVOKED") {
     return (
       <ErrorScreen
         title="Link no longer active"
@@ -66,25 +62,16 @@ export default async function ClientQuestionPage({ params }: Props) {
       />
     );
   }
-  if (resolved.error === "ANSWERED") {
+  if (bundle.error === "CLOSED") {
     return (
       <ErrorScreen
-        title="Already answered"
-        heading="You've already responded"
-        body="Your answer was received and shared with the project team. Thank you — no further action is needed."
+        title="All answered"
+        heading="Thank you — everything is answered"
+        body="All open clarifications for this project have been responded to. If the team needs anything else they will reach out directly."
       />
     );
   }
-  if (resolved.error === "CANCELLED") {
-    return (
-      <ErrorScreen
-        title="Request closed"
-        heading="This question is no longer open"
-        body="The team closed this clarification request. If you still need to share information, reach out to them directly."
-      />
-    );
-  }
-  if (resolved.error) {
+  if (bundle.error) {
     return (
       <ErrorScreen
         title="Link not found"
@@ -94,35 +81,13 @@ export default async function ClientQuestionPage({ params }: Props) {
     );
   }
 
-  const question = resolved.question;
-  const clientCompany = (question as unknown as { client: { companyName: string } }).client.companyName;
-  const projectTitle = (question as unknown as { requirement: { title: string } }).requirement.title;
-
-  // Question context — where this sits among the client's open questions.
-  const openQuestions = await db.requirementQuestion.findMany({
-    where: { requirementId: question.requirementId, status: { in: ["SENT", "DELIVERED", "OPENED"] } },
-    orderBy: { createdAt: "asc" },
-    select: { id: true },
-  });
-  const index = openQuestions.findIndex((q) => q.id === question.id) + 1;
-  const total = openQuestions.length;
-
   return (
-    <main className="min-h-dvh bg-[var(--bos-bg)] px-6 py-12">
-      <div className="max-w-xl mx-auto">
-        <div className="flex justify-center mb-8">
+    <main className="min-h-dvh bg-[var(--bos-bg)] px-4 sm:px-6 py-8 sm:py-12">
+      <div className="max-w-2xl mx-auto">
+        <div className="flex justify-center mb-7">
           <BusinessOSMark size="md" />
         </div>
-
-        <QuestionRespondForm
-          token={token}
-          companyName={clientCompany}
-          projectTitle={projectTitle}
-          sectionLabel={getSection(question.section)?.label ?? question.section}
-          question={question.question}
-          index={index}
-          total={total}
-        />
+        <ClarificationFlow token={token} />
       </div>
     </main>
   );

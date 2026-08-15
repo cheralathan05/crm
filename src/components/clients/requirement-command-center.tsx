@@ -70,14 +70,23 @@ type AdminBundle = {
   states: Record<string, boolean>;
   proposals: { id: string; title: string; status: string; amount: number | null; createdAt: string }[];
   questions: {
-    id: string; section: string; sectionLabel: string; question: string;
-    internalNote: string | null; recipientName: string; recipientEmail: string;
-    createdByName: string | null; status: string;
-    sentAt: string | null; respondedAt: string | null;
-    response: string | null; respondedByName: string | null;
+    id: string; section: string; sectionLabel: string;
+    category: string | null; categoryLabel: string | null; subcategory: string | null;
+    featureId: string | null;
+    question: string; clientQuestion: string; internalNote: string | null;
+    currentUnderstanding: string | null; whyWeAsk: string | null; helpText: string | null;
+    answerType: string; options: string[]; priority: string; isBlocking: boolean;
+    impact: Record<string, string>; qualityScore: number | null; qualityFlags: string[];
+    version: number; dependsOnQuestionId: string | null; dependsOnAnswer: string | null;
+    recipientName: string; recipientEmail: string; createdByName: string | null;
+    status: string; sentAt: string | null; respondedAt: string | null;
+    response: string | null; answerData: Record<string, unknown> | null;
+    respondedByName: string | null; approvedAt: string | null; resolvedAt: string | null;
     createdAt: string; updatedAt: string;
   }[];
   clientContacts: { id: string; name: string; role: string | null; email: string | null; isPrimary: boolean }[];
+  proposalBlock: { blocked: boolean; blockers: { id: string; label: string; category: string }[] };
+  conflicts: { id: string; description: string; detail: string | null; createdAt: string }[];
 };
 
 type ViewId = "overview" | "review" | "activity" | string; // section keys included
@@ -137,19 +146,25 @@ function openAdminComments(bundle: AdminBundle, section?: string) {
   );
 }
 
+const IN_FLIGHT_STATUSES = ["DRAFT", "READY_FOR_REVIEW", "APPROVED", "READY_TO_SEND", "SENDING", "SENT", "DELIVERED", "OPENED"];
 const OPEN_Q_STATUSES = ["READY_TO_SEND", "SENDING", "SENT", "DELIVERED", "OPENED"];
 
-/** Questions awaiting the client's answer for one section. */
-function openQuestionsForSection(bundle: AdminBundle, section?: string) {
+/** Any in-flight question (draft through awaiting-client) for one section. */
+function inFlightQuestions(bundle: AdminBundle, section?: string) {
   return bundle.questions.filter(
-    (q) => OPEN_Q_STATUSES.includes(q.status) && (section ? q.section === section : true),
+    (q) => IN_FLIGHT_STATUSES.includes(q.status) && (section ? q.section === section : true),
   );
+}
+
+/** Questions where the client's answer is genuinely awaited. */
+function awaitingClientQuestions(bundle: AdminBundle) {
+  return bundle.questions.filter((q) => OPEN_Q_STATUSES.includes(q.status));
 }
 
 /** Per-section review state — complete + no open clarification/question = confirmed. */
 function sectionReview(bundle: AdminBundle, key: string): ReviewState {
   if (openAdminComments(bundle, key).length > 0) return "clarify";
-  if (openQuestionsForSection(bundle, key).length > 0) return "clarify";
+  if (inFlightQuestions(bundle, key).length > 0) return "clarify";
   if (bundle.states[key]) return "confirmed";
   return "pending";
 }
@@ -181,9 +196,15 @@ function attentionItems(bundle: AdminBundle) {
     const label = c.section ? getSection(c.section)?.label ?? c.section : "Requirement";
     items.push({ kind: "clarify", text: `${label} — awaiting client response`, section: c.section });
   }
-  for (const q of openQuestionsForSection(bundle)) {
+  for (const q of inFlightQuestions(bundle)) {
     const label = getSection(q.section)?.label ?? q.section;
-    items.push({ kind: "clarify", text: `${label} — awaiting response from ${q.recipientName}`, section: q.section });
+    items.push({
+      kind: "clarify",
+      text: OPEN_Q_STATUSES.includes(q.status)
+        ? `${label} — awaiting response from ${q.recipientName}`
+        : `${label} — clarification ${q.status.replace(/_/g, " ").toLowerCase()} (${q.categoryLabel ?? "unclassified"})`,
+      section: q.section,
+    });
   }
   return items;
 }
@@ -206,7 +227,7 @@ function scopeSignal(bundle: AdminBundle) {
   for (const s of SECTIONS.filter((sec) => sec.weight > 0)) {
     if (!bundle.states[s.key]) openSections.add(s.key);
   }
-  for (const q of openQuestionsForSection(bundle)) openSections.add(q.section);
+  for (const q of inFlightQuestions(bundle)) openSections.add(q.section);
   const open = openSections.size;
   return {
     label: open === 0 ? "Clear" : "Needs attention",
@@ -1021,7 +1042,8 @@ function SectionView({
   onViewQuestion: (questionId: string) => void;
 }) {
   const openComments = bundle.comments.filter((c) => c.section === section.key && !c.resolvedAt);
-  const openQuestions = openQuestionsForSection(bundle, section.key);
+  const awaiting = bundle.questions.filter((q) => OPEN_Q_STATUSES.includes(q.status) && q.section === section.key);
+  const inFlight = inFlightQuestions(bundle, section.key);
   const history = bundle.questions.filter((q) => q.section === section.key);
   const complete = bundle.states[section.key] === true;
 
@@ -1084,19 +1106,20 @@ function SectionView({
       )}
 
       {/* Emailed clarification — pending status */}
-      {openQuestions.length > 0 && (
+      {awaiting.length > 0 && (
         <div className="max-w-prose">
           <div className="mb-2 flex items-center gap-2">
             <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-warning)]">Client response required</span>
             <span className="h-px flex-1 bg-[var(--bos-line)]" aria-hidden="true" />
           </div>
           <ul className="space-y-2">
-            {openQuestions.map((q) => (
+            {awaiting.map((q) => (
               <li key={q.id} className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-2.5">
-                <div className="flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-warning)]">
-                  <Clock className="w-3 h-3" aria-hidden="true" /> Question sent to {q.recipientName} · waiting
+                <div className="flex items-center gap-2 flex-wrap text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-warning)]">
+                  <Clock className="w-3 h-3" aria-hidden="true" /> Sent to {q.recipientName} · waiting
+                  {q.categoryLabel && <span className="text-[var(--bos-text-tertiary)]">· {q.categoryLabel}</span>}
                 </div>
-                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">“{q.question}”</p>
+                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">“{q.clientQuestion}”</p>
                 <div className="mt-2 flex items-center gap-2">
                   <span className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
                     {q.sentAt ? `Sent ${formatDateTime(q.sentAt)}` : "Not sent yet"}
@@ -1124,12 +1147,27 @@ function SectionView({
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">Question {history.length - i}</span>
                   <QuestionStatusChip status={q.status} />
+                  {q.categoryLabel && (
+                    <span className="inline-flex items-center rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-accent)]">
+                      {q.categoryLabel}
+                    </span>
+                  )}
+                  {q.isBlocking && (
+                    <span className="inline-flex items-center rounded-sm border border-[var(--bos-error)]/30 bg-[var(--bos-error)]/6 px-1.5 py-0.5 text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-error)]">
+                      Blocking
+                    </span>
+                  )}
+                  {q.qualityScore !== null && (
+                    <span className={cn("text-[9px] font-mono tabular-nums", (q.qualityScore ?? 0) >= 70 ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>
+                      {q.qualityScore}/100
+                    </span>
+                  )}
                   <span className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
                     {q.sentAt ? `Sent ${formatDateTime(q.sentAt)}` : "Draft"}
                     {q.respondedAt ? ` · Answered ${formatDateTime(q.respondedAt)}` : ""}
                   </span>
                 </div>
-                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">“{q.question}”</p>
+                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)]">“{q.clientQuestion}”</p>
                 {q.response && (
                   <div className="mt-1.5 rounded-sm border border-[var(--bos-success)]/20 bg-[var(--bos-success)]/5 px-2.5 py-1.5">
                     <div className="text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-success)]">
@@ -1152,22 +1190,27 @@ function SectionView({
       {/* Review actions */}
       {inReview && (
         <div className="flex items-center gap-2 max-w-prose">
-          {openQuestions.length === 0 && !complete && (
+          {inFlight.length === 0 && !complete && (
             <MicroButton variant="accent" onClick={onAskClient}>
               <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask client
             </MicroButton>
           )}
-          {openQuestions.length === 0 && complete && reviewState === "confirmed" && (
+          {inFlight.length === 0 && complete && reviewState === "confirmed" && (
             <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-success)]">
               <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Confirmed — this section is ready
             </span>
           )}
-          {complete && reviewState !== "confirmed" && openQuestions.length > 0 && (
+          {complete && reviewState !== "confirmed" && awaiting.length > 0 && (
             <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-warning)]">
               <Clock className="w-3.5 h-3.5" aria-hidden="true" /> Awaiting client response
             </span>
           )}
-          {complete && reviewState !== "confirmed" && openQuestions.length === 0 && (
+          {complete && reviewState !== "confirmed" && inFlight.length > 0 && awaiting.length === 0 && (
+            <span className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-warning)]">
+              <Pencil className="w-3.5 h-3.5" aria-hidden="true" /> Clarification draft awaiting approval
+            </span>
+          )}
+          {complete && reviewState !== "confirmed" && inFlight.length === 0 && (
             <MicroButton variant="accent" onClick={onAskClient}>
               <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask client
             </MicroButton>
@@ -1717,17 +1760,36 @@ function NextAction({
   onReview,
   onCreateProposal,
   onViewQuestion,
+  onViewClarifications,
 }: {
   bundle: AdminBundle;
   onAskClient: (section?: string | null) => void;
   onReview: () => void;
   onCreateProposal: () => void;
   onViewQuestion: (questionId: string) => void;
+  onViewClarifications: () => void;
 }) {
   const r = bundle.request;
   const attention = attentionItems(bundle);
-  const openQuestions = openQuestionsForSection(bundle);
-  const answeredQuestions = bundle.questions.filter((q) => q.status === "ANSWERED");
+  const openQuestions = awaitingClientQuestions(bundle);
+  const answeredQuestions = bundle.questions.filter((q) => q.status === "ANSWERED" || q.status === "UNDER_REVIEW");
+
+  // Blocking clarifications gate the proposal — nothing matters more.
+  if (bundle.proposalBlock?.blocked && bundle.proposalBlock.blockers.length > 0) {
+    const b = bundle.proposalBlock.blockers[0];
+    return (
+      <>
+        <p className="text-[11px] text-[var(--bos-error)] leading-snug">
+          Proposal blocked — {bundle.proposalBlock.blockers.length} blocking clarification{bundle.proposalBlock.blockers.length === 1 ? "" : "s"} unresolved ({b.category}).
+        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <MicroButton variant="accent" onClick={onViewClarifications}>
+            <AlertTriangle className="w-3 h-3" aria-hidden="true" /> Resolve questions
+          </MicroButton>
+        </div>
+      </>
+    );
+  }
 
   // The client has an open emailed question — the one thing that matters.
   if (openQuestions.length > 0) {
@@ -1735,11 +1797,28 @@ function NextAction({
     return (
       <>
         <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
-          Awaiting client — {q.sectionLabel} clarification sent to {q.recipientName}.
+          Awaiting client — {q.categoryLabel ?? q.sectionLabel} clarification sent to {q.recipientName}.
         </p>
         <div className="mt-2 flex items-center gap-1.5">
           <MicroButton variant="accent" onClick={() => onViewQuestion(q.id)}>
             <Eye className="w-3 h-3" aria-hidden="true" /> View question
+          </MicroButton>
+        </div>
+      </>
+    );
+  }
+
+  // Drafts awaiting admin approval also need attention.
+  const pendingDraft = bundle.questions.find((q) => q.status === "DRAFT" || q.status === "READY_FOR_REVIEW");
+  if (pendingDraft) {
+    return (
+      <>
+        <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
+          A clarification draft ({pendingDraft.categoryLabel ?? "unclassified"}) is awaiting your approval before it can be sent.
+        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <MicroButton variant="accent" onClick={() => onViewQuestion(pendingDraft.id)}>
+            <Eye className="w-3 h-3" aria-hidden="true" /> Review draft
           </MicroButton>
         </div>
       </>
@@ -2022,7 +2101,7 @@ function Dialog({
   questions,
   onSend,
   onRemind,
-  onAsk,
+  onClarifyAction,
   onViewQuestion,
   onRevoke,
   onProposal,
@@ -2038,7 +2117,7 @@ function Dialog({
   questions: AdminBundle["questions"];
   onSend: (payload: { to: string; subject: string; message: string; link?: string }) => void;
   onRemind: (payload: { to: string; message: string; link?: string }) => void;
-  onAsk: (payload: { section: string; question: string; internalNote?: string; contactId?: string; send: boolean }) => Promise<{ ok: boolean; data?: Record<string, unknown>; message?: string }>;
+  onClarifyAction: (path: string, body?: Record<string, unknown>) => Promise<{ ok: boolean; data?: Record<string, unknown>; message?: string }>;
   onViewQuestion: (questionId: string) => void;
   onRevoke: (payload: { reason?: string }) => void;
   onProposal: () => void;
@@ -2050,7 +2129,7 @@ function Dialog({
   const [section, setSection] = useState(initialSection ?? "");
   const [reason, setReason] = useState("");
   const [copied, setCopied] = useState(false);
-  const [askStep, setAskStep] = useState<"compose" | "review" | "sending" | "success">("compose");
+  const [askStep, setAskStep] = useState<"compose" | "draft" | "sending" | "success">("compose");
   const [askContactId, setAskContactId] = useState("");
   const [internalNote, setInternalNote] = useState("");
   const [askError, setAskError] = useState<string | null>(null);
@@ -2171,11 +2250,8 @@ function Dialog({
             bundle={bundle}
             section={section}
             setSection={setSection}
-            suggested={suggested}
-            question={message}
-            setQuestion={setMessage}
-            internalNote={internalNote}
-            setInternalNote={setInternalNote}
+            note={message}
+            setNote={setMessage}
             recipients={askRecipients}
             setContactId={setAskContactId}
             contact={askContact}
@@ -2186,44 +2262,12 @@ function Dialog({
             busy={busy}
             sentQuestion={sentQuestion}
             existingQuestion={existingQuestion}
-            onSend={async () => {
-              if (!section || !message.trim() || !askContact) return;
-              setAskError(null);
-              setAskStep("sending");
-              const res = await onAsk({
-                section,
-                question: message.trim(),
-                internalNote: internalNote.trim() || undefined,
-                contactId: askContact.id || undefined,
-                send: true,
-              });
-              if (!res.ok) {
-                const code = (res.data as { code?: string } | undefined)?.code;
-                if (code === "OPEN_QUESTION_EXISTS") {
-                  const q = (res.data as { question?: { id?: string; sectionLabel?: string; question?: string; recipientName?: string } } | undefined)?.question;
-                  setExistingQuestion({
-                    id: q?.id ?? "",
-                    sectionLabel: q?.sectionLabel ?? section,
-                    question: q?.question ?? "",
-                    recipientName: q?.recipientName ?? "",
-                  });
-                  setAskStep("compose");
-                  return;
-                }
-                setAskError(res.message ?? "Unable to send the question.");
-                setAskStep("review");
-                return;
-              }
-              const q = (res.data as { question?: { id?: string; sectionLabel?: string; recipientName?: string; recipientEmail?: string } } | undefined)?.question;
-              if (q?.id) {
-                setSentQuestion({
-                  id: q.id,
-                  sectionLabel: q.sectionLabel ?? section,
-                  recipientName: q.recipientName ?? askContact.name,
-                  recipientEmail: q.recipientEmail ?? askContact.email,
-                });
-              }
-              setAskStep("success");
+            onClarifyAction={onClarifyAction}
+            onSendError={(msg) => setAskError(msg)}
+            onSent={(q) => setSentQuestion(q)}
+            onExisting={(q) => {
+              setExistingQuestion(q);
+              setAskStep("compose");
             }}
             onViewQuestion={onViewQuestion}
             onClose={onClose}
