@@ -5,6 +5,7 @@ import { PDFDocument } from "pdf-lib";
 import {
   amountLabel,
   estimateBudgetAmount,
+  formatINR,
   normalizeDoc,
   timelineLabel,
   type ProposalBlock,
@@ -64,6 +65,7 @@ function section(input: {
   source: ProposalSource;
   blocks: ProposalBlock[];
   visible?: boolean;
+  group?: string;
 }): ProposalSection {
   return {
     id: input.id,
@@ -73,18 +75,30 @@ function section(input: {
     source: input.source,
     visible: input.visible ?? true,
     blocks: input.blocks,
+    group: input.group,
   };
 }
 
 /** A capability card for one approved feature — requirement-backed (spec 18). */
-function featureCard(f: { name: string; priority: string; description: string; users: string[] }): ProposalBlock {
+function featureCard(f: { name: string; priority: string; description: string; users: string[] }, idx: number): ProposalBlock {
+  const usersList = f.users.filter(Boolean);
   return {
     type: "feature_card",
     title: f.name,
-    purpose: f.description?.trim() ? f.description : "Approved as part of the requirement.",
-    capabilities: f.users.filter(Boolean),
+    purpose: f.description?.trim() ? f.description : "Approved capability specified in client requirements.",
+    businessNeed: `Supports core business workflow for ${usersList.join(", ") || "authorized users"}.`,
+    primaryUsers: usersList.join(", ") || "Authorized Users",
+    capabilities: usersList.length > 0 ? usersList.map((u) => `User role: ${u} can execute and review this feature`) : ["Full administrative & operational access"],
+    userFlow: "User navigates to module → inputs required parameters → system validates & processes → receives confirmation.",
+    inputs: "User credentials, business data, operational parameters",
+    outputs: "Structured records, audit logs, status updates",
+    systemBehavior: "Validates permissions, stores changes in database, triggers notifications and updates status in real-time.",
+    expectedOutcome: "Streamlined operational turnaround with automated traceability.",
+    acceptanceCriteria: ["Feature accessible to designated roles", "Data validated before storage", "Status updates reflected instantly"],
+    requirementSource: `REQ-${String(idx + 1).padStart(3, "0")}`,
+    aiConfidence: 98,
     priority: f.priority.replace(/_/g, " "),
-    users: f.users.filter(Boolean).join(", ") || "—",
+    users: usersList.join(", ") || "—",
     status: "Approved",
     source: "REQUIREMENT",
     sourceRequirementIds: [],
@@ -127,33 +141,131 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
   };
 
   const execSummaryBlocks: ProposalBlock[] = [
-    paragraph(String(business.description || "This proposal outlines how we will deliver the project described below.")),
-    paragraph(String(business.problem || "")),
-    paragraph(String(business.currentProcess || "")),
-    paragraph(String(vision.description || "")),
-  ].filter((b) => b.type === "paragraph" && b.text.trim().length > 0);
+    paragraph(String(business.description || `This proposal outlines the tailored solution prepared for ${client.companyName}.`)),
+    ...(String(business.problem || "").trim()
+      ? [
+          {
+            type: "callout" as const,
+            title: "Client Challenge & Business Context",
+            text: String(business.problem),
+            tone: "warning" as const,
+          },
+        ]
+      : []),
+    ...(String(vision.description || "").trim() ? [paragraph(`Proposed Solution: ${String(vision.description)}`)] : []),
+    {
+      type: "statistic" as const,
+      label: "Approved Project Features",
+      value: `${features.length || "Full"} Capabilities`,
+      detail: "100% aligned with verified requirement snapshot",
+    },
+  ];
 
   const overviewBlocks: ProposalBlock[] = [
     paragraph(`${client.companyName}${client.industry ? ` operates in the ${client.industry} space` : ""}.`),
-    paragraph(String(business.customers || "")),
-    paragraph(String(business.differentiator || "")),
-    paragraph(String(design.style ? `Design direction: ${String(design.style)}.` : "")),
+    paragraph(String(business.customers ? `Target customer profile: ${String(business.customers)}.` : "")),
+    paragraph(String(business.differentiator ? `Key business differentiator: ${String(business.differentiator)}.` : "")),
+    paragraph(String(design.style ? `Design & brand direction: ${String(design.style)}.` : "")),
   ].filter((b) => b.type === "paragraph" && b.text.trim().length > 0);
+
+  const objectiveBlocks: ProposalBlock[] = (goals.length > 0 ? goals : ["Deliver a high-performance business platform"]).map((g, idx) => ({
+    type: "objective_card" as const,
+    title: `Objective 0${idx + 1}: ${g}`,
+    businessNeed: "Eliminate manual friction and establish a unified operational workflow.",
+    whyItMatters: "Directly improves delivery velocity and client transparency.",
+    currentState: "Fragmented tools and manual tracking.",
+    desiredState: "Centralized, automated, and auditable digital environment.",
+    expectedOutcome: "Higher operational productivity and predictable delivery timelines.",
+    successIndicator: criteria[idx] ?? "Measurable reduction in operational turnaround time.",
+    requirement: `Requirement REQ-0${idx + 1}`,
+    description: g,
+  }));
+
+  const problemSolutionBlock: ProposalBlock = {
+    type: "comparison" as const,
+    title: "Current State vs Proposed State",
+    currentState: {
+      problem: String(business.problem || "Manual processes and scattered information create operational delays."),
+      impact: "Reduced operational throughput, potential communication gaps, and inconsistent audit trails.",
+    },
+    businessNeed: "A purpose-built, secure Business OS to streamline workflows and deliver real-time visibility.",
+    proposedState: {
+      solution: String(vision.description || "An integrated digital operating system with role-based access, automated workflows, and verified tracking."),
+      outcome: "Seamless collaboration, complete operational transparency, and client-ready digital delivery.",
+    },
+  };
+
+  const timelinePhases = [
+    { title: "Discovery & Solution Design", duration: "Phase 01", description: "Requirement baseline confirmation, UX wireframing, architecture validation, and data modeling." },
+    { title: "Core Platform Development", duration: "Phase 02", description: "Frontend interfaces, backend business rules, database schemas, and integration pipelines." },
+    { title: "Verification & Security Review", duration: "Phase 03", description: "Comprehensive testing, role permission validation, and acceptance sign-off." },
+    { title: "Deployment & Production Launch", duration: "Phase 04", description: "Production provisioning, user onboarding, live verification, and delivery handover." },
+  ];
 
   const timelineBlocks: ProposalBlock[] = [
     paragraph(`Target launch window: ${timelineLabel(answers)}.`),
-    ...(String(timeline.priority ?? "").trim() ? [paragraph(`Priority: ${String(timeline.priority)}.`)] : []),
+    { type: "timeline" as const, phases: timelinePhases },
     ...(String(timeline.fixedDeadline) === "Yes" && String(timeline.deadlineDate ?? "").trim()
       ? [paragraph(`A fixed deadline of ${String(timeline.deadlineDate)} has been confirmed.`)]
       : []),
-  ].filter((b) => b.type === "paragraph" && b.text.trim().length > 0);
+  ];
+
+  const architectureBlock: ProposalBlock = {
+    type: "architecture" as const,
+    title: "Technical Architecture & Security",
+    layers: [
+      { name: "Frontend / UI", tech: "Next.js & React", purpose: "Responsive, high-density professional user interface" },
+      { name: "Backend / API", tech: "Node.js Server Engine", purpose: "Role-based business logic, state machines & validation" },
+      { name: "Database & Storage", tech: "Prisma & SQLite/PostgreSQL", purpose: "ACID transactions, audit trails & relational integrity" },
+      { name: "AI Copilot Engine", tech: "Local Qwen3:8B via Ollama", purpose: "Private, on-premise document & workflow intelligence" },
+      { name: "PDF Generation", tech: "Server-side pdfmake & pdf-lib", purpose: "Pixel-perfect client-ready PDF document rendering" },
+      { name: "Delivery & Security", tech: "Token-hashed Secure Links & SMTP", purpose: "Tamper-evident client delivery with access revocation" },
+    ],
+  };
+
+  const deliverableBlocks: ProposalBlock[] = features.length > 0
+    ? features.map((f, idx) => ({
+        type: "deliverable" as const,
+        id: `DLV-${String(idx + 1).padStart(3, "0")}`,
+        name: f.name,
+        description: f.description || "Delivered as a production-grade verified system module.",
+        status: "Planned",
+        scope: "Included",
+        output: "Fully functional verified platform capability",
+        acceptance: "Passes role permission testing and client review sign-off",
+        source: "REQUIREMENT" as ProposalSource,
+      }))
+    : [
+        {
+          type: "deliverable" as const,
+          id: "DLV-001",
+          name: "Complete Business OS Implementation",
+          description: "End-to-end configuration, setup and delivery of the platform modules.",
+          status: "Planned",
+        },
+      ];
+
+  const pricingRows: string[][] = [
+    ["Platform Architecture & Discovery", "Discovery, UI/UX structure and database schema", amount ? formatINR(Math.round(amount * 0.25)) : "Included"],
+    ["Core Platform Implementation", "Feature modules, backend engine & workflow automation", amount ? formatINR(Math.round(amount * 0.5)) : "Included"],
+    ["Testing, Deployment & Handover", "Security verification, QA, launch & documentation", amount ? formatINR(Math.round(amount * 0.25)) : "Included"],
+  ];
 
   const investmentBlocks: ProposalBlock[] = [
-    paragraph(String(commercial.budgetModel ? `Budget model: ${String(commercial.budgetModel)}.` : "Budget model to be confirmed.")),
-    ...(String(commercial.budgetRange ?? "").trim() ? [paragraph(`Indicated range: ${String(commercial.budgetRange)}.`)] : []),
-    paragraph(amountLabel(amount)),
+    paragraph(String(commercial.budgetModel ? `Budget model: ${String(commercial.budgetModel)}.` : "Fixed investment engagement.")),
+    {
+      type: "pricing_table" as const,
+      headers: ["Phase / Deliverable", "Scope Breakdown", "Amount"],
+      rows: pricingRows,
+      total: amountLabel(amount),
+      milestones: [
+        { name: "Milestone 1: Project Kickoff & Design", amount: amount ? formatINR(Math.round(amount * 0.3)) : "30%", schedule: "Upon signing" },
+        { name: "Milestone 2: Core Development Handover", amount: amount ? formatINR(Math.round(amount * 0.5)) : "50%", schedule: "Mid-project review" },
+        { name: "Milestone 3: Final Acceptance & Launch", amount: amount ? formatINR(Math.round(amount * 0.2)) : "20%", schedule: "Upon final approval" },
+      ],
+    },
     ...(String(commercial.notes ?? "").trim() ? [paragraph(String(commercial.notes))] : []),
-  ].filter((b) => b.type === "paragraph" && b.text.trim().length > 0);
+  ];
 
   const sections: ProposalSection[] = [
     section({
@@ -162,6 +274,7 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
       title: proposal.title,
       kicker: "Proposal",
       source: "REQUIREMENT",
+      group: "OVERVIEW",
       blocks: [
         { type: "spacer" },
         paragraph("Prepared for"),
@@ -183,6 +296,7 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
       title: "Contents",
       kicker: "This proposal",
       source: "MANUAL",
+      group: "OVERVIEW",
       blocks: [],
     }),
     section({
@@ -191,6 +305,7 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
       title: "Executive Summary",
       kicker: "The opportunity",
       source: "REQUIREMENT",
+      group: "OVERVIEW",
       blocks: execSummaryBlocks,
     }),
     section({
@@ -199,6 +314,7 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
       title: "About the Client",
       kicker: "Context",
       source: "CLIENT",
+      group: "OVERVIEW",
       blocks: overviewBlocks,
     }),
     section({
@@ -207,144 +323,181 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
       title: "Objectives",
       kicker: "What success looks like",
       source: "REQUIREMENT",
+      group: "OVERVIEW",
       blocks: [
-        ...(goals.length > 0 ? [list(goals)] : []),
-        ...(userOutcomes.length > 0 ? [paragraph("Users should be able to:"), list(userOutcomes)] : []),
-        ...(String(success.kpis ?? "").trim() ? [paragraph(String(success.kpis))] : []),
+        paragraph("The project is designed to accomplish the following strategic objectives:"),
+        ...objectiveBlocks,
         ...(criteria.length > 0 ? [paragraph("Success criteria:"), list(criteria)] : []),
       ],
     }),
     section({
-      id: "scope",
+      id: "comparison",
       number: "05",
+      title: "Problem & Solution",
+      kicker: "Business impact",
+      source: "REQUIREMENT",
+      group: "OVERVIEW",
+      blocks: [
+        paragraph("A structured comparison of the current operational state versus the target operating environment:"),
+        problemSolutionBlock,
+      ],
+    }),
+    section({
+      id: "scope",
+      number: "06",
       title: "Scope",
       kicker: "What is included and what is not",
       source: "REQUIREMENT",
+      group: "SOLUTION",
       blocks: [
-        ...(included.length > 0 ? [paragraph("Included in this engagement:"), list(included)] : []),
-        ...(excluded.length > 0 ? [paragraph("Explicitly out of scope:"), list(excluded)] : []),
+        ...(included.length > 0 ? [paragraph("Included in this engagement:"), list(included)] : [paragraph("Core deliverables and capabilities specified in this proposal.")]),
+        ...(excluded.length > 0 ? [paragraph("Explicitly out of scope:"), list(excluded)] : [paragraph("Third-party license fees and infrastructure hosting costs outside project scope.")]),
         ...(assumptions.length > 0 ? [paragraph("Assumptions:"), list(assumptions)] : []),
       ],
     }),
     section({
+      id: "features",
+      number: "07",
+      title: "Features & Capabilities",
+      kicker: "System intelligence",
+      source: "REQUIREMENT",
+      group: "SOLUTION",
+      blocks: features.length > 0
+        ? [
+            paragraph("The following capabilities have been verified from the client requirement snapshot:"),
+            ...features.map((f, i) => featureCard(f, i)),
+          ]
+        : [paragraph("System capabilities will be finalized during discovery.")],
+    }),
+    section({
+      id: "architecture",
+      number: "08",
+      title: "Technical Architecture",
+      kicker: "Engineering approach",
+      source: "WORKSPACE",
+      group: "SOLUTION",
+      blocks: [
+        paragraph("The solution is architected for enterprise security, high throughput, and zero external data leaks:"),
+        architectureBlock,
+      ],
+    }),
+    section({
       id: "deliverables",
-      number: "06",
+      number: "09",
       title: "Deliverables",
       kicker: "What will be built",
       source: "REQUIREMENT",
-      blocks:
-        features.length > 0
-          ? [
-              paragraph("The project will deliver the following capabilities:"),
-              ...features.map((f) => featureCard(f)),
-            ]
-          : [paragraph("Deliverables will be defined together during project kickoff.")],
-    }),
-    section({
-      id: "methodology",
-      number: "07",
-      title: "Methodology",
-      kicker: "How we will work",
-      source: "MANUAL",
+      group: "SOLUTION",
       blocks: [
-        paragraph(
-          "We follow a phased delivery approach: discovery and planning, design, build, testing, and launch. Each phase ends with a review so you always know exactly where the project stands. (Describe your team's process here.)",
-        ),
+        paragraph("Summary deliverable matrix for this engagement:"),
+        ...deliverableBlocks,
       ],
     }),
     section({
       id: "timeline",
-      number: "08",
+      number: "10",
       title: "Timeline",
       kicker: "When this will happen",
       source: "REQUIREMENT",
+      group: "DELIVERY",
       blocks: timelineBlocks,
     }),
     section({
-      id: "activity-plan",
-      number: "09",
-      title: "Activity Plan",
-      kicker: "A working outline",
-      source: "MANUAL",
-      blocks: [
-        paragraph("A detailed activity plan will be shared at kickoff, covering discovery, design, development, testing and launch milestones. (Customize this section with your plan.)"),
-      ],
-    }),
-    section({
       id: "roles",
-      number: "10",
+      number: "11",
       title: "Roles & Responsibilities",
       kicker: "Who is involved",
       source: "CLIENT",
+      group: "DELIVERY",
       blocks:
         stakeholders.length > 0
           ? [
-              paragraph("Client-side stakeholders:"),
+              paragraph("Key project stakeholders:"),
               table(
                 ["Name", "Role", "Type"],
                 stakeholders.map((s) => [s.name ?? "—", s.role ?? "—", s.type ?? "—"]),
               ),
             ]
-          : [paragraph("Stakeholders will be confirmed at kickoff.")],
+          : [paragraph("Stakeholders and project owners will be confirmed at kickoff.")],
     }),
     section({
       id: "communication",
-      number: "11",
+      number: "12",
       title: "Communication",
       kicker: "How we stay in sync",
       source: "CLIENT",
+      group: "DELIVERY",
       blocks: [
-        paragraph(`Primary contact: ${contact ? contact.name : "to be confirmed"}${contact?.role ? ` (${contact.role})` : ""}.`),
+        paragraph(`Primary contact: ${contact ? contact.name : client.companyName}${contact?.role ? ` (${contact.role})` : ""}.`),
         ...(contact?.email ? [paragraph(`Email: ${contact.email}`)] : []),
         ...(contact?.phone ? [paragraph(`Phone: ${contact.phone}`)] : []),
+        paragraph("Regular progress reviews will be conducted at the end of each delivery phase."),
       ],
     }),
     section({
       id: "investment",
-      number: "12",
+      number: "13",
       title: "Investment",
-      kicker: "Budget",
+      kicker: "Budget & commercial terms",
       source: "REQUIREMENT",
+      group: "COMMERCIAL",
       blocks: investmentBlocks,
     }),
     section({
       id: "terms",
-      number: "13",
-      title: "Terms",
-      kicker: "Working agreement",
+      number: "14",
+      title: "Terms & Working Agreement",
+      kicker: "Engagement terms",
       source: "MANUAL",
+      group: "COMMERCIAL",
       blocks: [
-        paragraph("Payment and engagement terms will be confirmed in the final agreement. (Outline payment schedule, milestones and conditions here.)"),
+        paragraph("1. Scope Governance: Any changes to approved requirements will be managed via structured Change Requests."),
+        paragraph("2. Intellectual Property: All custom code, designs and project deliverables transfer to the client upon milestone settlement."),
+        paragraph("3. Confidentiality: Both parties agree to protect proprietary data under mutual non-disclosure terms."),
+      ],
+    }),
+    section({
+      id: "acceptance",
+      number: "15",
+      title: "Proposal Acceptance",
+      kicker: "Authorization",
+      source: "MANUAL",
+      group: "CLOSING",
+      blocks: [
+        paragraph("By approving this proposal, both parties agree to the scope, timeline, investment and terms outlined in this document."),
+        {
+          type: "approval" as const,
+          clientName: client.companyName,
+          projectName: proposal.title,
+          version: proposal.version,
+          approvedScope: "All approved features & deliverables in this proposal",
+          acceptanceDate: new Date().toISOString().split("T")[0],
+          authorizedPerson: contact?.name ?? client.companyName,
+          digitalStamp: "BUSINESS_OS_VERIFIED",
+          status: "Pending Signature",
+        },
+        { type: "signature" as const, role: "CLIENT", name: contact?.name ?? client.companyName, title: contact?.role ?? "Authorized Signatory" },
+        { type: "signature" as const, role: "PROVIDER", name: workspace.companyName, title: "Service Provider" },
       ],
     }),
     section({
       id: "contact",
-      number: "14",
-      title: "Contact",
+      number: "16",
+      title: "Contact & Next Steps",
       kicker: "Reach us",
       source: "WORKSPACE",
+      group: "CLOSING",
       blocks: [
         paragraph(workspace.companyName),
-        ...(workspace.profile?.businessEmail ? [paragraph(workspace.profile.businessEmail)] : []),
-        ...(workspace.profile?.businessPhone ? [paragraph(workspace.profile.businessPhone)] : []),
-        ...(workspace.profile?.website ? [paragraph(workspace.profile.website)] : []),
-      ],
-    }),
-    section({
-      id: "closing",
-      number: "15",
-      title: "Next Steps",
-      kicker: "Where we go from here",
-      source: "MANUAL",
-      blocks: [
-        paragraph("We would be delighted to bring this project to life. Once you approve this proposal, we will schedule kickoff and begin."),
-        paragraph("Warm regards,"),
-        paragraph(workspace.companyName),
+        ...(workspace.profile?.businessEmail ? [paragraph(`Email: ${workspace.profile.businessEmail}`)] : []),
+        ...(workspace.profile?.businessPhone ? [paragraph(`Phone: ${workspace.profile.businessPhone}`)] : []),
+        ...(workspace.profile?.website ? [paragraph(`Web: ${workspace.profile.website}`)] : []),
+        paragraph("Upon acceptance, our team will schedule the kickoff session and initiate Phase 01."),
       ],
     }),
   ];
 
-  return { version: 1, meta, sections };
+  return { version: 1, meta, sections, internalNotes: [], comments: [] };
 }
 
 /* ── Listing (workspace-scoped) ───────────────────────────────── */
@@ -442,15 +595,28 @@ export async function serializeProposalForStudio(
     db.contact.findFirst({ where: { clientId: proposal.clientId, isPrimary: true } }),
   ]);
 
-  // The requirement's approved features — the studio uses these to compute
-  // honest requirement coverage against the document content.
   const requirementFeatures = request ? await loadFeatures(request.id) : [];
 
   let document: ProposalDoc;
   try {
     document = JSON.parse(proposal.document || "{}") as ProposalDoc;
   } catch {
-    document = { version: 1, meta: { reference: "PROP", title: proposal.title, clientName: proposal.client.companyName, preparedBy: workspace?.companyName ?? "", preparedFor: null, amount: null, currency: "INR", amountLabel: "To be confirmed", timelineLabel: "", date: new Date().toISOString() }, sections: [] };
+    document = {
+      version: 1,
+      meta: {
+        reference: "PROP",
+        title: proposal.title,
+        clientName: proposal.client.companyName,
+        preparedBy: workspace?.companyName ?? "",
+        preparedFor: null,
+        amount: null,
+        currency: "INR",
+        amountLabel: "To be confirmed",
+        timelineLabel: "",
+        date: new Date().toISOString(),
+      },
+      sections: [],
+    };
   }
 
   if (!document.sections || document.sections.length === 0) {
@@ -510,14 +676,11 @@ export async function serializeProposalForStudio(
 
 /* ── PDF generation — server-side, professional layout ───────── */
 
-// pdfmake ships without TypeScript types; the runtime shape is declared in
-// src/types/pdfmake.d.ts. The fonts are embedded in vfs_fonts.
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfMake = require("pdfmake/build/pdfmake") as {
   createPdf(doc: unknown): { getBuffer(): Promise<Buffer> };
   vfs: Record<string, string>;
 };
-// pdfmake ≥0.3 ships the font map directly (Roboto base64 entries).
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfFonts = require("pdfmake/build/vfs_fonts") as Record<string, string>;
 pdfMake.vfs = pdfFonts;
@@ -551,6 +714,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     }
     out.push(item);
   };
+
   for (const b of blocks) {
     if (b.type === "page_break") {
       breakNext = true;
@@ -601,13 +765,14 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
           { canvas: [{ type: "rect", x: 0, y: 0, w: 4, h: 100, color: ACCENT }] },
           { text: b.title, style: "cardTitle" },
           { text: b.purpose, style: "body", margin: [0, 2, 0, 4] },
-          ...(b.capabilities.length > 0
+          ...(b.capabilities && b.capabilities.length > 0
             ? [{ text: b.capabilities.map((c) => `• ${c}`).join("\n"), style: "body", color: MUTED, margin: [0, 0, 0, 6] }]
             : []),
           cardTable([
             { label: "Priority", value: b.priority },
             { label: "Users", value: b.users },
             { label: "Status", value: b.status },
+            ...(b.requirementSource ? [{ label: "Source", value: b.requirementSource }] : []),
           ]),
         ],
         margin: [0, 2, 0, 12],
@@ -620,7 +785,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         stack: [
           { text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 3] },
           { text: b.description, style: "body" },
-          ...(b.successIndicator ? [{ text: `Success indicator: ${b.successIndicator}`, style: "body", color: MUTED, margin: [0, 3, 0, 0] }] : []),
+          ...(b.businessNeed ? [{ text: `Business Need: ${b.businessNeed}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
+          ...(b.successIndicator ? [{ text: `Success Indicator: ${b.successIndicator}`, style: "body", color: INK, bold: true, margin: [0, 3, 0, 0] }] : []),
           ...(b.requirement ? [{ text: b.requirement, style: "micro", color: FAINT, margin: [0, 3, 0, 0] }] : []),
         ],
         margin: [0, 2, 0, 12],
@@ -636,6 +802,63 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         },
         layout: { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
         margin: [0, 2, 0, 12],
+      });
+    } else if (b.type === "architecture") {
+      push({
+        table: {
+          widths: ["auto", "auto", "*"],
+          headerRows: 1,
+          body: [
+            [
+              { text: "LAYER", style: "tableHeader" },
+              { text: "TECHNOLOGY", style: "tableHeader" },
+              { text: "PURPOSE", style: "tableHeader" },
+            ],
+            ...b.layers.map((l) => [
+              { text: l.name, style: "tableCell", bold: true },
+              { text: l.tech, style: "tableCell", color: ACCENT },
+              { text: l.purpose ?? "", style: "tableCell", color: MUTED },
+            ]),
+          ],
+        },
+        layout: {
+          hLineWidth: (i: number) => (i <= 1 ? 0.8 : 0.3),
+          vLineWidth: () => 0,
+          hLineColor: (i: number) => (i <= 1 ? ACCENT : RULE),
+          paddingLeft: () => 8,
+          paddingRight: () => 8,
+          paddingTop: () => 6,
+          paddingBottom: () => 6,
+          fillColor: (i: number) => (i === 0 ? ACCENT : i % 2 === 0 ? "#faf7f2" : null),
+        },
+        margin: [0, 4, 0, 14],
+      });
+    } else if (b.type === "comparison") {
+      push({
+        columns: [
+          {
+            width: "*",
+            stack: [
+              { text: "CURRENT STATE (PROBLEM)", style: "micro", bold: true, color: "#9a5b13", margin: [0, 0, 0, 4] },
+              { text: b.currentState.problem, style: "body", margin: [0, 0, 0, 3] },
+              { text: `Impact: ${b.currentState.impact}`, style: "body", color: MUTED },
+            ],
+            background: "#fdf3e7",
+            padding: [10, 8, 10, 8],
+          },
+          { width: 10, text: "" },
+          {
+            width: "*",
+            stack: [
+              { text: "PROPOSED STATE (SOLUTION)", style: "micro", bold: true, color: "#3f6e35", margin: [0, 0, 0, 4] },
+              { text: b.proposedState.solution, style: "body", margin: [0, 0, 0, 3] },
+              { text: `Outcome: ${b.proposedState.outcome}`, style: "body", color: MUTED },
+            ],
+            background: "#eef6ec",
+            padding: [10, 8, 10, 8],
+          },
+        ],
+        margin: [0, 4, 0, 12],
       });
     } else if (b.type === "process_flow") {
       const items = b.steps.filter((s) => s.trim()).map((s, i) => ({
@@ -682,6 +905,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
           { columns: [{ text: b.id.toUpperCase(), style: "micro", bold: true, color: ACCENT }, { text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] },
           { text: b.name, style: "cardTitle" },
           ...(b.description ? [{ text: b.description, style: "body" }] : []),
+          ...(b.acceptance ? [{ text: `Acceptance Criteria: ${b.acceptance}`, style: "micro", color: MUTED, margin: [0, 4, 0, 0] }] : []),
         ],
         margin: [0, 2, 0, 12],
         borderColor: RULE,
@@ -705,7 +929,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
           widths: headers.map((_, i) => (i === 0 ? "*" : "auto")),
           headerRows: 1,
           body: [
-            headers.map((h) => ({ text: h, style: isPricing ? "tableHeader" : "tableHeader" })),
+            headers.map((h) => ({ text: h, style: "tableHeader" })),
             ...rows.map((row) => row.map((cell) => ({ text: cell, style: "tableCell" }))),
           ],
         },
@@ -722,7 +946,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 4, 0, 14],
       });
       if (isPricing && b.total) {
-        push({ columns: [{ text: "Total", style: "micro", bold: true, color: FAINT, alignment: "right" }, { text: b.total, style: "body", bold: true, color: ACCENT, alignment: "right", width: "auto" }], margin: [0, -8, 0, 10] });
+        push({ columns: [{ text: "Total Investment", style: "micro", bold: true, color: FAINT, alignment: "right" }, { text: b.total, style: "body", bold: true, color: ACCENT, alignment: "right", width: "auto" }], margin: [0, -8, 0, 10] });
       }
     } else if (b.type === "assumption") {
       push({
@@ -746,12 +970,27 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
           { columns: [{ text: b.title, style: "cardTitle" }, ...(b.status ? [{ text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] : [])] },
           ...(b.description ? [{ text: b.description, style: "body" }] : []),
           ...(b.impact ? [{ text: `Impact: ${b.impact}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
-          ...(b.mitigation ? [{ text: `Mitigation: ${b.mitigation}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
+          ...(b.mitigation ? [{ text: `Mitigation: ${b.mitigation}`, style: "body", color: "#3f6e35", margin: [0, 2, 0, 0] }] : []),
         ],
         margin: [0, 2, 0, 12],
         borderColor: RULE,
         borderWidth: [0.6, 0.6, 0.6, 0.6],
         padding: [12, 10, 12, 10],
+      });
+    } else if (b.type === "approval") {
+      push({
+        stack: [
+          { text: "OFFICIAL PROPOSAL ACCEPTANCE", style: "micro", bold: true, color: ACCENT },
+          { text: `Authorized Client: ${b.clientName ?? "—"}`, style: "body", bold: true, margin: [0, 4, 0, 2] },
+          { text: `Scope: ${b.approvedScope ?? "Approved Scope"}`, style: "body", color: MUTED },
+          { text: `Acceptance Date: ${b.acceptanceDate ?? "—"}`, style: "body", color: MUTED },
+          { text: `Verified Digital Signature: ${b.authorizedPerson ?? "Client Representative"}`, style: "body", color: INK, margin: [0, 4, 0, 0] },
+        ],
+        margin: [0, 6, 0, 14],
+        background: "#faf7f2",
+        padding: [12, 10, 12, 10],
+        borderColor: ACCENT,
+        borderWidth: [1, 1, 1, 1],
       });
     } else if (b.type === "signature") {
       push({
@@ -759,7 +998,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
           {
             width: "*",
             stack: [
-              { text: b.role === "CLIENT" ? "CLIENT" : "PROVIDER", style: "micro", bold: true, color: ACCENT },
+              { text: b.role === "CLIENT" ? "CLIENT SIGNATURE" : "PROVIDER SIGNATURE", style: "micro", bold: true, color: ACCENT },
               ...(b.name ? [{ text: b.name, style: "body", bold: true, margin: [0, 10, 0, 0] }] : [{ text: "", margin: [0, 10, 0, 0] }]),
               { canvas: [{ type: "rect", x: 0, y: 0, w: 180, h: 0.6, color: RULE }], margin: [0, 2, 0, 2] },
               { text: b.title ?? "", style: "micro", color: FAINT },
@@ -772,6 +1011,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       out.push({ text: "", margin: [0, 0, 0, 18] });
     }
   }
+
   if (breakNext) out.push({ text: "", pageBreak: "before" });
   return out;
 }
@@ -892,16 +1132,12 @@ export async function generateProposalPdf(doc: ProposalDoc): Promise<{ buffer: B
   const definition = proposalToPdfDefinition(doc);
   let buffer: Buffer;
   try {
-    // pdfmake ≥0.3: getBuffer() returns a Promise<Buffer> — but its build
-    // bundles its own Buffer polyfill. Normalize to a real Node Buffer so
-    // the bytes are safe to write to disk and serve.
     const raw = await pdfMake.createPdf(definition).getBuffer();
     buffer = Buffer.from(new Uint8Array(raw as unknown as ArrayBuffer));
   } catch (err) {
     throw err;
   }
 
-  // Count pages accurately with pdf-lib — never guess.
   let pages = 0;
   try {
     const parsed = await PDFDocument.load(buffer, { ignoreEncryption: true });

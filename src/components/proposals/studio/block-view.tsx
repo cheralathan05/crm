@@ -6,10 +6,15 @@ import {
   AlignCenter,
   AlignRight,
   Bold,
+  Check,
+  CheckCircle2,
   Copy,
   GripVertical,
   Italic,
+  Layers,
   List,
+  ShieldCheck,
+  Sparkles,
   Trash2,
   Underline,
 } from "lucide-react";
@@ -18,10 +23,11 @@ import type { ProposalBlock } from "@/lib/proposal-doc";
 import { blockId } from "@/lib/proposal-doc";
 
 /* ────────────────────────────────────────────────────────────────
-   BLOCK VIEW — one rendered block on the A4 canvas. Text blocks are
-   edited inline (contentEditable); structured blocks are display
-   surfaces edited from the contextual panel. What renders here is
-   what the PDF renders — parity by construction.
+   BLOCK VIEW — one rendered block on the A4 canvas.
+   Supports Feature Intelligence (with progressive disclosure tabs),
+   Objective Cards, Technical Architecture, Problem/Solution Matrix,
+   Pricing Tables with Milestones, Deliverable Matrix, Digital Approvals,
+   and Inline Editing.
 ──────────────────────────────────────────────────────────────── */
 
 export const ACCENT = "#b5452a";
@@ -178,7 +184,6 @@ function EditableText({
   const placeholderVisible = !ref.current?.innerText?.trim() && placeholder;
   return (
     <div className="relative" onBlur={(e) => {
-      // Commit when focus leaves the editable subtree.
       if (!e.currentTarget.contains(e.relatedTarget as Node)) commit();
     }}>
       <Tag
@@ -258,6 +263,7 @@ function RenderBlock({
   onPatch: (patch: Partial<ProposalBlock>) => void;
 }) {
   const editableCls = "text-[12.5px] leading-[1.7] text-[#2a2621]";
+  const [featureTab, setFeatureTab] = useState<"overview" | "capabilities" | "flow" | "tech" | "source">("overview");
 
   switch (block.type) {
     case "paragraph":
@@ -363,76 +369,225 @@ function RenderBlock({
       const headers = block.headers ?? [];
       const rows = block.rows ?? [];
       return (
-        <table className="w-full border-collapse">
-          <thead>
-            <tr>
-              {headers.map((h, j) => (
-                <th key={j} className="bg-[#b5452a] text-white text-[10px] font-semibold uppercase tracking-[0.08em] text-left px-3 py-2 first:rounded-l-sm last:rounded-r-sm">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, j) => (
-              <tr key={j} className={j % 2 === 0 ? "bg-[#faf7f2]" : ""}>
-                {row.map((cell, k) => (
-                  <td key={k} className="px-3 py-2 text-[11.5px] text-[#2a2621] border-b border-[#e7e2d8]">
-                    {cell}
-                  </td>
+        <div className="space-y-2">
+          <table className="w-full border-collapse">
+            <thead>
+              <tr>
+                {headers.map((h, j) => (
+                  <th key={j} className="bg-[#b5452a] text-white text-[10px] font-semibold uppercase tracking-[0.08em] text-left px-3 py-2 first:rounded-l-sm last:rounded-r-sm">
+                    {h}
+                  </th>
                 ))}
               </tr>
-            ))}
-          </tbody>
-          {block.type === "pricing_table" && block.total && (
-            <tfoot>
-              <tr>
-                <td colSpan={headers.length || 1} className="pt-2 text-right">
-                  <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-[#9a948a] mr-2">Total</span>
-                  <span className="text-[13px] font-bold text-[#b5452a]">{block.total}</span>
-                </td>
-              </tr>
-            </tfoot>
+            </thead>
+            <tbody>
+              {rows.map((row, j) => (
+                <tr key={j} className={j % 2 === 0 ? "bg-[#faf7f2]" : ""}>
+                  {row.map((cell, k) => (
+                    <td key={k} className="px-3 py-2 text-[11.5px] text-[#2a2621] border-b border-[#e7e2d8]">
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+            {block.type === "pricing_table" && block.total && (
+              <tfoot>
+                <tr>
+                  <td colSpan={headers.length || 1} className="pt-2 text-right">
+                    <span className="text-[10px] font-mono uppercase tracking-[0.12em] text-[#9a948a] mr-2">Total Investment</span>
+                    <span className="text-[14px] font-bold text-[#b5452a]">{block.total}</span>
+                  </td>
+                </tr>
+              </tfoot>
+            )}
+          </table>
+          {block.type === "pricing_table" && block.milestones && block.milestones.length > 0 && (
+            <div className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-3 space-y-1.5">
+              <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[#9a948a]">Payment Milestones</div>
+              <div className="grid sm:grid-cols-3 gap-2">
+                {block.milestones.map((m, idx) => (
+                  <div key={idx} className="rounded-sm bg-white border border-[#e7e2d8] p-2 text-[10.5px]">
+                    <div className="font-medium text-[#1a1714]">{m.name}</div>
+                    <div className="text-[#b5452a] font-semibold mt-0.5">{m.amount}</div>
+                    <div className="text-[9px] text-[#9a948a]">{m.schedule}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
-        </table>
+        </div>
       );
     }
 
-    case "feature_card":
+    /* ═══ Feature Intelligence (Spec 18) ═══ */
+    case "feature_card": {
       return (
-        <div className="rounded-sm border border-[#e7e2d8] border-l-[3px] border-l-[#b5452a] px-4 py-3 bg-white">
-          <div className="text-[13.5px] font-semibold tracking-tight text-[#1a1714]">{block.title}</div>
-          <p className="mt-1 text-[12px] leading-[1.65] text-[#2a2621]">{block.purpose}</p>
-          {block.capabilities.length > 0 && (
-            <ul className="mt-2 space-y-1">
-              {block.capabilities.filter(Boolean).map((c, j) => (
-                <li key={j} className="flex items-start gap-2 text-[11.5px] text-[#6b655c]">
-                  <span className="text-[#b5452a] mt-0.5">•</span>
+        <div className="rounded-sm border border-[#e7e2d8] border-l-[3px] border-l-[#b5452a] px-4 py-3 bg-white space-y-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="text-[14px] font-semibold tracking-tight text-[#1a1714]">{block.title}</div>
+            <div className="flex items-center gap-1.5 text-[9px] font-mono">
+              <span className="px-1.5 py-0.5 rounded-[3px] bg-[#f5edea] text-[#b5452a] font-semibold">{block.priority}</span>
+              <span className="px-1.5 py-0.5 rounded-[3px] bg-[#eef6ec] text-[#3f6e35]">{block.status}</span>
+            </div>
+          </div>
+
+          {/* Progressive disclosure tabs */}
+          <div className="flex gap-1 border-b border-[#e7e2d8] pb-1.5 pt-0.5 text-[9.5px] font-medium text-[#9a948a]">
+            {[
+              ["overview", "Overview"],
+              ["capabilities", "Capabilities"],
+              ["flow", "User Flow"],
+              ["tech", "Technical Detail"],
+              ["source", "Requirement Source"],
+            ].map(([tabKey, label]) => (
+              <button
+                key={tabKey}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFeatureTab(tabKey as typeof featureTab);
+                }}
+                className={cn(
+                  "px-2 py-0.5 rounded-[2px] transition-colors duration-150",
+                  featureTab === tabKey ? "bg-[#b5452a] text-white" : "hover:text-[#1a1714]",
+                )}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Tab content */}
+          {featureTab === "overview" && (
+            <div className="space-y-1 text-[12px] leading-[1.65] text-[#2a2621]">
+              <p>{block.purpose}</p>
+              {block.businessNeed && (
+                <div className="text-[11px] text-[#6b655c]">
+                  <span className="font-mono text-[9px] uppercase tracking-[0.1em] text-[#9a948a] mr-1">Need:</span>
+                  {block.businessNeed}
+                </div>
+              )}
+            </div>
+          )}
+
+          {featureTab === "capabilities" && (
+            <ul className="space-y-1">
+              {(block.capabilities || []).map((c, j) => (
+                <li key={j} className="flex items-start gap-2 text-[11.5px] text-[#2a2621]">
+                  <Check className="w-3.5 h-3.5 text-[#b5452a] shrink-0 mt-0.5" aria-hidden="true" />
                   {c}
                 </li>
               ))}
             </ul>
           )}
-          <div className="mt-2.5 flex items-center gap-3 text-[9px] font-mono uppercase tracking-[0.1em] text-[#9a948a]">
-            {block.priority && <span>{block.priority}</span>}
-            {block.users && block.users !== "—" && <span>· Users: {block.users}</span>}
-            {block.status && <span className="ml-auto text-[#3f6e35]">{block.status}</span>}
+
+          {featureTab === "flow" && (
+            <div className="text-[11.5px] text-[#2a2621] space-y-1 bg-[#faf7f2] p-2 rounded-sm">
+              <div><strong className="text-[#1a1714]">User Journey:</strong> {block.userFlow || "Initiates request → verifies inputs → confirms completion."}</div>
+              {block.expectedOutcome && <div><strong className="text-[#1a1714]">Outcome:</strong> {block.expectedOutcome}</div>}
+            </div>
+          )}
+
+          {featureTab === "tech" && (
+            <div className="grid sm:grid-cols-2 gap-2 text-[11px] bg-[#faf7f2] p-2 rounded-sm text-[#6b655c]">
+              <div><span className="font-mono text-[9px] uppercase text-[#9a948a]">Inputs:</span> {block.inputs || "Parameters & Form Data"}</div>
+              <div><span className="font-mono text-[9px] uppercase text-[#9a948a]">Outputs:</span> {block.outputs || "Verified Records & Audit Trail"}</div>
+              <div className="sm:col-span-2"><span className="font-mono text-[9px] uppercase text-[#9a948a]">Behavior:</span> {block.systemBehavior || "Real-time state validation and logging"}</div>
+            </div>
+          )}
+
+          {featureTab === "source" && (
+            <div className="flex items-center gap-3 text-[11px] text-[#6b655c]">
+              <span className="font-mono font-semibold text-[#b5452a] bg-[#f5edea] px-2 py-0.5 rounded-[3px]">{block.requirementSource || "REQ-001"}</span>
+              <span>Traceable to approved requirement snapshot</span>
+              {block.aiConfidence && <span className="ml-auto text-[9.5px] font-mono text-[#3f6e35]">Confidence: {block.aiConfidence}%</span>}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    /* ═══ Objective Card (Spec 25) ═══ */
+    case "objective_card":
+      return (
+        <div className="rounded-sm border border-[#e7e2d8] px-4 py-3 bg-white space-y-1.5">
+          <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#b5452a] font-semibold">{block.title}</div>
+          <p className="text-[12px] leading-[1.65] text-[#2a2621]">{block.description}</p>
+          {block.businessNeed && (
+            <div className="text-[11px] text-[#6b655c]">
+              <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-[#9a948a] mr-1.5">Business Need:</span>
+              {block.businessNeed}
+            </div>
+          )}
+          {block.successIndicator && (
+            <div className="mt-1 flex items-center gap-1.5 text-[11px] text-[#1a1714] font-medium">
+              <CheckCircle2 className="w-3.5 h-3.5 text-[#3f6e35] shrink-0" aria-hidden="true" />
+              <span>Success Indicator: {block.successIndicator}</span>
+            </div>
+          )}
+          {block.requirement && <div className="text-[9px] font-mono text-[#9a948a]">{block.requirement}</div>}
+        </div>
+      );
+
+    /* ═══ Technical Architecture (Spec 31) ═══ */
+    case "architecture":
+      return (
+        <div className="rounded-sm border border-[#e7e2d8] bg-white p-3.5 space-y-2.5">
+          <div className="flex items-center gap-2 text-[13px] font-semibold text-[#1a1714]">
+            <Layers className="w-4 h-4 text-[#b5452a]" aria-hidden="true" />
+            {block.title || "Technical Architecture & System Design"}
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2">
+            {block.layers.map((l, idx) => (
+              <div key={idx} className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-2.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-semibold text-[#1a1714]">{l.name}</span>
+                  <span className="font-mono text-[9.5px] text-[#b5452a] font-medium">{l.tech}</span>
+                </div>
+                {l.purpose && <p className="mt-1 text-[10.5px] text-[#6b655c] leading-snug">{l.purpose}</p>}
+              </div>
+            ))}
           </div>
         </div>
       );
 
-    case "objective_card":
+    /* ═══ Problem / Solution Matrix (Spec 26) ═══ */
+    case "comparison":
       return (
-        <div className="rounded-sm border border-[#e7e2d8] px-4 py-3">
-          <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#b5452a] font-semibold">{block.title}</div>
-          <p className="mt-1 text-[12px] leading-[1.65] text-[#2a2621]">{block.description}</p>
-          {block.successIndicator && (
-            <div className="mt-1.5 text-[11px] text-[#6b655c]">
-              <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-[#9a948a] mr-1.5">Success</span>
-              {block.successIndicator}
+        <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 space-y-3">
+          {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+          <div className="grid sm:grid-cols-2 gap-3">
+            <div className="rounded-sm border border-[#f0cbb8] bg-[#fdf3e7] p-3 space-y-1">
+              <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#9a5b13] font-semibold">Current State (Problem)</div>
+              <p className="text-[12px] text-[#7c4d08] leading-snug">{block.currentState.problem}</p>
+              <div className="text-[10.5px] text-[#9a5b13] pt-1"><strong className="text-[#7c4d08]">Impact:</strong> {block.currentState.impact}</div>
             </div>
-          )}
-          {block.requirement && <div className="mt-1 text-[9px] font-mono text-[#9a948a]">{block.requirement}</div>}
+            <div className="rounded-sm border border-[#c3e2bf] bg-[#eef6ec] p-3 space-y-1">
+              <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[#3f6e35] font-semibold">Proposed State (Solution)</div>
+              <p className="text-[12px] text-[#2c4f26] leading-snug">{block.proposedState.solution}</p>
+              <div className="text-[10.5px] text-[#3f6e35] pt-1"><strong className="text-[#2c4f26]">Outcome:</strong> {block.proposedState.outcome}</div>
+            </div>
+          </div>
+        </div>
+      );
+
+    /* ═══ Proposal Acceptance & Digital Approval (Spec 39) ═══ */
+    case "approval":
+      return (
+        <div className="rounded-sm border-2 border-[#b5452a] bg-[#faf7f2] p-4 space-y-2.5">
+          <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.16em] text-[#b5452a] font-bold">
+            <ShieldCheck className="w-4 h-4" aria-hidden="true" /> Official Proposal Acceptance
+          </div>
+          <div className="text-[12.5px] text-[#1a1714] leading-relaxed">
+            Authorized for <strong className="font-semibold">{block.clientName || "Client"}</strong> under project <strong className="font-semibold">{block.projectName || "Proposal"}</strong>.
+          </div>
+          <div className="grid sm:grid-cols-2 gap-2 text-[11px] text-[#6b655c] bg-white p-2.5 rounded-sm border border-[#e7e2d8]">
+            <div><span className="font-mono text-[9px] uppercase text-[#9a948a]">Scope:</span> {block.approvedScope || "All deliverables in proposal"}</div>
+            <div><span className="font-mono text-[9px] uppercase text-[#9a948a]">Date:</span> {block.acceptanceDate || "—"}</div>
+            <div><span className="font-mono text-[9px] uppercase text-[#9a948a]">Signatory:</span> {block.authorizedPerson || "Authorized Representative"}</div>
+            <div><span className="font-mono text-[9px] uppercase text-[#9a948a]">Digital Seal:</span> <span className="font-mono text-[#3f6e35] font-semibold">{block.digitalStamp || "BUSINESS_OS_VERIFIED"}</span></div>
+          </div>
         </div>
       );
 
@@ -506,13 +661,14 @@ function RenderBlock({
 
     case "deliverable":
       return (
-        <div className="rounded-sm border border-[#e7e2d8] px-3.5 py-2.5">
+        <div className="rounded-sm border border-[#e7e2d8] px-3.5 py-2.5 space-y-1">
           <div className="flex items-center gap-2">
-            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#b5452a]">{block.id || "DLV"}</span>
-            <span className="ml-auto text-[9px] font-mono uppercase tracking-[0.1em] text-[#9a948a]">{block.status}</span>
+            <span className="font-mono text-[9px] uppercase tracking-[0.12em] text-[#b5452a] font-semibold">{block.id || "DLV"}</span>
+            <span className="ml-auto text-[9px] font-mono uppercase tracking-[0.1em] text-[#3f6e35]">{block.status}</span>
           </div>
-          <div className="mt-1 text-[12.5px] font-semibold text-[#1a1714]">{block.name}</div>
-          {block.description && <p className="mt-0.5 text-[11.5px] leading-[1.6] text-[#6b655c]">{block.description}</p>}
+          <div className="text-[12.5px] font-semibold text-[#1a1714]">{block.name}</div>
+          {block.description && <p className="text-[11.5px] leading-[1.6] text-[#6b655c]">{block.description}</p>}
+          {block.acceptance && <div className="text-[10px] text-[#9a948a] pt-0.5"><strong className="text-[#6b655c]">Acceptance:</strong> {block.acceptance}</div>}
         </div>
       );
 

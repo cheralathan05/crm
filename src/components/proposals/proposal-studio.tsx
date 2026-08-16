@@ -4,15 +4,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ProposalBlock, ProposalDoc, ProposalSection } from "@/lib/proposal-doc";
-import { blockText, computeProposalQuality, computeProposalReadiness, computeRequirementCoverage, deriveSectionStatus } from "@/lib/proposal-doc";
+import type { ProposalBlock, ProposalDoc, ProposalSection, InternalNote, SectionComment, ProposalAdminAnswer } from "@/lib/proposal-doc";
+import { blockText, computeProposalQuality, computeProposalReadiness, computeRequirementCoverage, deriveSectionStatus, normalizeDoc } from "@/lib/proposal-doc";
 import type { ProposalDeliveryBundle } from "@/lib/proposal-delivery";
 import { CommandBar } from "./studio/command-bar";
 import { Navigator } from "./studio/navigator";
 import { CanvasPage, type SelectedBlock } from "./studio/canvas";
 import { IntelPanel, type IntelTab } from "./studio/intel-panel";
 import { CommandPalette, ShortcutsDialog, type PaletteEntry } from "./studio/command-palette";
-import { DeliveryPanel, FinalCheck, GeneratingOverlay, ReadyOverlay, SendDialog } from "./studio/dialogs";
+import { CompareDialog, DeliveryPanel, FinalCheck, GeneratingOverlay, ReadyOverlay, SendDialog } from "./studio/dialogs";
 import { blankBlock, type InsertItem } from "./studio/block-fields";
 import type { SaveState, StudioInitial } from "./studio/types";
 
@@ -27,8 +27,7 @@ import type { SaveState, StudioInitial } from "./studio/types";
    copilot drafts from the proposal's real data only.
 ──────────────────────────────────────────────────────────────── */
 
-const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5] as const;
-const GENERATION_STEPS = [
+export const GENERATION_STEPS = [
   "Preparing content",
   "Applying Business OS template",
   "Rendering pages",
@@ -52,6 +51,8 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
   const [insertMenu, setInsertMenu] = useState<{ sectionId: string; index: number } | null>(null);
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [reviewMode, setReviewMode] = useState(false);
 
   const [finalize, setFinalize] = useState<null | "check" | "generating" | "ready">(null);
   const [finalizeInfo, setFinalizeInfo] = useState<{ reference: string | null; pages: number; generatedAt: string } | null>(null);
@@ -65,7 +66,10 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
   const [aiDepth, setAiDepth] = useState("Detailed");
   const [aiState, setAiState] = useState<"idle" | "streaming" | "draft">("idle");
   const [aiText, setAiText] = useState("");
+  const [aiReasoning, setAiReasoning] = useState("");
   const [aiStep, setAiStep] = useState(0);
+  const [isApplyingAi, setIsApplyingAi] = useState(false);
+  const [pdfOutdated, setPdfOutdated] = useState(!initial.proposal.pdfPath);
 
   const docRef = useRef(doc);
   const historyRef = useRef<ProposalDoc[]>([]);
@@ -305,7 +309,6 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     (reference: string, title: string) => {
       if (!activeDef) return;
       insertBlock(activeDef.id, activeDef.blocks.length, "requirement_reference");
-      // Fill the fresh reference with the real feature name.
       updateDoc((d) => ({
         ...d,
         sections: d.sections.map((s) => {
@@ -359,63 +362,229 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     [updateDoc, saveProposalMeta],
   );
 
+  /* ── Internal Notes & Comments Handlers (Spec 45 & 46) ───── */
+
+  const addInternalNote = useCallback(
+    (content: string) => {
+      const note: InternalNote = {
+        id: `note-${Date.now().toString(36)}`,
+        content,
+        authorName: "Admin",
+        createdAt: new Date().toISOString(),
+      };
+      updateDoc((d) => ({
+        ...d,
+        internalNotes: [...(d.internalNotes || []), note],
+      }));
+      setNotice("Internal note saved (team only).");
+    },
+    [updateDoc],
+  );
+
+  const addComment = useCallback(
+    (sectionId: string, message: string) => {
+      const comment: SectionComment = {
+        id: `cmt-${Date.now().toString(36)}`,
+        sectionId,
+        authorName: "Admin",
+        message,
+        status: "OPEN",
+        createdAt: new Date().toISOString(),
+      };
+      updateDoc((d) => ({
+        ...d,
+        comments: [...(d.comments || []), comment],
+      }));
+      setNotice("Comment added to section.");
+    },
+    [updateDoc],
+  );
+
+  const toggleComment = useCallback(
+    (commentId: string) => {
+      updateDoc((d) => ({
+        ...d,
+        comments: (d.comments || []).map((c) =>
+          c.id === commentId
+            ? { ...c, status: c.status === "OPEN" ? "RESOLVED" : "OPEN", resolvedAt: c.status === "OPEN" ? new Date().toISOString() : undefined }
+            : c,
+        ),
+      }));
+    },
+    [updateDoc],
+  );
+
+  const saveAdminAnswer = useCallback(
+    (answer: ProposalAdminAnswer) => {
+      updateDoc((d) => {
+        const existing = d.adminAnswers ?? [];
+        const filtered = existing.filter((a) => !(a.sectionId === answer.sectionId && a.questionId === answer.questionId));
+        return {
+          ...d,
+          adminAnswers: [...filtered, answer],
+        };
+      });
+    },
+    [updateDoc],
+  );
+
   /* ── AI copilot ───────────────────────────────────────────── */
 
-  const runAi = useCallback(async () => {
-    if (!aiInstruction.trim() || !activeDef) return;
-    setAiState("streaming");
-    setAiText("");
-    setAiStep(0);
+  const runAi = useCallback(
+    async (customAnswers?: ProposalAdminAnswer[]) => {
+      if (!aiInstruction.trim()) return;
+      const targetSection = activeDef && activeDef.id !== "contents" && activeDef.id !== "cover"
+        ? activeDef
+        : doc.sections.find((s) => s.id === "executive-summary") ?? activeDef;
+
+      setAiState("streaming");
+      setAiText("");
+      setAiReasoning("");
+      setAiStep(0);
+      setError(null);
+      aiStepTimer.current = window.setInterval(() => setAiStep((s) => Math.min(s + 1, 6)), 900);
+
+      try {
+        const answersToSend = customAnswers ?? doc.adminAnswers ?? [];
+        const res = await fetch(`/api/proposals/${initial.proposal.id}/assist`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sectionId: targetSection?.id || "executive-summary",
+            instruction: `${aiInstruction} (depth: ${aiDepth})`,
+            depth: aiDepth,
+            adminAnswers: answersToSend,
+          }),
+        });
+
+        if (!res.ok || !res.body) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.message ?? "AI assist failed.");
+        }
+
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let rawBuffer = "";
+        let draftText = "";
+        let thoughtsText = "";
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          const decoded = decoder.decode(value, { stream: true });
+          rawBuffer += decoded;
+          const lines = rawBuffer.split("\n");
+          rawBuffer = lines.pop() ?? "";
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            try {
+              const item = JSON.parse(trimmed) as { type: "thinking" | "content"; text: string };
+              if (item.type === "thinking") {
+                thoughtsText += item.text;
+                setAiReasoning(thoughtsText);
+              } else if (item.type === "content") {
+                draftText += item.text;
+                setAiText(draftText);
+              }
+            } catch {
+              draftText += trimmed;
+              setAiText(draftText);
+            }
+          }
+        }
+
+        if (rawBuffer.trim()) {
+          try {
+            const item = JSON.parse(rawBuffer.trim()) as { type: "thinking" | "content"; text: string };
+            if (item.type === "content") {
+              draftText += item.text;
+              setAiText(draftText);
+            } else if (item.type === "thinking") {
+              thoughtsText += item.text;
+              setAiReasoning(thoughtsText);
+            }
+          } catch {
+            draftText += rawBuffer.trim();
+            setAiText(draftText);
+          }
+        }
+
+        if (draftText.trim()) {
+          setAiState("draft");
+        } else {
+          setAiState("idle");
+          if (thoughtsText.trim()) {
+            setError("AI finished reasoning but draft was empty. Please click Generate again.");
+          }
+        }
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "AI assist failed.");
+        setAiState("idle");
+      } finally {
+        if (aiStepTimer.current) window.clearInterval(aiStepTimer.current);
+      }
+    },
+    [activeDef, aiInstruction, aiDepth, doc.sections, doc.adminAnswers, initial.proposal.id],
+  );
+
+  const applyAiDraft = useCallback(async () => {
+    if (!activeDef || !aiText.trim()) return;
+    setIsApplyingAi(true);
     setError(null);
-    aiStepTimer.current = window.setInterval(() => setAiStep((s) => Math.min(s + 1, 6)), 900);
+
     try {
-      const res = await fetch(`/api/proposals/${initial.proposal.id}/assist`, {
+      const res = await fetch(`/api/proposals/${initial.proposal.id}/apply-ai`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sectionId: activeDef.id, instruction: `${aiInstruction} (depth: ${aiDepth})` }),
+        body: JSON.stringify({
+          proposalVersion: proposalMeta.version,
+          sectionId: activeDef.id,
+          generatedText: aiText,
+          adminAnswers: doc.adminAnswers ?? [],
+          metadata: { depth: aiDepth, instruction: aiInstruction },
+        }),
       });
-      if (!res.ok || !res.body) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.message ?? "AI assist failed.");
-      }
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let text = "";
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        text += decoder.decode(value, { stream: true });
-        setAiText(text);
-      }
-      setAiState(text.trim() ? "draft" : "idle");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "AI assist failed.");
-      setAiState("idle");
-    } finally {
-      if (aiStepTimer.current) window.clearInterval(aiStepTimer.current);
-    }
-  }, [activeDef, aiInstruction, aiDepth, initial.proposal.id]);
 
-  const insertAiDraft = useCallback(() => {
-    if (!activeDef || !aiText.trim()) return;
-    const paragraphs = aiText
-      .split(/\n\s*\n/)
-      .map((p) => p.trim())
-      .filter(Boolean)
-      .map((text) => ({ type: "paragraph", text, source: "AI_DRAFT", updatedAt: new Date().toISOString() }) as ProposalBlock);
-    if (paragraphs.length === 0) return;
-    updateDoc((d) => ({
-      ...d,
-      sections: d.sections.map((s) =>
-        s.id === activeDef.id
-          ? { ...s, blocks: [...s.blocks, ...paragraphs], updatedAt: new Date().toISOString() }
-          : s,
-      ),
-    }));
-    setAiState("idle");
-    setAiText("");
-    setNotice("AI draft inserted — review it before finalizing.");
-  }, [activeDef, aiText, updateDoc]);
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message ?? "Could not apply AI draft to proposal.");
+      }
+
+      // 1. Synchronize authoritative document state from backend
+      const normalized = normalizeDoc(data.document);
+      docRef.current = normalized;
+      setDoc(normalized);
+
+      // 2. Increment version & proposal metadata
+      setProposalMeta((prev) => ({
+        ...prev,
+        version: data.version,
+        updatedAt: new Date().toISOString(),
+        pdfPath: null,
+        pdfPages: 0,
+      }));
+
+      // 3. Flag PDF as outdated
+      setPdfOutdated(true);
+
+      // 4. Reset AI preview states
+      setAiState("idle");
+      setAiText("");
+      setAiReasoning("");
+
+      // 5. Select section to focus page on canvas
+      selectSection(activeDef.id);
+
+      // 6. Positive notification
+      setNotice(`✓ Approved & Applied to Proposal. Document updated to v${data.version}. Canvas updated.`);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to apply AI changes.");
+    } finally {
+      setIsApplyingAi(false);
+    }
+  }, [activeDef, aiText, initial.proposal.id, proposalMeta.version, doc.adminAnswers, aiDepth, aiInstruction, selectSection]);
 
   /* ── Finalize ─────────────────────────────────────────────── */
 
@@ -437,6 +606,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         finalizedAt: data.proposal?.finalizedAt ?? null,
         status: data.proposal?.status ?? p.status,
       }));
+      setPdfOutdated(false);
       setFinalize("ready");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Finalization failed.");
@@ -518,7 +688,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     }
   }, [initial.proposal.id, refreshDelivery]);
 
-  /* ── Keyboard shortcuts (spec 66) ─────────────────────────── */
+  /* ── Keyboard shortcuts ─────────────────────────────────────── */
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -551,6 +721,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
       if (e.key === "Escape") {
         if (paletteOpen) setPaletteOpen(false);
         else if (shortcutsOpen) setShortcutsOpen(false);
+        else if (compareOpen) setCompareOpen(false);
         else if (insertMenu) setInsertMenu(null);
         else if (selectedBlock) setSelectedBlock(null);
         else if (deliveryPanel) setDeliveryPanel(false);
@@ -559,9 +730,9 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [doPersist, undo, redo, paletteOpen, shortcutsOpen, insertMenu, selectedBlock, deliveryPanel, proposalMeta.finalizedAt, initial.proposal.id]);
+  }, [doPersist, undo, redo, paletteOpen, shortcutsOpen, compareOpen, insertMenu, selectedBlock, deliveryPanel, proposalMeta.finalizedAt, initial.proposal.id]);
 
-  /* ── Command palette entries (spec 65) ────────────────────── */
+  /* ── Command palette entries ────────────────────────────────── */
 
   const paletteEntries = useMemo<PaletteEntry[]>(() => {
     const entries: PaletteEntry[] = [];
@@ -586,6 +757,16 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         group: "AI",
         run: () => {
           setPanelTab("ai");
+          setPaletteOpen(false);
+        },
+      },
+      {
+        id: "compare",
+        label: "Compare proposal versions",
+        hint: "Compare v(X) vs v(Y) diff and word count",
+        group: "Document",
+        run: () => {
+          setCompareOpen(true);
           setPaletteOpen(false);
         },
       },
@@ -689,10 +870,14 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         onNextPage={() => goToPage(pageIdx + 1)}
         searchQuery={searchQuery}
         onSearchQuery={setSearchQuery}
+        reviewMode={reviewMode}
+        onToggleReviewMode={() => setReviewMode((v) => !v)}
+        onCompare={() => setCompareOpen(true)}
         onAiAssist={() => setPanelTab("ai")}
+        pdfOutdated={pdfOutdated}
         onPreview={() => {
-          if (proposalMeta.finalizedAt) window.open(`/api/proposals/${initial.proposal.id}/pdf`, "_blank");
-          else setFinalize("check");
+          if (pdfOutdated || !proposalMeta.finalizedAt) setFinalize("check");
+          else window.open(`/api/proposals/${initial.proposal.id}/pdf`, "_blank");
         }}
         onShare={() => setDeliveryPanel(true)}
         onFinalize={() => setFinalize("check")}
@@ -712,6 +897,9 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
               break;
             case "send":
               setSendOpen(true);
+              break;
+            case "compare":
+              setCompareOpen(true);
               break;
             case "finalize":
               setFinalize("check");
@@ -748,25 +936,40 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
       {/* Three-pane body */}
       <div className="flex-1 min-h-0 flex">
         <Navigator
-            doc={doc}
-            activeSection={activeSection}
-            searchQuery={searchQuery}
-            collapsedGroups={collapsedGroups}
-            onSelect={selectSection}
-            onToggleGroup={(key) =>
-              setCollapsedGroups((prev) => {
-                const next = new Set(prev);
-                if (next.has(key)) next.delete(key);
-                else next.add(key);
-                return next;
-              })
-            }
-            onToggleVisibility={toggleVisibility}
-            onAddSection={addSection}
-          />
+          doc={doc}
+          activeSection={activeSection}
+          searchQuery={searchQuery}
+          collapsedGroups={collapsedGroups}
+          onSelect={selectSection}
+          onToggleGroup={(key) =>
+            setCollapsedGroups((prev) => {
+              const next = new Set(prev);
+              if (next.has(key)) next.delete(key);
+              else next.add(key);
+              return next;
+            })
+          }
+          onToggleVisibility={toggleVisibility}
+          onAddSection={addSection}
+        />
 
         {/* A4 canvas — the real document */}
-        <main className="flex-1 min-w-0 overflow-y-auto bg-[var(--bos-surface)]/40 px-6 py-8">
+        <main className={cn("flex-1 min-w-0 overflow-y-auto bg-[var(--bos-surface)]/40 px-6 py-8", reviewMode && "bg-[#f5f2eb]/70")}>
+          {reviewMode && (
+            <div className="max-w-[720px] mx-auto mb-6 p-3 rounded-sm border border-[var(--bos-info)]/30 bg-[var(--bos-info)]/10 text-[11.5px] text-[var(--bos-text-secondary)] flex items-center justify-between">
+              <span className="flex items-center gap-2 font-medium text-[var(--bos-info)]">
+                Review Mode Active — Visual inspection layout without editing handles.
+              </span>
+              <button
+                type="button"
+                onClick={() => setReviewMode(false)}
+                className="px-2 py-0.5 rounded-sm bg-white border border-[var(--bos-line)] text-[10px] text-[var(--bos-text-primary)] hover:border-[var(--bos-info)]"
+              >
+                Exit Review Mode
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-col items-center gap-10">
             {pages.map((s, i) => (
               <CanvasPage
@@ -799,31 +1002,39 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         </main>
 
         <IntelPanel
-            tab={panelTab}
-            onTabChange={setPanelTab}
-            doc={doc}
-            proposalMeta={proposalMeta}
-            activeSection={activeDef}
-            selectedBlock={selectedBlock}
-            coverage={coverage}
-            readiness={readiness}
-            onUpdateSection={updateSection}
-            onPatchBlock={updateBlock}
-            onAddRequirementReference={addRequirementReference}
-            aiInstruction={aiInstruction}
-            onAiInstruction={setAiInstruction}
-            aiDepth={aiDepth}
-            onAiDepth={setAiDepth}
-            aiState={aiState}
-            aiText={aiText}
-            aiStep={aiStep}
-            onRunAi={() => void runAi()}
-            onInsertAi={insertAiDraft}
-            onRejectAi={() => {
-              setAiState("idle");
-              setAiText("");
-            }}
-          />
+          tab={panelTab}
+          onTabChange={setPanelTab}
+          doc={doc}
+          proposalMeta={proposalMeta}
+          activeSection={activeDef}
+          selectedBlock={selectedBlock}
+          coverage={coverage}
+          readiness={readiness}
+          onUpdateSection={updateSection}
+          onPatchBlock={updateBlock}
+          onAddRequirementReference={addRequirementReference}
+          aiInstruction={aiInstruction}
+          onAiInstruction={setAiInstruction}
+          aiDepth={aiDepth}
+          onAiDepth={setAiDepth}
+          aiState={aiState}
+          aiText={aiText}
+          aiReasoning={aiReasoning}
+          aiStep={aiStep}
+          isApplyingAi={isApplyingAi}
+          onRunAi={(customAnswers) => void runAi(customAnswers)}
+          onInsertAi={() => void applyAiDraft()}
+          onSaveAdminAnswer={saveAdminAnswer}
+          onRejectAi={() => {
+            setAiState("idle");
+            setAiText("");
+            setAiReasoning("");
+          }}
+          onAddNote={addInternalNote}
+          onAddComment={addComment}
+          onToggleComment={toggleComment}
+          onSelectSection={selectSection}
+        />
       </div>
 
       {/* Document status bar (spec: bottom) */}
@@ -837,6 +1048,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         <span className="hidden sm:inline">{wordCount.toLocaleString()} words</span>
         <span className="hidden md:inline">Coverage {coverage.percent}%</span>
         <span className="hidden md:inline">Ready {readiness.percent}</span>
+        {reviewMode && <span className="text-[var(--bos-info)] font-semibold">● Review Mode</span>}
         <button type="button" onClick={() => setPaletteOpen(true)} className="ml-auto flex items-center gap-1 hover:text-[var(--bos-text-primary)] transition-colors duration-150">
           <span className="rounded-[3px] border border-[var(--bos-line)] px-1 py-px text-[8px]">Ctrl</span>
           <span className="rounded-[3px] border border-[var(--bos-line)] px-1 py-px text-[8px]">K</span>
@@ -849,6 +1061,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         {finalize === "check" && <FinalCheck quality={quality} onClose={() => setFinalize(null)} onFinalize={() => void runFinalize()} />}
         {finalize === "generating" && <GeneratingOverlay step={genStep} />}
         {finalize === "ready" && finalizeInfo && <ReadyOverlay info={finalizeInfo} proposalId={initial.proposal.id} onClose={() => setFinalize(null)} />}
+        {compareOpen && <CompareDialog proposalId={initial.proposal.id} currentVersion={proposalMeta.version} onClose={() => setCompareOpen(false)} />}
         {sendOpen && <SendDialog proposal={proposalMeta} client={initial.client} delivery={delivery} busy={sending} onClose={() => setSendOpen(false)} onSend={() => void runSend()} />}
         {deliveryPanel && (
           <DeliveryPanel

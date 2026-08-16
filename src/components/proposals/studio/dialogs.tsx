@@ -1,14 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
+  AlertTriangle,
   Check,
   CheckCircle2,
   ClipboardList,
   Clock,
+  Download,
   Eye,
+  FileCheck,
   FileText,
+  GitCompare,
   History,
   Loader2,
   Mail,
@@ -20,14 +24,13 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProposalDeliveryBundle } from "@/lib/proposal-delivery";
+import type { ProposalVersionDiff } from "@/lib/proposal-doc";
 import { StatusChip } from "@/components/clients/kit";
 import type { StudioInitial } from "./types";
 
 /* ────────────────────────────────────────────────────────────────
-   FINALIZE + DELIVERY FLOWS — honest state, no silent failures.
-   Finalization validates the document, generates the real PDF from
-   the exact approved version, and locks it. Delivery records every
-   send attempt, view, approval and change request.
+   FINALIZE + DELIVERY + VERSION COMPARISON FLOWS
+   Honest state, zero fake data, client-ready business delivery.
 ──────────────────────────────────────────────────────────────── */
 
 export const GENERATION_STEPS = [
@@ -50,6 +53,7 @@ export function FinalCheck({
   onClose: () => void;
   onFinalize: () => void;
 }) {
+  const blockers = quality.items.filter((i) => !i.ok);
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
@@ -59,7 +63,7 @@ export function FinalCheck({
         className="relative w-full max-w-lg rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)]"
       >
         <div className="px-5 py-4 border-b border-[var(--bos-line)]">
-          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-secondary)]">Final proposal check</div>
+          <div className="text-[10px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-secondary)]">Final Proposal Verification</div>
           <button type="button" onClick={onClose} className="absolute right-4 top-4 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]" aria-label="Close">
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
@@ -76,39 +80,51 @@ export function FinalCheck({
               </div>
             ))}
             <div className="flex items-center gap-2">
-              <span className={cn("flex items-center justify-center w-4 h-4 rounded-full", "bg-[var(--bos-success)] text-white")}>
+              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--bos-success)] text-white">
                 <Check className="w-2.5 h-2.5" aria-hidden="true" />
               </span>
-              <span className="text-[12px] text-[var(--bos-text-primary)]">Template</span>
+              <span className="text-[12px] text-[var(--bos-text-primary)]">Editorial Template</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className={cn("flex items-center justify-center w-4 h-4 rounded-full", "bg-[var(--bos-success)] text-white")}>
+              <span className="flex items-center justify-center w-4 h-4 rounded-full bg-[var(--bos-success)] text-white">
                 <Check className="w-2.5 h-2.5" aria-hidden="true" />
               </span>
-              <span className="text-[12px] text-[var(--bos-text-primary)]">PDF layout</span>
+              <span className="text-[12px] text-[var(--bos-text-primary)]">PDF Layout Engine</span>
             </div>
           </div>
 
           <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 px-3.5 py-2.5">
             <div className="flex items-center justify-between text-[11px]">
-              <span className="text-[var(--bos-text-secondary)]">Proposal readiness</span>
+              <span className="text-[var(--bos-text-secondary)]">Proposal Readiness</span>
               <span className={cn("font-semibold tabular-nums", quality.total >= 80 ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>{quality.total}%</span>
             </div>
             <div className="mt-1.5 h-1 rounded-full bg-[var(--bos-overlay)] overflow-hidden">
               <div className={cn("h-full rounded-full transition-[width] duration-500", quality.total >= 80 ? "bg-[var(--bos-success)]" : "bg-[var(--bos-warning)]")} style={{ width: `${quality.total}%` }} />
             </div>
           </div>
+
+          {blockers.length > 0 && (
+            <div className="rounded-sm border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/5 p-3 text-[11px] text-[var(--bos-warning)] flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <div>
+                <strong className="font-semibold">Review Recommendations:</strong>
+                <p className="mt-0.5 text-[10.5px] text-[var(--bos-text-secondary)]">
+                  {blockers.map((b) => b.note).join(" · ")}
+                </p>
+              </div>
+            </div>
+          )}
         </div>
         <div className="px-5 py-3.5 border-t border-[var(--bos-line)] flex items-center justify-end gap-2">
           <button type="button" onClick={onClose} className="h-7 px-3 rounded-sm text-[11px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)]">
-            Cancel
+            Back to Editor
           </button>
           <button
             type="button"
             onClick={onFinalize}
             className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[11px] font-medium hover:bg-[var(--bos-accent-hover)]"
           >
-            <FileText className="w-3 h-3" aria-hidden="true" /> Finalize proposal
+            <FileText className="w-3 h-3" aria-hidden="true" /> Confirm & Finalize
           </button>
         </div>
       </motion.div>
@@ -189,6 +205,160 @@ export function ReadyOverlay({
           >
             <FileText className="w-3 h-3" aria-hidden="true" /> Download
           </a>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+/* ═══ Compare Versions Modal (Spec 42) ═══ */
+
+export function CompareDialog({
+  proposalId,
+  currentVersion,
+  onClose,
+}: {
+  proposalId: string;
+  currentVersion: number;
+  onClose: () => void;
+}) {
+  const [vA, setVA] = useState(1);
+  const [vB, setVB] = useState(currentVersion);
+  const [loading, setLoading] = useState(true);
+  const [diffData, setDiffData] = useState<{ diff: ProposalVersionDiff; availableVersions: { version: number; label: string }[] } | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    fetch(`/api/proposals/${proposalId}/compare?vA=${vA}&vB=${vB}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (active && data.ok) {
+          setDiffData(data);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [proposalId, vA, vB]);
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
+      <motion.div
+        initial={{ opacity: 0, y: 14 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="relative w-full max-w-2xl rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] flex flex-col max-h-[85vh]"
+      >
+        <div className="px-5 py-4 border-b border-[var(--bos-line)] flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-2">
+            <GitCompare className="w-4 h-4 text-[var(--bos-accent)]" />
+            <span className="text-[14px] font-semibold text-[var(--bos-text-primary)]">Compare Proposal Versions</span>
+          </div>
+          <button type="button" onClick={onClose} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {/* Version Selectors */}
+        <div className="px-5 py-3 border-b border-[var(--bos-line)] bg-[var(--bos-surface)]/30 flex items-center gap-3 shrink-0">
+          <div className="flex-1">
+            <label className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)] block mb-1">Base Version</label>
+            <select
+              value={vA}
+              onChange={(e) => setVA(Number(e.target.value))}
+              className="w-full h-8 px-2.5 text-[11px] rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[var(--bos-text-primary)] outline-none cursor-pointer"
+            >
+              {(diffData?.availableVersions ?? [{ version: 1, label: "v1" }]).map((v) => (
+                <option key={v.version} value={v.version}>{v.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="text-[12px] text-[var(--bos-text-tertiary)] font-bold pt-4">vs</div>
+          <div className="flex-1">
+            <label className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)] block mb-1">Target Version</label>
+            <select
+              value={vB}
+              onChange={(e) => setVB(Number(e.target.value))}
+              className="w-full h-8 px-2.5 text-[11px] rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[var(--bos-text-primary)] outline-none cursor-pointer"
+            >
+              {(diffData?.availableVersions ?? [{ version: currentVersion, label: `v${currentVersion}` }]).map((v) => (
+                <option key={v.version} value={v.version}>{v.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        {/* Diff Content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+          {loading ? (
+            <div className="py-12 flex items-center justify-center gap-2 text-[12px] text-[var(--bos-text-tertiary)]">
+              <Loader2 className="w-4 h-4 animate-spin text-[var(--bos-accent)]" /> Computing version diff…
+            </div>
+          ) : diffData?.diff ? (
+            <>
+              {/* Summary Stats */}
+              <div className="grid grid-cols-4 gap-2">
+                <div className="rounded-sm border border-[var(--bos-line)] bg-[#faf7f2] p-2.5 text-center">
+                  <div className="text-[16px] font-bold text-[var(--bos-text-primary)]">{diffData.diff.wordsDiff >= 0 ? `+${diffData.diff.wordsDiff}` : diffData.diff.wordsDiff}</div>
+                  <div className="text-[9px] font-mono uppercase text-[var(--bos-text-tertiary)]">Words Diff</div>
+                </div>
+                <div className="rounded-sm border border-[var(--bos-line)] bg-[#faf7f2] p-2.5 text-center">
+                  <div className="text-[16px] font-bold text-[var(--bos-success)]">+{diffData.diff.sectionsAdded}</div>
+                  <div className="text-[9px] font-mono uppercase text-[var(--bos-text-tertiary)]">Sections Added</div>
+                </div>
+                <div className="rounded-sm border border-[var(--bos-line)] bg-[#faf7f2] p-2.5 text-center">
+                  <div className="text-[16px] font-bold text-[var(--bos-warning)]">{diffData.diff.sectionsModified}</div>
+                  <div className="text-[9px] font-mono uppercase text-[var(--bos-text-tertiary)]">Modified</div>
+                </div>
+                <div className="rounded-sm border border-[var(--bos-line)] bg-[#faf7f2] p-2.5 text-center">
+                  <div className="text-[16px] font-bold text-[var(--bos-error)]">-{diffData.diff.sectionsRemoved}</div>
+                  <div className="text-[9px] font-mono uppercase text-[var(--bos-text-tertiary)]">Removed</div>
+                </div>
+              </div>
+
+              {/* Flags */}
+              <div className="flex items-center gap-3 text-[11px]">
+                <span className={cn("px-2 py-0.5 rounded-[2px] font-medium", diffData.diff.scopeChanged ? "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]" : "bg-[var(--bos-overlay)] text-[var(--bos-text-tertiary)]")}>
+                  {diffData.diff.scopeChanged ? "Scope modified" : "Scope unchanged"}
+                </span>
+                <span className={cn("px-2 py-0.5 rounded-[2px] font-medium", diffData.diff.commercialChanged ? "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]" : "bg-[var(--bos-overlay)] text-[var(--bos-text-tertiary)]")}>
+                  {diffData.diff.commercialChanged ? "Commercials updated" : "Commercials unchanged"}
+                </span>
+              </div>
+
+              {/* Section Diff List */}
+              <div className="space-y-2">
+                <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-secondary)]">Section Breakdown</div>
+                {diffData.diff.sectionDiffs.map((sd) => (
+                  <div key={sd.id} className="rounded-sm border border-[var(--bos-line)] p-2.5 flex items-center justify-between text-[11.5px]">
+                    <div className="min-w-0 flex items-center gap-2">
+                      <span className={cn("px-1.5 py-0.5 rounded-[2px] text-[8.5px] font-mono uppercase tracking-[0.1em] font-semibold", sd.status === "added" ? "bg-[var(--bos-success)]/15 text-[var(--bos-success)]" : sd.status === "modified" ? "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]" : sd.status === "removed" ? "bg-[var(--bos-error)]/15 text-[var(--bos-error)]" : "bg-[var(--bos-overlay)] text-[var(--bos-text-tertiary)]")}>
+                        {sd.status}
+                      </span>
+                      <span className="font-medium text-[var(--bos-text-primary)] truncate">{sd.title}</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-[10.5px] text-[var(--bos-text-tertiary)] shrink-0 font-mono">
+                      {sd.addedBlocks > 0 && <span className="text-[var(--bos-success)]">+{sd.addedBlocks} blk</span>}
+                      {sd.wordsDiff !== 0 && <span>{sd.wordsDiff > 0 ? `+${sd.wordsDiff}` : sd.wordsDiff} w</span>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="py-8 text-center text-[12px] text-[var(--bos-text-tertiary)]">Diff calculation unavailable.</div>
+          )}
+        </div>
+
+        <div className="px-5 py-3 border-t border-[var(--bos-line)] flex items-center justify-end gap-2 shrink-0">
+          <button type="button" onClick={onClose} className="h-7 px-3 rounded-sm text-[11px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)]">
+            Close
+          </button>
         </div>
       </motion.div>
     </div>

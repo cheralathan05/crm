@@ -12,25 +12,86 @@
    the real data — never fabricated.
 ──────────────────────────────────────────────────────────────── */
 
+export type FeatureIntelligence = {
+  title: string;
+  purpose: string;
+  businessNeed?: string;
+  primaryUsers?: string;
+  capabilities: string[];
+  userFlow?: string;
+  inputs?: string;
+  outputs?: string;
+  systemBehavior?: string;
+  dataCaptured?: string;
+  dependencies?: string[];
+  expectedOutcome?: string;
+  acceptanceCriteria?: string[];
+  requirementSource?: string;
+  aiConfidence?: number;
+  priority: string;
+  users: string;
+  status: string;
+};
+
+export type ObjectiveIntelligence = {
+  title: string;
+  businessNeed?: string;
+  whyItMatters?: string;
+  currentState?: string;
+  desiredState?: string;
+  expectedOutcome?: string;
+  successIndicator: string;
+  requirement: string;
+  description: string;
+};
+
+export type ArchitectureLayer = {
+  name: string;
+  tech: string;
+  purpose?: string;
+  status?: string;
+};
+
+export type ProblemSolutionComparison = {
+  title?: string;
+  currentState: { problem: string; impact: string };
+  proposedState: { solution: string; outcome: string };
+  businessNeed?: string;
+};
+
+export type DigitalApproval = {
+  clientName?: string;
+  projectName?: string;
+  version?: number;
+  approvedScope?: string;
+  acceptanceDate?: string;
+  authorizedPerson?: string;
+  digitalStamp?: string;
+  status?: string;
+};
+
 export type ProposalBlockShape =
   | { type: "paragraph"; text: string }
   | { type: "heading"; text: string; level?: 1 | 2 | 3 }
   | { type: "list"; items: string[]; ordered?: boolean }
   | { type: "table"; headers: string[]; rows: string[][] }
-  | { type: "feature_card"; title: string; purpose: string; capabilities: string[]; priority: string; users: string; status: string }
-  | { type: "objective_card"; title: string; description: string; successIndicator: string; requirement: string }
+  | ({ type: "feature_card" } & FeatureIntelligence)
+  | ({ type: "objective_card" } & ObjectiveIntelligence)
   | { type: "callout"; title: string; text: string; tone: "info" | "warning" | "success" }
   | { type: "statistic"; label: string; value: string; detail?: string }
   | { type: "process_flow"; steps: string[] }
   | { type: "timeline"; phases: { title: string; description: string; duration?: string }[] }
   | { type: "milestone"; title: string; description: string; date?: string; status?: string }
-  | { type: "deliverable"; id: string; name: string; description: string; status: string }
-  | { type: "requirement_reference"; reference: string; title: string; status?: string }
+  | { type: "deliverable"; id: string; name: string; description: string; status: string; scope?: string; output?: string; acceptance?: string; source?: string }
+  | { type: "requirement_reference"; reference: string; title: string; status?: string; details?: string }
   | { type: "quote"; text: string; attribution?: string }
-  | { type: "pricing_table"; headers: string[]; rows: string[][]; total?: string }
-  | { type: "assumption"; id: string; description: string; owner?: string; impact?: string; status?: string }
-  | { type: "risk"; title: string; description: string; impact?: string; mitigation?: string; status?: string }
-  | { type: "signature"; role: "CLIENT" | "PROVIDER"; name?: string; title?: string }
+  | { type: "architecture"; title?: string; layers: ArchitectureLayer[] }
+  | { type: "comparison" } & ProblemSolutionComparison
+  | { type: "pricing_table"; headers: string[]; rows: string[][]; total?: string; milestones?: { name: string; amount: string; schedule: string }[] }
+  | { type: "assumption"; id: string; description: string; owner?: string; impact?: string; status?: string; source?: string }
+  | { type: "risk"; title: string; description: string; impact?: string; probability?: string; mitigation?: string; owner?: string; status?: string; aiDerived?: boolean }
+  | { type: "signature"; role: "CLIENT" | "PROVIDER"; name?: string; title?: string; date?: string; signatureUrl?: string }
+  | ({ type: "approval" } & DigitalApproval)
   | { type: "page_break" }
   | { type: "spacer" };
 
@@ -41,13 +102,34 @@ export type BlockMeta = {
   id?: string;
   source?: ProposalSource;
   sourceRequirementIds?: string[];
+  sourceRequirementVersion?: number;
+  sourceSnapshotId?: string;
+  sourceClientResponseIds?: string[];
   createdAt?: string;
   updatedAt?: string;
+  version?: number;
 };
 
 export type ProposalSource = "REQUIREMENT" | "CLIENT" | "WORKSPACE" | "MANUAL" | "AI_DRAFT";
 
 export type SectionStatus = "DRAFT" | "READY" | "REVIEW_REQUIRED" | "AI_ENHANCED";
+
+export type InternalNote = {
+  id: string;
+  content: string;
+  authorName?: string;
+  createdAt: string;
+};
+
+export type SectionComment = {
+  id: string;
+  sectionId: string;
+  authorName: string;
+  message: string;
+  status: "OPEN" | "RESOLVED";
+  createdAt: string;
+  resolvedAt?: string;
+};
 
 export type ProposalSection = {
   id: string;
@@ -61,6 +143,29 @@ export type ProposalSection = {
   group?: string;
   status?: SectionStatus;
   updatedAt?: string;
+  notes?: string;
+};
+
+export type ProposalAdminAnswer = {
+  id: string;
+  sectionId: string;
+  questionId: string;
+  question: string;
+  answer: string;
+  category: "REQUIRED" | "OPTIONAL";
+  source: "ADMIN_PROVIDED" | "CLIENT_PROVIDED" | "REQUIREMENT_PROVIDED";
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ProposalContextFact = {
+  id: string;
+  category: "BUSINESS_CONTEXT" | "SCOPE" | "TECHNICAL" | "TIMELINE" | "DELIVERABLE" | "COMMERCIAL";
+  key: string;
+  value: string;
+  source: "ADMIN_PROVIDED" | "CLIENT_PROVIDED" | "REQUIREMENT_APPROVED" | "WORKSPACE_PROVIDED";
+  approved: boolean;
+  createdAt: string;
 };
 
 export type ProposalDoc = {
@@ -78,6 +183,10 @@ export type ProposalDoc = {
     date: string;
   };
   sections: ProposalSection[];
+  internalNotes?: InternalNote[];
+  comments?: SectionComment[];
+  adminAnswers?: ProposalAdminAnswer[];
+  facts?: ProposalContextFact[];
 };
 
 export const SOURCE_LABELS: Record<ProposalSource, string> = {
@@ -107,16 +216,23 @@ export const DEFAULT_SECTION_GROUP: Record<string, SectionGroupKey> = {
   "executive-summary": "OVERVIEW",
   overview: "OVERVIEW",
   objectives: "OVERVIEW",
+  comparison: "OVERVIEW",
   scope: "SOLUTION",
+  features: "SOLUTION",
   deliverables: "SOLUTION",
+  architecture: "SOLUTION",
+  ux: "SOLUTION",
   methodology: "SOLUTION",
   timeline: "DELIVERY",
   "activity-plan": "DELIVERY",
   roles: "DELIVERY",
   communication: "DELIVERY",
   investment: "COMMERCIAL",
+  assumptions: "COMMERCIAL",
   terms: "COMMERCIAL",
+  risks: "CLOSING",
   contact: "CLOSING",
+  acceptance: "CLOSING",
   closing: "CLOSING",
 };
 
@@ -148,9 +264,33 @@ export function blockText(b: ProposalBlock): string {
     case "pricing_table":
       return [...(b.headers ?? []), ...b.rows.flat().filter(Boolean)].join(" ");
     case "feature_card":
-      return [b.title, b.purpose, b.users, ...(b.capabilities ?? [])].filter(Boolean).join(" ");
+      return [
+        b.title,
+        b.purpose,
+        b.businessNeed,
+        b.primaryUsers,
+        b.users,
+        b.userFlow,
+        b.expectedOutcome,
+        ...(b.capabilities ?? []),
+        ...(b.acceptanceCriteria ?? []),
+      ]
+        .filter(Boolean)
+        .join(" ");
     case "objective_card":
-      return [b.title, b.description, b.successIndicator, b.requirement].filter(Boolean).join(" ");
+      return [
+        b.title,
+        b.description,
+        b.businessNeed,
+        b.whyItMatters,
+        b.currentState,
+        b.desiredState,
+        b.expectedOutcome,
+        b.successIndicator,
+        b.requirement,
+      ]
+        .filter(Boolean)
+        .join(" ");
     case "callout":
       return [b.title, b.text].filter(Boolean).join(" ");
     case "statistic":
@@ -160,15 +300,30 @@ export function blockText(b: ProposalBlock): string {
     case "milestone":
       return [b.title, b.description, b.date].filter(Boolean).join(" ");
     case "deliverable":
-      return [b.id, b.name, b.description].filter(Boolean).join(" ");
+      return [b.id, b.name, b.description, b.scope, b.output, b.acceptance].filter(Boolean).join(" ");
     case "requirement_reference":
-      return [b.reference, b.title].filter(Boolean).join(" ");
+      return [b.reference, b.title, b.details].filter(Boolean).join(" ");
+    case "architecture":
+      return b.layers.map((l) => [l.name, l.tech, l.purpose].filter(Boolean).join(" ")).join(" ");
+    case "comparison":
+      return [
+        b.title,
+        b.businessNeed,
+        b.currentState?.problem,
+        b.currentState?.impact,
+        b.proposedState?.solution,
+        b.proposedState?.outcome,
+      ]
+        .filter(Boolean)
+        .join(" ");
     case "assumption":
       return [b.id, b.description, b.owner, b.impact].filter(Boolean).join(" ");
     case "risk":
-      return [b.title, b.description, b.impact, b.mitigation].filter(Boolean).join(" ");
+      return [b.title, b.description, b.impact, b.probability, b.mitigation, b.owner].filter(Boolean).join(" ");
     case "signature":
-      return [b.name, b.title, b.role].filter(Boolean).join(" ");
+      return [b.name, b.title, b.role, b.date].filter(Boolean).join(" ");
+    case "approval":
+      return [b.clientName, b.projectName, b.approvedScope, b.authorizedPerson, b.digitalStamp].filter(Boolean).join(" ");
     default:
       return "";
   }
@@ -193,7 +348,7 @@ export function blockHasContent(b: ProposalBlock): boolean {
     case "feature_card":
       return b.title.trim().length > 0;
     case "objective_card":
-      return b.title.trim().length > 0;
+      return b.title.trim().length > 0 || (b.description ?? "").trim().length > 0;
     case "callout":
       return b.text.trim().length > 0;
     case "statistic":
@@ -206,12 +361,18 @@ export function blockHasContent(b: ProposalBlock): boolean {
       return b.name.trim().length > 0;
     case "requirement_reference":
       return b.reference.trim().length > 0 || b.title.trim().length > 0;
+    case "architecture":
+      return b.layers.length > 0 && b.layers.some((l) => l.name.trim().length > 0);
+    case "comparison":
+      return Boolean(b.currentState?.problem || b.proposedState?.solution);
     case "assumption":
       return b.description.trim().length > 0;
     case "risk":
       return b.title.trim().length > 0 || b.description.trim().length > 0;
     case "signature":
       return Boolean(b.name) || Boolean(b.title);
+    case "approval":
+      return Boolean(b.authorizedPerson) || Boolean(b.clientName);
     case "page_break":
     case "spacer":
       return true;
@@ -246,7 +407,7 @@ export function blockFallbackId(sectionId: string, index: number): string {
 /** Normalize a document loaded from storage: backfill group/status on
     sections and stable ids + source on blocks. Idempotent and pure. */
 export function normalizeDoc(doc: ProposalDoc): ProposalDoc {
-  const sections = doc.sections.map((s, i) => {
+  const sections = doc.sections.map((s) => {
     const blocks = s.blocks.map((b, j) => {
       const withId = { ...b, id: b.id ?? blockFallbackId(s.id, j) } as ProposalBlock;
       if (!withId.source) withId.source = s.source;
@@ -260,7 +421,103 @@ export function normalizeDoc(doc: ProposalDoc): ProposalDoc {
       status: s.status ?? deriveSectionStatus({ ...s, blocks }),
     };
   });
-  return { ...doc, sections };
+  return {
+    ...doc,
+    sections,
+    internalNotes: doc.internalNotes ?? [],
+    comments: doc.comments ?? [],
+    adminAnswers: doc.adminAnswers ?? [],
+    facts: doc.facts ?? [],
+  };
+}
+
+/** Converts AI generated detailed proposal text into structured ProposalBlocks */
+export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): ProposalBlock[] {
+  const text = rawText.trim();
+  if (!text) return [];
+
+  const rawParagraphs = text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  const blocks: ProposalBlock[] = [];
+  const now = new Date().toISOString();
+
+  let blockIdx = 0;
+
+  for (const raw of rawParagraphs) {
+    blockIdx++;
+    const id = `${sectionId}-ai-${Date.now().toString(36)}-${blockIdx}`;
+
+    // 1. Headings (# Heading, ## Heading, ### Heading, or ALL CAPS WITH COLON)
+    const headingMatch = raw.match(/^(#{1,3})\s+(.+)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length as 1 | 2 | 3;
+      blocks.push({
+        type: "heading",
+        id,
+        text: headingMatch[2].trim(),
+        level,
+        source: "AI_DRAFT",
+        updatedAt: now,
+      });
+      continue;
+    }
+
+    // 2. Callout / Highlight box ([CALLOUT: tone] or > Quote/Callout)
+    if (raw.startsWith(">")) {
+      const calloutText = raw.replace(/^>\s*/gm, "").trim();
+      blocks.push({
+        type: "callout",
+        id,
+        title: "Key Consideration",
+        text: calloutText,
+        tone: "info",
+        source: "AI_DRAFT",
+        updatedAt: now,
+      });
+      continue;
+    }
+
+    // 3. Bullet lists
+    const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
+    const isBulletList = lines.length > 1 && lines.every((l) => /^[-•*]|\d+\.\s+/.test(l));
+    if (isBulletList) {
+      const isOrdered = /^\d+\.\s+/.test(lines[0]);
+      const items = lines.map((l) => l.replace(/^[-•*]|\d+\.\s+/, "").trim());
+      blocks.push({
+        type: "list",
+        id,
+        items,
+        ordered: isOrdered,
+        source: "AI_DRAFT",
+        updatedAt: now,
+      });
+      continue;
+    }
+
+    // 4. Section headings without markdown symbols (e.g. "PROJECT CONTEXT", "BUSINESS CHALLENGE:")
+    const capsHeaderMatch = raw.match(/^([A-Z\s]{4,35}):?\s*$/);
+    if (capsHeaderMatch && lines.length === 1) {
+      blocks.push({
+        type: "heading",
+        id,
+        text: capsHeaderMatch[1].trim(),
+        level: 2,
+        source: "AI_DRAFT",
+        updatedAt: now,
+      });
+      continue;
+    }
+
+    // 5. Standard paragraph
+    blocks.push({
+      type: "paragraph",
+      id,
+      text: raw,
+      source: "AI_DRAFT",
+      updatedAt: now,
+    });
+  }
+
+  return blocks;
 }
 
 /* ── Coverage + readiness (spec 20, 21) ───────────────────────── */
@@ -355,7 +612,7 @@ export function computeProposalReadiness(doc: ProposalDoc, coverage?: Requiremen
     note: scope && hasContent(scope) ? "Scope carries requirement data" : "Scope is empty",
   });
 
-  const deliverables = doc.sections.find((s) => s.id === "deliverables");
+  const deliverables = doc.sections.find((s) => s.id === "deliverables" || s.id === "features");
   areas.push({
     key: "deliverables",
     label: "Deliverables",
@@ -460,4 +717,99 @@ export function timelineLabel(answers: Record<string, Record<string, unknown>>):
   const deadline = String(t.deadlineDate ?? "");
   if (launch && deadline) return `${launch} · fixed ${deadline}`;
   return launch || "To be discussed";
+}
+
+/* ── Version Comparison (Spec 42) ────────────────────────────── */
+
+export type SectionDiff = {
+  id: string;
+  title: string;
+  status: "added" | "removed" | "modified" | "unchanged";
+  addedBlocks: number;
+  removedBlocks: number;
+  wordsDiff: number;
+};
+
+export type ProposalVersionDiff = {
+  versionA: number;
+  versionB: number;
+  sectionsAdded: number;
+  sectionsRemoved: number;
+  sectionsModified: number;
+  totalWordsA: number;
+  totalWordsB: number;
+  wordsDiff: number;
+  commercialChanged: boolean;
+  scopeChanged: boolean;
+  sectionDiffs: SectionDiff[];
+};
+
+export function diffProposalDocs(docA: ProposalDoc, docB: ProposalDoc): ProposalVersionDiff {
+  const countWords = (d: ProposalDoc) =>
+    d.sections.reduce((n, s) => n + s.blocks.reduce((m, b) => m + blockText(b).split(/\s+/).filter(Boolean).length, 0), 0);
+
+  const wordsA = countWords(docA);
+  const wordsB = countWords(docB);
+
+  const mapA = new Map(docA.sections.map((s) => [s.id, s]));
+  const mapB = new Map(docB.sections.map((s) => [s.id, s]));
+
+  const allIds = Array.from(new Set([...Array.from(mapA.keys()), ...Array.from(mapB.keys())]));
+  const sectionDiffs: SectionDiff[] = [];
+
+  let sectionsAdded = 0;
+  let sectionsRemoved = 0;
+  let sectionsModified = 0;
+
+  for (const id of allIds) {
+    const sA = mapA.get(id);
+    const sB = mapB.get(id);
+
+    if (!sA && sB) {
+      sectionsAdded++;
+      const w = sB.blocks.reduce((m, b) => m + blockText(b).split(/\s+/).filter(Boolean).length, 0);
+      sectionDiffs.push({ id, title: sB.title, status: "added", addedBlocks: sB.blocks.length, removedBlocks: 0, wordsDiff: w });
+    } else if (sA && !sB) {
+      sectionsRemoved++;
+      const w = sA.blocks.reduce((m, b) => m + blockText(b).split(/\s+/).filter(Boolean).length, 0);
+      sectionDiffs.push({ id, title: sA.title, status: "removed", addedBlocks: 0, removedBlocks: sA.blocks.length, wordsDiff: -w });
+    } else if (sA && sB) {
+      const textA = sA.blocks.map(blockText).join(" ");
+      const textB = sB.blocks.map(blockText).join(" ");
+      if (textA !== textB || sA.blocks.length !== sB.blocks.length || sA.title !== sB.title) {
+        sectionsModified++;
+        const wA = sA.blocks.reduce((m, b) => m + blockText(b).split(/\s+/).filter(Boolean).length, 0);
+        const wB = sB.blocks.reduce((m, b) => m + blockText(b).split(/\s+/).filter(Boolean).length, 0);
+        sectionDiffs.push({
+          id,
+          title: sB.title,
+          status: "modified",
+          addedBlocks: Math.max(0, sB.blocks.length - sA.blocks.length),
+          removedBlocks: Math.max(0, sA.blocks.length - sB.blocks.length),
+          wordsDiff: wB - wA,
+        });
+      } else {
+        sectionDiffs.push({ id, title: sB.title, status: "unchanged", addedBlocks: 0, removedBlocks: 0, wordsDiff: 0 });
+      }
+    }
+  }
+
+  const commercialChanged = docA.meta.amount !== docB.meta.amount || docA.meta.amountLabel !== docB.meta.amountLabel;
+  const scopeA = mapA.get("scope")?.blocks.map(blockText).join(" ") ?? "";
+  const scopeB = mapB.get("scope")?.blocks.map(blockText).join(" ") ?? "";
+  const scopeChanged = scopeA !== scopeB;
+
+  return {
+    versionA: docA.version,
+    versionB: docB.version,
+    sectionsAdded,
+    sectionsRemoved,
+    sectionsModified,
+    totalWordsA: wordsA,
+    totalWordsB: wordsB,
+    wordsDiff: wordsB - wordsA,
+    commercialChanged,
+    scopeChanged,
+    sectionDiffs,
+  };
 }

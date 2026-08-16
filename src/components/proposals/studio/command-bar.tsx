@@ -9,7 +9,9 @@ import {
   Command,
   Download,
   Eye,
+  FileCheck,
   FileText,
+  GitCompare,
   MoreHorizontal,
   Save,
   Search,
@@ -22,16 +24,18 @@ import { StatusChip } from "@/components/clients/kit";
 import type { SaveState } from "./types";
 
 /* ────────────────────────────────────────────────────────────────
-   PROPOSAL COMMAND BAR — compact, always visible. Identity on the
-   left (← Proposals · reference · editable title · status · version ·
-   autosave state), document controls on the right (zoom · page nav ·
-   search · preview · AI assist · share · finalize · more).
+   PROPOSAL COMMAND BAR — compact, editorial, information-dense.
+   Top bar:
+   ← Proposals · Reference · Title · Status · Version · Autosaved
+   Controls:
+   Review Mode · Compare · Zoom · Page Nav · Search · Preview ·
+   AI Assist · Share · Finalize · More Actions
 ──────────────────────────────────────────────────────────────── */
 
 const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5] as const;
 
 const SAVE_LABEL: Record<SaveState, string> = {
-  saved: "Saved",
+  saved: "Autosaved",
   saving: "Saving…",
   unsaved: "Unsaved changes",
   error: "Save failed — retry",
@@ -44,7 +48,7 @@ const SAVE_CLS: Record<SaveState, string> = {
   error: "text-[var(--bos-error)]",
 };
 
-type MoreAction = "save" | "view-pdf" | "download" | "send" | "finalize" | "delivery" | "shortcuts";
+export type MoreAction = "save" | "view-pdf" | "download" | "send" | "finalize" | "delivery" | "compare" | "shortcuts";
 
 type CommandBarProps = {
   reference: string | null;
@@ -61,6 +65,9 @@ type CommandBarProps = {
   onNextPage: () => void;
   searchQuery: string;
   onSearchQuery: (q: string) => void;
+  reviewMode: boolean;
+  onToggleReviewMode: () => void;
+  onCompare: () => void;
   onAiAssist: () => void;
   onPreview: () => void;
   onShare: () => void;
@@ -69,6 +76,7 @@ type CommandBarProps = {
   canSend: boolean;
   onSend: () => void;
   onMore: (action: MoreAction) => void;
+  pdfOutdated?: boolean;
 };
 
 export function CommandBar({
@@ -86,6 +94,9 @@ export function CommandBar({
   onNextPage,
   searchQuery,
   onSearchQuery,
+  reviewMode,
+  onToggleReviewMode,
+  onCompare,
   onAiAssist,
   onPreview,
   onShare,
@@ -94,6 +105,7 @@ export function CommandBar({
   canSend,
   onSend,
   onMore,
+  pdfOutdated,
 }: CommandBarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
   const moreRef = useRef<HTMLDivElement | null>(null);
@@ -118,7 +130,7 @@ export function CommandBar({
       <input
         value={title}
         onChange={(e) => onTitleChange(e.target.value)}
-        className="min-w-0 max-w-[260px] bg-transparent text-[13.5px] font-semibold tracking-tight text-[var(--bos-text-primary)] outline-none hover:bg-[var(--bos-overlay)] focus:bg-[var(--bos-overlay)] rounded-sm px-1.5 py-0.5 transition-colors duration-150 truncate"
+        className="min-w-0 max-w-[240px] bg-transparent text-[13px] font-semibold tracking-tight text-[var(--bos-text-primary)] outline-none hover:bg-[var(--bos-overlay)] focus:bg-[var(--bos-overlay)] rounded-sm px-1.5 py-0.5 transition-colors duration-150 truncate"
         aria-label="Proposal title"
       />
       <StatusChip status={status} />
@@ -126,6 +138,33 @@ export function CommandBar({
       <span className={cn("shrink-0 text-[9.5px] font-mono", SAVE_CLS[saveState])}>{SAVE_LABEL[saveState]}</span>
 
       <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+        {/* Review Mode Toggle (Spec 47) */}
+        <button
+          type="button"
+          onClick={onToggleReviewMode}
+          className={cn(
+            "inline-flex items-center gap-1 h-7 px-2 rounded-sm text-[10.5px] font-medium transition-colors duration-150 shrink-0",
+            reviewMode
+              ? "bg-[var(--bos-info)]/15 border border-[var(--bos-info)]/30 text-[var(--bos-info)]"
+              : "border border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]",
+          )}
+          title="Toggle Review Mode"
+        >
+          <FileCheck className="w-3 h-3" />
+          <span>{reviewMode ? "Reviewing" : "Review"}</span>
+        </button>
+
+        {/* Compare Versions (Spec 42) */}
+        <button
+          type="button"
+          onClick={onCompare}
+          className="inline-flex items-center gap-1 h-7 px-2 rounded-sm border border-[var(--bos-line)] text-[10.5px] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] transition-colors duration-150 shrink-0"
+          title="Compare Proposal Versions"
+        >
+          <GitCompare className="w-3 h-3" />
+          <span className="hidden sm:inline">Compare</span>
+        </button>
+
         {/* Zoom */}
         <div className="relative shrink-0">
           <select
@@ -171,7 +210,7 @@ export function CommandBar({
             value={searchQuery}
             onChange={(e) => onSearchQuery(e.target.value)}
             placeholder="Search document…"
-            className="h-7 w-32 focus:w-52 pl-7 pr-6 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[10.5px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-[width] duration-200"
+            className="h-7 w-28 focus:w-48 pl-7 pr-6 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[10.5px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-[width] duration-200"
             aria-label="Search document"
           />
           {searchQuery && (
@@ -190,10 +229,16 @@ export function CommandBar({
         <button
           type="button"
           onClick={onPreview}
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-[var(--bos-line)] text-[10.5px] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 shrink-0"
+          className={cn(
+            "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-[10.5px] transition-colors duration-150 shrink-0",
+            pdfOutdated
+              ? "border-[var(--bos-warning)] bg-[var(--bos-warning)]/10 text-[var(--bos-warning)] font-medium hover:bg-[var(--bos-warning)]/20"
+              : "border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)]",
+          )}
           title="Preview PDF (Ctrl/Cmd+P)"
         >
-          <Eye className="w-3 h-3" aria-hidden="true" /> Preview
+          <Eye className="w-3 h-3" aria-hidden="true" />
+          <span>{pdfOutdated ? "PDF Outdated" : "Preview"}</span>
         </button>
 
         {/* AI assist */}
@@ -227,13 +272,13 @@ export function CommandBar({
           <button
             type="button"
             onClick={onFinalize}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[10.5px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shrink-0"
+            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[10.5px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shrink-0 shadow-sm"
           >
             <FileText className="w-3 h-3" aria-hidden="true" /> Finalize
           </button>
         )}
 
-        {/* More */}
+        {/* More actions dropdown */}
         <div className="relative shrink-0" ref={moreRef}>
           <button
             type="button"
@@ -249,6 +294,9 @@ export function CommandBar({
               <div className="absolute right-0 top-8 z-40 w-52 rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] p-1">
                 <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("save"); }}>
                   <Save className="w-3.5 h-3.5" aria-hidden="true" /> Save now
+                </button>
+                <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("compare"); }}>
+                  <GitCompare className="w-3.5 h-3.5" aria-hidden="true" /> Compare versions
                 </button>
                 {finalized && (
                   <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("view-pdf"); }}>
