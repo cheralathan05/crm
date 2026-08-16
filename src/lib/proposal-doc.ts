@@ -436,24 +436,67 @@ export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): 
   const text = rawText.trim();
   if (!text) return [];
 
-  const rawParagraphs = text.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+  const lines = text.split("\n");
   const blocks: ProposalBlock[] = [];
   const now = new Date().toISOString();
 
+  let currentList: { ordered: boolean; items: string[] } | null = null;
+  let currentParagraph: string[] = [];
   let blockIdx = 0;
 
-  for (const raw of rawParagraphs) {
-    blockIdx++;
-    const id = `${sectionId}-ai-${Date.now().toString(36)}-${blockIdx}`;
+  const flushParagraph = () => {
+    if (currentParagraph.length > 0) {
+      const pText = currentParagraph.join(" ").trim();
+      if (pText) {
+        blockIdx++;
+        blocks.push({
+          type: "paragraph",
+          id: `${sectionId}-p-${Date.now().toString(36)}-${blockIdx}`,
+          text: pText,
+          source: "AI_DRAFT",
+          updatedAt: now,
+        });
+      }
+      currentParagraph = [];
+    }
+  };
 
-    // 1. Headings (# Heading, ## Heading, ### Heading, or ALL CAPS WITH COLON)
-    const headingMatch = raw.match(/^(#{1,3})\s+(.+)$/);
+  const flushList = () => {
+    if (currentList && currentList.items.length > 0) {
+      blockIdx++;
+      blocks.push({
+        type: "list",
+        id: `${sectionId}-l-${Date.now().toString(36)}-${blockIdx}`,
+        items: currentList.items,
+        ordered: currentList.ordered,
+        source: "AI_DRAFT",
+        updatedAt: now,
+      });
+      currentList = null;
+    }
+  };
+
+  for (let i = 0; i < lines.length; i++) {
+    const rawLine = lines[i];
+    const trimmed = rawLine.trim();
+
+    if (!trimmed) {
+      flushParagraph();
+      flushList();
+      continue;
+    }
+
+    // 1. Markdown Headings (# Heading, ## Heading, ### Heading)
+    const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
     if (headingMatch) {
-      const level = headingMatch[1].length as 1 | 2 | 3;
+      flushParagraph();
+      flushList();
+      blockIdx++;
+      const level = Math.min(3, Math.max(1, headingMatch[1].length)) as 1 | 2 | 3;
       blocks.push({
         type: "heading",
-        id,
-        text: headingMatch[2].trim(),
+        id: `${sectionId}-h-${Date.now().toString(36)}-${blockIdx}`,
+        text: headingMatch[2].replace(/\*\*/g, "").trim(),
         level,
         source: "AI_DRAFT",
         updatedAt: now,
@@ -461,45 +504,16 @@ export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): 
       continue;
     }
 
-    // 2. Callout / Highlight box ([CALLOUT: tone] or > Quote/Callout)
-    if (raw.startsWith(">")) {
-      const calloutText = raw.replace(/^>\s*/gm, "").trim();
-      blocks.push({
-        type: "callout",
-        id,
-        title: "Key Consideration",
-        text: calloutText,
-        tone: "info",
-        source: "AI_DRAFT",
-        updatedAt: now,
-      });
-      continue;
-    }
-
-    // 3. Bullet lists
-    const lines = raw.split("\n").map((l) => l.trim()).filter(Boolean);
-    const isBulletList = lines.length > 1 && lines.every((l) => /^[-•*]|\d+\.\s+/.test(l));
-    if (isBulletList) {
-      const isOrdered = /^\d+\.\s+/.test(lines[0]);
-      const items = lines.map((l) => l.replace(/^[-•*]|\d+\.\s+/, "").trim());
-      blocks.push({
-        type: "list",
-        id,
-        items,
-        ordered: isOrdered,
-        source: "AI_DRAFT",
-        updatedAt: now,
-      });
-      continue;
-    }
-
-    // 4. Section headings without markdown symbols (e.g. "PROJECT CONTEXT", "BUSINESS CHALLENGE:")
-    const capsHeaderMatch = raw.match(/^([A-Z\s]{4,35}):?\s*$/);
-    if (capsHeaderMatch && lines.length === 1) {
+    // 2. Bold Section Titles (e.g. **1. Company Overview** or **Executive Summary:** or **Key Capabilities**)
+    const boldHeaderMatch = trimmed.match(/^\*\*([^*]+)\*\*:?\s*$/);
+    if (boldHeaderMatch && trimmed.length < 80) {
+      flushParagraph();
+      flushList();
+      blockIdx++;
       blocks.push({
         type: "heading",
-        id,
-        text: capsHeaderMatch[1].trim(),
+        id: `${sectionId}-h-${Date.now().toString(36)}-${blockIdx}`,
+        text: boldHeaderMatch[1].trim(),
         level: 2,
         source: "AI_DRAFT",
         updatedAt: now,
@@ -507,15 +521,43 @@ export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): 
       continue;
     }
 
-    // 5. Standard paragraph
-    blocks.push({
-      type: "paragraph",
-      id,
-      text: raw,
-      source: "AI_DRAFT",
-      updatedAt: now,
-    });
+    // 3. Callout / Quote (> text)
+    if (trimmed.startsWith(">")) {
+      flushParagraph();
+      flushList();
+      blockIdx++;
+      blocks.push({
+        type: "callout",
+        id: `${sectionId}-c-${Date.now().toString(36)}-${blockIdx}`,
+        title: "Key Strategy",
+        text: trimmed.replace(/^>\s*/, "").trim(),
+        tone: "info",
+        source: "AI_DRAFT",
+        updatedAt: now,
+      });
+      continue;
+    }
+
+    // 4. Bullet / Numbered Lists (- item, • item, * item, 1. item)
+    const listMatch = trimmed.match(/^([-•*]|\d+\.)\s+(.+)$/);
+    if (listMatch) {
+      flushParagraph();
+      const isOrdered = /^\d+\./.test(listMatch[1]);
+      if (!currentList || currentList.ordered !== isOrdered) {
+        flushList();
+        currentList = { ordered: isOrdered, items: [] };
+      }
+      currentList.items.push(listMatch[2].trim());
+      continue;
+    }
+
+    // 5. Normal text paragraph line
+    flushList();
+    currentParagraph.push(trimmed);
   }
+
+  flushParagraph();
+  flushList();
 
   return blocks;
 }

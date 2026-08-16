@@ -5,7 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProposalBlock, ProposalDoc, ProposalSection, InternalNote, SectionComment, ProposalAdminAnswer } from "@/lib/proposal-doc";
-import { blockText, computeProposalQuality, computeProposalReadiness, computeRequirementCoverage, deriveSectionStatus, normalizeDoc } from "@/lib/proposal-doc";
+import { blockText, computeProposalQuality, computeProposalReadiness, computeRequirementCoverage, deriveSectionStatus, normalizeDoc, parseGeneratedTextToBlocks } from "@/lib/proposal-doc";
 import type { ProposalDeliveryBundle } from "@/lib/proposal-delivery";
 import { CommandBar } from "./studio/command-bar";
 import { Navigator } from "./studio/navigator";
@@ -535,6 +535,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     setError(null);
 
     try {
+      const generatedBlocks = parseGeneratedTextToBlocks(aiText, activeDef.id);
       const res = await fetch(`/api/proposals/${initial.proposal.id}/apply-ai`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -542,7 +543,9 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
           proposalVersion: proposalMeta.version,
           sectionId: activeDef.id,
           generatedText: aiText,
+          generatedBlocks,
           adminAnswers: doc.adminAnswers ?? [],
+          currentDocument: doc,
           metadata: { depth: aiDepth, instruction: aiInstruction },
         }),
       });
@@ -578,13 +581,13 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
       selectSection(activeDef.id);
 
       // 6. Positive notification
-      setNotice(`✓ Approved & Applied to Proposal. Document updated to v${data.version}. Canvas updated.`);
+      setNotice(`✓ Approved & Applied to Proposal. Document updated to v${data.version} with ${generatedBlocks.length} structured blocks. Canvas updated.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to apply AI changes.");
     } finally {
       setIsApplyingAi(false);
     }
-  }, [activeDef, aiText, initial.proposal.id, proposalMeta.version, doc.adminAnswers, aiDepth, aiInstruction, selectSection]);
+  }, [activeDef, aiText, initial.proposal.id, proposalMeta.version, doc, aiDepth, aiInstruction, selectSection]);
 
   /* ── Finalize ─────────────────────────────────────────────── */
 

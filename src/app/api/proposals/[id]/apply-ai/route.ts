@@ -50,6 +50,7 @@ export async function POST(req: Request, { params }: Ctx) {
     generatedBlocks?: ProposalBlock[];
     generatedText?: string;
     adminAnswers?: ProposalAdminAnswer[];
+    currentDocument?: ProposalDoc;
     metadata?: Record<string, unknown>;
   };
 
@@ -64,10 +65,14 @@ export async function POST(req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Target sectionId is required." }, { status: 400 });
   }
 
-  // Parse existing document
+  // Parse existing document — prefer currentDocument from studio if provided
   let doc: ProposalDoc;
   try {
-    doc = normalizeDoc(JSON.parse(proposal.document || "{}") as ProposalDoc);
+    if (body.currentDocument && typeof body.currentDocument === "object") {
+      doc = normalizeDoc(body.currentDocument as ProposalDoc);
+    } else {
+      doc = normalizeDoc(JSON.parse(proposal.document || "{}") as ProposalDoc);
+    }
   } catch {
     return NextResponse.json({ ok: false, message: "Could not parse current proposal document." }, { status: 500 });
   }
