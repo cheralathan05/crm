@@ -83,6 +83,8 @@ type IntelPanelProps = {
   onAddComment?: (sectionId: string, message: string) => void;
   onToggleComment?: (commentId: string) => void;
   onSelectSection?: (sectionId: string) => void;
+  aiError?: string | null;
+  onClearAiError?: () => void;
 };
 
 export function IntelPanel({
@@ -114,6 +116,8 @@ export function IntelPanel({
   onAddComment,
   onToggleComment,
   onSelectSection,
+  aiError,
+  onClearAiError,
 }: IntelPanelProps) {
   const selected = selectedBlock && activeSection?.id === selectedBlock.sectionId
     ? activeSection.blocks[selectedBlock.index]
@@ -475,6 +479,18 @@ export function IntelPanel({
                 ))}
               </select>
             </div>
+
+            {aiError && (
+              <div className="rounded-sm border border-[var(--bos-warning)]/40 bg-[var(--bos-warning)]/10 p-2.5 text-[11px] text-[var(--bos-text-secondary)] flex items-start gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-warning)] shrink-0 mt-0.5" />
+                <div className="flex-1 leading-snug">{aiError}</div>
+                {onClearAiError && (
+                  <button type="button" onClick={onClearAiError} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </div>
+            )}
 
             <button
               type="button"

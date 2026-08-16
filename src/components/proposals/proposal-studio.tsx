@@ -1037,6 +1037,8 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
           onAddComment={addComment}
           onToggleComment={toggleComment}
           onSelectSection={selectSection}
+          aiError={error}
+          onClearAiError={() => setError(null)}
         />
       </div>
 

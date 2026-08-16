@@ -7,6 +7,7 @@ import { ollamaOnline } from "@/lib/copilot";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
+export const maxDuration = 300;
 
 type Ctx = { params: Promise<{ id: string }> };
 
@@ -134,9 +135,9 @@ EDITORIAL & FACT PROTECTION RULES:
           { role: "user", content: `Generate the complete detailed 1-page section for "${section?.title}": ${instruction}` },
         ],
         stream: true,
-        options: { temperature: 0.3, num_ctx: 8192 },
+        options: { temperature: 0.3, num_ctx: 4096, num_predict: 2048 },
       }),
-      signal: AbortSignal.timeout(120_000),
+      signal: AbortSignal.timeout(180_000),
     });
   } catch {
     return NextResponse.json({ ok: false, code: "OLLAMA_OFFLINE", message: "Local AI is offline." }, { status: 503 });
