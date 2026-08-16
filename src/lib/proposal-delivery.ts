@@ -143,10 +143,13 @@ export async function sendProposalToClient(input: {
   kind?: "INITIAL" | "REVISION" | "RESEND";
   actorId: string;
   actorName: string;
+  recipientEmail?: string;
+  recipientName?: string;
 }): Promise<ProposalSendResult> {
   const { proposal, kind = "INITIAL" } = input;
 
   // Validations — never send a broken proposal.
+  if (proposal.status === "APPROVED" && kind !== "RESEND") throw new Error("This proposal has already been approved.");
   if (proposal.status === "REJECTED") throw new Error("This proposal was declined by the client and can no longer be sent.");
   if (!proposal.finalizedAt || !proposal.pdfPath) {
     throw new Error("Finalize the proposal and generate the PDF before sending it to the client.");
@@ -165,7 +168,19 @@ export async function sendProposalToClient(input: {
   const resolvedWorkspace = await db.workspace.findUnique({ where: { id: client.workspaceId }, include: { profile: true } });
   if (!resolvedWorkspace) throw new Error("Workspace not found.");
 
-  const recipient = await resolveProposalRecipient(proposal);
+  let recipient: { contactId: string | null; name: string; email: string };
+  if (input.recipientEmail?.trim()) {
+    recipient = {
+      contactId: null,
+      name: input.recipientName?.trim() || client.companyName || "Client",
+      email: input.recipientEmail.trim(),
+    };
+    if (!client.email) {
+      await db.client.update({ where: { id: client.id }, data: { email: input.recipientEmail.trim() } });
+    }
+  } else {
+    recipient = await resolveProposalRecipient(proposal);
+  }
 
   // Every send issues a fresh secure token — the raw token is only ever
   // handed to the email path, the database stores only its hash.
@@ -1043,7 +1058,7 @@ export async function serializeClientProposal(token: string) {
   }
   const { proposal } = resolved;
   const [client, workspace, approvals, changeRequests, deliveries] = await Promise.all([
-    db.client.findUnique({ where: { id: proposal.clientId }, select: { companyName: true } }),
+    db.client.findUnique({ where: { id: proposal.clientId }, select: { companyName: true, industry: true, email: true } }),
     db.workspace.findUnique({ where: { id: proposal.client.workspaceId }, select: { companyName: true, id: true } }),
     db.proposalApproval.findMany({
       where: { proposalId: proposal.id },
@@ -1058,8 +1073,31 @@ export async function serializeClientProposal(token: string) {
     db.proposalDelivery.findMany({ where: { proposalId: proposal.id }, orderBy: { createdAt: "desc" }, take: 3 }),
   ]);
 
-  const document = safeJsonObject(proposal.document) as {
-    meta?: { amountLabel?: string; timelineLabel?: string };
+  let parsedDoc: Record<string, unknown> = {};
+  try {
+    parsedDoc = JSON.parse(proposal.document || "{}");
+  } catch {
+    parsedDoc = {};
+  }
+
+  const documentMeta = (parsedDoc.meta && typeof parsedDoc.meta === "object") ? parsedDoc.meta as Record<string, unknown> : {};
+  const sections = Array.isArray(parsedDoc.sections) ? parsedDoc.sections : [];
+
+  const document = {
+    version: proposal.version,
+    meta: {
+      reference: proposal.reference ?? "PROP",
+      title: proposal.title,
+      clientName: client?.companyName ?? "",
+      preparedBy: workspace?.companyName ?? "",
+      preparedFor: client?.email ?? null,
+      amount: proposal.amount,
+      currency: proposal.currency,
+      amountLabel: typeof documentMeta.amountLabel === "string" ? documentMeta.amountLabel : amountLabel(proposal.amount),
+      timelineLabel: typeof documentMeta.timelineLabel === "string" ? documentMeta.timelineLabel : "",
+      date: proposal.createdAt.toISOString(),
+    },
+    sections,
   };
 
   return {
@@ -1073,8 +1111,8 @@ export async function serializeClientProposal(token: string) {
       version: proposal.version,
       status: proposal.status,
       amount: proposal.amount,
-      amountLabel: document.meta?.amountLabel ?? amountLabel(proposal.amount),
-      timelineLabel: document.meta?.timelineLabel ?? "",
+      amountLabel: document.meta.amountLabel,
+      timelineLabel: document.meta.timelineLabel,
       pdfPages: proposal.pdfPages,
       clientName: client?.companyName ?? "",
       preparedBy: workspace?.companyName ?? "",
@@ -1095,6 +1133,7 @@ export async function serializeClientProposal(token: string) {
       })),
       deliveryCount: deliveries.length,
     },
+    document,
   };
 }
 

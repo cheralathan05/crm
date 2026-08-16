@@ -25,12 +25,15 @@ export async function POST(_req: Request, { params }: Ctx) {
   }
 
   try {
+    const body = await _req.json().catch(() => ({}));
     const kind = proposal.sentAt ? "RESEND" : "INITIAL";
     const result = await sendProposalToClient({
       proposal,
       kind,
       actorId: session.user.id,
       actorName: session.user.name ?? "Owner",
+      recipientEmail: typeof body.recipientEmail === "string" ? body.recipientEmail : undefined,
+      recipientName: typeof body.recipientName === "string" ? body.recipientName : undefined,
     });
     return NextResponse.json({ ok: true, ...result });
   } catch (err) {

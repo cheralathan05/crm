@@ -27,7 +27,6 @@ type CanvasPageProps = {
   insertOpen: boolean;
   selectedBlock: SelectedBlock;
   onSelect: () => void;
-  onUpdateSection: (id: string, patch: Partial<ProposalSection>) => void;
   onPatchBlock: (sectionId: string, index: number, patch: Record<string, unknown>) => void;
   onRequestInsert: (sectionId: string, index: number) => void;
   onCloseInsert: () => void;
@@ -47,7 +46,6 @@ export function CanvasPage({
   insertOpen,
   selectedBlock,
   onSelect,
-  onUpdateSection,
   onPatchBlock,
   onRequestInsert,
   onCloseInsert,

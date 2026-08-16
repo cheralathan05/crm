@@ -8,9 +8,7 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock,
-  Download,
   Eye,
-  FileCheck,
   FileText,
   GitCompare,
   History,
@@ -380,10 +378,13 @@ export function SendDialog({
   delivery: ProposalDeliveryBundle;
   busy: boolean;
   onClose: () => void;
-  onSend: () => void;
+  onSend: (recipientEmail?: string) => void;
 }) {
-  const recipient = delivery.proposal.sentTo ?? client?.email ?? "";
-  const canSend = Boolean(recipient);
+  const initialEmail = delivery.proposal.sentTo ?? client?.email ?? "";
+  const [email, setEmail] = useState(initialEmail);
+  const [recipientName, setRecipientName] = useState(delivery.proposal.sentToName ?? client?.companyName ?? "Client");
+  const canSend = Boolean(email.trim() && email.includes("@"));
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-[2px]" onClick={onClose} aria-hidden="true" />
@@ -402,27 +403,34 @@ export function SendDialog({
             <X className="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
-        <div className="p-5 space-y-3">
+        <div className="p-5 space-y-3.5">
           <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-sm border border-[var(--bos-line)] px-3 py-2.5">
-              <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Recipient</div>
-              <div className="mt-0.5 text-[12px] font-medium text-[var(--bos-text-primary)] truncate">{delivery.proposal.sentToName ?? client?.companyName ?? "Client"}</div>
-              <div className="text-[10px] text-[var(--bos-text-secondary)] truncate">{recipient || "—"}</div>
+            <div className="rounded-sm border border-[var(--bos-line)] px-3 py-2.5 space-y-1.5">
+              <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Recipient Email</div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="client@company.com"
+                className="w-full h-8 px-2 rounded-sm border border-[var(--bos-line-strong)] bg-white text-[12px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)]"
+              />
+              <div className="text-[9px] text-[var(--bos-text-tertiary)] truncate">Name: {recipientName}</div>
             </div>
             <div className="rounded-sm border border-[var(--bos-line)] px-3 py-2.5">
               <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">Attachment</div>
               <div className="mt-0.5 text-[12px] font-medium text-[var(--bos-text-primary)]">{proposal.pdfPages ? `${proposal.pdfPages} page PDF` : "PDF"}</div>
-              <div className="text-[10px] text-[var(--bos-text-secondary)]">v{delivery.proposal.version}</div>
+              <div className="text-[10px] text-[var(--bos-text-secondary)]">v{delivery.proposal.version} (Locked)</div>
             </div>
           </div>
           {delivery.proposal.sentAt && (
-            <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-overlay)]/40 px-3 py-2.5 text-[11px] text-[var(--bos-text-secondary)]">
-              Already sent {formatDateTime(delivery.proposal.sentAt)} — sending again re-issues a fresh secure link and records a new delivery.
+            <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-overlay)]/40 px-3 py-2 text-[11px] text-[var(--bos-text-secondary)]">
+              Already sent {formatDateTime(delivery.proposal.sentAt)} — sending again re-issues a fresh secure link.
             </div>
           )}
           {!canSend && (
-            <div className="rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3 py-2.5 text-[11px] text-[var(--bos-text-secondary)]">
-              No client email is on file. Add a contact email to the client before sending.
+            <div className="rounded-sm border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/5 px-3 py-2 text-[11px] text-[var(--bos-warning)] flex items-center gap-1.5">
+              <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+              <span>Enter a valid client email address above to deliver the proposal.</span>
             </div>
           )}
         </div>
@@ -432,12 +440,12 @@ export function SendDialog({
           </button>
           <button
             type="button"
-            onClick={onSend}
+            onClick={() => onSend(email.trim())}
             disabled={busy || !canSend}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[11px] font-medium hover:bg-[var(--bos-accent-hover)] disabled:opacity-40"
+            className="inline-flex items-center gap-1.5 h-7 px-3.5 rounded-sm bg-[var(--bos-accent)] text-white text-[11px] font-medium hover:bg-[var(--bos-accent-hover)] disabled:opacity-40 shadow-sm"
           >
             {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Send className="w-3 h-3" aria-hidden="true" />}
-            {busy ? "Sending…" : "Send proposal"}
+            {busy ? "Delivering…" : "Send proposal"}
           </button>
         </div>
       </motion.div>

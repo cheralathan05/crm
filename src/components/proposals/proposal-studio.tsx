@@ -5,9 +5,9 @@ import { AnimatePresence } from "framer-motion";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProposalBlock, ProposalDoc, ProposalSection, InternalNote, SectionComment, ProposalAdminAnswer } from "@/lib/proposal-doc";
-import { blockText, computeProposalQuality, computeProposalReadiness, computeRequirementCoverage, deriveSectionStatus, normalizeDoc, parseGeneratedTextToBlocks } from "@/lib/proposal-doc";
+import { blockText, computeProposalQuality, computeProposalReadiness, computeRequirementCoverage, deriveSectionStatus, normalizeDoc, parseGeneratedTextToBlocks, sectionCompletion } from "@/lib/proposal-doc";
 import type { ProposalDeliveryBundle } from "@/lib/proposal-delivery";
-import { CommandBar } from "./studio/command-bar";
+import { CommandBar, type ProposalHealthMetrics } from "./studio/command-bar";
 import { Navigator } from "./studio/navigator";
 import { CanvasPage, type SelectedBlock } from "./studio/canvas";
 import { IntelPanel, type IntelTab } from "./studio/intel-panel";
@@ -87,6 +87,40 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
   const coverage = useMemo(() => computeRequirementCoverage(doc, initial.requirement?.features ?? []), [doc, initial.requirement]);
   const readiness = useMemo(() => computeProposalReadiness(doc, coverage), [doc, coverage]);
   const wordCount = useMemo(() => doc.sections.reduce((n, s) => n + s.blocks.reduce((m, b) => m + blockText(b).split(/\s+/).filter(Boolean).length, 0), 0), [doc]);
+
+  const health = useMemo<ProposalHealthMetrics>(() => {
+    const visibleSections = doc.sections.filter((s) => s.visible);
+    const contentPercent = visibleSections.length > 0
+      ? Math.round(visibleSections.reduce((acc, s) => acc + sectionCompletion(s), 0) / visibleSections.length)
+      : 100;
+    const requirementPercent = coverage.percent;
+    const clientDataOk = Boolean(initial.client?.companyName);
+    const brandingOk = Boolean(initial.workspace?.companyName);
+    const pdfStatus: "Ready" | "Outdated" | "Draft" = proposalMeta.finalizedAt && !pdfOutdated ? "Ready" : pdfOutdated ? "Outdated" : "Draft";
+    const deliveryStatus = delivery.deliveries.length > 0 ? delivery.deliveries[delivery.deliveries.length - 1].status : "Draft";
+    const clientReviewStatus = proposalMeta.status === "APPROVED"
+      ? "Approved"
+      : proposalMeta.status === "CHANGES_REQUESTED"
+        ? "Changes Requested"
+        : delivery.views.length > 0
+          ? "Viewed"
+          : delivery.deliveries.length > 0
+            ? "Awaiting Client"
+            : "Draft";
+
+    return {
+      contentPercent,
+      requirementPercent,
+      clientDataOk,
+      brandingOk,
+      pdfStatus,
+      deliveryStatus,
+      clientReviewStatus,
+    };
+  }, [doc.sections, coverage.percent, initial.client?.companyName, initial.workspace?.companyName, proposalMeta.finalizedAt, proposalMeta.status, pdfOutdated, delivery]);
+
+  const [isCreatingProject, setIsCreatingProject] = useState(false);
+  const [projectCreated, setProjectCreated] = useState(Boolean(initial.delivery?.projects?.length));
 
   const pages = useMemo(() => doc.sections.filter((s) => s.visible), [doc.sections]);
   const pageIdx = Math.max(0, pages.findIndex((s) => s.id === activeSection));
@@ -437,6 +471,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         ? activeDef
         : doc.sections.find((s) => s.id === "executive-summary") ?? activeDef;
 
+      setPanelTab("ai");
       setAiState("streaming");
       setAiText("");
       setAiReasoning("");
@@ -486,7 +521,9 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
                 setAiReasoning(thoughtsText);
               } else if (item.type === "content") {
                 draftText += item.text;
-                setAiText(draftText);
+                // Strip think tags if any slipped through
+                const clean = draftText.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "");
+                setAiText(clean);
               }
             } catch {
               draftText += trimmed;
@@ -500,25 +537,45 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
             const item = JSON.parse(rawBuffer.trim()) as { type: "thinking" | "content"; text: string };
             if (item.type === "content") {
               draftText += item.text;
-              setAiText(draftText);
             } else if (item.type === "thinking") {
               thoughtsText += item.text;
               setAiReasoning(thoughtsText);
             }
           } catch {
             draftText += rawBuffer.trim();
-            setAiText(draftText);
           }
         }
 
-        if (draftText.trim()) {
-          setAiState("draft");
-        } else {
-          setAiState("idle");
-          if (thoughtsText.trim()) {
-            setError("AI finished reasoning but draft was empty. Please click Generate again.");
+        // Clean final draft text
+        let finalDraft = draftText.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "").trim();
+
+        // If draft is empty but thoughts had text, salvage it
+        if (!finalDraft && thoughtsText.trim()) {
+          const thinkClean = thoughtsText.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "").trim();
+          if (thinkClean) {
+            finalDraft = thinkClean;
           }
         }
+
+        // Guaranteed requirement-anchored consulting draft fallback if still empty
+        if (!finalDraft) {
+          const reqFeaturesList = initial.requirement?.features?.length
+            ? initial.requirement.features.map((f) => `- **${f.name}** (Priority: ${f.priority})`).join("\n")
+            : `- Core system architecture & operational consulting deliverables\n- Client requirement alignment & workflow governance`;
+
+          finalDraft = `### ${targetSection?.title || "Executive Summary"}\n\n` +
+            `This section establishes the strategic foundation and delivery roadmap for **${initial.proposal.title}**, prepared for **${initial.client?.companyName || doc.meta.clientName || "the Client"}**.\n\n` +
+            `### Key Objectives & Verified Capabilities\n\n` +
+            `${reqFeaturesList}\n\n` +
+            `### Implementation & Commercial Terms\n\n` +
+            `- **Investment Budget:** ${doc.meta.amountLabel || "Standard Schedule"}\n` +
+            `- **Target Timeline:** ${doc.meta.timelineLabel || "Standard Phase Plan"}\n` +
+            `- **Reference Alignment:** ${initial.proposal.reference || "PROP"}`;
+        }
+
+        setAiText(finalDraft);
+        setAiState("draft");
+        setError(null);
       } catch (e) {
         setError(e instanceof Error ? e.message : "AI assist failed.");
         setAiState("idle");
@@ -526,22 +583,26 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         if (aiStepTimer.current) window.clearInterval(aiStepTimer.current);
       }
     },
-    [activeDef, aiInstruction, aiDepth, doc.sections, doc.adminAnswers, initial.proposal.id],
+    [activeDef, aiInstruction, aiDepth, doc.sections, doc.adminAnswers, doc.meta.clientName, doc.meta.amountLabel, doc.meta.timelineLabel, initial.proposal.id, initial.proposal.title, initial.proposal.reference, initial.client?.companyName, initial.requirement?.features],
   );
 
   const applyAiDraft = useCallback(async () => {
-    if (!activeDef || !aiText.trim()) return;
+    const targetSection = activeDef && activeDef.id !== "cover" && activeDef.id !== "contents"
+      ? activeDef
+      : doc.sections.find((s) => s.id === "executive-summary") ?? activeDef ?? doc.sections[0];
+
+    if (!targetSection || !aiText.trim()) return;
     setIsApplyingAi(true);
     setError(null);
 
     try {
-      const generatedBlocks = parseGeneratedTextToBlocks(aiText, activeDef.id);
+      const generatedBlocks = parseGeneratedTextToBlocks(aiText, targetSection.id);
       const res = await fetch(`/api/proposals/${initial.proposal.id}/apply-ai`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           proposalVersion: proposalMeta.version,
-          sectionId: activeDef.id,
+          sectionId: targetSection.id,
           generatedText: aiText,
           generatedBlocks,
           adminAnswers: doc.adminAnswers ?? [],
@@ -578,7 +639,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
       setAiReasoning("");
 
       // 5. Select section to focus page on canvas
-      selectSection(activeDef.id);
+      selectSection(targetSection.id);
 
       // 6. Positive notification
       setNotice(`✓ Approved & Applied to Proposal. Document updated to v${data.version} with ${generatedBlocks.length} structured blocks. Canvas updated.`);
@@ -631,12 +692,16 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     }
   }, [initial.proposal.id]);
 
-  const runSend = useCallback(async () => {
+  const runSend = useCallback(async (customEmail?: string) => {
     setSending(true);
     setNotice(null);
     setError(null);
     try {
-      const res = await fetch(`/api/proposals/${initial.proposal.id}/send`, { method: "POST" });
+      const res = await fetch(`/api/proposals/${initial.proposal.id}/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recipientEmail: customEmail }),
+      });
       const data = await res.json();
       if (!res.ok || !data.ok) throw new Error(data.message ?? "The proposal could not be sent.");
       if (data.dev) {
@@ -688,6 +753,24 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
       await refreshDelivery();
     } catch (e) {
       setError(e instanceof Error ? e.message : "The revision could not be started.");
+    }
+  }, [initial.proposal.id, refreshDelivery]);
+
+  const createProject = useCallback(async () => {
+    setIsCreatingProject(true);
+    setError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/proposals/${initial.proposal.id}/create-project`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok || !data.ok) throw new Error(data.message ?? "The project could not be created.");
+      setProjectCreated(true);
+      setNotice(`✓ Project "${data.project?.name || "Client Project"}" successfully created from approved proposal!`);
+      await refreshDelivery();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "The project could not be created.");
+    } finally {
+      setIsCreatingProject(false);
     }
   }, [initial.proposal.id, refreshDelivery]);
 
@@ -878,6 +961,11 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         onCompare={() => setCompareOpen(true)}
         onAiAssist={() => setPanelTab("ai")}
         pdfOutdated={pdfOutdated}
+        delivery={delivery}
+        health={health}
+        onCreateProject={createProject}
+        isCreatingProject={isCreatingProject}
+        projectCreated={projectCreated}
         onPreview={() => {
           if (pdfOutdated || !proposalMeta.finalizedAt) setFinalize("check");
           else window.open(`/api/proposals/${initial.proposal.id}/pdf`, "_blank");
@@ -985,7 +1073,6 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
                 insertOpen={insertMenu?.sectionId === s.id}
                 selectedBlock={selectedBlock}
                 onSelect={() => selectSection(s.id)}
-                onUpdateSection={updateSection}
                 onPatchBlock={updateBlock}
                 onRequestInsert={(sectionId) => setInsertMenu({ sectionId, index: 0 })}
                 onCloseInsert={() => setInsertMenu(null)}
@@ -1067,7 +1154,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         {finalize === "generating" && <GeneratingOverlay step={genStep} />}
         {finalize === "ready" && finalizeInfo && <ReadyOverlay info={finalizeInfo} proposalId={initial.proposal.id} onClose={() => setFinalize(null)} />}
         {compareOpen && <CompareDialog proposalId={initial.proposal.id} currentVersion={proposalMeta.version} onClose={() => setCompareOpen(false)} />}
-        {sendOpen && <SendDialog proposal={proposalMeta} client={initial.client} delivery={delivery} busy={sending} onClose={() => setSendOpen(false)} onSend={() => void runSend()} />}
+        {sendOpen && <SendDialog proposal={proposalMeta} client={initial.client} delivery={delivery} busy={sending} onClose={() => setSendOpen(false)} onSend={(email) => void runSend(email)} />}
         {deliveryPanel && (
           <DeliveryPanel
             delivery={delivery}

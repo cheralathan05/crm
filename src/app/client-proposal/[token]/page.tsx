@@ -84,11 +84,11 @@ export default async function ClientProposalPage({ params }: Props) {
 
   return (
     <main className="min-h-dvh bg-[var(--bos-bg)] px-4 sm:px-6 py-8 sm:py-12">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="flex justify-center mb-7">
           <BusinessOSMark size="md" />
         </div>
-        <ProposalReview token={token} initial={bundle.proposal} />
+        <ProposalReview token={token} initial={bundle.proposal} initialDoc={bundle.document as any} />
       </div>
     </main>
   );

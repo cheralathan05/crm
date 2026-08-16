@@ -663,7 +663,12 @@ export async function serializeProposalForStudio(
           features: requirementFeatures.map((f) => ({ name: f.name, priority: f.priority, status: "APPROVED" })),
         }
       : null,
-    client: { id: proposal.client.id, companyName: proposal.client.companyName, industry: proposal.client.industry, email: proposal.client.email },
+    client: {
+      id: proposal.client.id,
+      companyName: proposal.client.companyName,
+      industry: proposal.client.industry,
+      email: proposal.sentTo ?? proposal.client.email ?? contact?.email ?? null,
+    },
     workspace: {
       companyName: workspace?.companyName ?? "",
       email: workspace?.profile?.businessEmail ?? null,

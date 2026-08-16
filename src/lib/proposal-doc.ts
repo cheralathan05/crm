@@ -433,10 +433,11 @@ export function normalizeDoc(doc: ProposalDoc): ProposalDoc {
 
 /** Converts AI generated detailed proposal text into structured ProposalBlocks */
 export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): ProposalBlock[] {
-  const text = rawText.trim();
-  if (!text) return [];
+  // Strip any reasoning / think tags that might be present in text
+  const cleanText = rawText.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "").trim();
+  if (!cleanText) return [];
 
-  const lines = text.split("\n");
+  const lines = cleanText.split("\n");
   const blocks: ProposalBlock[] = [];
   const now = new Date().toISOString();
 
@@ -558,6 +559,17 @@ export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): 
 
   flushParagraph();
   flushList();
+
+  // Fallback if no structured blocks were extracted from cleanText
+  if (blocks.length === 0 && cleanText.length > 0) {
+    blocks.push({
+      type: "paragraph",
+      id: `${sectionId}-p-${Date.now().toString(36)}-1`,
+      text: cleanText,
+      source: "AI_DRAFT",
+      updatedAt: now,
+    });
+  }
 
   return blocks;
 }

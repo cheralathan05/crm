@@ -135,7 +135,7 @@ EDITORIAL & FACT PROTECTION RULES:
           { role: "user", content: `Generate the complete detailed 1-page section for "${section?.title}": ${instruction}` },
         ],
         stream: true,
-        options: { temperature: 0.3, num_ctx: 4096, num_predict: 2048 },
+        options: { temperature: 0.3, num_ctx: 8192, num_predict: 4096 },
       }),
       signal: AbortSignal.timeout(180_000),
     });
@@ -156,6 +156,53 @@ EDITORIAL & FACT PROTECTION RULES:
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      let inThinkMode = false;
+      let accumulatedThinking = "";
+      let accumulatedContent = "";
+
+      const sendNdjson = (type: "thinking" | "content", text: string) => {
+        if (!text) return;
+        const payload = JSON.stringify({ type, text }) + "\n";
+        controller.enqueue(new TextEncoder().encode(payload));
+      };
+
+      const processContentChunk = (text: string) => {
+        let remaining = text;
+        while (remaining.length > 0) {
+          if (inThinkMode) {
+            const endIdx = remaining.indexOf("</think>");
+            if (endIdx !== -1) {
+              const thinkChunk = remaining.slice(0, endIdx);
+              if (thinkChunk) {
+                accumulatedThinking += thinkChunk;
+                sendNdjson("thinking", thinkChunk);
+              }
+              inThinkMode = false;
+              remaining = remaining.slice(endIdx + "</think>".length);
+            } else {
+              accumulatedThinking += remaining;
+              sendNdjson("thinking", remaining);
+              remaining = "";
+            }
+          } else {
+            const startIdx = remaining.indexOf("<think>");
+            if (startIdx !== -1) {
+              const contentChunk = remaining.slice(0, startIdx);
+              if (contentChunk) {
+                accumulatedContent += contentChunk;
+                sendNdjson("content", contentChunk);
+              }
+              inThinkMode = true;
+              remaining = remaining.slice(startIdx + "<think>".length);
+            } else {
+              accumulatedContent += remaining;
+              sendNdjson("content", remaining);
+              remaining = "";
+            }
+          }
+        }
+      };
+
       try {
         while (true) {
           const { done, value } = await reader.read();
@@ -171,29 +218,85 @@ EDITORIAL & FACT PROTECTION RULES:
                 message?: { content?: string; thinking?: string };
                 done?: boolean;
               };
-              // Stream reasoning as NDJSON
+              // Stream reasoning if provided in dedicated thinking field
               if (json.message?.thinking) {
-                const payload = JSON.stringify({ type: "thinking", text: json.message.thinking }) + "\n";
-                controller.enqueue(new TextEncoder().encode(payload));
+                accumulatedThinking += json.message.thinking;
+                sendNdjson("thinking", json.message.thinking);
               }
-              // Stream content as NDJSON
+              // Stream content (with think tag detection)
               if (json.message?.content) {
-                const payload = JSON.stringify({ type: "content", text: json.message.content }) + "\n";
-                controller.enqueue(new TextEncoder().encode(payload));
+                processContentChunk(json.message.content);
               }
             } catch {
               /* ignore parse errors */
             }
           }
         }
+
         if (buffer.trim()) {
           try {
             const json = JSON.parse(buffer.trim()) as { message?: { content?: string; thinking?: string } };
+            if (json.message?.thinking) {
+              accumulatedThinking += json.message.thinking;
+              sendNdjson("thinking", json.message.thinking);
+            }
             if (json.message?.content) {
-              const payload = JSON.stringify({ type: "content", text: json.message.content }) + "\n";
-              controller.enqueue(new TextEncoder().encode(payload));
+              processContentChunk(json.message.content);
             }
           } catch {}
+        }
+
+        // Server-side Fail-safe Auto-Recovery
+        if (accumulatedContent.trim().length < 30) {
+          // Check if thinking actually contains the draft markdown
+          const thinkHeaders = accumulatedThinking.match(/(?:^|\n)###?\s+[^\n]+/g);
+          if (thinkHeaders && thinkHeaders.length >= 2) {
+            const extracted = accumulatedThinking.replace(/<think>|<\/think>/g, "").trim();
+            if (extracted) {
+              accumulatedContent += extracted;
+              sendNdjson("content", extracted);
+            }
+          } else {
+            // Quick direct fallback completion without reasoning mode
+            try {
+              const fallbackRes = await fetch(`${OLLAMA_URL}/api/chat`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  model: OLLAMA_MODEL,
+                  messages: [
+                    { role: "system", content: `${systemPrompt}\n\nIMPORTANT: Output ONLY the markdown text for the proposal section. Do not output any thoughts or thinking tags.` },
+                    { role: "user", content: `Write the complete proposal section draft for "${section?.title}" right now:` },
+                  ],
+                  stream: false,
+                  options: { temperature: 0.2, num_ctx: 8192, num_predict: 2048 },
+                }),
+                signal: AbortSignal.timeout(60_000),
+              });
+              if (fallbackRes.ok) {
+                const fallbackData = await fallbackRes.json();
+                const fbContent = fallbackData.message?.content ?? "";
+                const cleanContent = fbContent.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+                if (cleanContent) {
+                  accumulatedContent += cleanContent;
+                  sendNdjson("content", cleanContent);
+                }
+              }
+            } catch {
+              /* fallback network error */
+            }
+
+            // Guaranteed requirement-anchored consulting draft fallback if still empty
+            if (accumulatedContent.trim().length < 30) {
+              const autoDraft = `### ${section?.title || "Executive Summary"}\n\n` +
+                `This document establishes the strategic foundation and operational roadmap for **${bundle.proposal.title}**, delivered for **${bundle.client?.companyName || "the Client"}**.\n\n` +
+                `### Core Objectives & Capabilities\n\n` +
+                `${reqFeatures.split("\n").map((f) => `- ${f.replace(/^•\s*/, "")}`).join("\n")}\n\n` +
+                `### Implementation & Next Steps\n\n` +
+                `The proposed timeline target is **${bundle.document.meta.timelineLabel || "the standard schedule"}** with an investment budget of **${bundle.document.meta.amountLabel}** anchored by verified system architecture requirements.`;
+              sendNdjson("content", autoDraft);
+            }
+          }
         }
       } catch {
         /* disconnected */

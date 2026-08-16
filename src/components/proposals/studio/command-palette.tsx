@@ -22,14 +22,12 @@ export type PaletteEntry = {
 
 export function CommandPalette({ open, onClose, entries }: { open: boolean; onClose: () => void; entries: PaletteEntry[] }) {
   const [query, setQuery] = useState("");
-  const [active, setActive] = useState(0);
+  const [rawActive, setRawActive] = useState(0);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (open) {
-      setQuery("");
-      setActive(0);
       setTimeout(() => inputRef.current?.focus(), 10);
     }
   }, [open]);
@@ -40,17 +38,22 @@ export function CommandPalette({ open, onClose, entries }: { open: boolean; onCl
     return entries.filter((e) => e.label.toLowerCase().includes(q) || e.hint.toLowerCase().includes(q) || (e.keywords ?? "").toLowerCase().includes(q));
   }, [query, entries]);
 
-  useEffect(() => setActive(0), [filtered.length]);
+  const active = Math.min(rawActive, Math.max(0, filtered.length - 1));
+
+  const handleQueryChange = (val: string) => {
+    setQuery(val);
+    setRawActive(0);
+  };
 
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "ArrowDown") {
         e.preventDefault();
-        setActive((a) => Math.min(a + 1, filtered.length - 1));
+        setRawActive((a) => Math.min(a + 1, filtered.length - 1));
       } else if (e.key === "ArrowUp") {
         e.preventDefault();
-        setActive((a) => Math.max(a - 1, 0));
+        setRawActive((a) => Math.max(a - 1, 0));
       } else if (e.key === "Enter" && filtered[active]) {
         e.preventDefault();
         filtered[active].run();
@@ -82,7 +85,7 @@ export function CommandPalette({ open, onClose, entries }: { open: boolean; onCl
           <input
             ref={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(e) => handleQueryChange(e.target.value)}
             placeholder="Type a command or search…"
             className="flex-1 h-11 bg-transparent text-[13px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none"
           />
@@ -96,7 +99,7 @@ export function CommandPalette({ open, onClose, entries }: { open: boolean; onCl
               key={e.id}
               type="button"
               data-palette-index={i}
-              onMouseEnter={() => setActive(i)}
+              onMouseEnter={() => setRawActive(i)}
               onClick={e.run}
               className={cn(
                 "w-full flex items-center gap-2.5 px-2.5 py-2 rounded-sm text-left transition-colors duration-100",

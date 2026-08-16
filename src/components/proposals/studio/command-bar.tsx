@@ -3,33 +3,42 @@
 import { useRef, useState } from "react";
 import Link from "next/link";
 import {
+  AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  Check,
+  CheckCircle2,
   ChevronDown,
+  ChevronRight,
   Command,
   Download,
   Eye,
   FileCheck,
   FileText,
   GitCompare,
+  Layers,
+  Loader2,
   MoreHorizontal,
+  Plus,
+  RefreshCw,
   Save,
   Search,
   Send,
+  ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip } from "@/components/clients/kit";
+import type { ProposalDeliveryBundle } from "@/lib/proposal-delivery";
 import type { SaveState } from "./types";
 
 /* ────────────────────────────────────────────────────────────────
-   PROPOSAL COMMAND BAR — compact, editorial, information-dense.
-   Top bar:
-   ← Proposals · Reference · Title · Status · Version · Autosaved
-   Controls:
-   Review Mode · Compare · Zoom · Page Nav · Search · Preview ·
-   AI Assist · Share · Finalize · More Actions
+   PROPOSAL COMMAND CENTER — TOP HEADER & LIFECYCLE BAR
+   - High-density executive command bar
+   - Proposal Lifecycle Bar (DRAFT → REVIEW → FINALIZED → SENT → VIEWED → CLIENT RESPONSE → APPROVED)
+   - Real calculated Health Header
+   - Approval-to-Project Action Bar
 ──────────────────────────────────────────────────────────────── */
 
 const ZOOMS = [0.5, 0.75, 1, 1.25, 1.5] as const;
@@ -49,6 +58,16 @@ const SAVE_CLS: Record<SaveState, string> = {
 };
 
 export type MoreAction = "save" | "view-pdf" | "download" | "send" | "finalize" | "delivery" | "compare" | "shortcuts";
+
+export type ProposalHealthMetrics = {
+  contentPercent: number;
+  requirementPercent: number;
+  clientDataOk: boolean;
+  brandingOk: boolean;
+  pdfStatus: "Ready" | "Outdated" | "Draft";
+  deliveryStatus: string;
+  clientReviewStatus: string;
+};
 
 type CommandBarProps = {
   reference: string | null;
@@ -77,7 +96,22 @@ type CommandBarProps = {
   onSend: () => void;
   onMore: (action: MoreAction) => void;
   pdfOutdated?: boolean;
+  delivery?: ProposalDeliveryBundle;
+  health?: ProposalHealthMetrics;
+  onCreateProject?: () => void;
+  isCreatingProject?: boolean;
+  projectCreated?: boolean;
 };
+
+const LIFECYCLE_STAGES = [
+  { key: "DRAFT", label: "Draft" },
+  { key: "REVIEW", label: "Review" },
+  { key: "FINALIZED", label: "Finalized" },
+  { key: "SENT", label: "Sent" },
+  { key: "VIEWED", label: "Viewed" },
+  { key: "CLIENT_RESPONSE", label: "Client Response" },
+  { key: "APPROVED", label: "Approved" },
+] as const;
 
 export function CommandBar({
   reference,
@@ -106,8 +140,14 @@ export function CommandBar({
   onSend,
   onMore,
   pdfOutdated,
+  delivery,
+  health,
+  onCreateProject,
+  isCreatingProject,
+  projectCreated,
 }: CommandBarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
+  const [activeStagePopover, setActiveStagePopover] = useState<string | null>(null);
   const moreRef = useRef<HTMLDivElement | null>(null);
 
   const openMore = (e: React.MouseEvent) => {
@@ -115,220 +155,385 @@ export function CommandBar({
     setMoreOpen((v) => !v);
   };
 
-  const moreItem = "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-left text-[11.5px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)] hover:text-[var(--bos-text-primary)] transition-colors duration-150";
+  const moreItem =
+    "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-left text-[11.5px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)] hover:text-[var(--bos-text-primary)] transition-colors duration-150";
+
+  // Calculate active lifecycle stage index
+  const currentStageIndex = (() => {
+    if (status === "APPROVED") return 6;
+    if (status === "CHANGES_REQUESTED" || (delivery?.changeRequests && delivery.changeRequests.length > 0)) return 5;
+    if (delivery?.views && delivery.views.length > 0) return 4;
+    if (delivery?.deliveries && delivery.deliveries.length > 0) return 3;
+    if (finalized) return 2;
+    if (reviewMode) return 1;
+    return 0;
+  })();
 
   return (
-    <div className="shrink-0 border-b border-[var(--bos-line)] bg-[var(--bos-bg)]/95 backdrop-blur-sm px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 flex-wrap">
-      <Link
-        href="/proposals"
-        className="flex items-center gap-1 text-[11px] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 shrink-0"
-      >
-        <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" /> Proposals
-      </Link>
-      <span className="w-px h-4 bg-[var(--bos-line-strong)] shrink-0" aria-hidden="true" />
-      <span className="font-mono text-[10px] tracking-[0.1em] text-[var(--bos-text-tertiary)] shrink-0">{reference ?? "PROP"}</span>
-      <input
-        value={title}
-        onChange={(e) => onTitleChange(e.target.value)}
-        className="min-w-0 max-w-[240px] bg-transparent text-[13px] font-semibold tracking-tight text-[var(--bos-text-primary)] outline-none hover:bg-[var(--bos-overlay)] focus:bg-[var(--bos-overlay)] rounded-sm px-1.5 py-0.5 transition-colors duration-150 truncate"
-        aria-label="Proposal title"
-      />
-      <StatusChip status={status} />
-      <span className="shrink-0 rounded-[3px] border border-[var(--bos-line)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--bos-text-tertiary)]">v{version}</span>
-      <span className={cn("shrink-0 text-[9.5px] font-mono", SAVE_CLS[saveState])}>{SAVE_LABEL[saveState]}</span>
-
-      <div className="ml-auto flex items-center gap-1.5 flex-wrap">
-        {/* Review Mode Toggle (Spec 47) */}
-        <button
-          type="button"
-          onClick={onToggleReviewMode}
-          className={cn(
-            "inline-flex items-center gap-1 h-7 px-2 rounded-sm text-[10.5px] font-medium transition-colors duration-150 shrink-0",
-            reviewMode
-              ? "bg-[var(--bos-info)]/15 border border-[var(--bos-info)]/30 text-[var(--bos-info)]"
-              : "border border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]",
-          )}
-          title="Toggle Review Mode"
+    <div className="shrink-0 border-b border-[var(--bos-line)] bg-[var(--bos-bg)]/95 backdrop-blur-sm">
+      {/* ═══ PRIMARY COMMAND ROW ═══ */}
+      <div className="px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 flex-wrap">
+        <Link
+          href="/proposals"
+          className="flex items-center gap-1 text-[11px] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 shrink-0"
         >
-          <FileCheck className="w-3 h-3" />
-          <span>{reviewMode ? "Reviewing" : "Review"}</span>
-        </button>
+          <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" /> Proposals
+        </Link>
+        <span className="w-px h-4 bg-[var(--bos-line-strong)] shrink-0" aria-hidden="true" />
+        <span className="font-mono text-[10px] tracking-[0.1em] text-[var(--bos-text-tertiary)] shrink-0">
+          {reference ?? "PROP"}
+        </span>
+        <input
+          value={title}
+          onChange={(e) => onTitleChange(e.target.value)}
+          className="min-w-0 max-w-[240px] bg-transparent text-[13px] font-semibold tracking-tight text-[var(--bos-text-primary)] outline-none hover:bg-[var(--bos-overlay)] focus:bg-[var(--bos-overlay)] rounded-sm px-1.5 py-0.5 transition-colors duration-150 truncate"
+          aria-label="Proposal title"
+        />
+        <StatusChip status={status} />
+        <span className="shrink-0 rounded-[3px] border border-[var(--bos-line)] px-1.5 py-0.5 font-mono text-[9px] text-[var(--bos-text-tertiary)]">
+          v{version}
+        </span>
+        <span className={cn("shrink-0 text-[9.5px] font-mono", SAVE_CLS[saveState])}>{SAVE_LABEL[saveState]}</span>
 
-        {/* Compare Versions (Spec 42) */}
-        <button
-          type="button"
-          onClick={onCompare}
-          className="inline-flex items-center gap-1 h-7 px-2 rounded-sm border border-[var(--bos-line)] text-[10.5px] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] transition-colors duration-150 shrink-0"
-          title="Compare Proposal Versions"
-        >
-          <GitCompare className="w-3 h-3" />
-          <span className="hidden sm:inline">Compare</span>
-        </button>
-
-        {/* Zoom */}
-        <div className="relative shrink-0">
-          <select
-            value={zoom}
-            onChange={(e) => onZoom(Number(e.target.value))}
-            aria-label="Zoom"
-            className="appearance-none h-7 pl-2 pr-6 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[10.5px] text-[var(--bos-text-secondary)] outline-none hover:border-[var(--bos-border-strong)] cursor-pointer"
-          >
-            {ZOOMS.map((z) => (
-              <option key={z} value={z}>{Math.round(z * 100)}%</option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--bos-text-tertiary)] pointer-events-none" aria-hidden="true" />
-        </div>
-
-        {/* Page nav */}
-        <div className="flex items-center gap-1 text-[10.5px] text-[var(--bos-text-tertiary)] shrink-0">
+        {/* Right action controls */}
+        <div className="ml-auto flex items-center gap-1.5 flex-wrap">
+          {/* Review Mode Toggle (Spec 47) */}
           <button
             type="button"
-            onClick={onPrevPage}
-            disabled={pageIdx === 0}
-            className="flex items-center justify-center w-7 h-7 rounded-sm border border-[var(--bos-line)] hover:border-[var(--bos-border-strong)] disabled:opacity-30"
-            aria-label="Previous page"
+            onClick={onToggleReviewMode}
+            className={cn(
+              "inline-flex items-center gap-1 h-7 px-2 rounded-sm text-[10.5px] font-medium transition-colors duration-150 shrink-0",
+              reviewMode
+                ? "bg-[var(--bos-info)]/15 border border-[var(--bos-info)]/30 text-[var(--bos-info)]"
+                : "border border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]",
+            )}
+            title="Toggle Review Mode"
           >
-            <ArrowLeft className="w-3 h-3" aria-hidden="true" />
+            <FileCheck className="w-3 h-3" />
+            <span>{reviewMode ? "Reviewing" : "Review"}</span>
           </button>
-          <span className="tabular-nums whitespace-nowrap">Page {pageIdx + 1} / {totalPages}</span>
+
+          {/* Compare Versions (Spec 42) */}
           <button
             type="button"
-            onClick={onNextPage}
-            disabled={pageIdx >= totalPages - 1}
-            className="flex items-center justify-center w-7 h-7 rounded-sm border border-[var(--bos-line)] hover:border-[var(--bos-border-strong)] disabled:opacity-30"
-            aria-label="Next page"
+            onClick={onCompare}
+            className="inline-flex items-center gap-1 h-7 px-2 rounded-sm border border-[var(--bos-line)] text-[10.5px] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] transition-colors duration-150 shrink-0"
+            title="Compare Proposal Versions"
           >
-            <ArrowRight className="w-3 h-3" aria-hidden="true" />
+            <GitCompare className="w-3 h-3" />
+            <span className="hidden sm:inline">Compare</span>
           </button>
-        </div>
 
-        {/* Search */}
-        <div className="relative shrink-0 hidden md:block">
-          <Search className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--bos-text-tertiary)] pointer-events-none" aria-hidden="true" />
-          <input
-            value={searchQuery}
-            onChange={(e) => onSearchQuery(e.target.value)}
-            placeholder="Search document…"
-            className="h-7 w-28 focus:w-48 pl-7 pr-6 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[10.5px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-[width] duration-200"
-            aria-label="Search document"
-          />
-          {searchQuery && (
+          {/* Zoom */}
+          <div className="relative shrink-0">
+            <select
+              value={zoom}
+              onChange={(e) => onZoom(Number(e.target.value))}
+              aria-label="Zoom"
+              className="appearance-none h-7 pl-2 pr-6 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[10.5px] text-[var(--bos-text-secondary)] outline-none hover:border-[var(--bos-border-strong)] cursor-pointer"
+            >
+              {ZOOMS.map((z) => (
+                <option key={z} value={z}>
+                  {Math.round(z * 100)}%
+                </option>
+              ))}
+            </select>
+            <ChevronDown
+              className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--bos-text-tertiary)] pointer-events-none"
+              aria-hidden="true"
+            />
+          </div>
+
+          {/* Page nav */}
+          <div className="flex items-center gap-1 text-[10.5px] text-[var(--bos-text-tertiary)] shrink-0">
             <button
               type="button"
-              onClick={() => onSearchQuery("")}
-              className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]"
-              aria-label="Clear search"
+              onClick={onPrevPage}
+              disabled={pageIdx === 0}
+              className="flex items-center justify-center w-7 h-7 rounded-sm border border-[var(--bos-line)] hover:border-[var(--bos-border-strong)] disabled:opacity-30"
+              aria-label="Previous page"
             >
-              <X className="w-3 h-3" aria-hidden="true" />
+              <ArrowLeft className="w-3 h-3" aria-hidden="true" />
+            </button>
+            <span className="tabular-nums whitespace-nowrap">
+              Page {pageIdx + 1} / {totalPages}
+            </span>
+            <button
+              type="button"
+              onClick={onNextPage}
+              disabled={pageIdx >= totalPages - 1}
+              className="flex items-center justify-center w-7 h-7 rounded-sm border border-[var(--bos-line)] hover:border-[var(--bos-border-strong)] disabled:opacity-30"
+              aria-label="Next page"
+            >
+              <ArrowRight className="w-3 h-3" aria-hidden="true" />
+            </button>
+          </div>
+
+          {/* Search */}
+          <div className="relative shrink-0 hidden md:block">
+            <Search
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-[var(--bos-text-tertiary)] pointer-events-none"
+              aria-hidden="true"
+            />
+            <input
+              value={searchQuery}
+              onChange={(e) => onSearchQuery(e.target.value)}
+              placeholder="Search document…"
+              className="h-7 w-28 focus:w-48 pl-7 pr-6 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[10.5px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-[width] duration-200"
+              aria-label="Search document"
+            />
+            {searchQuery && (
+              <button
+                type="button"
+                onClick={() => onSearchQuery("")}
+                className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]"
+                aria-label="Clear search"
+              >
+                <X className="w-3 h-3" aria-hidden="true" />
+              </button>
+            )}
+          </div>
+
+          {/* Preview */}
+          <button
+            type="button"
+            onClick={onPreview}
+            className={cn(
+              "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-[10.5px] transition-colors duration-150 shrink-0",
+              pdfOutdated
+                ? "border-[var(--bos-warning)] bg-[var(--bos-warning)]/10 text-[var(--bos-warning)] font-medium hover:bg-[var(--bos-warning)]/20"
+                : "border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)]",
+            )}
+            title="Preview PDF (Ctrl/Cmd+P)"
+          >
+            <Eye className="w-3 h-3" aria-hidden="true" />
+            <span>{pdfOutdated ? "PDF Outdated" : "Preview"}</span>
+          </button>
+
+          {/* AI assist */}
+          <button
+            type="button"
+            onClick={onAiAssist}
+            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[10.5px] font-medium text-[var(--bos-accent)] hover:bg-[var(--bos-accent-subtle)]/70 transition-colors duration-150 shrink-0"
+          >
+            <Sparkles className="w-3 h-3" aria-hidden="true" /> AI Assist
+          </button>
+
+          {/* Share */}
+          <button
+            type="button"
+            onClick={onShare}
+            className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-[var(--bos-line)] text-[10.5px] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 shrink-0"
+          >
+            <Send className="w-3 h-3" aria-hidden="true" /> Share
+          </button>
+
+          {/* Finalize / Final PDF */}
+          {finalized ? (
+            <button
+              type="button"
+              onClick={() => onMore("view-pdf")}
+              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[10.5px] font-medium text-[var(--bos-accent)] hover:bg-[var(--bos-accent-subtle)]/70 transition-colors duration-150 shrink-0"
+            >
+              <FileText className="w-3 h-3" aria-hidden="true" /> Final PDF
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={onFinalize}
+              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[10.5px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shrink-0 shadow-sm"
+            >
+              <FileText className="w-3 h-3" aria-hidden="true" /> Finalize
+            </button>
+          )}
+
+          {/* More actions dropdown */}
+          <div className="relative shrink-0" ref={moreRef}>
+            <button
+              type="button"
+              onClick={openMore}
+              className="flex items-center justify-center w-7 h-7 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)]"
+              aria-label="More actions"
+            >
+              <MoreHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+            {moreOpen && (
+              <>
+                <div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} aria-hidden="true" />
+                <div className="absolute right-0 top-8 z-40 w-52 rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] p-1">
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("save");
+                    }}
+                  >
+                    <Save className="w-3.5 h-3.5" aria-hidden="true" /> Save now
+                  </button>
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("compare");
+                    }}
+                  >
+                    <GitCompare className="w-3.5 h-3.5" aria-hidden="true" /> Compare versions
+                  </button>
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("view-pdf");
+                    }}
+                  >
+                    <Eye className="w-3.5 h-3.5" aria-hidden="true" /> View PDF
+                  </button>
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("download");
+                    }}
+                  >
+                    <Download className="w-3.5 h-3.5" aria-hidden="true" /> Download PDF
+                  </button>
+                  {canSend && (
+                    <button
+                      type="button"
+                      className={moreItem}
+                      onClick={() => {
+                        setMoreOpen(false);
+                        onMore("send");
+                      }}
+                    >
+                      <Send className="w-3.5 h-3.5" aria-hidden="true" /> Send to client
+                    </button>
+                  )}
+                  {!finalized && (
+                    <button
+                      type="button"
+                      className={moreItem}
+                      onClick={() => {
+                        setMoreOpen(false);
+                        onMore("finalize");
+                      }}
+                    >
+                      <FileText className="w-3.5 h-3.5" aria-hidden="true" /> Finalize proposal
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("delivery");
+                    }}
+                  >
+                    <FileText className="w-3.5 h-3.5" aria-hidden="true" /> Delivery history
+                  </button>
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("shortcuts");
+                    }}
+                  >
+                    <Command className="w-3.5 h-3.5" aria-hidden="true" /> Keyboard shortcuts
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ═══ PROPOSAL LIFECYCLE BAR (Specs 02, 80) ═══ */}
+      <div className="px-3 sm:px-4 py-1.5 border-t border-[var(--bos-line)]/70 bg-[var(--bos-surface)]/40 flex items-center justify-between gap-2 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-1 sm:gap-2 text-[10px] font-mono uppercase tracking-[0.08em] whitespace-nowrap">
+          <span className="text-[9px] text-[var(--bos-text-tertiary)] font-sans mr-1">Lifecycle:</span>
+          {LIFECYCLE_STAGES.map((stage, idx) => {
+            const isCompleted = idx < currentStageIndex;
+            const isCurrent = idx === currentStageIndex;
+            return (
+              <div key={stage.key} className="flex items-center gap-1 sm:gap-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveStagePopover(activeStagePopover === stage.key ? null : stage.key)}
+                  className={cn(
+                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] transition-colors",
+                    isCurrent
+                      ? "bg-[var(--bos-accent)] text-white font-bold shadow-2xs"
+                      : isCompleted
+                        ? "text-[var(--bos-success)] bg-[var(--bos-success)]/10 font-semibold"
+                        : "text-[var(--bos-text-tertiary)] opacity-60",
+                  )}
+                  title={`Stage: ${stage.label}`}
+                >
+                  {isCompleted ? (
+                    <Check className="w-2.5 h-2.5" />
+                  ) : isCurrent ? (
+                    <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  ) : null}
+                  <span>{stage.label}</span>
+                </button>
+                {idx < LIFECYCLE_STAGES.length - 1 && (
+                  <ChevronRight className="w-3 h-3 text-[var(--bos-text-tertiary)]/50 shrink-0" />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* ═══ PROPOSAL HEALTH SUMMARY CHIPS (Spec 03) ═══ */}
+        {health && (
+          <div className="hidden xl:flex items-center gap-2.5 text-[9.5px] font-mono text-[var(--bos-text-tertiary)] shrink-0 border-l border-[var(--bos-line)] pl-3">
+            <span>Health:</span>
+            <span className="flex items-center gap-1 text-[var(--bos-text-secondary)]">
+              Content <strong className="text-[var(--bos-text-primary)]">{health.contentPercent}%</strong>
+            </span>
+            <span>·</span>
+            <span className="flex items-center gap-1 text-[var(--bos-text-secondary)]">
+              Reqs <strong className="text-[var(--bos-success)]">{health.requirementPercent}%</strong>
+            </span>
+            <span>·</span>
+            <span className="flex items-center gap-1 text-[var(--bos-text-secondary)]">
+              PDF <strong className={cn(health.pdfStatus === "Ready" ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>{health.pdfStatus}</strong>
+            </span>
+            <span>·</span>
+            <span className="flex items-center gap-1 text-[var(--bos-text-secondary)]">
+              Client <strong className="text-[var(--bos-text-primary)]">{health.clientReviewStatus}</strong>
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* ═══ APPROVED BANNER: READY TO CREATE PROJECT (Specs 49, 66, 71) ═══ */}
+      {status === "APPROVED" && (
+        <div className="px-4 py-2.5 bg-[#eef6ec] border-t border-[#d8edd4] flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 text-[12px] text-[#3f6e35]">
+            <CheckCircle2 className="w-4 h-4 text-[#3f6e35] shrink-0" />
+            <span>
+              <strong>Proposal Approved by Client!</strong> Version v{version} is locked. Ready to convert to an active project with task breakdown.
+            </span>
+          </div>
+          {onCreateProject && (
+            <button
+              type="button"
+              disabled={isCreatingProject || projectCreated}
+              onClick={onCreateProject}
+              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[#3f6e35] text-white text-[11px] font-medium hover:brightness-95 disabled:opacity-50 transition-all shadow-sm"
+            >
+              {isCreatingProject ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+              {projectCreated ? "Project Created ✓" : "Create Project Now"}
             </button>
           )}
         </div>
-
-        {/* Preview */}
-        <button
-          type="button"
-          onClick={onPreview}
-          className={cn(
-            "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-[10.5px] transition-colors duration-150 shrink-0",
-            pdfOutdated
-              ? "border-[var(--bos-warning)] bg-[var(--bos-warning)]/10 text-[var(--bos-warning)] font-medium hover:bg-[var(--bos-warning)]/20"
-              : "border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)]",
-          )}
-          title="Preview PDF (Ctrl/Cmd+P)"
-        >
-          <Eye className="w-3 h-3" aria-hidden="true" />
-          <span>{pdfOutdated ? "PDF Outdated" : "Preview"}</span>
-        </button>
-
-        {/* AI assist */}
-        <button
-          type="button"
-          onClick={onAiAssist}
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[10.5px] font-medium text-[var(--bos-accent)] hover:bg-[var(--bos-accent-subtle)]/70 transition-colors duration-150 shrink-0"
-        >
-          <Sparkles className="w-3 h-3" aria-hidden="true" /> AI Assist
-        </button>
-
-        {/* Share */}
-        <button
-          type="button"
-          onClick={onShare}
-          className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border border-[var(--bos-line)] text-[10.5px] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 shrink-0"
-        >
-          <Send className="w-3 h-3" aria-hidden="true" /> Share
-        </button>
-
-        {/* Finalize */}
-        {finalized ? (
-          <button
-            type="button"
-            onClick={() => onMore("view-pdf")}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[10.5px] font-medium text-[var(--bos-accent)] hover:bg-[var(--bos-accent-subtle)]/70 transition-colors duration-150 shrink-0"
-          >
-            <FileText className="w-3 h-3" aria-hidden="true" /> Final PDF
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={onFinalize}
-            className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[10.5px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shrink-0 shadow-sm"
-          >
-            <FileText className="w-3 h-3" aria-hidden="true" /> Finalize
-          </button>
-        )}
-
-        {/* More actions dropdown */}
-        <div className="relative shrink-0" ref={moreRef}>
-          <button
-            type="button"
-            onClick={openMore}
-            className="flex items-center justify-center w-7 h-7 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)]"
-            aria-label="More actions"
-          >
-            <MoreHorizontal className="w-3.5 h-3.5" aria-hidden="true" />
-          </button>
-          {moreOpen && (
-            <>
-              <div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} aria-hidden="true" />
-              <div className="absolute right-0 top-8 z-40 w-52 rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] p-1">
-                <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("save"); }}>
-                  <Save className="w-3.5 h-3.5" aria-hidden="true" /> Save now
-                </button>
-                <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("compare"); }}>
-                  <GitCompare className="w-3.5 h-3.5" aria-hidden="true" /> Compare versions
-                </button>
-                {finalized && (
-                  <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("view-pdf"); }}>
-                    <Eye className="w-3.5 h-3.5" aria-hidden="true" /> View PDF
-                  </button>
-                )}
-                {finalized && (
-                  <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("download"); }}>
-                    <Download className="w-3.5 h-3.5" aria-hidden="true" /> Download PDF
-                  </button>
-                )}
-                {finalized && canSend && (
-                  <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("send"); }}>
-                    <Send className="w-3.5 h-3.5" aria-hidden="true" /> Send to client
-                  </button>
-                )}
-                {!finalized && (
-                  <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("finalize"); }}>
-                    <FileText className="w-3.5 h-3.5" aria-hidden="true" /> Finalize proposal
-                  </button>
-                )}
-                <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("delivery"); }}>
-                  <FileText className="w-3.5 h-3.5" aria-hidden="true" /> Delivery history
-                </button>
-                <button type="button" className={moreItem} onClick={() => { setMoreOpen(false); onMore("shortcuts"); }}>
-                  <Command className="w-3.5 h-3.5" aria-hidden="true" /> Keyboard shortcuts
-                </button>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+      )}
     </div>
   );
 }

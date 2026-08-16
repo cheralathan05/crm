@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
-import { AlertTriangle, Check, CheckCircle2, ChevronDown, ChevronRight, FileText, HelpCircle, Info, Loader2, MessageSquare, Plus, ShieldCheck, Sparkles, StickyNote, Wand2, X } from "lucide-react";
+import { AlertTriangle, Check, ChevronDown, ChevronRight, HelpCircle, Loader2, MessageSquare, Plus, ShieldCheck, Sparkles, StickyNote, Wand2, X } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { ProposalBlock, ProposalDoc, ProposalSection, RequirementCoverage, ProposalReadiness, InternalNote, SectionComment, ProposalAdminAnswer } from "@/lib/proposal-doc";
+import type { ProposalBlock, ProposalDoc, ProposalSection, RequirementCoverage, ProposalReadiness, ProposalAdminAnswer } from "@/lib/proposal-doc";
 import { blockText, parseGeneratedTextToBlocks, sectionCompletion, SOURCE_LABELS, type ProposalSource } from "@/lib/proposal-doc";
 import { analyzeSectionInformationSufficiency } from "@/lib/proposal-gap-engine";
 import { applyBlockField, BLOCK_FIELDS, fieldDisplayValue } from "./block-fields";
@@ -226,12 +226,18 @@ export function IntelPanel({
             type="button"
             onClick={() => onTabChange(key)}
             className={cn(
-              "shrink-0 px-2 h-6 rounded-sm text-[10px] font-medium uppercase tracking-[0.08em] transition-colors duration-150",
+              "relative shrink-0 px-2 h-6 rounded-sm text-[10px] font-medium uppercase tracking-[0.08em] transition-colors duration-150 flex items-center gap-1",
               tab === key ? "bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-semibold" : "text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]",
               key === "block" && !selected ? "opacity-40 pointer-events-none" : "",
             )}
           >
-            {label}
+            <span>{label}</span>
+            {key === "ai" && aiState === "draft" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-success)] animate-pulse" />
+            )}
+            {key === "ai" && aiState === "streaming" && (
+              <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-accent)] animate-ping" />
+            )}
           </button>
         ))}
       </div>
@@ -481,14 +487,23 @@ export function IntelPanel({
             </div>
 
             {aiError && (
-              <div className="rounded-sm border border-[var(--bos-warning)]/40 bg-[var(--bos-warning)]/10 p-2.5 text-[11px] text-[var(--bos-text-secondary)] flex items-start gap-2">
-                <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-warning)] shrink-0 mt-0.5" />
-                <div className="flex-1 leading-snug">{aiError}</div>
-                {onClearAiError && (
-                  <button type="button" onClick={onClearAiError} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
-                    <X className="w-3 h-3" />
-                  </button>
-                )}
+              <div className="rounded-sm border border-[var(--bos-warning)]/40 bg-[var(--bos-warning)]/10 p-2.5 text-[11px] text-[var(--bos-text-secondary)] space-y-2">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-warning)] shrink-0 mt-0.5" />
+                  <div className="flex-1 leading-snug">{aiError}</div>
+                  {onClearAiError && (
+                    <button type="button" onClick={onClearAiError} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
+                      <X className="w-3 h-3" />
+                    </button>
+                  )}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleRunAiWithAnswers}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm bg-white border border-[var(--bos-warning)]/40 hover:bg-[var(--bos-overlay)] text-[10.5px] font-medium text-[var(--bos-text-primary)] shadow-2xs transition-colors"
+                >
+                  <Wand2 className="w-3 h-3 text-[var(--bos-accent)]" /> Retry Generation
+                </button>
               </div>
             )}
 
