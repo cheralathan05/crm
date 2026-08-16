@@ -98,6 +98,8 @@ type CommandBarProps = {
   pdfOutdated?: boolean;
   delivery?: ProposalDeliveryBundle;
   health?: ProposalHealthMetrics;
+  onOpenDelivery?: () => void;
+  onCreateRevision?: () => void;
   onCreateProject?: () => void;
   isCreatingProject?: boolean;
   projectCreated?: boolean;
@@ -142,12 +144,13 @@ export function CommandBar({
   pdfOutdated,
   delivery,
   health,
+  onOpenDelivery,
+  onCreateRevision,
   onCreateProject,
   isCreatingProject,
   projectCreated,
 }: CommandBarProps) {
   const [moreOpen, setMoreOpen] = useState(false);
-  const [activeStagePopover, setActiveStagePopover] = useState<string | null>(null);
   const moreRef = useRef<HTMLDivElement | null>(null);
 
   const openMore = (e: React.MouseEvent) => {
@@ -463,16 +466,20 @@ export function CommandBar({
               <div key={stage.key} className="flex items-center gap-1 sm:gap-2">
                 <button
                   type="button"
-                  onClick={() => setActiveStagePopover(activeStagePopover === stage.key ? null : stage.key)}
+                  onClick={() => {
+                    if (["SENT", "VIEWED", "CLIENT_RESPONSE", "APPROVED"].includes(stage.key) && onOpenDelivery) {
+                      onOpenDelivery();
+                    }
+                  }}
                   className={cn(
-                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] transition-colors",
+                    "inline-flex items-center gap-1 px-1.5 py-0.5 rounded-[3px] transition-colors cursor-pointer",
                     isCurrent
                       ? "bg-[var(--bos-accent)] text-white font-bold shadow-2xs"
                       : isCompleted
-                        ? "text-[var(--bos-success)] bg-[var(--bos-success)]/10 font-semibold"
-                        : "text-[var(--bos-text-tertiary)] opacity-60",
+                        ? "text-[var(--bos-success)] bg-[var(--bos-success)]/10 font-semibold hover:bg-[var(--bos-success)]/20"
+                        : "text-[var(--bos-text-tertiary)] opacity-60 hover:opacity-100",
                   )}
-                  title={`Stage: ${stage.label}`}
+                  title={`Stage: ${stage.label}${isCompleted || isCurrent ? " — Click to inspect delivery details" : ""}`}
                 >
                   {isCompleted ? (
                     <Check className="w-2.5 h-2.5" />
@@ -505,12 +512,58 @@ export function CommandBar({
               PDF <strong className={cn(health.pdfStatus === "Ready" ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>{health.pdfStatus}</strong>
             </span>
             <span>·</span>
-            <span className="flex items-center gap-1 text-[var(--bos-text-secondary)]">
-              Client <strong className="text-[var(--bos-text-primary)]">{health.clientReviewStatus}</strong>
-            </span>
+            <button
+              type="button"
+              onClick={onOpenDelivery}
+              className={cn(
+                "flex items-center gap-1 hover:underline cursor-pointer",
+                health.clientReviewStatus === "Changes Requested"
+                  ? "text-[var(--bos-warning)] font-bold"
+                  : health.clientReviewStatus === "Approved"
+                    ? "text-[var(--bos-success)] font-bold"
+                    : "text-[var(--bos-text-secondary)]",
+              )}
+            >
+              Client <strong className={cn(health.clientReviewStatus === "Changes Requested" ? "text-[#9a5b13]" : "text-[var(--bos-text-primary)]")}>{health.clientReviewStatus}</strong>
+            </button>
           </div>
         )}
       </div>
+
+      {/* ═══ CLIENT CHANGES REQUESTED BANNER ═══ */}
+      {(status === "CHANGES_REQUESTED" || (delivery?.changeRequests && delivery.changeRequests.length > 0)) && (
+        <div className="px-4 py-2.5 bg-[#fdf3e7] border-t border-[#f5dfb8] flex items-center justify-between gap-3 flex-wrap">
+          <div className="flex items-center gap-2 text-[12px] text-[#9a5b13]">
+            <AlertTriangle className="w-4 h-4 text-[#9a5b13] shrink-0" />
+            <span>
+              <strong>Client Requested Changes</strong>
+              {delivery?.changeRequests?.[0]?.message
+                ? `: "${delivery.changeRequests[0].message}"`
+                : " — The client submitted feedback and requested adjustments."}
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            {onOpenDelivery && (
+              <button
+                type="button"
+                onClick={onOpenDelivery}
+                className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[#9a5b13] text-white text-[11px] font-medium hover:brightness-95 transition-all shadow-sm cursor-pointer"
+              >
+                <FileText className="w-3 h-3" /> View Change Request ({delivery?.changeRequests?.length ?? 1})
+              </button>
+            )}
+            {onCreateRevision && (
+              <button
+                type="button"
+                onClick={onCreateRevision}
+                className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm border border-[#9a5b13]/40 bg-white text-[#9a5b13] text-[11px] font-medium hover:bg-[#faf7f2] transition-all shadow-2xs cursor-pointer"
+              >
+                <RefreshCw className="w-3 h-3" /> Start Revision v{version + 1}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ═══ APPROVED BANNER: READY TO CREATE PROJECT (Specs 49, 66, 71) ═══ */}
       {status === "APPROVED" && (

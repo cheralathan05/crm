@@ -963,6 +963,8 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         pdfOutdated={pdfOutdated}
         delivery={delivery}
         health={health}
+        onOpenDelivery={() => setDeliveryPanel(true)}
+        onCreateRevision={() => void createRevision()}
         onCreateProject={createProject}
         isCreatingProject={isCreatingProject}
         projectCreated={projectCreated}
