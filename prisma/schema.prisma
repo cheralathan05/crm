@@ -397,6 +397,7 @@ model ClientProposal {
   changeRequests  ProposalChangeRequest[]
   rejections      ProposalRejection[]
   versions        ProposalVersion[]
+  projects        ClientProject[]
 
   @@index([clientId, status])
 }
@@ -546,43 +547,179 @@ model ProposalRejection {
   @@index([proposalId])
 }
 
-/** Client work — projects, stages, tasks. */
+/** Client work — projects, stages, tasks, deliverables, milestones. */
 model ClientProject {
-  id           String        @id @default(cuid())
-  client       Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId     String
-  name         String
-  stage        ProjectStage  @default(PLANNING)
-  health       ProjectHealth @default(ON_TRACK)
-  progress     Int           @default(0)
-  deadline     DateTime?
-  startedAt    DateTime?
-  completedAt  DateTime?
-  createdAt    DateTime      @default(now())
+  id                   String        @id @default(cuid())
+  client               Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId             String
+  proposal             ClientProposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+  proposalId           String?
+  proposalVersion      Int?
+  requirementRequestId String?
+  name                 String
+  code                 String?       // e.g. PRJ-2026-001
+  description          String?
+  stage                ProjectStage  @default(PLANNING)
+  health               ProjectHealth @default(ON_TRACK)
+  progress             Int           @default(0)
+  budget               Float?        @default(0)
+  currency             String        @default("INR")
+  managerId            String?
+  managerName          String?
+  startedAt            DateTime?
+  deadline             DateTime?
+  targetCompletion     DateTime?
+  completedAt          DateTime?
+  scopeSnapshot        String?       @default("{}")
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
 
-  tasks        ClientTask[]
+  tasks                ClientTask[]
+  milestones           ProjectMilestone[]
+  deliverables         ProjectDeliverable[]
+  team                 ProjectMember[]
+  changeRequests       ProjectChangeRequest[]
+  activities           ProjectActivity[]
 
   @@index([clientId])
+  @@index([proposalId])
+}
+
+/** Project milestone phase gates. */
+model ProjectMilestone {
+  id                String        @id @default(cuid())
+  project           ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String
+  title             String
+  phase             String        @default("PHASE_1")
+  description       String?
+  order             Int           @default(0)
+  status            String        @default("PLANNED") // PLANNED | IN_PROGRESS | IN_REVIEW | COMPLETED
+  progress          Int           @default(0)
+  targetDate        DateTime?
+  completedAt       DateTime?
+  paymentPercentage Float?
+  paymentAmount     Float?
+  invoiceStatus     String        @default("UNINVOICED") // UNINVOICED | INVOICED | PAID
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  deliverables      ProjectDeliverable[]
+  tasks             ClientTask[]
+
+  @@index([projectId, order])
+}
+
+/** Project deliverable artifacts with client review lifecycle. */
+model ProjectDeliverable {
+  id                  String        @id @default(cuid())
+  project             ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId           String
+  milestone           ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId         String?
+  title               String
+  description         String?
+  category            String?       @default("ENGINEERING")
+  proposalFeatureName String?
+  acceptanceCriteria  String        @default("[]")
+  status              String        @default("DRAFT") // DRAFT | INTERNAL_REVIEW | DELIVERED_TO_CLIENT | CLIENT_REVIEW | ACCEPTED | CHANGES_REQUESTED
+  submittedAt         DateTime?
+  clientApprovedAt    DateTime?
+  clientApprovedBy    String?
+  clientFeedback      String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  tasks               ClientTask[]
+  changeRequests      ProjectChangeRequest[]
+
+  @@index([projectId, status])
+  @@index([milestoneId])
+}
+
+/** Project team allocation and roles. */
+model ProjectMember {
+  id          String        @id @default(cuid())
+  project     ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  userId      String?
+  name        String
+  role        String        @default("Engineer")
+  email       String?
+  avatar      String?
+  allocation  Int           @default(100) // percentage
+  joinedAt    DateTime      @default(now())
+
+  @@index([projectId])
+}
+
+/** Formal change requests against project deliverables/scope. */
+model ProjectChangeRequest {
+  id                 String              @id @default(cuid())
+  project            ClientProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId          String
+  deliverable        ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId      String?
+  title              String
+  description        String
+  reason             String?
+  impactScope        String?
+  impactTimelineDays Int                 @default(0)
+  impactBudgetAmount Float               @default(0)
+  status             String              @default("SUBMITTED") // SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED | IMPLEMENTED
+  submittedByName    String?
+  submittedAt        DateTime            @default(now())
+  decidedAt          DateTime?
+  adminResponse      String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([projectId, status])
+}
+
+/** Live operational event trail for the project. */
+model ProjectActivity {
+  id        String        @id @default(cuid())
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  type      String
+  title     String
+  detail    String?
+  actorName String?
+  createdAt DateTime      @default(now())
+
+  @@index([projectId, createdAt])
 }
 
 /** Tasks across client projects. */
 model ClientTask {
-  id          String        @id @default(cuid())
-  client      Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId    String
-  project     ClientProject? @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  projectId   String?
-  title       String
-  status      TaskStatus    @default(TODO)
-  priority    TaskPriority  @default(MEDIUM)
-  teamRole    String?
-  assigneeId  String?
-  assigneeName String?
-  dueAt       DateTime?
-  completedAt DateTime?
-  createdAt   DateTime      @default(now())
+  id            String             @id @default(cuid())
+  client        Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  project       ClientProject?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId     String?
+  milestone     ProjectMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId   String?
+  deliverable   ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  title         String
+  description   String?
+  status        TaskStatus         @default(TODO)
+  priority      TaskPriority       @default(MEDIUM)
+  teamRole      String?
+  assigneeId    String?
+  assigneeName  String?
+  dueAt         DateTime?
+  completedAt   DateTime?
+  estimatedHours Float?
+  actualHours    Float?
+  order         Int                @default(0)
+  createdAt     DateTime           @default(now())
 
   @@index([clientId, status])
+  @@index([projectId])
+  @@index([milestoneId])
+  @@index([deliverableId])
 }
 
 /** Money — contract, invoices, payments. */
