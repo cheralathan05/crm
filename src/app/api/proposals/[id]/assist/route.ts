@@ -5,6 +5,7 @@ import type { ProposalAdminAnswer, ProposalSection } from "@/lib/proposal-doc";
 import { blockText } from "@/lib/proposal-doc";
 import { ollamaOnline } from "@/lib/copilot";
 import { rateLimit } from "@/lib/rate-limit";
+import { generateRichProposalSectionMarkdown } from "@/lib/proposal-section-generator";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -16,7 +17,8 @@ const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "qwen3:8b";
 
 /* ── POST /api/proposals/[id]/assist ────────────────────────────
    AI Proposal Copilot — document intelligence engine powered by
-   local Ollama (Qwen3:8B) using real approved requirement facts.
+   local Ollama using real approved requirement facts with guaranteed
+   1-page section completion fail-safe.
    Streams NDJSON lines ({ type: "thinking" | "content", text }).
 ──────────────────────────────────────────────────────────────── */
 
@@ -46,16 +48,9 @@ export async function POST(req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Invalid JSON." }, { status: 400 });
   }
   const sectionId = String(body.sectionId ?? "").trim();
-  const instruction = String(body.instruction ?? "Expand section in detail").trim();
+  const instruction = String(body.instruction ?? "Expand section into a complete 1-page deliverable").trim();
   const depth = String(body.depth ?? "Detailed").trim();
   const reqAdminAnswers = Array.isArray(body.adminAnswers) ? body.adminAnswers : [];
-
-  if (!(await ollamaOnline())) {
-    return NextResponse.json(
-      { ok: false, code: "OLLAMA_OFFLINE", message: "Local AI (Ollama) is offline. Please start Ollama." },
-      { status: 503 },
-    );
-  }
 
   const bundle = await serializeProposalForStudio(proposal);
   let section: ProposalSection | undefined = bundle.document.sections.find((s) => s.id === sectionId);
@@ -77,11 +72,50 @@ export async function POST(req: Request, { params }: Ctx) {
     .filter((s) => s.visible)
     .map((s) => {
       const summary = s.blocks.map(blockText).filter(Boolean).join(" ");
-      return `[Section: ${s.title} (${s.kicker})]:\n${summary.slice(0, 600)}`;
+      return `[Section: ${s.title} (${s.kicker})]:\n${summary.slice(0, 500)}`;
     })
     .join("\n\n");
 
   const currentContent = section ? section.blocks.map(blockText).filter(Boolean).join("\n\n") : "";
+
+  // Guaranteed requirement-anchored consulting draft synthesizer
+  const guaranteedDraft = generateRichProposalSectionMarkdown({
+    sectionId: section?.id || "executive-summary",
+    sectionTitle: section?.title,
+    sectionKicker: section?.kicker,
+    proposalTitle: bundle.proposal.title,
+    proposalReference: bundle.proposal.reference || "PROP",
+    clientName: bundle.client?.companyName || bundle.document.meta.clientName || "the Client",
+    clientIndustry: bundle.client?.industry,
+    providerName: bundle.workspace.companyName || bundle.document.meta.preparedBy || "Enterprise Delivery Team",
+    amountLabel: bundle.document.meta.amountLabel,
+    timelineLabel: bundle.document.meta.timelineLabel,
+    requirementFeatures: bundle.requirement?.features ?? [],
+    adminAnswers: combinedAnswers,
+    depth,
+    instruction,
+  });
+
+  const isOllamaUp = await ollamaOnline();
+
+  // If Ollama is offline, immediately stream the authoritative 1-page synthesized section
+  if (!isOllamaUp) {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        const payload = JSON.stringify({ type: "content", text: guaranteedDraft }) + "\n";
+        controller.enqueue(new TextEncoder().encode(payload));
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",
+      },
+    });
+  }
 
   const systemPrompt = `You are the Business OS AI Proposal Copilot — an elite enterprise proposal and consulting intelligence engine.
 
@@ -99,9 +133,6 @@ Features & Capabilities:
 ${reqFeatures}
 
 ${relevantAnswers ? `ADMIN-CONFIRMED FACTS & SECTION CLARIFICATIONS:\n${relevantAnswers}\n` : ""}
-PROPOSAL SECTIONS CONTEXT:
-${allSectionsContext.slice(0, 6000)}
-
 ACTIVE SECTION TO EXPAND / COMPOSE:
 Section Title: "${section?.title || "Executive Summary"}" (${section?.kicker || "Overview"})
 Requested Depth: ${depth}
@@ -110,20 +141,16 @@ User Instruction: ${instruction}
 CURRENT SECTION CONTENT:
 ${currentContent || "(Section is currently empty - compose a complete consulting draft)"}
 
-EDITORIAL & FACT PROTECTION RULES:
-1. FACT PROTECTION: NEVER invent or alter financial figures, budget totals, launch dates, client decisions, or approved requirement names.
-2. SOURCE TRACEABILITY: Anchor all content directly in the approved requirement snapshot, client context, and admin-confirmed facts above.
-3. 1-PAGE TARGET COMPLETENESS: Compose a complete, authoritative, structured section designed to naturally fill approximately one A4 page.
-4. STRUCTURE: Use clear markdown headings (### Heading) followed by substantive paragraphs detailing:
-   - Project Context & Business Background
-   - Business Challenge & Pain Points
-   - Client Objective & Success Criteria
-   - Proposed Solution & Core Capabilities
-   - Expected Business Outcomes
-   - Implementation Direction & Next Steps
-5. Keep internal thinking short and immediately output the complete detailed proposal section markdown. Output ONLY the refined section text.`;
+CRITICAL EDITORIAL RULES:
+1. OUTPUT FORMAT: Output ONLY the complete markdown text for the proposal section. DO NOT output conversational preamble or meta-thoughts like "Okay, I need to generate...". Begin IMMEDIATELY with the first markdown heading (### [Section Title]).
+2. 1-PAGE COMPLETENESS: Compose a rich, authoritative section (~400 to 600 words) with 4-5 markdown headings (### Heading), detailed narrative paragraphs, and bullet points covering:
+   - Strategic Intent & Purpose
+   - Core Scope & Work Breakdown Activities
+   - Milestones, Review Gates & Delivery Cadence
+   - Quality Assurance, Governance & Acceptance Standards
+3. FACT PROTECTION: Never alter financial figures, budget totals, timeline deadlines, or client requirements.`;
 
-  let ollamaRes: Response;
+  let ollamaRes: Response | null = null;
   try {
     ollamaRes = await fetch(`${OLLAMA_URL}/api/chat`, {
       method: "POST",
@@ -132,22 +159,33 @@ EDITORIAL & FACT PROTECTION RULES:
         model: OLLAMA_MODEL,
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: `Generate the complete detailed 1-page section for "${section?.title}": ${instruction}` },
+          { role: "user", content: `Write the complete detailed 1-page proposal section for "${section?.title}": ${instruction}. Start immediately with "### ${section?.title}".` },
         ],
         stream: true,
         options: { temperature: 0.3, num_ctx: 8192, num_predict: 4096 },
       }),
-      signal: AbortSignal.timeout(180_000),
+      signal: AbortSignal.timeout(90_000),
     });
   } catch {
-    return NextResponse.json({ ok: false, code: "OLLAMA_OFFLINE", message: "Local AI is offline." }, { status: 503 });
+    ollamaRes = null;
   }
 
-  if (!ollamaRes.ok || !ollamaRes.body) {
-    return NextResponse.json(
-      { ok: false, code: "OLLAMA_ERROR", message: `AI returned ${ollamaRes.status}.` },
-      { status: 502 },
-    );
+  if (!ollamaRes || !ollamaRes.ok || !ollamaRes.body) {
+    const stream = new ReadableStream<Uint8Array>({
+      start(controller) {
+        const payload = JSON.stringify({ type: "content", text: guaranteedDraft }) + "\n";
+        controller.enqueue(new TextEncoder().encode(payload));
+        controller.close();
+      },
+    });
+
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+        "Cache-Control": "no-store",
+        "X-Accel-Buffering": "no",
+      },
+    });
   }
 
   const reader = ollamaRes.body.getReader();
@@ -246,60 +284,18 @@ EDITORIAL & FACT PROTECTION RULES:
           } catch {}
         }
 
-        // Server-side Fail-safe Auto-Recovery
-        if (accumulatedContent.trim().length < 30) {
-          // Check if thinking actually contains the draft markdown
-          const thinkHeaders = accumulatedThinking.match(/(?:^|\n)###?\s+[^\n]+/g);
-          if (thinkHeaders && thinkHeaders.length >= 2) {
-            const extracted = accumulatedThinking.replace(/<think>|<\/think>/g, "").trim();
-            if (extracted) {
-              accumulatedContent += extracted;
-              sendNdjson("content", extracted);
-            }
-          } else {
-            // Quick direct fallback completion without reasoning mode
-            try {
-              const fallbackRes = await fetch(`${OLLAMA_URL}/api/chat`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  model: OLLAMA_MODEL,
-                  messages: [
-                    { role: "system", content: `${systemPrompt}\n\nIMPORTANT: Output ONLY the markdown text for the proposal section. Do not output any thoughts or thinking tags.` },
-                    { role: "user", content: `Write the complete proposal section draft for "${section?.title}" right now:` },
-                  ],
-                  stream: false,
-                  options: { temperature: 0.2, num_ctx: 8192, num_predict: 2048 },
-                }),
-                signal: AbortSignal.timeout(60_000),
-              });
-              if (fallbackRes.ok) {
-                const fallbackData = await fallbackRes.json();
-                const fbContent = fallbackData.message?.content ?? "";
-                const cleanContent = fbContent.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
-                if (cleanContent) {
-                  accumulatedContent += cleanContent;
-                  sendNdjson("content", cleanContent);
-                }
-              }
-            } catch {
-              /* fallback network error */
-            }
-
-            // Guaranteed requirement-anchored consulting draft fallback if still empty
-            if (accumulatedContent.trim().length < 30) {
-              const autoDraft = `### ${section?.title || "Executive Summary"}\n\n` +
-                `This document establishes the strategic foundation and operational roadmap for **${bundle.proposal.title}**, delivered for **${bundle.client?.companyName || "the Client"}**.\n\n` +
-                `### Core Objectives & Capabilities\n\n` +
-                `${reqFeatures.split("\n").map((f) => `- ${f.replace(/^•\s*/, "")}`).join("\n")}\n\n` +
-                `### Implementation & Next Steps\n\n` +
-                `The proposed timeline target is **${bundle.document.meta.timelineLabel || "the standard schedule"}** with an investment budget of **${bundle.document.meta.amountLabel}** anchored by verified system architecture requirements.`;
-              sendNdjson("content", autoDraft);
-            }
-          }
+        // Server-side Fail-safe Auto-Recovery:
+        // If content generated is insufficient (< 200 chars or looks like monologue), send guaranteed rich draft!
+        const cleaned = accumulatedContent.replace(/<think>[\s\S]*?<\/think>/g, "").trim();
+        const isMonologue = /^(okay|let me start|first, the section|looking at the existing)/i.test(cleaned);
+        if (cleaned.length < 200 || isMonologue) {
+          sendNdjson("content", guaranteedDraft);
         }
       } catch {
-        /* disconnected */
+        // In case of error during stream, send guaranteed complete draft
+        if (accumulatedContent.trim().length < 200) {
+          sendNdjson("content", guaranteedDraft);
+        }
       } finally {
         controller.close();
       }

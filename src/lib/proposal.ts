@@ -1075,11 +1075,39 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
   // Contents
   const contents = visible.find((s) => s.id === "contents");
   if (contents) {
+    const bodySections = visible.filter((s) => s.id !== "cover" && s.id !== "contents");
     content.push({
       stack: [
+        { text: "THIS PROPOSAL", style: "kicker" },
         { text: "Contents", style: "sectionTitle" },
         { text: "", margin: [0, 0, 0, 16] },
-        { toc: { id: "mainToc", title: { text: "", style: "body" } } },
+        {
+          table: {
+            widths: [28, "*", "auto"],
+            body: bodySections.map((s, idx) => {
+              const pageNum = (cover ? 1 : 0) + 1 + idx + 1;
+              return [
+                { text: String(idx + 1).padStart(2, "0"), color: ACCENT, bold: true, fontSize: 10 },
+                {
+                  stack: [
+                    { text: s.title, bold: true, fontSize: 11, color: INK },
+                    { text: (s.kicker || "SECTION").toUpperCase(), fontSize: 8, color: FAINT, characterSpacing: 0.8, margin: [0, 1, 0, 0] },
+                  ],
+                },
+                { text: `Page ${pageNum}`, color: MUTED, fontSize: 9.5, alignment: "right" },
+              ];
+            }),
+          },
+          layout: {
+            hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
+            vLineWidth: () => 0,
+            hLineColor: () => RULE,
+            paddingTop: () => 8,
+            paddingBottom: () => 8,
+            paddingLeft: () => 0,
+            paddingRight: () => 0,
+          },
+        },
       ],
       pageBreak: cover ? "before" : undefined,
     });
@@ -1091,7 +1119,7 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
     content.push({
       stack: [
         { text: `${s.number}  ·  ${s.kicker.toUpperCase()}`, style: "kicker" },
-        { text: s.title, style: "sectionTitle", tocItem: { tocItem: "mainToc" } },
+        { text: s.title, style: "sectionTitle" },
         { text: "", margin: [0, 0, 0, 6] },
         ...pdfBlocks(s.blocks),
       ],

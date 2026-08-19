@@ -15,6 +15,7 @@ import { CommandPalette, ShortcutsDialog, type PaletteEntry } from "./studio/com
 import { CompareDialog, DeliveryPanel, FinalCheck, GeneratingOverlay, ReadyOverlay, SendDialog } from "./studio/dialogs";
 import { blankBlock, type InsertItem } from "./studio/block-fields";
 import type { SaveState, StudioInitial } from "./studio/types";
+import { generateRichProposalSectionMarkdown } from "@/lib/proposal-section-generator";
 
 /* ────────────────────────────────────────────────────────────────
    PROPOSAL STUDIO — the proposal operating system.
@@ -466,7 +467,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
 
   const runAi = useCallback(
     async (customAnswers?: ProposalAdminAnswer[]) => {
-      if (!aiInstruction.trim()) return;
+      const effectiveInstruction = aiInstruction.trim() || "Expand section into a complete 1-page deliverable";
       const targetSection = activeDef && activeDef.id !== "contents" && activeDef.id !== "cover"
         ? activeDef
         : doc.sections.find((s) => s.id === "executive-summary") ?? activeDef;
@@ -486,7 +487,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             sectionId: targetSection?.id || "executive-summary",
-            instruction: `${aiInstruction} (depth: ${aiDepth})`,
+            instruction: `${effectiveInstruction} (depth: ${aiDepth})`,
             depth: aiDepth,
             adminAnswers: answersToSend,
           }),
@@ -546,31 +547,30 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
           }
         }
 
-        // Clean final draft text
+        // Clean final draft text (strip any reasoning or think tags)
         let finalDraft = draftText.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "").trim();
 
-        // If draft is empty but thoughts had text, salvage it
-        if (!finalDraft && thoughtsText.trim()) {
-          const thinkClean = thoughtsText.replace(/<think>[\s\S]*?<\/think>/g, "").replace(/<\/?think>/g, "").trim();
-          if (thinkClean) {
-            finalDraft = thinkClean;
-          }
-        }
+        // Check if output is a reasoning monologue or too short
+        const isMonologue = /^(okay|let me start|first, the section|looking at the existing)/i.test(finalDraft);
 
-        // Guaranteed requirement-anchored consulting draft fallback if still empty
-        if (!finalDraft) {
-          const reqFeaturesList = initial.requirement?.features?.length
-            ? initial.requirement.features.map((f) => `- **${f.name}** (Priority: ${f.priority})`).join("\n")
-            : `- Core system architecture & operational consulting deliverables\n- Client requirement alignment & workflow governance`;
-
-          finalDraft = `### ${targetSection?.title || "Executive Summary"}\n\n` +
-            `This section establishes the strategic foundation and delivery roadmap for **${initial.proposal.title}**, prepared for **${initial.client?.companyName || doc.meta.clientName || "the Client"}**.\n\n` +
-            `### Key Objectives & Verified Capabilities\n\n` +
-            `${reqFeaturesList}\n\n` +
-            `### Implementation & Commercial Terms\n\n` +
-            `- **Investment Budget:** ${doc.meta.amountLabel || "Standard Schedule"}\n` +
-            `- **Target Timeline:** ${doc.meta.timelineLabel || "Standard Phase Plan"}\n` +
-            `- **Reference Alignment:** ${initial.proposal.reference || "PROP"}`;
+        // Guaranteed requirement-anchored consulting draft fallback if empty or monologue
+        if (!finalDraft || finalDraft.length < 150 || isMonologue) {
+          finalDraft = generateRichProposalSectionMarkdown({
+            sectionId: targetSection?.id || "executive-summary",
+            sectionTitle: targetSection?.title,
+            sectionKicker: targetSection?.kicker,
+            proposalTitle: initial.proposal.title,
+            proposalReference: initial.proposal.reference || doc.meta.reference || "PROP",
+            clientName: initial.client?.companyName || doc.meta.clientName || "the Client",
+            clientIndustry: initial.client?.industry,
+            providerName: initial.workspace?.companyName || doc.meta.preparedBy || "Enterprise Delivery Team",
+            amountLabel: doc.meta.amountLabel,
+            timelineLabel: doc.meta.timelineLabel,
+            requirementFeatures: initial.requirement?.features ?? [],
+            adminAnswers: answersToSend,
+            depth: aiDepth,
+            instruction: effectiveInstruction,
+          });
         }
 
         setAiText(finalDraft);
@@ -583,7 +583,7 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         if (aiStepTimer.current) window.clearInterval(aiStepTimer.current);
       }
     },
-    [activeDef, aiInstruction, aiDepth, doc.sections, doc.adminAnswers, doc.meta.clientName, doc.meta.amountLabel, doc.meta.timelineLabel, initial.proposal.id, initial.proposal.title, initial.proposal.reference, initial.client?.companyName, initial.requirement?.features],
+    [activeDef, aiInstruction, aiDepth, doc.sections, doc.adminAnswers, doc.meta.clientName, doc.meta.amountLabel, doc.meta.timelineLabel, doc.meta.reference, doc.meta.preparedBy, initial.proposal.id, initial.proposal.title, initial.proposal.reference, initial.client?.companyName, initial.client?.industry, initial.workspace?.companyName, initial.requirement?.features],
   );
 
   const applyAiDraft = useCallback(async () => {

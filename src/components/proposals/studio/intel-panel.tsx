@@ -173,6 +173,9 @@ export function IntelPanel({
   const aiAddedWords = Math.max(0, draftWords - currentSectionWords);
 
   const handleRunAiWithAnswers = () => {
+    if (!aiInstruction.trim()) {
+      onAiInstruction("Expand Section");
+    }
     if (onSaveAdminAnswer && currentAdminAnswers.length > 0) {
       for (const a of currentAdminAnswers) onSaveAdminAnswer(a);
     }

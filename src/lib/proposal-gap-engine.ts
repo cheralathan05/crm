@@ -244,6 +244,43 @@ const SECTION_QUESTION_TEMPLATES: Record<
       },
     ],
   },
+  "activity-plan": {
+    required: [
+      {
+        id: "q_activity_purpose",
+        question: "What core operational commitments, workstreams, or execution priorities apply?",
+        hint: "e.g. Disciplined 4-phase agile delivery, transparent sprint demos, and milestone sign-offs.",
+      },
+      {
+        id: "q_workstreams",
+        question: "What are the primary delivery workstreams and cadence?",
+        hint: "e.g. Architecture setup, feature engineering sprints, security audit, and UAT cutover.",
+      },
+    ],
+    optional: [
+      {
+        id: "q_activity_constraints",
+        question: "Any specific client review turnaround SLAs or dependencies?",
+        hint: "e.g. 48-hour client review turnaround and weekly live progress demonstrations.",
+      },
+    ],
+  },
+  methodology: {
+    required: [
+      {
+        id: "q_methodology_framework",
+        question: "What delivery methodology and collaboration model will be used?",
+        hint: "e.g. Agile sprint iterations with bi-weekly demonstrations and staging deployments.",
+      },
+    ],
+    optional: [
+      {
+        id: "q_change_management",
+        question: "How will change requests or scope additions be managed?",
+        hint: "e.g. Documented change order workflow with client sign-off before implementation.",
+      },
+    ],
+  },
   terms: {
     required: [
       {

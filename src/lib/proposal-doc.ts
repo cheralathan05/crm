@@ -487,6 +487,11 @@ export function parseGeneratedTextToBlocks(rawText: string, sectionId: string): 
       continue;
     }
 
+    // Skip internal monologue / reasoning thoughts if any leaked
+    if (/^(okay,|let me start|first, the section is|looking at the existing sections|maybe i should)/i.test(trimmed)) {
+      continue;
+    }
+
     // 1. Markdown Headings (# Heading, ## Heading, ### Heading)
     const headingMatch = trimmed.match(/^(#{1,4})\s+(.+)$/);
     if (headingMatch) {
