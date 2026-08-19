@@ -49,7 +49,7 @@ import {
   Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ALL_WORKSTREAMS, TASK_STATUS_CONFIG, type WorkstreamType, type CommandCenterMetrics } from "@/lib/tasks";
+import { ALL_WORKSTREAMS, TASK_STATUS_CONFIG, type WorkstreamType, type CommandCenterMetrics } from "@/lib/tasks-types";
 import { TaskWorkspaceDrawer } from "./task-workspace-drawer";
 import { WorkBreakdownBuilder } from "./work-breakdown-builder";
 import { QuickTaskCreate } from "./quick-task-create";
@@ -98,6 +98,7 @@ export function TasksCommandCenter({
   // Data State
   const [tasks, setTasks] = useState<any[]>([]);
   const [metrics, setMetrics] = useState<CommandCenterMetrics | null>(null);
+  const [workspaceProjects, setWorkspaceProjects] = useState<Array<{ id: string; name: string }>>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -133,6 +134,9 @@ export function TasksCommandCenter({
       }
       if (metricsJson.ok) {
         setMetrics(metricsJson.metrics);
+        if (metricsJson.projects) {
+          setWorkspaceProjects(metricsJson.projects);
+        }
       }
     } catch (err: any) {
       setError(err.message || "Failed to load Task Command Center.");
@@ -177,7 +181,10 @@ export function TasksCommandCenter({
 
   // Unique projects list for dropdown filter
   const availableProjects = Array.from(
-    new Map(tasks.filter((t) => t.project).map((t) => [t.project.id, t.project.name])).entries(),
+    new Map([
+      ...workspaceProjects.map((p) => [p.id, p.name] as [string, string]),
+      ...tasks.filter((t) => t.project).map((t) => [t.project.id, t.project.name] as [string, string]),
+    ]).entries(),
   ).map(([id, name]) => ({ id, name }));
 
   return (

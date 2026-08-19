@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkDNA } from "@/lib/tasks";
-import { TASK_STATUS_CONFIG, ALL_WORKSTREAMS } from "@/lib/tasks";
+import { TASK_STATUS_CONFIG, ALL_WORKSTREAMS } from "@/lib/tasks-types";
 
 type TaskDrawerTab =
   | "work-dna"

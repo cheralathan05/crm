@@ -23,7 +23,14 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const projectId = searchParams.get("projectId") || undefined;
 
-  const metrics = await getTaskCommandCenterMetrics(workspace.id, session.user.id, projectId);
+  const [metrics, projects] = await Promise.all([
+    getTaskCommandCenterMetrics(workspace.id, session.user.id, projectId),
+    db.clientProject.findMany({
+      where: { client: { workspaceId: workspace.id } },
+      select: { id: true, name: true, clientId: true },
+      orderBy: { updatedAt: "desc" },
+    }),
+  ]);
 
-  return NextResponse.json({ ok: true, metrics });
+  return NextResponse.json({ ok: true, metrics, projects });
 }

@@ -18,7 +18,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { ALL_WORKSTREAMS, type WorkstreamType } from "@/lib/tasks";
+import { ALL_WORKSTREAMS, type WorkstreamType } from "@/lib/tasks-types";
 
 export function QuickTaskCreate({
   onClose,
