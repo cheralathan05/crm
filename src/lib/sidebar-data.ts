@@ -34,7 +34,9 @@ export type SidebarData = {
 async function getSidebarCounts(userId: string): Promise<SidebarCounts> {
   const workspace = await db.workspace.findUnique({ where: { ownerId: userId }, select: { id: true } });
   const workspaceId = workspace?.id ?? null;
-  const [requirements] = await Promise.all([
+  const now = new Date();
+
+  const [requirements, tasks] = await Promise.all([
     workspaceId
       ? db.requirementRequest.count({
           where: {
@@ -43,8 +45,21 @@ async function getSidebarCounts(userId: string): Promise<SidebarCounts> {
           },
         })
       : Promise.resolve(0),
+    workspaceId
+      ? db.clientTask.count({
+          where: {
+            client: { workspaceId },
+            OR: [
+              { status: "BLOCKED" },
+              { status: "IN_REVIEW" },
+              { status: "CHANGES_REQUESTED" },
+              { dueAt: { lt: now }, status: { notIn: ["COMPLETED", "DONE", "CLIENT_APPROVED", "CANCELLED"] } },
+            ],
+          },
+        })
+      : Promise.resolve(0),
   ]);
-  return { requirements, tasks: 0, messages: 0, notifications: 0 };
+  return { requirements, tasks, messages: 0, notifications: 0 };
 }
 
 /**

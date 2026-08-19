@@ -27,14 +27,19 @@ export async function POST(req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Invalid JSON." }, { status: 400 });
   }
 
+  const count = await db.clientTask.count({ where: { client: { workspaceId: project.client.workspaceId } } });
+  const code = `TSK-${String(count + 1).padStart(3, "0")}`;
+
   const task = await db.clientTask.create({
     data: {
+      code,
       clientId: project.clientId,
       projectId: id,
       milestoneId: body.milestoneId || null,
       deliverableId: body.deliverableId || null,
       title: body.title || "New Task",
       description: body.description || null,
+      workstream: body.workstream || "FRONTEND",
       teamRole: body.teamRole || null,
       assigneeName: body.assigneeName || null,
       assigneeId: body.assigneeId || null,
@@ -42,6 +47,8 @@ export async function POST(req: Request, { params }: Ctx) {
       status: body.status || "TODO",
       estimatedHours: body.estimatedHours ? Number(body.estimatedHours) : null,
       dueAt: body.dueAt ? new Date(body.dueAt) : null,
+      sourceType: "MANUAL",
+      sourceSection: "Project Command Center",
     },
   });
 

@@ -604,19 +604,35 @@ export async function launchProjectFromApprovedProposal(input: {
         const milestone = createdMilestones[t.milestoneIndex] ?? createdMilestones[0];
         const deliverable = t.deliverableIndex !== undefined ? createdDeliverables[t.deliverableIndex] : undefined;
         const priority = validPriorities.includes(t.priority as any) ? (t.priority as any) : "MEDIUM";
+        
+        let ws = "FRONTEND";
+        const titleLower = t.title.toLowerCase();
+        if (titleLower.includes("database") || titleLower.includes("schema")) ws = "DATABASE";
+        else if (titleLower.includes("auth") || titleLower.includes("security") || titleLower.includes("api") || titleLower.includes("backend")) ws = "BACKEND";
+        else if (titleLower.includes("test") || titleLower.includes("qa") || titleLower.includes("regression")) ws = "QA";
+        else if (titleLower.includes("deploy") || titleLower.includes("cutover") || titleLower.includes("devops")) ws = "DEPLOYMENT";
+        else if (titleLower.includes("design") || titleLower.includes("wireframe") || titleLower.includes("ui/ux")) ws = "DESIGN";
+        else if (titleLower.includes("uat") || titleLower.includes("walkthrough") || titleLower.includes("handover")) ws = "CLIENT_REVIEW";
+
         return tx.clientTask.create({
           data: {
+            code: `TSK-${String(idx + 1).padStart(3, "0")}`,
             clientId: input.clientId,
             projectId: project.id,
             milestoneId: milestone?.id,
             deliverableId: deliverable?.id,
             title: t.title,
             description: t.description,
+            workstream: ws,
             teamRole: t.teamRole,
             estimatedHours: t.estimatedHours,
             priority,
             status: "TODO",
             order: idx + 1,
+            sourceType: "PROPOSAL_SCOPE",
+            sourceDeliverableTitle: deliverable?.title || null,
+            sourceProposalId: proposal.id,
+            sourceSection: milestone?.title || "Approved Proposal",
           },
         });
       }),

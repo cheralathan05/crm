@@ -118,10 +118,19 @@ enum ProjectHealth {
 }
 
 enum TaskStatus {
+  BACKLOG
+  READY
   TODO
   IN_PROGRESS
   BLOCKED
+  IN_REVIEW
+  CHANGES_REQUESTED
+  READY_FOR_CLIENT
+  CLIENT_REVIEW
+  CLIENT_APPROVED
+  COMPLETED
   DONE
+  CANCELLED
 }
 
 enum TaskPriority {
@@ -129,6 +138,29 @@ enum TaskPriority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum AcceptanceCriteriaStatus {
+  NOT_STARTED
+  PASSED
+  FAILED
+  NOT_APPLICABLE
+}
+
+enum DependencyType {
+  BLOCKS
+  BLOCKED_BY
+}
+
+enum ClientVisibility {
+  INTERNAL
+  CLIENT_VISIBLE
+}
+
+enum TaskReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
 }
 
 enum PaymentStatus {
@@ -691,35 +723,180 @@ model ProjectActivity {
   @@index([projectId, createdAt])
 }
 
-/** Tasks across client projects. */
+/** Tasks across client projects — execution backbone with Work DNA & traceability. */
 model ClientTask {
-  id            String             @id @default(cuid())
-  client        Client             @relation(fields: [clientId], references: [id], onDelete: Cascade)
-  clientId      String
-  project       ClientProject?     @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  projectId     String?
-  milestone     ProjectMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
-  milestoneId   String?
-  deliverable   ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
-  deliverableId String?
-  title         String
-  description   String?
-  status        TaskStatus         @default(TODO)
-  priority      TaskPriority       @default(MEDIUM)
-  teamRole      String?
-  assigneeId    String?
-  assigneeName  String?
-  dueAt         DateTime?
-  completedAt   DateTime?
-  estimatedHours Float?
-  actualHours    Float?
-  order         Int                @default(0)
-  createdAt     DateTime           @default(now())
+  id                      String              @id @default(cuid())
+  code                    String?             // e.g. TSK-028
+  client                  Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId                String
+  project                 ClientProject?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId               String?
+  milestone               ProjectMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId             String?
+  deliverable             ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId           String?
+  title                   String
+  description             String?
+  expectedResult          String?
+  blockedReason           String?
+  workstream              String?             @default("FRONTEND") // DISCOVERY, DESIGN, FRONTEND, BACKEND, DATABASE, INTEGRATION, QA, DEPLOYMENT, CLIENT_REVIEW
+  status                  TaskStatus          @default(TODO)
+  priority                TaskPriority        @default(MEDIUM)
+  clientVisibility        ClientVisibility    @default(INTERNAL)
+  teamRole                String?
+  assigneeId              String?
+  assigneeName            String?
+  dueAt                   DateTime?
+  startedAt               DateTime?
+  completedAt             DateTime?
+  estimatedHours          Float?
+  actualHours             Float?
+  order                   Int                 @default(0)
+
+  // Traceability & Lineage (Work DNA Source)
+  sourceType              String?             // REQUIREMENT | PROPOSAL_SCOPE | DELIVERABLE | MANUAL | CHANGE_REQUEST
+  sourceRequirementId     String?
+  sourceRequirementTitle  String?
+  sourceProposalId        String?
+  sourceProposalReference String?
+  sourceScopeItem         String?
+  sourceDeliverableTitle  String?
+  sourceSection           String?
+
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @default(now()) @updatedAt
+
+  subtasks                SubTask[]
+  acceptanceCriteria      TaskAcceptanceCriterion[]
+  dependencies            TaskDependency[]    @relation("TaskDependsOn")
+  dependentOnMe           TaskDependency[]    @relation("TaskBlocks")
+  comments                TaskComment[]
+  attachments             TaskAttachment[]
+  reviews                 TaskReview[]
+  activities              TaskActivity[]
+  timeEntries             TaskTimeEntry[]
 
   @@index([clientId, status])
   @@index([projectId])
   @@index([milestoneId])
   @@index([deliverableId])
+  @@index([workstream])
+}
+
+model SubTask {
+  id           String      @id @default(cuid())
+  task         ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId       String
+  title        String
+  completed    Boolean     @default(false)
+  assigneeName String?
+  assigneeId   String?
+  order        Int         @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now()) @updatedAt
+
+  @@index([taskId, order])
+}
+
+model TaskAcceptanceCriterion {
+  id          String                   @id @default(cuid())
+  task        ClientTask               @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+  criterion   String
+  status      AcceptanceCriteriaStatus @default(NOT_STARTED)
+  notes       String?
+  order       Int                      @default(0)
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @default(now()) @updatedAt
+
+  @@index([taskId, order])
+}
+
+model TaskDependency {
+  id                String         @id @default(cuid())
+  task              ClientTask     @relation("TaskDependsOn", fields: [taskId], references: [id], onDelete: Cascade)
+  taskId            String
+  dependsOnTask     ClientTask     @relation("TaskBlocks", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  dependsOnTaskId   String
+  dependencyType    DependencyType @default(BLOCKED_BY)
+  createdAt         DateTime       @default(now())
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+model TaskComment {
+  id              String      @id @default(cuid())
+  task            ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId          String
+  authorId        String?
+  authorName      String
+  authorRole      String?
+  content         String
+  isClientVisible Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskAttachment {
+  id             String      @id @default(cuid())
+  task           ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId         String
+  name           String
+  url            String
+  size           Int         @default(0)
+  category       String      @default("SPECIFICATION") // SPECIFICATION | DESIGN | DELIVERABLE | TEST_REPORT | SCREENSHOT
+  uploadedByName String?
+  createdAt      DateTime    @default(now())
+
+  @@index([taskId])
+}
+
+model TaskReview {
+  id           String           @id @default(cuid())
+  task         ClientTask       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId       String
+  reviewerId   String?
+  reviewerName String
+  status       TaskReviewStatus @default(PENDING)
+  feedback     String?
+  submittedAt  DateTime         @default(now())
+  decidedAt    DateTime?
+  createdAt    DateTime         @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskActivity {
+  id        String      @id @default(cuid())
+  task      ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
+  type      String      // TASK_CREATED | STATUS_CHANGED | ASSIGNED | SUBMITTED_FOR_REVIEW | REVIEWED | CHANGES_REQUESTED | COMPLETED | BLOCKED | UNBLOCKED
+  title     String
+  detail    String?
+  actorName String?
+  createdAt DateTime    @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskTimeEntry {
+  id          String      @id @default(cuid())
+  task        ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+  userId      String?
+  userName    String
+  hours       Float
+  description String?
+  loggedAt    DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+
+  @@index([taskId, loggedAt])
 }
 
 /** Money — contract, invoices, payments. */
