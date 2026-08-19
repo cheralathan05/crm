@@ -949,7 +949,11 @@ export async function serializeProposalDelivery(
       orderBy: { createdAt: "desc" },
     }),
     db.proposalVersion.findMany({ where: { proposalId: proposal.id }, orderBy: { version: "asc" } }),
-    db.clientProject.findMany({ where: { clientId: proposal.clientId }, select: { id: true, name: true, stage: true } }),
+    db.clientProject.findMany({
+      where: { OR: [{ proposalId: proposal.id }, { clientId: proposal.clientId }] },
+      select: { id: true, name: true, code: true, stage: true, proposalId: true },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   const nextAction = proposalNextAction(proposal);

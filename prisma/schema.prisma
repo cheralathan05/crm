@@ -572,7 +572,7 @@ model ClientProject {
   completedAt          DateTime?
   scopeSnapshot        String?       @default("{}")
   createdAt            DateTime      @default(now())
-  updatedAt            DateTime      @updatedAt
+  updatedAt            DateTime      @default(now()) @updatedAt
 
   tasks                ClientTask[]
   milestones           ProjectMilestone[]
@@ -602,7 +602,7 @@ model ProjectMilestone {
   paymentAmount     Float?
   invoiceStatus     String        @default("UNINVOICED") // UNINVOICED | INVOICED | PAID
   createdAt         DateTime      @default(now())
-  updatedAt         DateTime      @updatedAt
+  updatedAt         DateTime      @default(now()) @updatedAt
 
   deliverables      ProjectDeliverable[]
   tasks             ClientTask[]
@@ -628,7 +628,7 @@ model ProjectDeliverable {
   clientApprovedBy    String?
   clientFeedback      String?
   createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+  updatedAt           DateTime      @default(now()) @updatedAt
 
   tasks               ClientTask[]
   changeRequests      ProjectChangeRequest[]
@@ -672,7 +672,7 @@ model ProjectChangeRequest {
   decidedAt          DateTime?
   adminResponse      String?
   createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  updatedAt          DateTime            @default(now()) @updatedAt
 
   @@index([projectId, status])
 }

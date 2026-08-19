@@ -101,6 +101,8 @@ type CommandBarProps = {
   onOpenDelivery?: () => void;
   onCreateRevision?: () => void;
   onCreateProject?: () => void;
+  onOpenProject?: (projectId: string) => void;
+  existingProject?: { id: string; name: string; code?: string | null; stage: string } | null;
   isCreatingProject?: boolean;
   projectCreated?: boolean;
 };
@@ -147,6 +149,8 @@ export function CommandBar({
   onOpenDelivery,
   onCreateRevision,
   onCreateProject,
+  onOpenProject,
+  existingProject,
   isCreatingProject,
   projectCreated,
 }: CommandBarProps) {
@@ -565,25 +569,58 @@ export function CommandBar({
         </div>
       )}
 
-      {/* ═══ APPROVED BANNER: READY TO CREATE PROJECT (Specs 49, 66, 71) ═══ */}
+      {/* ═══ APPROVED BANNER: READY TO CREATE / OPEN PROJECT (Specification 03) ═══ */}
       {status === "APPROVED" && (
-        <div className="px-4 py-2.5 bg-[#eef6ec] border-t border-[#d8edd4] flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-2 text-[12px] text-[#3f6e35]">
-            <CheckCircle2 className="w-4 h-4 text-[#3f6e35] shrink-0" />
-            <span>
-              <strong>Proposal Approved by Client!</strong> Version v{version} is locked. Ready to convert to an active project with task breakdown.
-            </span>
-          </div>
-          {onCreateProject && (
-            <button
-              type="button"
-              disabled={isCreatingProject || projectCreated}
-              onClick={onCreateProject}
-              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[#3f6e35] text-white text-[11px] font-medium hover:brightness-95 disabled:opacity-50 transition-all shadow-sm"
-            >
-              {isCreatingProject ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
-              {projectCreated ? "Project Created ✓" : "Create Project Now"}
-            </button>
+        <div className="px-4 py-2.5 bg-[#f5fbf3] border-t border-[#d8edd4] flex items-center justify-between gap-4 flex-wrap">
+          {existingProject ? (
+            <>
+              <div className="flex items-center gap-3 text-[12px] text-[#2c5324]">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs font-mono text-[10px] font-semibold tracking-wider uppercase bg-[#3f6e35] text-white">
+                  <CheckCircle2 className="w-3 h-3" /> PROJECT CREATED
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="font-semibold text-[12.5px] text-[var(--bos-text-primary)]">
+                    Project: {existingProject.name} {existingProject.code ? `(${existingProject.code})` : ""}
+                  </span>
+                  <span className="text-[11px] text-[var(--bos-text-tertiary)]">·</span>
+                  <span className="text-[11px] font-mono uppercase bg-[var(--bos-surface-sunken)] px-1.5 py-0.5 rounded text-[var(--bos-text-secondary)]">
+                    Status: {existingProject.stage}
+                  </span>
+                </div>
+              </div>
+              {onOpenProject && (
+                <button
+                  type="button"
+                  onClick={() => onOpenProject(existingProject.id)}
+                  className="inline-flex items-center gap-1.5 h-7 px-3.5 rounded-sm bg-[#3f6e35] text-white text-[11.5px] font-medium hover:brightness-95 transition-all shadow-sm cursor-pointer"
+                >
+                  <span>Open Project</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              )}
+            </>
+          ) : (
+            <>
+              <div className="flex items-center gap-3 text-[12px] text-[#2c5324]">
+                <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-xs font-mono text-[10px] font-semibold tracking-wider uppercase bg-[#3f6e35] text-white">
+                  <CheckCircle2 className="w-3 h-3" /> CLIENT APPROVED
+                </span>
+                <span className="text-[12px] text-[var(--bos-text-secondary)]">
+                  This proposal has been approved by the client. <strong className="text-[var(--bos-text-primary)]">Project: Not created yet</strong>
+                </span>
+              </div>
+              {onCreateProject && (
+                <button
+                  type="button"
+                  disabled={isCreatingProject || projectCreated}
+                  onClick={onCreateProject}
+                  className="inline-flex items-center gap-1.5 h-7 px-3.5 rounded-sm bg-[#3f6e35] text-white text-[11.5px] font-medium hover:brightness-95 disabled:opacity-50 transition-all shadow-sm cursor-pointer"
+                >
+                  {isCreatingProject ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+                  <span>{projectCreated ? "Project Created ✓" : "Create Project"}</span>
+                </button>
+              )}
+            </>
           )}
         </div>
       )}

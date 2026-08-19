@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { AnimatePresence } from "framer-motion";
 import { AlertTriangle, Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,7 +39,8 @@ export const GENERATION_STEPS = [
 ];
 
 export function ProposalStudio({ initial }: { initial: StudioInitial }) {
-  const [doc, setDoc] = useState<ProposalDoc>(initial.document);
+  const router = useRouter();
+  const [doc, setDoc] = useState<ProposalDoc>(() => normalizeDoc(initial.document));
   const [proposalMeta, setProposalMeta] = useState(initial.proposal);
   const [activeSection, setActiveSection] = useState<string>("cover");
   const [selectedBlock, setSelectedBlock] = useState<SelectedBlock>(null);
@@ -756,23 +758,18 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
     }
   }, [initial.proposal.id, refreshDelivery]);
 
-  const createProject = useCallback(async () => {
-    setIsCreatingProject(true);
-    setError(null);
-    setNotice(null);
-    try {
-      const res = await fetch(`/api/proposals/${initial.proposal.id}/create-project`, { method: "POST" });
-      const data = await res.json();
-      if (!res.ok || !data.ok) throw new Error(data.message ?? "The project could not be created.");
-      setProjectCreated(true);
-      setNotice(`✓ Project "${data.project?.name || "Client Project"}" successfully created from approved proposal!`);
-      await refreshDelivery();
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "The project could not be created.");
-    } finally {
-      setIsCreatingProject(false);
-    }
-  }, [initial.proposal.id, refreshDelivery]);
+  const existingProject = useMemo(() => {
+    return delivery?.projects?.find((p: any) => p.proposalId === initial.proposal.id) ||
+      (delivery?.projects && delivery.projects.length > 0 ? delivery.projects[0] : null);
+  }, [delivery?.projects, initial.proposal.id]);
+
+  const createProject = useCallback(() => {
+    router.push(`/projects/launch?proposalId=${initial.proposal.id}`);
+  }, [initial.proposal.id, router]);
+
+  const openProject = useCallback((projectId: string) => {
+    router.push(`/projects/${projectId}`);
+  }, [router]);
 
   /* ── Keyboard shortcuts ─────────────────────────────────────── */
 
@@ -964,8 +961,9 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
         delivery={delivery}
         health={health}
         onOpenDelivery={() => setDeliveryPanel(true)}
-        onCreateRevision={() => void createRevision()}
         onCreateProject={createProject}
+        onOpenProject={openProject}
+        existingProject={existingProject}
         isCreatingProject={isCreatingProject}
         projectCreated={projectCreated}
         onPreview={() => {

@@ -2,16 +2,15 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getProposalForUser } from "@/lib/proposal";
-import { recordAudit } from "@/lib/clients";
+import { extractApprovedScopeAndPlan, launchProjectFromApprovedProposal, nextProjectCode } from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 /* ── POST /api/proposals/[id]/create-project ───────────────────
-   Converts an approved proposal into an active Business OS project.
-   Seeds tasks from the proposal's approved deliverables & features.
-   Updates client lifecycle stage to PROJECT. */
+   Converts an approved proposal into an active Business OS project
+   with traceable milestones, deliverables, and tasks. */
 
 export async function POST(_req: Request, { params }: Ctx) {
   const session = await auth();
@@ -24,109 +23,70 @@ export async function POST(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Proposal not found." }, { status: 404 });
   }
 
-  // Parse deliverables from the document
-  let deliverables: { title: string; priority: string; description?: string }[] = [];
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    include: { workspace: true },
+  });
+  if (!user?.workspace) {
+    return NextResponse.json({ ok: false, message: "Workspace not found." }, { status: 404 });
+  }
+
+  // Check if project already exists for this proposal
+  const existing = await db.clientProject.findFirst({
+    where: { proposalId: proposal.id },
+  });
+  if (existing) {
+    return NextResponse.json({
+      ok: true,
+      project: { id: existing.id, code: existing.code, name: existing.name },
+      message: "Project already exists.",
+    });
+  }
+
   try {
-    const doc = JSON.parse(proposal.document || "{}");
-    if (Array.isArray(doc.sections)) {
-      for (const section of doc.sections) {
-        if (Array.isArray(section.blocks)) {
-          for (const block of section.blocks) {
-            if (block.type === "deliverable" && block.name) {
-              deliverables.push({
-                title: block.name,
-                priority: "HIGH",
-                description: block.description || block.acceptance || "",
-              });
-            } else if (block.type === "feature_card" && block.title) {
-              deliverables.push({
-                title: block.title,
-                priority: block.priority ? block.priority.toUpperCase() : "MEDIUM",
-                description: block.purpose || block.businessNeed || "",
-              });
-            } else if (block.type === "timeline" && Array.isArray(block.phases)) {
-              for (const p of block.phases) {
-                if (p.title) {
-                  deliverables.push({
-                    title: `Phase: ${p.title}`,
-                    priority: "MEDIUM",
-                    description: p.description || "",
-                  });
-                }
-              }
-            }
-          }
-        }
-      }
+    let requirementFeatures: Array<{ name: string; priority: string; description?: string; acceptanceCriteria?: string }> = [];
+    if (proposal.requirementRequestId) {
+      const reqFeatures = await db.requirementFeature.findMany({
+        where: { requestId: proposal.requirementRequestId },
+        orderBy: { order: "asc" },
+      });
+      requirementFeatures = reqFeatures.map((f) => ({
+        name: f.name,
+        priority: f.priority,
+        description: f.description,
+        acceptanceCriteria: f.acceptanceCriteria,
+      }));
     }
-  } catch {
-    /* fallback to default task */
-  }
 
-  if (deliverables.length === 0) {
-    deliverables = [
-      { title: "Project Kickoff & Requirements Baseline", priority: "HIGH", description: "Initial kickoff meeting and stakeholder alignment." },
-      { title: "Solution Architecture & Design", priority: "MEDIUM", description: "Core platform design and architectural sign-off." },
-      { title: "Core Platform Implementation", priority: "HIGH", description: "Development of agreed capabilities." },
-      { title: "Quality Assurance & User Acceptance Testing", priority: "HIGH", description: "Verification against acceptance criteria." },
-      { title: "Final Delivery & Handover", priority: "HIGH", description: "Deployment and operational handover." },
-    ];
-  }
+    const code = await nextProjectCode(user.workspace.id);
+    const plan = extractApprovedScopeAndPlan(proposal, requirementFeatures);
 
-  try {
-    // 1. Create the project
-    const project = await db.clientProject.create({
-      data: {
-        clientId: proposal.clientId,
-        name: proposal.title || "Client Project",
-        stage: "PLANNING",
-        health: "ON_TRACK",
-        progress: 0,
-        startedAt: new Date(),
-      },
-    });
-
-    // 2. Create tasks attached to the project
-    const validPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
-    await Promise.all(
-      deliverables.slice(0, 15).map((d) => {
-        const priority = validPriorities.includes(d.priority as any) ? (d.priority as any) : "MEDIUM";
-        return db.clientTask.create({
-          data: {
-            clientId: proposal.clientId,
-            projectId: project.id,
-            title: d.title,
-            priority,
-            status: "TODO",
-          },
-        });
-      }),
-    );
-
-    // 3. Update client stage to PROJECT
-    await db.client.update({
-      where: { id: proposal.clientId },
-      data: { stage: "PROJECT" },
-    });
-
-    // 4. Record audit event
-    await recordAudit({
+    const project = await launchProjectFromApprovedProposal({
+      workspaceId: user.workspace.id,
+      userId: session.user.id,
+      userName: session.user.name ?? "Owner",
       clientId: proposal.clientId,
-      entity: "PROJECT",
-      action: "PROJECT_CREATED",
-      entityId: project.id,
-      actorId: session.user.id,
-      actorName: session.user.name ?? "Owner",
-      after: { projectId: project.id, proposalId: proposal.id, tasksCount: deliverables.length },
+      proposalId: proposal.id,
+      name: proposal.title || "Client Project",
+      code,
+      description: `Delivery project initialized from approved proposal ${proposal.reference || ""}.`,
+      managerId: session.user.id,
+      managerName: session.user.name ?? "Owner",
+      budget: proposal.amount ?? 0,
+      currency: proposal.currency ?? "INR",
+      scopeItems: plan.scopeItems,
+      milestones: plan.milestones,
+      deliverables: plan.deliverables,
+      tasks: plan.tasks,
     });
 
     return NextResponse.json({
       ok: true,
-      project: { id: project.id, name: project.name, stage: project.stage },
-      message: `Project created with ${deliverables.length} initial tasks.`,
+      project: { id: project.id, code: project.code, name: project.name, stage: project.stage },
+      message: `Project ${project.code} successfully launched.`,
     });
-  } catch (err) {
+  } catch (err: any) {
     console.error("[proposal:create-project] failed", err);
-    return NextResponse.json({ ok: false, message: "Could not create project from proposal." }, { status: 500 });
+    return NextResponse.json({ ok: false, message: err.message || "Could not create project from proposal." }, { status: 500 });
   }
 }
