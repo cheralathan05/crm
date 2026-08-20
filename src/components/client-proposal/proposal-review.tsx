@@ -850,6 +850,313 @@ function ClientBlockRender({ block, explainable }: { block: ProposalBlock; expla
     );
   }
 
+  if (block.type === "transformation_map") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        {block.summary && <p className="text-[11.5px] text-[#6b655c]">{block.summary}</p>}
+        <div className="space-y-2.5">
+          {block.steps.map((st, j) => (
+            <div key={j} className="grid sm:grid-cols-2 gap-2.5">
+              <div className="rounded-sm border border-[#f0cbb8] bg-[#fdf3e7] p-2.5 space-y-1 text-[11px]">
+                <div className="font-mono text-[9px] uppercase font-bold text-[#9a5b13]">{st.stage} — Current Constraint</div>
+                <div className="text-[#7c4d08]">{st.current}</div>
+                <div className="text-[9.5px] text-[#9a5b13] pt-0.5"><strong className="text-[#7c4d08]">Impact:</strong> {st.impact}</div>
+              </div>
+              <div className="rounded-sm border border-[#c3e2bf] bg-[#eef6ec] p-2.5 space-y-1 text-[11px]">
+                <div className="font-mono text-[9px] uppercase font-bold text-[#3f6e35]">Target Product Capability</div>
+                <div className="text-[#2c4f26]">{st.future}</div>
+                <div className="text-[9.5px] text-[#3f6e35] pt-0.5"><strong className="text-[#2c4f26]">Outcome:</strong> {st.outcome}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "system_blueprint") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        {block.description && <p className="text-[11.5px] text-[#6b655c]">{block.description}</p>}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+          {block.nodes.map((node, j) => (
+            <div key={j} className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-2.5 space-y-1.5">
+              <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-[#b5452a] font-bold">{node.category}</span>
+              <div className="text-[11.5px] font-semibold text-[#1a1714]">{node.title}</div>
+              <ul className="space-y-0.5 text-[10.5px] text-[#6b655c]">
+                {node.items.map((it, k) => (
+                  <li key={k} className="flex items-start gap-1.5">
+                    <span className="text-[#b5452a] mt-0.5">•</span>
+                    <span>{it}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "module_card") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] border-l-[3px] border-l-[#b5452a] bg-white p-4 my-3 space-y-2.5">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] font-bold text-[#b5452a] bg-[#f5edea] px-1.5 py-0.5 rounded-[3px]">{block.id || "MOD"}</span>
+            <span className="text-[13.5px] font-semibold text-[#1a1714]">{block.name}</span>
+          </div>
+          <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded-[3px] bg-[#f5edea] text-[#b5452a] font-bold">{block.priority || "MUST_HAVE"}</span>
+        </div>
+        <p className="text-[12px] text-[#2a2621] leading-relaxed">{block.purpose}</p>
+        <div className="text-[11px] text-[#6b655c]">
+          <span className="text-[9px] font-mono uppercase text-[#9a948a] mr-1.5 font-semibold">Primary Users:</span>
+          {block.primaryUsers.join(", ")}
+        </div>
+        <div className="rounded-sm bg-[#faf7f2] border border-[#e7e2d8] p-2.5 space-y-1.5 text-[11px]">
+          <div className="font-mono text-[9px] uppercase font-bold text-[#1a1714]">User Actions & System Behaviors</div>
+          <div className="grid sm:grid-cols-2 gap-2 text-[10.5px] text-[#6b655c]">
+            <div>
+              <strong className="text-[#1a1714] block text-[9.5px]">Actions:</strong>
+              {block.userActions.map((a, k) => <div key={k}>• {a}</div>)}
+            </div>
+            <div>
+              <strong className="text-[#1a1714] block text-[9.5px]">Business Rules:</strong>
+              {block.businessRules.map((r, k) => <div key={k}>• {r}</div>)}
+            </div>
+          </div>
+        </div>
+        <div className="text-[11px] text-[#3f6e35] font-medium pt-0.5">
+          <strong className="text-[#2c4f26] font-semibold">Business Value:</strong> {block.businessValue}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "journey_flow") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[#b5452a] font-bold">User Journey — {block.persona}</div>
+        <div className="text-[12px] text-[#1a1714] font-medium">Primary Goal: {block.primaryGoal}</div>
+        <div className="space-y-2">
+          {block.steps.map((st, j) => (
+            <div key={j} className="flex items-start gap-3 text-[11.5px] bg-[#faf7f2] p-2.5 rounded-sm border border-[#e7e2d8]">
+              <span className="font-mono text-[10px] font-bold text-[#b5452a] bg-[#f5edea] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">0{st.stepNumber}</span>
+              <div className="min-w-0 space-y-0.5">
+                <div className="font-semibold text-[#1a1714]">{st.action}</div>
+                <div className="text-[10px] text-[#9a948a] font-mono">Screen: {st.screenExperience}</div>
+                <div className="text-[11px] text-[#6b655c]">{st.systemResponse}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "feature_matrix") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        {block.summary && <p className="text-[11.5px] text-[#6b655c]">{block.summary}</p>}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="bg-[#b5452a] text-white text-[9.5px] font-mono uppercase tracking-[0.1em]">
+                <th className="px-2.5 py-1.5">ID</th>
+                <th className="px-2.5 py-1.5">Module</th>
+                <th className="px-2.5 py-1.5">Feature & Purpose</th>
+                <th className="px-2.5 py-1.5">User</th>
+                <th className="px-2.5 py-1.5">Release</th>
+              </tr>
+            </thead>
+            <tbody className="text-[11px] text-[#2a2621]">
+              {block.items.map((it, j) => (
+                <tr key={j} className={j % 2 === 0 ? "bg-[#faf7f2]" : ""}>
+                  <td className="px-2.5 py-2 font-mono font-semibold text-[#b5452a] border-b border-[#e7e2d8]">{it.featureId}</td>
+                  <td className="px-2.5 py-2 font-medium border-b border-[#e7e2d8]">{it.module}</td>
+                  <td className="px-2.5 py-2 border-b border-[#e7e2d8]">
+                    <div className="font-semibold text-[#1a1714]">{it.name}</div>
+                    <div className="text-[10px] text-[#6b655c]">{it.whatItDoes}</div>
+                  </td>
+                  <td className="px-2.5 py-2 text-[10px] border-b border-[#e7e2d8]">{it.user}</td>
+                  <td className="px-2.5 py-2 font-mono font-bold text-[9.5px] border-b border-[#e7e2d8]">
+                    <span className={it.priority === "MVP" ? "text-[#b5452a]" : "text-[#6b655c]"}>{it.priority}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "acceptance_spec") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-2 text-[11.5px]">
+        <div className="flex items-center justify-between">
+          <span className="font-mono text-[9px] uppercase font-bold text-[#b5452a]">{block.id}: {block.featureTitle}</span>
+          <span className="font-mono text-[8.5px] text-[#9a948a]">GIVEN-WHEN-THEN</span>
+        </div>
+        <div className="space-y-1">
+          <div><strong className="text-[#b5452a]">GIVEN:</strong> {block.given}</div>
+          <div><strong className="text-[#b5452a]">WHEN:</strong> {block.when}</div>
+          <div>
+            <strong className="text-[#b5452a] block">THEN:</strong>
+            <ul className="pl-3 space-y-0.5 text-[#6b655c]">
+              {block.then.map((t, k) => <li key={k}>• {t}</li>)}
+            </ul>
+          </div>
+        </div>
+        {block.failureBehavior && (
+          <div className="text-[10.5px] text-[#9a5b13] pt-1">
+            <strong>Failure Behavior:</strong> {block.failureBehavior}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (block.type === "domain_entity_map") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        <div className="grid sm:grid-cols-2 gap-2.5">
+          {block.entities.map((e, j) => (
+            <div key={j} className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-2.5 space-y-1 text-[11px]">
+              <div className="font-bold text-[#1a1714] text-[12px]">{e.name}</div>
+              <p className="text-[10.5px] text-[#6b655c]">{e.description}</p>
+              <div className="font-mono text-[9px] text-[#9a948a] pt-1">Attrs: {e.keyAttributes.join(", ")}</div>
+              <div className="font-mono text-[9px] text-[#b5452a]">Relations: {e.relationships.join(" | ")}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "integration_spec") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-3.5 my-3 space-y-2 text-[11.5px]">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[#1a1714] text-[12.5px]">{block.serviceName}</span>
+          <span className="font-mono text-[9px] text-[#b5452a] uppercase">{block.category}</span>
+        </div>
+        <p className="text-[#6b655c] text-[11px]">{block.purpose}</p>
+        <div className="grid sm:grid-cols-2 gap-1.5 text-[10px] text-[#6b655c] bg-[#faf7f2] p-2 rounded-sm border border-[#e7e2d8]">
+          <div><strong>Data:</strong> {block.dataExchanged}</div>
+          <div><strong>Trigger:</strong> {block.trigger}</div>
+          <div><strong>Direction:</strong> {block.direction}</div>
+          <div><strong>Failure Protocol:</strong> {block.failureBehavior}</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "screen_card") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-3 my-2 space-y-1 text-[11.5px]">
+        <div className="flex items-center justify-between">
+          <span className="font-semibold text-[#1a1714]">{block.screenId || "SCR"}: {block.name}</span>
+          <span className="text-[9.5px] text-[#9a948a]">User: {block.primaryUser}</span>
+        </div>
+        <p className="text-[#6b655c] text-[11px]">{block.purpose}</p>
+        <div className="text-[10px] text-[#9a948a]"><strong className="text-[#6b655c]">Key Info:</strong> {block.keyInformation.join(" · ")}</div>
+        <div className="text-[10px] text-[#b5452a]"><strong className="text-[#6b655c]">Actions:</strong> {block.primaryActions.join(" · ")}</div>
+      </div>
+    );
+  }
+
+  if (block.type === "qa_verification") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-[11px]">
+            <thead>
+              <tr className="bg-[#b5452a] text-white text-[9.5px] font-mono uppercase">
+                <th className="px-2.5 py-1.5">Workflow</th>
+                <th className="px-2.5 py-1.5">Test Type</th>
+                <th className="px-2.5 py-1.5">Expected Result</th>
+                <th className="px-2.5 py-1.5">Verification Gate</th>
+              </tr>
+            </thead>
+            <tbody>
+              {block.items.map((qa, j) => (
+                <tr key={j} className={j % 2 === 0 ? "bg-[#faf7f2]" : ""}>
+                  <td className="px-2.5 py-2 font-medium border-b border-[#e7e2d8]">{qa.featureOrWorkflow}</td>
+                  <td className="px-2.5 py-2 font-mono text-[9px] border-b border-[#e7e2d8]">{qa.testType}</td>
+                  <td className="px-2.5 py-2 text-[#6b655c] border-b border-[#e7e2d8]">{qa.expectedResult}</td>
+                  <td className="px-2.5 py-2 text-[#3f6e35] font-medium border-b border-[#e7e2d8]">{qa.acceptanceVerification}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "roadmap_phase") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        <div className="space-y-2">
+          {block.phases.map((ph, j) => (
+            <div key={j} className="flex items-start gap-3 bg-[#faf7f2] p-2.5 rounded-sm border border-[#e7e2d8] text-[11.5px]">
+              <span className="font-mono text-[11px] font-bold text-[#b5452a] shrink-0 mt-0.5">{ph.phaseNumber}</span>
+              <div className="min-w-0 space-y-0.5">
+                <div className="font-semibold text-[#1a1714]">{ph.name}</div>
+                <div className="text-[10.5px] text-[#6b655c]">{ph.focus}</div>
+                <div className="text-[10px] text-[#9a948a]"><strong className="text-[#1a1714]">Deliverables:</strong> {ph.deliverables.join(" · ")}</div>
+                <div className="text-[10px] text-[#3f6e35] font-semibold">Gate: {ph.verificationGate}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "security_boundary") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-2.5 text-[11.5px]">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        {block.overview && <p className="text-[11px] text-[#6b655c]">{block.overview}</p>}
+        <div className="space-y-1.5">
+          {block.boundaries.map((sb, j) => (
+            <div key={j} className="flex items-start gap-2 bg-[#faf7f2] p-2 rounded-sm border border-[#e7e2d8]">
+              <span className="font-semibold text-[#1a1714] min-w-[90px] text-[11px] shrink-0">{sb.layer}:</span>
+              <span className="text-[#6b655c] text-[10.5px]">{sb.mechanism} — <strong className="text-[#3f6e35]">{sb.threatProtection}</strong></span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "migration_pipeline") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-4 my-3 space-y-2 text-[11.5px]">
+        <div className="font-mono text-[9px] uppercase font-bold text-[#b5452a]">Legacy Transition — {block.systemName}</div>
+        <p className="text-[11px] text-[#6b655c]">{block.scopeSummary}</p>
+        <div className="space-y-1 pt-1">
+          {block.steps.map((st, j) => (
+            <div key={j} className="flex items-center gap-2 bg-white p-2 rounded-sm border border-[#e7e2d8] text-[10.5px]">
+              <span className="font-semibold text-[#1a1714] w-20">{st.step}</span>
+              <span className="font-mono text-[9px] font-bold text-[#b5452a] px-1.5 py-0.5 bg-[#f5edea] rounded">{st.treatment}</span>
+              <span className="text-[#6b655c] flex-1">{st.action}</span>
+              <span className="text-[9.5px] text-[#3f6e35]">{st.verification}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 

@@ -509,6 +509,32 @@ export function blockText(b: ProposalBlock): string {
       return [b.name, b.title, b.role, b.date].filter(Boolean).join(" ");
     case "approval":
       return [b.clientName, b.projectName, b.approvedScope, b.authorizedPerson, b.digitalStamp].filter(Boolean).join(" ");
+    case "transformation_map":
+      return [b.title, b.summary, ...b.steps.map((s) => `${s.stage} ${s.current} ${s.future}`)].filter(Boolean).join(" ");
+    case "system_blueprint":
+      return [b.title, b.description, ...b.nodes.map((n) => `${n.title} ${n.items.join(" ")}`)].filter(Boolean).join(" ");
+    case "module_card":
+      return [b.id, b.name, b.purpose, b.businessValue, ...b.userActions, ...b.businessRules].filter(Boolean).join(" ");
+    case "journey_flow":
+      return [b.persona, b.primaryGoal, ...b.steps.map((s) => `${s.action} ${s.screenExperience}`)].filter(Boolean).join(" ");
+    case "feature_matrix":
+      return [b.title, ...b.items.map((i) => `${i.featureId} ${i.name} ${i.whatItDoes}`)].filter(Boolean).join(" ");
+    case "acceptance_spec":
+      return [b.id, b.featureTitle, b.given, b.when, ...b.then].filter(Boolean).join(" ");
+    case "domain_entity_map":
+      return [b.title, ...b.entities.map((e) => `${e.name} ${e.description}`)].filter(Boolean).join(" ");
+    case "integration_spec":
+      return [b.serviceName, b.purpose, b.dataExchanged, b.trigger].filter(Boolean).join(" ");
+    case "screen_card":
+      return [b.screenId, b.name, b.purpose, ...b.primaryActions].filter(Boolean).join(" ");
+    case "qa_verification":
+      return [b.title, ...b.items.map((q) => `${q.featureOrWorkflow} ${q.expectedResult}`)].filter(Boolean).join(" ");
+    case "roadmap_phase":
+      return [b.title, ...b.phases.map((p) => `${p.name} ${p.focus}`)].filter(Boolean).join(" ");
+    case "security_boundary":
+      return [b.title, ...b.boundaries.map((s) => `${s.layer} ${s.mechanism}`)].filter(Boolean).join(" ");
+    case "migration_pipeline":
+      return [b.systemName, b.scopeSummary, ...b.steps.map((s) => `${s.step} ${s.action}`)].filter(Boolean).join(" ");
     default:
       return "";
   }
@@ -558,8 +584,36 @@ export function blockHasContent(b: ProposalBlock): boolean {
       return Boolean(b.name) || Boolean(b.title);
     case "approval":
       return Boolean(b.authorizedPerson) || Boolean(b.clientName);
+    case "transformation_map":
+      return b.steps.length > 0;
+    case "system_blueprint":
+      return b.nodes.length > 0;
+    case "module_card":
+      return b.name.trim().length > 0;
+    case "journey_flow":
+      return b.steps.length > 0;
+    case "feature_matrix":
+      return b.items.length > 0;
+    case "acceptance_spec":
+      return b.featureTitle.trim().length > 0;
+    case "domain_entity_map":
+      return b.entities.length > 0;
+    case "integration_spec":
+      return b.serviceName.trim().length > 0;
+    case "screen_card":
+      return b.name.trim().length > 0;
+    case "qa_verification":
+      return b.items.length > 0;
+    case "roadmap_phase":
+      return b.phases.length > 0;
+    case "security_boundary":
+      return b.boundaries.length > 0;
+    case "migration_pipeline":
+      return b.steps.length > 0;
     case "page_break":
     case "spacer":
+      return true;
+    default:
       return true;
   }
 }

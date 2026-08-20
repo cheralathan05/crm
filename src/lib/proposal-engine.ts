@@ -1193,6 +1193,7 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
 
   /* ── 16. Return Unified ProposalDoc ── */
   return {
+    version: proposal.version || 1,
     meta: {
       reference: ref,
       title: projectTitle,
