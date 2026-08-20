@@ -159,18 +159,21 @@ export async function POST(req: Request) {
   const createAnyway = body.createAnyway === true;
 
   if (duplicates.length > 0 && !createAnyway) {
-    return NextResponse.json({
-      ok: false,
-      code: "POSSIBLE_DUPLICATE",
-      message: "A client with this name may already exist.",
-      duplicates: duplicates.map((d) => ({
-        id: d.id,
-        companyName: d.companyName,
-        status: d.status,
-        createdAt: d.createdAt,
-        match: d.match,
-      })),
-    });
+    return NextResponse.json(
+      {
+        ok: false,
+        code: "POSSIBLE_DUPLICATE",
+        message: "A client with this name or email may already exist.",
+        duplicates: duplicates.map((d) => ({
+          id: d.id,
+          companyName: d.companyName,
+          status: d.status,
+          createdAt: d.createdAt,
+          match: d.match,
+        })),
+      },
+      { status: 409 },
+    );
   }
 
   const client = await db.client.create({

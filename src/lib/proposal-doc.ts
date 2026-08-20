@@ -70,6 +70,178 @@ export type DigitalApproval = {
   status?: string;
 };
 
+export type TransformationStep = {
+  stage: string;
+  current: string;
+  impact: string;
+  future: string;
+  outcome: string;
+};
+
+export type TransformationMap = {
+  title?: string;
+  summary?: string;
+  steps: TransformationStep[];
+};
+
+export type SystemBlueprintNode = {
+  category: "USERS" | "EXPERIENCE" | "CORE_WORKFLOWS" | "SERVICES_DATA" | "INTEGRATIONS" | "ADMIN_GOVERNANCE";
+  title: string;
+  items: string[];
+};
+
+export type SystemBlueprint = {
+  title?: string;
+  description?: string;
+  nodes: SystemBlueprintNode[];
+};
+
+export type ModuleCard = {
+  id?: string;
+  name: string;
+  purpose: string;
+  primaryUsers: string[];
+  userActions: string[];
+  workflowSequence: string[];
+  businessRules: string[];
+  dependencies: string[];
+  output: string;
+  businessValue: string;
+  priority?: "MUST_HAVE" | "SHOULD_HAVE" | "NICE_TO_HAVE" | "HIGH" | "MEDIUM" | "LOW";
+};
+
+export type JourneyStep = {
+  stepNumber: number;
+  action: string;
+  screenExperience: string;
+  systemResponse: string;
+};
+
+export type JourneyFlow = {
+  persona: string;
+  roleDescription: string;
+  primaryGoal: string;
+  steps: JourneyStep[];
+};
+
+export type FeatureMatrixItem = {
+  featureId: string;
+  module: string;
+  name: string;
+  user: string;
+  whatItDoes: string;
+  businessPurpose: string;
+  priority: "MVP" | "PHASE_2" | "FUTURE" | "OUT_OF_SCOPE";
+  dependency?: string;
+  acceptanceId?: string;
+};
+
+export type FeatureMatrix = {
+  title?: string;
+  summary?: string;
+  items: FeatureMatrixItem[];
+};
+
+export type AcceptanceSpec = {
+  id: string;
+  featureTitle: string;
+  given: string;
+  when: string;
+  then: string[];
+  validationRules?: string[];
+  permissions?: string;
+  failureBehavior?: string;
+  edgeCases?: string[];
+};
+
+export type DomainEntity = {
+  name: string;
+  description: string;
+  keyAttributes: string[];
+  relationships: string[];
+};
+
+export type DomainEntityMap = {
+  title?: string;
+  description?: string;
+  entities: DomainEntity[];
+};
+
+export type IntegrationSpec = {
+  serviceName: string;
+  category: string;
+  purpose: string;
+  dataExchanged: string;
+  trigger: string;
+  authentication: string;
+  direction: "INBOUND" | "OUTBOUND" | "BIDIRECTIONAL";
+  failureBehavior: string;
+  isConfirmed: boolean;
+};
+
+export type ScreenCard = {
+  screenId?: string;
+  name: string;
+  purpose: string;
+  primaryUser: string;
+  keyInformation: string[];
+  primaryActions: string[];
+  dependencies?: string;
+};
+
+export type QAVerificationItem = {
+  featureOrWorkflow: string;
+  testType: "FUNCTIONAL" | "INTEGRATION" | "SECURITY_PERMISSIONS" | "UAT" | "PERFORMANCE" | "MIGRATION";
+  testProcedure: string;
+  expectedResult: string;
+  acceptanceVerification: string;
+};
+
+export type QAVerification = {
+  title?: string;
+  items: QAVerificationItem[];
+};
+
+export type RoadmapPhaseItem = {
+  phaseNumber: string;
+  name: string;
+  focus: string;
+  deliverables: string[];
+  verificationGate: string;
+  duration?: string;
+};
+
+export type RoadmapPhase = {
+  title?: string;
+  phases: RoadmapPhaseItem[];
+};
+
+export type SecurityBoundaryItem = {
+  layer: string;
+  mechanism: string;
+  threatProtection: string;
+};
+
+export type SecurityBoundary = {
+  title?: string;
+  overview?: string;
+  boundaries: SecurityBoundaryItem[];
+};
+
+export type MigrationPipelineStep = {
+  step: string;
+  action: string;
+  treatment: "KEEP" | "CHANGE" | "REPLACE" | "MIGRATE";
+  verification: string;
+};
+
+export type MigrationPipeline = {
+  systemName: string;
+  currentProcess: string;
+  scopeSummary: string;
+  steps: MigrationPipelineStep[];
+};
+
 export type ProposalBlockShape =
   | { type: "paragraph"; text: string }
   | { type: "heading"; text: string; level?: 1 | 2 | 3 }
@@ -86,7 +258,20 @@ export type ProposalBlockShape =
   | { type: "requirement_reference"; reference: string; title: string; status?: string; details?: string }
   | { type: "quote"; text: string; attribution?: string }
   | { type: "architecture"; title?: string; layers: ArchitectureLayer[] }
-  | { type: "comparison" } & ProblemSolutionComparison
+  | ({ type: "comparison" } & ProblemSolutionComparison)
+  | ({ type: "transformation_map" } & TransformationMap)
+  | ({ type: "system_blueprint" } & SystemBlueprint)
+  | ({ type: "module_card" } & ModuleCard)
+  | ({ type: "journey_flow" } & JourneyFlow)
+  | ({ type: "feature_matrix" } & FeatureMatrix)
+  | ({ type: "acceptance_spec" } & AcceptanceSpec)
+  | ({ type: "domain_entity_map" } & DomainEntityMap)
+  | ({ type: "integration_spec" } & IntegrationSpec)
+  | ({ type: "screen_card" } & ScreenCard)
+  | ({ type: "qa_verification" } & QAVerification)
+  | ({ type: "roadmap_phase" } & RoadmapPhase)
+  | ({ type: "security_boundary" } & SecurityBoundary)
+  | ({ type: "migration_pipeline" } & MigrationPipeline)
   | { type: "pricing_table"; headers: string[]; rows: string[][]; total?: string; milestones?: { name: string; amount: string; schedule: string }[] }
   | { type: "assumption"; id: string; description: string; owner?: string; impact?: string; status?: string; source?: string }
   | { type: "risk"; title: string; description: string; impact?: string; probability?: string; mitigation?: string; owner?: string; status?: string; aiDerived?: boolean }

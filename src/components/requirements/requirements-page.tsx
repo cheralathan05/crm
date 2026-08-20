@@ -214,7 +214,17 @@ export function RequirementsPage() {
           </div>
         )}
         {rows.map((row) => (
-          <RequirementRow key={row.id} row={row} onOpen={() => router.push(`/clients/${row.clientId}#requirement-requests`)} />
+          <RequirementRow
+            key={row.id}
+            row={row}
+            onOpen={() => {
+              if (row.clientId) {
+                router.push(`/clients/${row.clientId}#requirement-requests`);
+              } else {
+                router.push("/clients");
+              }
+            }}
+          />
         ))}
       </div>
 

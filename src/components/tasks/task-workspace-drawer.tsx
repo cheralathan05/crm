@@ -455,13 +455,21 @@ export function TaskWorkspaceDrawer({
               {data.task.title}
             </h1>
             <div className="flex items-center gap-3 mt-1.5 text-[12px] text-[var(--bos-text-secondary)] font-mono">
-              <Link href={`/clients/${data.client.id}`} className="hover:underline text-[var(--bos-text-primary)] font-sans font-medium">
-                {data.client.companyName}
-              </Link>
+              {data.client?.id ? (
+                <Link href={`/clients/${data.client.id}`} className="hover:underline text-[var(--bos-text-primary)] font-sans font-medium">
+                  {data.client.companyName}
+                </Link>
+              ) : (
+                <span className="text-[var(--bos-text-primary)] font-sans font-medium">{data.client?.companyName || "Client"}</span>
+              )}
               <span>/</span>
-              <Link href={`/projects/${data.project.id}`} className="hover:underline text-[var(--bos-text-primary)] font-sans font-medium">
-                {data.project.name}
-              </Link>
+              {data.project?.id ? (
+                <Link href={`/projects/${data.project.id}`} className="hover:underline text-[var(--bos-text-primary)] font-sans font-medium">
+                  {data.project.name}
+                </Link>
+              ) : (
+                <span className="text-[var(--bos-text-primary)] font-sans font-medium">{data.project?.name || "Project"}</span>
+              )}
               {data.milestone && (
                 <>
                   <span>/</span>

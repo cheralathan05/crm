@@ -574,6 +574,287 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         ],
         margin: [0, 6, 0, 12],
       });
+    } else if (b.type === "transformation_map") {
+      push({
+        stack: [
+          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
+          ...(b.summary ? [{ text: b.summary, style: "body", color: MUTED, margin: [0, 0, 0, 8] }] : []),
+          ...b.steps.map((st) => ({
+            columns: [
+              {
+                width: "*",
+                stack: [
+                  { text: `${st.stage} — CURRENT STATE`, style: "micro", bold: true, color: "#9a5b13", margin: [0, 0, 0, 2] },
+                  { text: st.current, style: "body", margin: [0, 0, 0, 2] },
+                  { text: `Impact: ${st.impact}`, style: "body", color: MUTED, fontSize: 9 },
+                ],
+                background: "#fdf3e7",
+                padding: [8, 6, 8, 6],
+              },
+              { width: 8, text: "" },
+              {
+                width: "*",
+                stack: [
+                  { text: "TARGET PRODUCT CAPABILITY", style: "micro", bold: true, color: "#3f6e35", margin: [0, 0, 0, 2] },
+                  { text: st.future, style: "body", margin: [0, 0, 0, 2] },
+                  { text: `Outcome: ${st.outcome}`, style: "body", color: MUTED, fontSize: 9 },
+                ],
+                background: "#eef6ec",
+                padding: [8, 6, 8, 6],
+              },
+            ],
+            margin: [0, 0, 0, 6],
+          })),
+        ],
+        margin: [0, 2, 0, 12],
+      });
+    } else if (b.type === "system_blueprint") {
+      push({
+        stack: [
+          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
+          ...(b.description ? [{ text: b.description, style: "body", color: MUTED, margin: [0, 0, 0, 8] }] : []),
+          ...b.nodes.map((node) => ({
+            stack: [
+              { text: `${node.category}: ${node.title}`, bold: true, fontSize: 9.5, color: INK, margin: [0, 0, 0, 3] },
+              { text: node.items.map((it) => `• ${it}`).join("   "), style: "body", color: MUTED, fontSize: 9 },
+            ],
+            background: "#faf7f2",
+            padding: [8, 6, 8, 6],
+            borderColor: RULE,
+            borderWidth: [0.6, 0.6, 0.6, 0.6],
+            margin: [0, 0, 0, 6],
+          })),
+        ],
+        margin: [0, 2, 0, 12],
+      });
+    } else if (b.type === "module_card") {
+      push({
+        stack: [
+          { columns: [{ text: `${b.id || "MODULE"}: ${b.name}`, style: "cardTitle" }, { text: (b.priority || "MUST_HAVE").replace("_", " "), style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
+          { text: b.purpose, style: "body", margin: [0, 2, 0, 4] },
+          { text: `Primary Users: ${b.primaryUsers.join(", ")}`, style: "micro", color: MUTED, margin: [0, 0, 0, 4] },
+          { text: "Core Actions:", style: "micro", bold: true, color: INK },
+          { text: b.userActions.map((a) => `• ${a}`).join("\n"), style: "body", color: MUTED, fontSize: 9, margin: [0, 2, 0, 4] },
+          { text: `Business Value: ${b.businessValue}`, style: "body", color: "#3f6e35", fontSize: 9, bold: true },
+        ],
+        margin: [0, 2, 0, 10],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [10, 8, 10, 8],
+      });
+    } else if (b.type === "journey_flow") {
+      push({
+        stack: [
+          { text: `USER JOURNEY — ${b.persona.toUpperCase()}`, style: "micro", bold: true, color: ACCENT },
+          { text: `Primary Goal: ${b.primaryGoal}`, style: "body", bold: true, margin: [0, 2, 0, 4] },
+          ...b.steps.map((st) => ({
+            columns: [
+              { width: 22, text: `0${st.stepNumber}`, style: "micro", bold: true, color: ACCENT },
+              {
+                width: "*",
+                stack: [
+                  { text: st.action, bold: true, fontSize: 9.5, color: INK },
+                  { text: `Screen: ${st.screenExperience}`, style: "micro", color: FAINT },
+                  { text: st.systemResponse, style: "body", color: MUTED, fontSize: 9, margin: [0, 1, 0, 0] },
+                ],
+              },
+            ],
+            margin: [0, 0, 0, 6],
+          })),
+        ],
+        margin: [0, 2, 0, 12],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [10, 8, 10, 8],
+      });
+    } else if (b.type === "feature_matrix") {
+      push({
+        table: {
+          widths: ["auto", "auto", "*", "auto", "auto"],
+          headerRows: 1,
+          body: [
+            [
+              { text: "ID", style: "tableHeader" },
+              { text: "MODULE", style: "tableHeader" },
+              { text: "FEATURE & PURPOSE", style: "tableHeader" },
+              { text: "USER", style: "tableHeader" },
+              { text: "RELEASE", style: "tableHeader" },
+            ],
+            ...b.items.map((it) => [
+              { text: it.featureId, style: "tableCell", bold: true },
+              { text: it.module, style: "tableCell" },
+              {
+                stack: [
+                  { text: it.name, bold: true, fontSize: 9.5, color: INK },
+                  { text: it.whatItDoes, color: MUTED, fontSize: 8.5 },
+                ],
+              },
+              { text: it.user, style: "tableCell", fontSize: 8.5 },
+              { text: it.priority, style: "tableCell", bold: true, color: it.priority === "MVP" ? ACCENT : MUTED },
+            ]),
+          ],
+        },
+        layout: {
+          hLineWidth: (i: number) => (i <= 1 ? 0.8 : 0.3),
+          vLineWidth: () => 0,
+          hLineColor: (i: number) => (i <= 1 ? ACCENT : RULE),
+          paddingLeft: () => 6,
+          paddingRight: () => 6,
+          paddingTop: () => 5,
+          paddingBottom: () => 5,
+          fillColor: (rowIndex: number) => (rowIndex === 0 ? ACCENT : rowIndex % 2 === 0 ? "#faf7f2" : null),
+        },
+        margin: [0, 4, 0, 14],
+      });
+    } else if (b.type === "acceptance_spec") {
+      push({
+        stack: [
+          { columns: [{ text: `${b.id}: ${b.featureTitle}`, style: "cardTitle" }, { text: "GIVEN-WHEN-THEN", style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
+          { text: [{ text: "GIVEN ", bold: true, color: ACCENT }, { text: b.given }], style: "body", fontSize: 9, margin: [0, 2, 0, 2] },
+          { text: [{ text: "WHEN ", bold: true, color: ACCENT }, { text: b.when }], style: "body", fontSize: 9, margin: [0, 0, 0, 2] },
+          { text: "THEN:", bold: true, style: "body", color: ACCENT, fontSize: 9 },
+          { text: b.then.map((t) => `• ${t}`).join("\n"), style: "body", color: MUTED, fontSize: 8.5, margin: [0, 1, 0, 4] },
+          ...(b.failureBehavior ? [{ text: `Failure Behavior: ${b.failureBehavior}`, style: "micro", color: "#9a5b13" }] : []),
+        ],
+        margin: [0, 2, 0, 10],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [10, 8, 10, 8],
+      });
+    } else if (b.type === "domain_entity_map") {
+      push({
+        stack: [
+          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
+          ...b.entities.map((e) => ({
+            stack: [
+              { text: e.name, bold: true, fontSize: 10, color: INK },
+              { text: e.description, style: "body", color: MUTED, fontSize: 8.5 },
+              { text: `Attributes: ${e.keyAttributes.join(", ")}`, style: "micro", color: FAINT },
+              { text: `Relations: ${e.relationships.join(" | ")}`, style: "micro", color: ACCENT },
+            ],
+            background: "#faf7f2",
+            padding: [6, 5, 6, 5],
+            margin: [0, 0, 0, 4],
+          })),
+        ],
+        margin: [0, 2, 0, 10],
+      });
+    } else if (b.type === "integration_spec") {
+      push({
+        stack: [
+          { columns: [{ text: b.serviceName, style: "cardTitle" }, { text: b.category, style: "micro", color: ACCENT, alignment: "right" }] },
+          { text: b.purpose, style: "body", fontSize: 9, margin: [0, 1, 0, 3] },
+          cardTable([
+            { label: "Data Exchanged", value: b.dataExchanged },
+            { label: "Trigger", value: b.trigger },
+            { label: "Direction", value: b.direction },
+            { label: "Failure Protocol", value: b.failureBehavior },
+          ]),
+        ],
+        margin: [0, 2, 0, 10],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [10, 8, 10, 8],
+      });
+    } else if (b.type === "screen_card") {
+      push({
+        stack: [
+          { columns: [{ text: `${b.screenId || "SCR"}: ${b.name}`, style: "cardTitle" }, { text: `User: ${b.primaryUser}`, style: "micro", color: FAINT, alignment: "right" }] },
+          { text: b.purpose, style: "body", fontSize: 9, margin: [0, 1, 0, 2] },
+          { text: `Key Info: ${b.keyInformation.join(" · ")}`, style: "micro", color: MUTED },
+          { text: `Actions: ${b.primaryActions.join(" · ")}`, style: "micro", color: ACCENT },
+        ],
+        margin: [0, 2, 0, 8],
+        borderColor: RULE,
+        borderWidth: [0.6, 0.6, 0.6, 0.6],
+        padding: [8, 6, 8, 6],
+      });
+    } else if (b.type === "qa_verification") {
+      push({
+        table: {
+          widths: ["*", "auto", "*", "*"],
+          headerRows: 1,
+          body: [
+            [
+              { text: "WORKFLOW / FEATURE", style: "tableHeader" },
+              { text: "TEST TYPE", style: "tableHeader" },
+              { text: "EXPECTED RESULT", style: "tableHeader" },
+              { text: "VERIFICATION GATE", style: "tableHeader" },
+            ],
+            ...b.items.map((qa) => [
+              { text: qa.featureOrWorkflow, style: "tableCell", bold: true },
+              { text: qa.testType, style: "tableCell", fontSize: 8 },
+              { text: qa.expectedResult, style: "tableCell", fontSize: 8.5 },
+              { text: qa.acceptanceVerification, style: "tableCell", fontSize: 8.5, color: "#3f6e35" },
+            ]),
+          ],
+        },
+        layout: {
+          hLineWidth: (i: number) => (i <= 1 ? 0.8 : 0.3),
+          vLineWidth: () => 0,
+          hLineColor: (i: number) => (i <= 1 ? ACCENT : RULE),
+          paddingLeft: () => 6,
+          paddingRight: () => 6,
+          paddingTop: () => 5,
+          paddingBottom: () => 5,
+          fillColor: (rowIndex: number) => (rowIndex === 0 ? ACCENT : rowIndex % 2 === 0 ? "#faf7f2" : null),
+        },
+        margin: [0, 4, 0, 14],
+      });
+    } else if (b.type === "roadmap_phase") {
+      push({
+        stack: [
+          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 6] }] : []),
+          ...b.phases.map((ph) => ({
+            columns: [
+              { width: 26, text: ph.phaseNumber, style: "micro", bold: true, color: ACCENT },
+              {
+                width: "*",
+                stack: [
+                  { text: ph.name, bold: true, fontSize: 10, color: INK },
+                  { text: ph.focus, style: "body", fontSize: 8.5, color: MUTED, margin: [0, 1, 0, 2] },
+                  { text: `Deliverables: ${ph.deliverables.join(" · ")}`, style: "micro", color: INK },
+                  { text: `Gate: ${ph.verificationGate}`, style: "micro", color: "#3f6e35", bold: true },
+                ],
+              },
+            ],
+            margin: [0, 0, 0, 8],
+          })),
+        ],
+        margin: [0, 2, 0, 12],
+      });
+    } else if (b.type === "security_boundary") {
+      push({
+        stack: [
+          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
+          ...b.boundaries.map((sb) => ({
+            columns: [
+              { width: 100, text: sb.layer, bold: true, fontSize: 9, color: INK },
+              { width: "*", text: `${sb.mechanism} — ${sb.threatProtection}`, style: "body", color: MUTED, fontSize: 8.5 },
+            ],
+            margin: [0, 0, 0, 4],
+          })),
+        ],
+        margin: [0, 2, 0, 10],
+      });
+    } else if (b.type === "migration_pipeline") {
+      push({
+        stack: [
+          { text: `LEGACY TRANSITION — ${b.systemName}`, style: "micro", bold: true, color: ACCENT },
+          { text: b.scopeSummary, style: "body", fontSize: 9, margin: [0, 2, 0, 4] },
+          ...b.steps.map((st) => ({
+            columns: [
+              { width: 70, text: st.step, bold: true, fontSize: 8.5, color: INK },
+              { width: 50, text: st.treatment, bold: true, fontSize: 8, color: ACCENT },
+              { width: "*", text: `${st.action} (${st.verification})`, style: "body", color: MUTED, fontSize: 8.5 },
+            ],
+            margin: [0, 0, 0, 3],
+          })),
+        ],
+        margin: [0, 2, 0, 10],
+        background: "#faf7f2",
+        padding: [8, 6, 8, 6],
+      });
     } else if (b.type === "spacer") {
       out.push({ text: "", margin: [0, 0, 0, 18] });
     }

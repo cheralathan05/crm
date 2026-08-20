@@ -48,9 +48,9 @@ export function CreateClientPanel({ onCreated, onCancel }: CreateClientPanelProp
         body: JSON.stringify({ ...form, createAnyway }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        if (data.code === "POSSIBLE_DUPLICATE") {
-          setDuplicates(data.duplicates);
+      if (!res.ok || !data.ok || !data.id) {
+        if (data.code === "POSSIBLE_DUPLICATE" || (data.duplicates && data.duplicates.length > 0)) {
+          setDuplicates(data.duplicates || []);
         } else {
           setError(data.message ?? "Unable to create client.");
         }

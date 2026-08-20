@@ -2325,12 +2325,14 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                     <p>
                       <strong>Email:</strong> {project.client?.email || "Not specified"}
                     </p>
-                    <Link
-                      href={`/clients/${project.clientId}`}
-                      className="inline-block mt-2 px-3 py-1.5 bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[12px] rounded font-medium text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface-canvas)]"
-                    >
-                      Open Full Client Command Center →
-                    </Link>
+                    {(project.clientId || project.client?.id) && (
+                      <Link
+                        href={`/clients/${project.clientId || project.client?.id}`}
+                        className="inline-block mt-2 px-3 py-1.5 bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[12px] rounded font-medium text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface-canvas)]"
+                      >
+                        Open Full Client Command Center →
+                      </Link>
+                    )}
                   </div>
                 </div>
               )}

@@ -229,7 +229,9 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
     ];
   }, [strip]);
 
-  const openClient = (id: string) => router.push(`/clients/${id}`);
+  const openClient = (id: string) => {
+    if (id && id !== "undefined") router.push(`/clients/${id}`);
+  };
 
   return (
     <div className="px-5 sm:px-8 py-6 max-w-6xl">
@@ -259,7 +261,9 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
       {showCreate && (
         <div className="mt-5">
           <CreateClientPanel
-            onCreated={(id) => router.push(`/clients/${id}`)}
+            onCreated={(id) => {
+              if (id && id !== "undefined") router.push(`/clients/${id}`);
+            }}
             onCancel={() => setShowCreate(false)}
           />
         </div>
