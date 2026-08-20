@@ -937,7 +937,7 @@ export async function snapshotProposalVersion(input: {
 export type ProposalDeliveryBundle = Awaited<ReturnType<typeof serializeProposalDelivery>>;
 
 export async function serializeProposalDelivery(
-  proposal: ClientProposal & { client: { id: string; companyName: string; email: string | null; workspaceId: string } },
+  proposal: ClientProposal & { client?: { id: string; companyName: string; email: string | null; workspaceId: string } | null },
 ) {
   const [deliveries, views, approvals, changeRequests, versions, projects] = await Promise.all([
     db.proposalDelivery.findMany({ where: { proposalId: proposal.id }, orderBy: { createdAt: "asc" } }),

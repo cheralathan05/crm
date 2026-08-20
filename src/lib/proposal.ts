@@ -5,6 +5,7 @@ import { PDFDocument } from "pdf-lib";
 import {
   normalizeDoc,
   type ProposalDoc,
+  type ProposalBlock,
 } from "./proposal-doc";
 import { buildPremiumProposalDocument } from "./proposal-engine";
 import type { Client, ClientProposal, Contact, Workspace } from "@/generated/prisma/client";
@@ -131,11 +132,19 @@ export async function getProposalForUser(userId: string, proposalId: string) {
 }
 
 export async function serializeProposalForStudio(
-  proposal: ClientProposal & { client: { id: string; companyName: string; industry: string | null; email: string | null; workspaceId: string } },
+  proposal: ClientProposal & { client?: { id: string; companyName: string; industry: string | null; email: string | null; workspaceId: string } | null },
 ): Promise<ProposalStudioBundle> {
-  const [workspace, client, request, contact] = await Promise.all([
-    db.workspace.findUnique({ where: { id: proposal.client.workspaceId }, include: { profile: true } }),
-    db.client.findUnique({ where: { id: proposal.clientId } }),
+  const client =
+    proposal.client ??
+    (await db.client.findUnique({
+      where: { id: proposal.clientId },
+      select: { id: true, companyName: true, industry: true, email: true, workspaceId: true },
+    }));
+
+  const workspaceId = client?.workspaceId;
+
+  const [workspace, request, contact] = await Promise.all([
+    workspaceId ? db.workspace.findUnique({ where: { id: workspaceId }, include: { profile: true } }) : Promise.resolve(null),
     proposal.requirementRequestId
       ? db.requirementRequest.findUnique({ where: { id: proposal.requirementRequestId } })
       : Promise.resolve(null),
@@ -153,7 +162,7 @@ export async function serializeProposalForStudio(
       meta: {
         reference: "PROP",
         title: proposal.title,
-        clientName: proposal.client.companyName,
+        clientName: client?.companyName ?? "Client",
         preparedBy: workspace?.companyName ?? "",
         preparedFor: null,
         amount: null,
@@ -167,11 +176,12 @@ export async function serializeProposalForStudio(
   }
 
   if (!document.sections || document.sections.length === 0) {
-    if (!client || !workspace) throw new Error("Proposal context missing.");
+    const fullClient = await db.client.findUnique({ where: { id: proposal.clientId } });
+    if (!fullClient || !workspace) throw new Error("Proposal context missing.");
     const answers = request ? await loadAnswers(request.id) : {};
     document = buildProposalDocument({
       proposal,
-      client,
+      client: fullClient,
       workspace,
       contact,
       answers,
@@ -211,10 +221,10 @@ export async function serializeProposalForStudio(
         }
       : null,
     client: {
-      id: proposal.client.id,
-      companyName: proposal.client.companyName,
-      industry: proposal.client.industry,
-      email: proposal.sentTo ?? proposal.client.email ?? contact?.email ?? null,
+      id: client?.id ?? proposal.clientId,
+      companyName: client?.companyName ?? "Client",
+      industry: client?.industry ?? null,
+      email: proposal.sentTo ?? client?.email ?? contact?.email ?? null,
     },
     workspace: {
       companyName: workspace?.companyName ?? "",
@@ -231,10 +241,15 @@ export async function serializeProposalForStudio(
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfMake = require("pdfmake/build/pdfmake") as {
   createPdf(doc: unknown): { getBuffer(): Promise<Buffer> };
-  vfs: Record<string, string>;
+  addVirtualFileSystem?(vfs: Record<string, string>): void;
+  vfs?: Record<string, string>;
+  virtualfs?: { storage: Record<string, unknown> };
 };
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const pdfFonts = require("pdfmake/build/vfs_fonts") as Record<string, string>;
+if (typeof pdfMake.addVirtualFileSystem === "function") {
+  pdfMake.addVirtualFileSystem(pdfFonts);
+}
 pdfMake.vfs = pdfFonts;
 
 const ACCENT = "#b5452a";
@@ -709,6 +724,9 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
 }
 
 export async function generateProposalPdf(doc: ProposalDoc): Promise<{ buffer: Buffer; pages: number }> {
+  if (typeof pdfMake.addVirtualFileSystem === "function" && (!pdfMake.virtualfs?.storage || !Object.keys(pdfMake.virtualfs.storage).length)) {
+    pdfMake.addVirtualFileSystem(pdfFonts);
+  }
   const definition = proposalToPdfDefinition(doc);
   let buffer: Buffer;
   try {
