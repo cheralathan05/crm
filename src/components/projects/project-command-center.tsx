@@ -61,6 +61,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NextBestAction } from "@/lib/projects";
+import { EngineeringHub } from "./engineering/engineering-hub";
 
 type ProjectDetailData = {
   project: any;
@@ -77,6 +78,7 @@ type ProjectDetailData = {
 
 type ActiveWorkspaceView =
   | "story"
+  | "engineering"
   | "tasks"
   | "deliverables"
   | "scope"
@@ -120,6 +122,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const [selectedChangeRequest, setSelectedChangeRequest] = useState<any | null>(null);
 
   // Creation forms
+  const [taskLayerFilter, setTaskLayerFilter] = useState<string>("ALL");
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskRole, setNewTaskRole] = useState("Lead Engineer");
   const [newTaskHours, setNewTaskHours] = useState(8);
@@ -752,9 +755,10 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
         <div className="flex items-center gap-1 border-b border-[var(--bos-border-subtle)] pb-2 overflow-x-auto">
           {[
             { id: "story", label: "Project Story & Execution", icon: Rocket },
+            { id: "engineering", label: "Engineering Control Hub", icon: Layers },
             { id: "tasks", label: `Tasks (${tasks.length})`, icon: ListTodo },
             { id: "deliverables", label: `Deliverables (${deliverables.length})`, icon: FileCheck2 },
-            { id: "scope", label: "Approved Promise vs Delivered", icon: ShieldCheck },
+            { id: "scope", label: "Approved Scope & Lineage", icon: ShieldCheck },
             { id: "team", label: `Team Intelligence (${team.length})`, icon: Users },
             { id: "changes", label: `Scope Changes (${changeRequests.length})`, icon: GitPullRequest },
             { id: "commercials", label: "Commercials & Invoicing", icon: Coins },
@@ -911,9 +915,20 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               onClick={() => setActiveDrawer("client-request")}
               className="hover:text-[var(--bos-text-primary)] hover:underline cursor-pointer"
             >
-              + Create Client Request
+            + Create Client Request
             </button>
           </div>
+        )}
+
+        {/* ── VIEW: ENGINEERING CONTROL SYSTEM ───────────────────── */}
+        {view === "engineering" && (
+          <EngineeringHub
+            projectId={projectId}
+            projectName={project.name}
+            onWorkCommitted={async () => {
+              await refreshProject();
+            }}
+          />
         )}
 
         {/* ── VIEW: STORY & EXECUTION ─────────────────────────────── */}
@@ -1242,10 +1257,44 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               </button>
             </div>
 
+            {/* Layer Filter Toolbar */}
+            <div className="flex items-center gap-1.5 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
+              <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)] uppercase mr-1">Layer View:</span>
+              {[
+                { id: "ALL", label: `All (${tasks.length})` },
+                { id: "DATABASE", label: `Database (${tasks.filter((t: any) => t.layer === "DATABASE" || t.workstream === "DATABASE").length})` },
+                { id: "BACKEND", label: `Backend (${tasks.filter((t: any) => t.layer === "BACKEND" || t.workstream === "BACKEND").length})` },
+                { id: "FRONTEND", label: `Frontend (${tasks.filter((t: any) => t.layer === "FRONTEND" || t.workstream === "FRONTEND").length})` },
+                { id: "TESTING", label: `Testing (${tasks.filter((t: any) => t.layer === "TESTING" || t.workstream === "TESTING" || t.workstream === "QA").length})` },
+              ].map((filterTab) => (
+                <button
+                  key={filterTab.id}
+                  onClick={() => setTaskLayerFilter(filterTab.id)}
+                  className={cn(
+                    "px-3 py-1 rounded text-[11px] font-mono transition-all cursor-pointer whitespace-nowrap",
+                    taskLayerFilter === filterTab.id
+                      ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
+                      : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
+                  )}
+                >
+                  {filterTab.label}
+                </button>
+              ))}
+            </div>
+
             {/* Kanban Columns */}
             <div className="grid md:grid-cols-3 gap-4">
               {(["TODO", "IN_PROGRESS", "DONE"] as const).map((colStatus) => {
-                const colTasks = tasks.filter((t: any) => t.status === colStatus);
+                const colTasks = tasks
+                  .filter((t: any) => t.status === colStatus)
+                  .filter((t: any) => {
+                    if (taskLayerFilter === "ALL") return true;
+                    if (taskLayerFilter === "DATABASE") return t.layer === "DATABASE" || t.workstream === "DATABASE";
+                    if (taskLayerFilter === "BACKEND") return t.layer === "BACKEND" || t.workstream === "BACKEND";
+                    if (taskLayerFilter === "FRONTEND") return t.layer === "FRONTEND" || t.workstream === "FRONTEND";
+                    if (taskLayerFilter === "TESTING") return t.layer === "TESTING" || t.workstream === "TESTING" || t.workstream === "QA";
+                    return true;
+                  });
                 const colLabel = colStatus === "TODO" ? "To Do" : colStatus === "IN_PROGRESS" ? "In Progress" : "Completed";
                 return (
                   <div
@@ -1269,12 +1318,24 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                           className="p-3 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] hover:border-[var(--bos-accent)] hover:shadow-xs transition-all cursor-pointer space-y-2"
                         >
                           <div className="flex items-start justify-between gap-2">
-                            <h4 className="text-[13px] font-semibold text-[var(--bos-text-primary)]">
-                              {t.title}
-                            </h4>
+                            <div className="space-y-1">
+                              {t.code && (
+                                <span className={cn(
+                                  "font-mono text-[9.5px] px-1.5 py-0.5 rounded font-bold mr-1.5",
+                                  t.layer === "DATABASE" ? "bg-purple-500/10 text-purple-600" :
+                                  t.layer === "BACKEND" ? "bg-emerald-500/10 text-emerald-600" :
+                                  t.layer === "FRONTEND" ? "bg-sky-500/10 text-sky-600" : "bg-amber-500/10 text-amber-600"
+                                )}>
+                                  {t.code}
+                                </span>
+                              )}
+                              <h4 className="text-[13px] font-semibold text-[var(--bos-text-primary)] inline">
+                                {t.title}
+                              </h4>
+                            </div>
                             <span
                               className={cn(
-                                "font-mono text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold",
+                                "font-mono text-[9px] uppercase px-1.5 py-0.5 rounded font-semibold shrink-0",
                                 t.priority === "URGENT" || t.priority === "HIGH"
                                   ? "bg-[#fbece7] text-[#b5452a]"
                                   : "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]",
@@ -1292,7 +1353,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                           {/* Quick status button */}
                           <div className="pt-1.5 border-t border-[var(--bos-border-subtle)]/60 flex items-center justify-between">
                             <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">
-                              Click to view drawer
+                              {t.sourceRequirementId ? `REQ: ${t.sourceRequirementId}` : "Task Drawer"}
                             </span>
                             {colStatus !== "DONE" ? (
                               <button

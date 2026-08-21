@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 
-/** All authenticated application routes (dashboard modules + onboarding). */
+/** All authenticated application routes (dashboard modules + employee OS + onboarding). */
 const PROTECTED_ROUTES = [
   "/dashboard",
   "/onboarding",
+  "/employee/onboarding",
+  "/employee/work",
   "/clients",
   "/requirements",
   "/proposals",
@@ -22,6 +24,7 @@ const PROTECTED_ROUTES = [
 
 /** Routes restricted to OWNER/ADMIN — enforced here, not just hidden in UI. */
 const STAFF_ONLY_ROUTES = [
+  "/dashboard",
   "/clients",
   "/requirements",
   "/proposals",
@@ -51,7 +54,10 @@ export default async function proxy(req: NextRequest) {
     path === "/signup" ||
     path === "/forgot-password" ||
     path === "/reset-password" ||
-    path === "/verify-email";
+    path === "/verify-email" ||
+    path.startsWith("/auth/employee") ||
+    path.startsWith("/invite") ||
+    path.startsWith("/accept-invitation");
 
   const isProtectedRoute = PROTECTED_ROUTES.some((r) => matches(path, r));
 
@@ -71,24 +77,28 @@ export default async function proxy(req: NextRequest) {
 
   // Redirect unauthenticated users to login
   if (isProtectedRoute && !session?.user) {
-    const loginUrl = new URL("/login", req.url);
+    const isEmployeeRoute = path.startsWith("/employee");
+    const loginUrl = new URL(isEmployeeRoute ? "/auth/employee/login" : "/login", req.url);
     loginUrl.searchParams.set("from", path);
     return NextResponse.redirect(loginUrl);
   }
 
   // Server-side authorization: staff-only modules require OWNER/ADMIN.
-  // The sidebar hides these for members, but the backend enforces it too.
+  // When a MEMBER user tries to access admin-only pages, redirect to their execution workspace.
   if (
     session?.user &&
     session.user.role === "MEMBER" &&
     STAFF_ONLY_ROUTES.some((r) => matches(path, r))
   ) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/employee/work", req.url));
   }
 
   // Redirect authenticated users away from auth pages — "/" resolves the
-  // correct destination (onboarding or dashboard) from the user's state.
+  // correct destination (onboarding, dashboard, or employee workspace) from state.
   if (isPublicRoute && session?.user) {
+    if (session.user.role === "MEMBER") {
+      return NextResponse.redirect(new URL("/employee/work", req.url));
+    }
     return NextResponse.redirect(new URL("/", req.url));
   }
 

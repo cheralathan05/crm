@@ -6,6 +6,9 @@ export default async function Home() {
   const session = await auth();
 
   if (session?.user?.id) {
+    if (session.user.role === "MEMBER") {
+      redirect("/employee/work");
+    }
     const state = await getOnboardingState(session.user.id);
     redirect(resolvePostAuthPath(state));
   }

@@ -1,10 +1,5 @@
-import { ModulePlaceholder } from "@/components/module-placeholder";
+import { EmployeesCommandCenter } from "@/components/employees/employees-command-center";
 
-export default async function EmployeesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ view?: string }>;
-}) {
-  const params = await searchParams;
-  return <ModulePlaceholder href="/employees" view={params.view} />;
+export default async function EmployeesPage() {
+  return <EmployeesCommandCenter />;
 }

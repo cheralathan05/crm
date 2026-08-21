@@ -552,3 +552,26 @@ ${actionButton(url, "Reset Password")}
     url,
   );
 }
+
+/**
+ * Generic email dispatcher with real status return.
+ */
+export async function sendMail(input: {
+  to: string;
+  subject: string;
+  text?: string;
+  html: string;
+}): Promise<{ success: boolean; error?: string }> {
+  try {
+    const result = await send({
+      to: input.to,
+      subject: input.subject,
+      text: input.text || input.subject,
+      html: input.html,
+    });
+    return { success: result.sent };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to send email." };
+  }
+}
+
