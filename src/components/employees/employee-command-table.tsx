@@ -318,8 +318,18 @@ export function EmployeeCommandTable({
                               className="w-full px-3 py-1.5 text-left hover:bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex items-center gap-2 cursor-pointer"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
-                              <span>Open Workspace</span>
+                              <span>Open Workspace Drawer</span>
                             </button>
+
+                            <a
+                              href={`/employee/onboarding?previewEmployeeId=${emp.id}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="w-full px-3 py-1.5 text-left hover:bg-[var(--bos-bg)] text-[var(--bos-accent)] flex items-center gap-2 cursor-pointer"
+                            >
+                              <Shield className="w-3.5 h-3.5" />
+                              <span>Preview As Employee</span>
+                            </a>
 
                             <button
                               type="button"

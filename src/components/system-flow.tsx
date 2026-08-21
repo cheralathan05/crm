@@ -1,98 +1,84 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 interface FlowNode {
   label: string;
-  count?: number;
-  description?: string;
+  description: string;
 }
 
 const nodes: FlowNode[] = [
-  { label: "CLIENT", count: 128, description: "Active engagements" },
-  { label: "REQUIREMENT", count: 24, description: "Open specifications" },
-  { label: "PROPOSAL", count: 16, description: "In review" },
-  { label: "PROJECT", count: 12, description: "In progress" },
-  { label: "TASK", count: 47, description: "Assigned items" },
-  { label: "DELIVERY", count: 8, description: "This quarter" },
+  { label: "CLIENTS", description: "Accounts & relationships" },
+  { label: "REQUIREMENTS", description: "Structured specifications" },
+  { label: "PROPOSALS", description: "Priced scope & agreements" },
+  { label: "PROJECTS", description: "Engineering blueprints & stages" },
+  { label: "TASKS", description: "Operational execution graph" },
+  { label: "DELIVERY", description: "Verified milestone signoffs" },
 ];
-
-const containerVariants = {
-  hidden: { opacity: 0 },
-  visible: {
-    opacity: 1,
-    transition: { staggerChildren: 0.05, delayChildren: 0.3 },
-  },
-};
-
-const nodeVariants = {
-  hidden: { opacity: 0, y: 8 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { duration: 0.4, ease: [0.25, 0.1, 0.25, 1] as const },
-  },
-};
 
 interface SystemFlowProps {
   className?: string;
 }
 
 /**
- * Decorative product architecture flow.
- *
- * Represents the structural pipeline:
- *   CLIENT → REQUIREMENT → PROPOSAL → PROJECT → TASK → DELIVERY
- *
- * These are NOT real dashboard stats — they are conceptual visual
- * elements demonstrating the product's purpose.
+ * System Capability Architecture Pipeline.
+ * Subtle connection animation initializing stages sequentially without mock counts.
  */
 export function SystemFlow({ className }: SystemFlowProps) {
+  const [activeStage, setActiveStage] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveStage((prev) => (prev + 1) % nodes.length);
+    }, 2400);
+    return () => clearInterval(timer);
+  }, []);
+
   return (
-    <motion.div
-      className={cn("flex flex-col gap-3", className)}
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-      aria-hidden="true"
-    >
-      {nodes.map((node, i) => (
-        <motion.div
-          key={node.label}
-          variants={nodeVariants}
-          className="group flex items-center gap-3 py-2"
-        >
-          {/* Connection line */}
-          {i > 0 && (
-            <div className="absolute -top-0 left-[3px] h-[28px] w-px bg-[var(--bos-line)]" />
-          )}
-
-          {/* Node indicator */}
-          <div className="relative flex items-center gap-3">
-            <div className="w-[7px] h-[7px] rounded-full border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] transition-colors group-hover:border-[var(--bos-accent)]" />
-
-            {/* Arrow connector */}
-            <div className="w-[16px] h-px bg-[var(--bos-line)]" />
-          </div>
-
-          {/* Content */}
-          <div className="flex items-baseline gap-2.5">
-            <span className="text-[11px] font-medium tracking-[0.12em] text-[var(--bos-text-secondary)] uppercase">
-              {node.label}
-            </span>
-            {node.count !== undefined && (
-              <span className="text-[13px] font-semibold text-[var(--bos-text-primary)] tabular-nums">
-                {node.count}
-              </span>
+    <div className={cn("flex flex-col gap-2.5", className)} aria-hidden="true">
+      {nodes.map((node, i) => {
+        const isActive = i === activeStage;
+        return (
+          <div
+            key={node.label}
+            className={cn(
+              "flex items-center justify-between px-3.5 py-2 rounded-xs border transition-all duration-300",
+              isActive
+                ? "bg-[var(--bos-surface)] border-[var(--bos-accent)] translate-x-1"
+                : "bg-transparent border-[var(--bos-line)] opacity-60",
             )}
-            <span className="text-[9px] text-[var(--bos-text-tertiary)] tracking-wide hidden lg:inline">
+          >
+            <div className="flex items-center gap-3">
+              <div
+                className={cn(
+                  "w-5 h-5 rounded-xs flex items-center justify-center font-mono text-[9.5px] font-bold transition-colors",
+                  isActive
+                    ? "bg-[var(--bos-accent)] text-white"
+                    : "bg-[var(--bos-surface)] text-[var(--bos-text-tertiary)] border border-[var(--bos-line)]",
+                )}
+              >
+                0{i + 1}
+              </div>
+              <span
+                className={cn(
+                  "text-[11px] font-mono font-semibold tracking-wider transition-colors",
+                  isActive
+                    ? "text-[var(--bos-text-primary)]"
+                    : "text-[var(--bos-text-secondary)]",
+                )}
+              >
+                {node.label}
+              </span>
+            </div>
+            <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] hidden sm:inline">
               {node.description}
             </span>
           </div>
-        </motion.div>
-      ))}
-    </motion.div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -105,7 +91,7 @@ export function SystemFlowCompact({ className }: SystemFlowProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-[9px] tracking-[0.12em] uppercase text-[var(--bos-text-tertiary)]",
+        "flex items-center gap-1.5 text-[9px] font-mono tracking-[0.12em] uppercase text-[var(--bos-text-tertiary)]",
         className,
       )}
       aria-hidden="true"
@@ -113,9 +99,7 @@ export function SystemFlowCompact({ className }: SystemFlowProps) {
       {labels.map((label, i) => (
         <span key={label} className="flex items-center gap-1.5">
           <span>{label}</span>
-          {i < labels.length - 1 && (
-            <span className="opacity-30">→</span>
-          )}
+          {i < labels.length - 1 && <span className="opacity-30">→</span>}
         </span>
       ))}
     </div>

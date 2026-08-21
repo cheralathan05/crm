@@ -64,6 +64,8 @@ export function EmployeeOnboardingWizard({
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [createdResult, setCreatedResult] = useState<any | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const selectedRole = roles.find((r) => r.id === selectedRoleId) || roles[0];
   const selectedTeam = teams.find((t) => t.id === selectedTeamId) || teams[0];
@@ -78,6 +80,12 @@ export function EmployeeOnboardingWizard({
     if (!newSkill.trim()) return;
     setCapabilities([...capabilities, { skill: newSkill.trim(), level: newSkillLevel }]);
     setNewSkill("");
+  };
+
+  const handleCopyLink = (url: string) => {
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const handleSubmit = async () => {
@@ -115,7 +123,7 @@ export function EmployeeOnboardingWizard({
 
       const json = await res.json();
       if (json.ok) {
-        onEmployeeCreated();
+        setCreatedResult(json);
       } else {
         setError(json.message || "Failed to onboard employee.");
       }
@@ -189,8 +197,75 @@ export function EmployeeOnboardingWizard({
           })}
         </div>
 
-        {/* Main Body (Left: Form, Right: Live Preview) */}
-        <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {createdResult ? (
+          <div className="p-8 text-center space-y-6 max-w-xl mx-auto my-auto">
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 text-emerald-600 flex items-center justify-center mx-auto">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+
+            <div>
+              <span className="text-[10px] font-mono font-bold uppercase tracking-widest text-emerald-600 block mb-1">
+                EMPLOYEE ONBOARDED SUCCESSFULLY
+              </span>
+              <h2 className="text-xl font-bold text-[var(--bos-text-primary)]">
+                {createdResult.employee.fullName} ({createdResult.employee.employeeCode})
+              </h2>
+              <p className="text-xs text-[var(--bos-text-secondary)] mt-1 font-mono">
+                {createdResult.employee.email} · {createdResult.employee.role?.name || "Team Member"}
+              </p>
+            </div>
+
+            {createdResult.invitation?.activationUrl && (
+              <div className="p-4 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] text-left space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10.5px] font-mono font-bold uppercase text-[var(--bos-accent)]">
+                    SECURE INVITATION & ACTIVATION LINK
+                  </span>
+                  <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">
+                    Valid for 7 days
+                  </span>
+                </div>
+
+                <div className="p-2.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-lg font-mono text-xs text-[var(--bos-text-primary)] break-all select-all">
+                  {createdResult.invitation.activationUrl}
+                </div>
+
+                <div className="flex items-center gap-2 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopyLink(createdResult.invitation.activationUrl)}
+                    className="flex-1 py-2 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-mono font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
+                  >
+                    <span>{copied ? "✓ Copied to Clipboard!" : "Copy Activation Link"}</span>
+                  </button>
+
+                  <a
+                    href={createdResult.invitation.activationUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-3 py-2 bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] text-xs font-mono font-semibold rounded-lg transition-all flex items-center gap-1.5"
+                  >
+                    <span>Open in New Tab</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              </div>
+            )}
+
+            <div className="pt-2">
+              <button
+                type="button"
+                onClick={onEmployeeCreated}
+                className="w-full py-2.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] hover:bg-[var(--bos-bg)] text-[var(--bos-text-primary)] text-xs font-mono font-semibold rounded-lg transition-all cursor-pointer"
+              >
+                Return to Workforce Directory
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+          {/* Main Body (Left: Form, Right: Live Preview) */}
+          <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
           
           {/* Form Area (7 Cols) */}
           <div className="lg:col-span-7 space-y-4">
@@ -570,6 +645,8 @@ export function EmployeeOnboardingWizard({
             </button>
           )}
         </div>
+        </>
+        )}
 
       </div>
     </div>

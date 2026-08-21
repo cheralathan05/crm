@@ -203,6 +203,15 @@ export default function EmployeeWorkPage() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Onboarding Overview Link */}
+          <a
+            href="/employee/onboarding"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-xs font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all cursor-pointer"
+          >
+            <Shield className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+            <span className="hidden sm:inline">Onboarding Overview</span>
+          </a>
+
           {/* Quick Command Trigger */}
           <button
             onClick={() => setCommandPaletteOpen(true)}

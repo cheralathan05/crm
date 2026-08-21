@@ -301,8 +301,18 @@ function LoginContent() {
             href="/signup"
           />
 
+          <div className="mt-4 pt-4 border-t border-[var(--bos-line)] text-center">
+            <a
+              href="/auth/employee/login"
+              className="inline-flex items-center gap-1.5 text-xs font-mono font-medium text-[var(--bos-accent)] hover:underline"
+            >
+              <span>Entering as an employee? Employee Access</span>
+              <span>→</span>
+            </a>
+          </div>
+
           {/* Mobile workflow indicator */}
-          <div className="mt-10 lg:hidden">
+          <div className="mt-8 lg:hidden">
             <SystemFlowCompact className="justify-center" />
           </div>
         </motion.div>

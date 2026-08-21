@@ -1882,6 +1882,9 @@ model Employee {
   invitations               EmployeeInvitation[]
   auditEvents               EmployeeAuditEvent[]
   projectAllocations        ProjectStaffAllocation[]
+  onboardingState           EmployeeOnboardingState?
+  policyAcknowledgements    EmployeePolicyAcknowledgement[]
+  toolAccesses              EmployeeToolAccess[]
 
   @@unique([workspaceId, email])
   @@unique([workspaceId, employeeCode])
@@ -2003,3 +2006,65 @@ model ProjectStaffAllocation {
   @@index([projectId])
   @@index([employeeId])
 }
+
+/** Operational Employee Onboarding & Work Readiness State Machine. */
+model EmployeeOnboardingState {
+  id                     String    @id @default(cuid())
+  employee               Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId             String    @unique
+  status                 String    @default("IN_PROGRESS") // NOT_STARTED | IN_PROGRESS | BLOCKED | READY | COMPLETED
+  readinessScore         Int       @default(0) // 0 - 100
+  identityReviewedAt     DateTime?
+  roleReviewedAt         DateTime?
+  accessReviewedAt       DateTime?
+  firstActionCompletedAt DateTime?
+  completedAt            DateTime?
+  completedBy            String?
+  blockers               String    @default("[]") // JSON string array of blocker items
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([status])
+}
+
+/** First-class Employee Policy Acknowledgement with cryptographic and version tracking. */
+model EmployeePolicyAcknowledgement {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId     String
+  policyCode     String    // e.g. SEC-POL-01, DATA-PROT-01, REMOTE-WORK-01
+  title          String
+  category       String    @default("SECURITY") // SECURITY | CODE_OF_CONDUCT | DATA_PROTECTION | REMOTE_WORK
+  version        String    @default("1.0")
+  content        String
+  isRequired     Boolean   @default(true)
+  acknowledgedAt DateTime?
+  acknowledgedIp String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([employeeId, policyCode, version])
+  @@index([employeeId, isRequired])
+}
+
+/** Employee Tool Access Lifecycle & Permissions. */
+model EmployeeToolAccess {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  employee          Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId        String
+  toolKey           String    // GITHUB | FIGMA | GOOGLE_WORKSPACE | SLACK | BUSINESS_OS
+  toolName          String
+  category          String    @default("WORKSPACE") // CODE | DESIGN | COMMUNICATION | WORKSPACE
+  status            String    @default("NOT_CONFIGURED") // CONNECTED | PENDING | NOT_CONFIGURED | ACCESS_REQUESTED | DENIED
+  accountIdentifier String?
+  requestedAt       DateTime?
+  grantedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([employeeId, toolKey])
+  @@index([employeeId, status])
+}
+
