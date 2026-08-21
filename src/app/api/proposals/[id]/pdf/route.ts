@@ -26,47 +26,34 @@ export async function GET(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Proposal not found." }, { status: 404 });
   }
 
-  let pdfBytes: Buffer | null = null;
+  try {
+    const bundle = await serializeProposalForStudio(proposal);
+    const result = await generateProposalPdf(bundle.document);
+    const pdfBytes = result.buffer;
 
-  // Try reading existing file
-  if (proposal.pdfPath) {
-    const stored = await readStored(proposal.pdfPath);
-    if (stored) {
-      pdfBytes = stored.buffer;
-    }
+    // Refresh versioned file on disk
+    const dir = path.join(process.cwd(), "uploads", "proposals");
+    await mkdir(dir, { recursive: true });
+    const fileName = `${proposal.id}-v${proposal.version}.pdf`;
+    await writeFile(path.join(dir, fileName), pdfBytes);
+    const pdfPath = `proposals/${fileName}`;
+
+    await db.clientProposal.update({
+      where: { id: proposal.id },
+      data: { pdfPath, pdfPages: result.pages },
+    });
+
+    const safeName = (proposal.reference ?? "proposal").replace(/[^A-Za-z0-9-]/g, "_");
+    return new NextResponse(new Uint8Array(pdfBytes), {
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `inline; filename="${safeName}-v${proposal.version}.pdf"`,
+        "Content-Length": String(pdfBytes.length),
+        "Cache-Control": "private, no-cache, no-store, must-revalidate",
+      },
+    });
+  } catch (err) {
+    console.error("[proposal:pdf] generation failed", err);
+    return NextResponse.json({ ok: false, message: "Could not generate proposal PDF." }, { status: 500 });
   }
-
-  // If file doesn't exist on disk or pdfPath is null, generate from database document
-  if (!pdfBytes) {
-    try {
-      const bundle = await serializeProposalForStudio(proposal);
-      const result = await generateProposalPdf(bundle.document);
-      pdfBytes = result.buffer;
-
-      // Save to disk
-      const dir = path.join(process.cwd(), "uploads", "proposals");
-      await mkdir(dir, { recursive: true });
-      const fileName = `${proposal.id}-v${proposal.version}.pdf`;
-      await writeFile(path.join(dir, fileName), pdfBytes);
-      const pdfPath = `proposals/${fileName}`;
-
-      await db.clientProposal.update({
-        where: { id: proposal.id },
-        data: { pdfPath, pdfPages: result.pages },
-      });
-    } catch (err) {
-      console.error("[proposal:pdf] auto-generation failed", err);
-      return NextResponse.json({ ok: false, message: "Could not generate proposal PDF." }, { status: 500 });
-    }
-  }
-
-  const safeName = (proposal.reference ?? "proposal").replace(/[^A-Za-z0-9-]/g, "_");
-  return new NextResponse(new Uint8Array(pdfBytes), {
-    headers: {
-      "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${safeName}-v${proposal.version}.pdf"`,
-      "Content-Length": String(pdfBytes.length),
-      "Cache-Control": "private, no-cache, no-store, must-revalidate",
-    },
-  });
 }

@@ -305,7 +305,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       });
     } else if (b.type === "list") {
       push(
-        b.items.map((item, i) => ({
+        (b.items || []).map((item, i) => ({
           text: [{ text: `${String(i + 1).padStart(2, "0")}  `, color: ACCENT }, { text: item }],
           style: "body",
           margin: [0, 0, 0, 4],
@@ -318,7 +318,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push({
         stack: [
           ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: fg, margin: [0, 0, 0, 4] }] : []),
-          { text: b.text, style: "body" },
+          { text: b.text || "", style: "body" },
         ],
         margin: [0, 4, 0, 12],
         background: bg,
@@ -330,15 +330,15 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push({
         stack: [
           { canvas: [{ type: "rect", x: 0, y: 0, w: 4, h: 100, color: ACCENT }] },
-          { text: b.title, style: "cardTitle" },
-          { text: b.purpose, style: "body", margin: [0, 2, 0, 4] },
+          { text: b.title || "Feature", style: "cardTitle" },
+          { text: b.purpose || "", style: "body", margin: [0, 2, 0, 4] },
           ...(b.capabilities && b.capabilities.length > 0
             ? [{ text: b.capabilities.map((c) => `• ${c}`).join("\n"), style: "body", color: MUTED, margin: [0, 0, 0, 6] }]
             : []),
           cardTable([
-            { label: "Priority", value: b.priority },
-            { label: "Users", value: b.users },
-            { label: "Status", value: b.status },
+            { label: "Priority", value: b.priority || "Standard" },
+            { label: "Users", value: b.users || "All Users" },
+            { label: "Status", value: b.status || "Planned" },
             ...(b.requirementSource ? [{ label: "Source", value: b.requirementSource }] : []),
           ]),
         ],
@@ -350,8 +350,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "objective_card") {
       push({
         stack: [
-          { text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 3] },
-          { text: b.description, style: "body" },
+          { text: (b.title || "Objective").toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 3] },
+          { text: b.description || "", style: "body" },
           ...(b.businessNeed ? [{ text: `Business Need: ${b.businessNeed}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
           ...(b.successIndicator ? [{ text: `Success Indicator: ${b.successIndicator}`, style: "body", color: INK, bold: true, margin: [0, 3, 0, 0] }] : []),
           ...(b.requirement ? [{ text: b.requirement, style: "micro", color: FAINT, margin: [0, 3, 0, 0] }] : []),
@@ -365,7 +365,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push({
         table: {
           widths: ["*"],
-          body: [[{ stack: [{ text: b.value, fontSize: 24, bold: true, color: ACCENT }, { text: b.label.toUpperCase(), style: "micro", color: FAINT, margin: [0, 2, 0, 0] }] }]],
+          body: [[{ stack: [{ text: b.value || "", fontSize: 24, bold: true, color: ACCENT }, { text: (b.label || "").toUpperCase(), style: "micro", color: FAINT, margin: [0, 2, 0, 0] }] }]],
         },
         layout: { hLineWidth: () => 0, vLineWidth: () => 0, paddingLeft: () => 0, paddingRight: () => 0, paddingTop: () => 0, paddingBottom: () => 0 },
         margin: [0, 2, 0, 12],
@@ -381,9 +381,9 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
               { text: "TECHNOLOGY", style: "tableHeader" },
               { text: "PURPOSE", style: "tableHeader" },
             ],
-            ...b.layers.map((l) => [
-              { text: l.name, style: "tableCell", bold: true },
-              { text: l.tech, style: "tableCell", color: ACCENT },
+            ...(b.layers || []).map((l) => [
+              { text: l.name || "", style: "tableCell", bold: true },
+              { text: l.tech || "", style: "tableCell", color: ACCENT },
               { text: l.purpose ?? "", style: "tableCell", color: MUTED },
             ]),
           ],
@@ -407,8 +407,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
             width: "*",
             stack: [
               { text: "CURRENT STATE (PROBLEM)", style: "micro", bold: true, color: "#9a5b13", margin: [0, 0, 0, 4] },
-              { text: b.currentState.problem, style: "body", margin: [0, 0, 0, 3] },
-              { text: `Impact: ${b.currentState.impact}`, style: "body", color: MUTED },
+              { text: b.currentState?.problem || "", style: "body", margin: [0, 0, 0, 3] },
+              { text: `Impact: ${b.currentState?.impact || "—"}`, style: "body", color: MUTED },
             ],
             background: "#fdf3e7",
             padding: [10, 8, 10, 8],
@@ -418,8 +418,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
             width: "*",
             stack: [
               { text: "PROPOSED STATE (SOLUTION)", style: "micro", bold: true, color: "#3f6e35", margin: [0, 0, 0, 4] },
-              { text: b.proposedState.solution, style: "body", margin: [0, 0, 0, 3] },
-              { text: `Outcome: ${b.proposedState.outcome}`, style: "body", color: MUTED },
+              { text: b.proposedState?.solution || "", style: "body", margin: [0, 0, 0, 3] },
+              { text: `Outcome: ${b.proposedState?.outcome || "—"}`, style: "body", color: MUTED },
             ],
             background: "#eef6ec",
             padding: [10, 8, 10, 8],
@@ -428,7 +428,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 4, 0, 12],
       });
     } else if (b.type === "process_flow") {
-      const items = b.steps.filter((s) => s.trim()).map((s, i) => ({
+      const items = (b.steps || []).filter((s) => s && s.trim()).map((s, i) => ({
         text: [{ text: `${String(i + 1).padStart(2, "0")}  `, color: ACCENT }, { text: s }],
         style: "body",
         margin: [0, 0, 0, 4],
@@ -436,13 +436,13 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push(items);
     } else if (b.type === "timeline") {
       push(
-        b.phases.map((p, i) => ({
+        (b.phases || []).map((p, i) => ({
           columns: [
             { width: "auto", text: String(i + 1).padStart(2, "0"), style: "micro", bold: true, color: ACCENT, margin: [0, 2, 10, 0] },
             {
               width: "*",
               stack: [
-                { text: p.title, bold: true, fontSize: 10.5, color: INK },
+                { text: p.title || "", bold: true, fontSize: 10.5, color: INK },
                 ...(p.duration ? [{ text: p.duration, style: "micro", color: FAINT }] : []),
                 ...(p.description ? [{ text: p.description, style: "body", margin: [0, 2, 0, 0] }] : []),
               ],
@@ -458,7 +458,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
           {
             width: "*",
             stack: [
-              { text: b.title, bold: true, fontSize: 10.5, color: INK },
+              { text: b.title || "", bold: true, fontSize: 10.5, color: INK },
               ...(b.date ? [{ text: b.date, style: "micro", color: FAINT }] : []),
               ...(b.description ? [{ text: b.description, style: "body" }] : []),
             ],
@@ -469,8 +469,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "deliverable") {
       push({
         stack: [
-          { columns: [{ text: b.id.toUpperCase(), style: "micro", bold: true, color: ACCENT }, { text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] },
-          { text: b.name, style: "cardTitle" },
+          { columns: [{ text: (b.id || "DEL").toUpperCase(), style: "micro", bold: true, color: ACCENT }, { text: (b.status || "PLANNED").toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] },
+          { text: b.name || "", style: "cardTitle" },
           ...(b.description ? [{ text: b.description, style: "body" }] : []),
           ...(b.acceptance ? [{ text: `Acceptance Criteria: ${b.acceptance}`, style: "micro", color: MUTED, margin: [0, 4, 0, 0] }] : []),
         ],
@@ -482,8 +482,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "requirement_reference") {
       push({
         columns: [
-          { width: "auto", text: b.reference.toUpperCase(), style: "micro", bold: true, color: ACCENT, background: "#f5edea", padding: [4, 2, 4, 2] },
-          { width: "*", text: b.title, style: "body", margin: [8, 1, 0, 0] },
+          { width: "auto", text: (b.reference || "REQ").toUpperCase(), style: "micro", bold: true, color: ACCENT, background: "#f5edea", padding: [4, 2, 4, 2] },
+          { width: "*", text: b.title || "", style: "body", margin: [8, 1, 0, 0] },
         ],
         margin: [0, 2, 0, 8],
       });
@@ -518,11 +518,11 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "assumption") {
       push({
         columns: [
-          { width: "auto", text: b.id.toUpperCase(), style: "micro", bold: true, color: FAINT, margin: [0, 2, 10, 0] },
+          { width: "auto", text: (b.id || "ASM").toUpperCase(), style: "micro", bold: true, color: FAINT, margin: [0, 2, 10, 0] },
           {
             width: "*",
             stack: [
-              { text: b.description, style: "body" },
+              { text: b.description || "", style: "body" },
               ...(b.owner || b.impact
                 ? [{ text: [b.owner ? `Owner: ${b.owner}` : null, b.impact ? `Impact: ${b.impact}` : null].filter(Boolean).join(" · "), style: "micro", color: FAINT, margin: [0, 2, 0, 0] }]
                 : []),
@@ -534,7 +534,7 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "risk") {
       push({
         stack: [
-          { columns: [{ text: b.title, style: "cardTitle" }, ...(b.status ? [{ text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] : [])] },
+          { columns: [{ text: b.title || "Risk", style: "cardTitle" }, ...(b.status ? [{ text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] : [])] },
           ...(b.description ? [{ text: b.description, style: "body" }] : []),
           ...(b.impact ? [{ text: `Impact: ${b.impact}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
           ...(b.mitigation ? [{ text: `Mitigation: ${b.mitigation}`, style: "body", color: "#3f6e35", margin: [0, 2, 0, 0] }] : []),
@@ -579,14 +579,14 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         stack: [
           ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
           ...(b.summary ? [{ text: b.summary, style: "body", color: MUTED, margin: [0, 0, 0, 8] }] : []),
-          ...b.steps.map((st) => ({
+          ...(b.steps || []).map((st) => ({
             columns: [
               {
                 width: "*",
                 stack: [
                   { text: `${st.stage} — CURRENT STATE`, style: "micro", bold: true, color: "#9a5b13", margin: [0, 0, 0, 2] },
-                  { text: st.current, style: "body", margin: [0, 0, 0, 2] },
-                  { text: `Impact: ${st.impact}`, style: "body", color: MUTED, fontSize: 9 },
+                  { text: st.current || "", style: "body", margin: [0, 0, 0, 2] },
+                  { text: `Impact: ${st.impact || "—"}`, style: "body", color: MUTED, fontSize: 9 },
                 ],
                 background: "#fdf3e7",
                 padding: [8, 6, 8, 6],
@@ -596,8 +596,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
                 width: "*",
                 stack: [
                   { text: "TARGET PRODUCT CAPABILITY", style: "micro", bold: true, color: "#3f6e35", margin: [0, 0, 0, 2] },
-                  { text: st.future, style: "body", margin: [0, 0, 0, 2] },
-                  { text: `Outcome: ${st.outcome}`, style: "body", color: MUTED, fontSize: 9 },
+                  { text: st.future || "", style: "body", margin: [0, 0, 0, 2] },
+                  { text: `Outcome: ${st.outcome || "—"}`, style: "body", color: MUTED, fontSize: 9 },
                 ],
                 background: "#eef6ec",
                 padding: [8, 6, 8, 6],
@@ -613,10 +613,10 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         stack: [
           ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
           ...(b.description ? [{ text: b.description, style: "body", color: MUTED, margin: [0, 0, 0, 8] }] : []),
-          ...b.nodes.map((node) => ({
+          ...(b.nodes || []).map((node) => ({
             stack: [
               { text: `${node.category}: ${node.title}`, bold: true, fontSize: 9.5, color: INK, margin: [0, 0, 0, 3] },
-              { text: node.items.map((it) => `• ${it}`).join("   "), style: "body", color: MUTED, fontSize: 9 },
+              { text: (node.items || []).map((it) => `• ${it}`).join("   "), style: "body", color: MUTED, fontSize: 9 },
             ],
             background: "#faf7f2",
             padding: [8, 6, 8, 6],
@@ -630,12 +630,12 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "module_card") {
       push({
         stack: [
-          { columns: [{ text: `${b.id || "MODULE"}: ${b.name}`, style: "cardTitle" }, { text: (b.priority || "MUST_HAVE").replace("_", " "), style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
-          { text: b.purpose, style: "body", margin: [0, 2, 0, 4] },
-          { text: `Primary Users: ${b.primaryUsers.join(", ")}`, style: "micro", color: MUTED, margin: [0, 0, 0, 4] },
+          { columns: [{ text: `${b.id || "MODULE"}: ${b.name || ""}`, style: "cardTitle" }, { text: (b.priority || "MUST_HAVE").replace("_", " "), style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
+          { text: b.purpose || "", style: "body", margin: [0, 2, 0, 4] },
+          { text: `Primary Users: ${(b.primaryUsers || []).join(", ") || "All Users"}`, style: "micro", color: MUTED, margin: [0, 0, 0, 4] },
           { text: "Core Actions:", style: "micro", bold: true, color: INK },
-          { text: b.userActions.map((a) => `• ${a}`).join("\n"), style: "body", color: MUTED, fontSize: 9, margin: [0, 2, 0, 4] },
-          { text: `Business Value: ${b.businessValue}`, style: "body", color: "#3f6e35", fontSize: 9, bold: true },
+          { text: (b.userActions || []).map((a) => `• ${a}`).join("\n") || "—", style: "body", color: MUTED, fontSize: 9, margin: [0, 2, 0, 4] },
+          { text: `Business Value: ${b.businessValue || "High Impact"}`, style: "body", color: "#3f6e35", fontSize: 9, bold: true },
         ],
         margin: [0, 2, 0, 10],
         borderColor: RULE,
@@ -645,17 +645,17 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "journey_flow") {
       push({
         stack: [
-          { text: `USER JOURNEY — ${b.persona.toUpperCase()}`, style: "micro", bold: true, color: ACCENT },
-          { text: `Primary Goal: ${b.primaryGoal}`, style: "body", bold: true, margin: [0, 2, 0, 4] },
-          ...b.steps.map((st) => ({
+          { text: `USER JOURNEY — ${(b.persona || "USER").toUpperCase()}`, style: "micro", bold: true, color: ACCENT },
+          { text: `Primary Goal: ${b.primaryGoal || ""}`, style: "body", bold: true, margin: [0, 2, 0, 4] },
+          ...(b.steps || []).map((st) => ({
             columns: [
               { width: 22, text: `0${st.stepNumber}`, style: "micro", bold: true, color: ACCENT },
               {
                 width: "*",
                 stack: [
-                  { text: st.action, bold: true, fontSize: 9.5, color: INK },
-                  { text: `Screen: ${st.screenExperience}`, style: "micro", color: FAINT },
-                  { text: st.systemResponse, style: "body", color: MUTED, fontSize: 9, margin: [0, 1, 0, 0] },
+                  { text: st.action || "", bold: true, fontSize: 9.5, color: INK },
+                  { text: `Screen: ${st.screenExperience || "Interface"}`, style: "micro", color: FAINT },
+                  { text: st.systemResponse || "", style: "body", color: MUTED, fontSize: 9, margin: [0, 1, 0, 0] },
                 ],
               },
             ],
@@ -680,17 +680,17 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
               { text: "USER", style: "tableHeader" },
               { text: "RELEASE", style: "tableHeader" },
             ],
-            ...b.items.map((it) => [
-              { text: it.featureId, style: "tableCell", bold: true },
-              { text: it.module, style: "tableCell" },
+            ...(b.items || []).map((it) => [
+              { text: it.featureId || "FEAT", style: "tableCell", bold: true },
+              { text: it.module || "Core", style: "tableCell" },
               {
                 stack: [
-                  { text: it.name, bold: true, fontSize: 9.5, color: INK },
-                  { text: it.whatItDoes, color: MUTED, fontSize: 8.5 },
+                  { text: it.name || "", bold: true, fontSize: 9.5, color: INK },
+                  { text: it.whatItDoes || "", color: MUTED, fontSize: 8.5 },
                 ],
               },
-              { text: it.user, style: "tableCell", fontSize: 8.5 },
-              { text: it.priority, style: "tableCell", bold: true, color: it.priority === "MVP" ? ACCENT : MUTED },
+              { text: it.user || "User", style: "tableCell", fontSize: 8.5 },
+              { text: it.priority || "MVP", style: "tableCell", bold: true, color: it.priority === "MVP" ? ACCENT : MUTED },
             ]),
           ],
         },
@@ -709,11 +709,11 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "acceptance_spec") {
       push({
         stack: [
-          { columns: [{ text: `${b.id}: ${b.featureTitle}`, style: "cardTitle" }, { text: "GIVEN-WHEN-THEN", style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
-          { text: [{ text: "GIVEN ", bold: true, color: ACCENT }, { text: b.given }], style: "body", fontSize: 9, margin: [0, 2, 0, 2] },
-          { text: [{ text: "WHEN ", bold: true, color: ACCENT }, { text: b.when }], style: "body", fontSize: 9, margin: [0, 0, 0, 2] },
+          { columns: [{ text: `${b.id || "AC"}: ${b.featureTitle || ""}`, style: "cardTitle" }, { text: "GIVEN-WHEN-THEN", style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
+          { text: [{ text: "GIVEN ", bold: true, color: ACCENT }, { text: b.given || "" }], style: "body", fontSize: 9, margin: [0, 2, 0, 2] },
+          { text: [{ text: "WHEN ", bold: true, color: ACCENT }, { text: b.when || "" }], style: "body", fontSize: 9, margin: [0, 0, 0, 2] },
           { text: "THEN:", bold: true, style: "body", color: ACCENT, fontSize: 9 },
-          { text: b.then.map((t) => `• ${t}`).join("\n"), style: "body", color: MUTED, fontSize: 8.5, margin: [0, 1, 0, 4] },
+          { text: (b.then || []).map((t) => `• ${t}`).join("\n") || "—", style: "body", color: MUTED, fontSize: 8.5, margin: [0, 1, 0, 4] },
           ...(b.failureBehavior ? [{ text: `Failure Behavior: ${b.failureBehavior}`, style: "micro", color: "#9a5b13" }] : []),
         ],
         margin: [0, 2, 0, 10],
@@ -725,12 +725,12 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push({
         stack: [
           ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
-          ...b.entities.map((e) => ({
+          ...(b.entities || []).map((e) => ({
             stack: [
-              { text: e.name, bold: true, fontSize: 10, color: INK },
-              { text: e.description, style: "body", color: MUTED, fontSize: 8.5 },
-              { text: `Attributes: ${e.keyAttributes.join(", ")}`, style: "micro", color: FAINT },
-              { text: `Relations: ${e.relationships.join(" | ")}`, style: "micro", color: ACCENT },
+              { text: e.name || "", bold: true, fontSize: 10, color: INK },
+              { text: e.description || "", style: "body", color: MUTED, fontSize: 8.5 },
+              { text: `Attributes: ${(e.keyAttributes || []).join(", ") || "—"}`, style: "micro", color: FAINT },
+              { text: `Relations: ${(e.relationships || []).join(" | ") || "—"}`, style: "micro", color: ACCENT },
             ],
             background: "#faf7f2",
             padding: [6, 5, 6, 5],
@@ -742,13 +742,13 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "integration_spec") {
       push({
         stack: [
-          { columns: [{ text: b.serviceName, style: "cardTitle" }, { text: b.category, style: "micro", color: ACCENT, alignment: "right" }] },
-          { text: b.purpose, style: "body", fontSize: 9, margin: [0, 1, 0, 3] },
+          { columns: [{ text: b.serviceName || "", style: "cardTitle" }, { text: b.category || "API", style: "micro", color: ACCENT, alignment: "right" }] },
+          { text: b.purpose || "", style: "body", fontSize: 9, margin: [0, 1, 0, 3] },
           cardTable([
-            { label: "Data Exchanged", value: b.dataExchanged },
-            { label: "Trigger", value: b.trigger },
-            { label: "Direction", value: b.direction },
-            { label: "Failure Protocol", value: b.failureBehavior },
+            { label: "Data Exchanged", value: b.dataExchanged || "—" },
+            { label: "Trigger", value: b.trigger || "—" },
+            { label: "Direction", value: b.direction || "BIDIRECTIONAL" },
+            { label: "Failure Protocol", value: b.failureBehavior || "—" },
           ]),
         ],
         margin: [0, 2, 0, 10],
@@ -759,10 +759,10 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "screen_card") {
       push({
         stack: [
-          { columns: [{ text: `${b.screenId || "SCR"}: ${b.name}`, style: "cardTitle" }, { text: `User: ${b.primaryUser}`, style: "micro", color: FAINT, alignment: "right" }] },
-          { text: b.purpose, style: "body", fontSize: 9, margin: [0, 1, 0, 2] },
-          { text: `Key Info: ${b.keyInformation.join(" · ")}`, style: "micro", color: MUTED },
-          { text: `Actions: ${b.primaryActions.join(" · ")}`, style: "micro", color: ACCENT },
+          { columns: [{ text: `${b.screenId || "SCR"}: ${b.name || ""}`, style: "cardTitle" }, { text: `User: ${b.primaryUser || "User"}`, style: "micro", color: FAINT, alignment: "right" }] },
+          { text: b.purpose || "", style: "body", fontSize: 9, margin: [0, 1, 0, 2] },
+          { text: `Key Info: ${(b.keyInformation || []).join(" · ") || "—"}`, style: "micro", color: MUTED },
+          { text: `Actions: ${(b.primaryActions || []).join(" · ") || "—"}`, style: "micro", color: ACCENT },
         ],
         margin: [0, 2, 0, 8],
         borderColor: RULE,
@@ -781,11 +781,11 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
               { text: "EXPECTED RESULT", style: "tableHeader" },
               { text: "VERIFICATION GATE", style: "tableHeader" },
             ],
-            ...b.items.map((qa) => [
-              { text: qa.featureOrWorkflow, style: "tableCell", bold: true },
-              { text: qa.testType, style: "tableCell", fontSize: 8 },
-              { text: qa.expectedResult, style: "tableCell", fontSize: 8.5 },
-              { text: qa.acceptanceVerification, style: "tableCell", fontSize: 8.5, color: "#3f6e35" },
+            ...(b.items || []).map((qa) => [
+              { text: qa.featureOrWorkflow || "", style: "tableCell", bold: true },
+              { text: qa.testType || "FUNCTIONAL", style: "tableCell", fontSize: 8 },
+              { text: qa.expectedResult || "", style: "tableCell", fontSize: 8.5 },
+              { text: qa.acceptanceVerification || "", style: "tableCell", fontSize: 8.5, color: "#3f6e35" },
             ]),
           ],
         },
@@ -805,16 +805,16 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push({
         stack: [
           ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 6] }] : []),
-          ...b.phases.map((ph) => ({
+          ...(b.phases || []).map((ph) => ({
             columns: [
-              { width: 26, text: ph.phaseNumber, style: "micro", bold: true, color: ACCENT },
+              { width: 26, text: ph.phaseNumber || "01", style: "micro", bold: true, color: ACCENT },
               {
                 width: "*",
                 stack: [
-                  { text: ph.name, bold: true, fontSize: 10, color: INK },
-                  { text: ph.focus, style: "body", fontSize: 8.5, color: MUTED, margin: [0, 1, 0, 2] },
-                  { text: `Deliverables: ${ph.deliverables.join(" · ")}`, style: "micro", color: INK },
-                  { text: `Gate: ${ph.verificationGate}`, style: "micro", color: "#3f6e35", bold: true },
+                  { text: ph.name || "", bold: true, fontSize: 10, color: INK },
+                  { text: ph.focus || "", style: "body", fontSize: 8.5, color: MUTED, margin: [0, 1, 0, 2] },
+                  { text: `Deliverables: ${(ph.deliverables || []).join(" · ") || "—"}`, style: "micro", color: INK },
+                  { text: `Gate: ${ph.verificationGate || "Signoff"}`, style: "micro", color: "#3f6e35", bold: true },
                 ],
               },
             ],
@@ -827,10 +827,10 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       push({
         stack: [
           ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 4] }] : []),
-          ...b.boundaries.map((sb) => ({
+          ...(b.boundaries || []).map((sb) => ({
             columns: [
-              { width: 100, text: sb.layer, bold: true, fontSize: 9, color: INK },
-              { width: "*", text: `${sb.mechanism} — ${sb.threatProtection}`, style: "body", color: MUTED, fontSize: 8.5 },
+              { width: 100, text: sb.layer || "", bold: true, fontSize: 9, color: INK },
+              { width: "*", text: `${sb.mechanism || ""} — ${sb.threatProtection || ""}`, style: "body", color: MUTED, fontSize: 8.5 },
             ],
             margin: [0, 0, 0, 4],
           })),
@@ -840,13 +840,13 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
     } else if (b.type === "migration_pipeline") {
       push({
         stack: [
-          { text: `LEGACY TRANSITION — ${b.systemName}`, style: "micro", bold: true, color: ACCENT },
-          { text: b.scopeSummary, style: "body", fontSize: 9, margin: [0, 2, 0, 4] },
-          ...b.steps.map((st) => ({
+          { text: `LEGACY TRANSITION — ${b.systemName || "SYSTEM"}`, style: "micro", bold: true, color: ACCENT },
+          { text: b.scopeSummary || "", style: "body", fontSize: 9, margin: [0, 2, 0, 4] },
+          ...(b.steps || []).map((st) => ({
             columns: [
-              { width: 70, text: st.step, bold: true, fontSize: 8.5, color: INK },
-              { width: 50, text: st.treatment, bold: true, fontSize: 8, color: ACCENT },
-              { width: "*", text: `${st.action} (${st.verification})`, style: "body", color: MUTED, fontSize: 8.5 },
+              { width: 70, text: st.step || "", bold: true, fontSize: 8.5, color: INK },
+              { width: 50, text: st.treatment || "KEEP", bold: true, fontSize: 8, color: ACCENT },
+              { width: "*", text: `${st.action || ""} (${st.verification || ""})`, style: "body", color: MUTED, fontSize: 8.5 },
             ],
             margin: [0, 0, 0, 3],
           })),
