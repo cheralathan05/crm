@@ -397,7 +397,7 @@ export async function getTeamHealthReport(workspaceId: string): Promise<TeamHeal
   // Check unassigned critical/high priority tasks
   const unassignedTasks = await db.clientTask.findMany({
     where: {
-      project: { workspaceId },
+      client: { workspaceId },
       assigneeId: null,
       status: { in: ["TODO", "IN_PROGRESS", "BACKLOG", "READY"] },
       priority: { in: ["HIGH", "URGENT"] },
@@ -600,7 +600,7 @@ export async function getEmployeeDirectory(
       if (emp.team?.name.toLowerCase().includes(query)) return true;
 
       // Projects match
-      if (emp.currentProjects.some((p) => p.name.toLowerCase().includes(query) || p.code.toLowerCase().includes(query))) {
+      if (emp.currentProjects.some((p) => (p.name || "").toLowerCase().includes(query) || (p.code || "").toLowerCase().includes(query))) {
         return true;
       }
 
@@ -666,7 +666,7 @@ export async function getEmployeeWorkspaceDetails(employeeId: string) {
         include: {
           project: {
             include: {
-              client: { select: { id: true, name: true, company: true } },
+              client: { select: { id: true, companyName: true } },
             },
           },
         },
