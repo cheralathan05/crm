@@ -24,7 +24,7 @@ export async function GET(req: NextRequest) {
     if (previewEmployeeId && (session.user.role === "OWNER" || session.user.role === "ADMIN")) {
       employeeId = previewEmployeeId;
     } else {
-      const employee = await db.employee.findFirst({
+      let employee = await db.employee.findFirst({
         where: {
           OR: [
             { userId: session.user.id },
@@ -32,12 +32,57 @@ export async function GET(req: NextRequest) {
           ],
         },
       });
+
+      if (!employee) {
+        // Resolve workspace
+        const user = await db.user.findUnique({
+          where: { id: session.user.id },
+          include: { workspace: true },
+        });
+        const workspaceId = user?.workspace?.id || user?.workspaceId;
+
+        if (workspaceId) {
+          // Check for any unlinked employee in workspace or create one
+          employee = await db.employee.findFirst({
+            where: { workspaceId, userId: null },
+            orderBy: { createdAt: "asc" },
+          });
+
+          if (employee) {
+            employee = await db.employee.update({
+              where: { id: employee.id },
+              data: {
+                userId: session.user.id,
+                email: session.user.email || employee.email,
+              },
+            });
+          } else {
+            const count = await db.employee.count({ where: { workspaceId } });
+            const empCode = `EMP-${String(count + 1).padStart(3, "0")}`;
+            employee = await db.employee.create({
+              data: {
+                workspaceId,
+                userId: session.user.id,
+                employeeCode: empCode,
+                fullName: session.user.name || "Lead Executive",
+                email: session.user.email || `user-${session.user.id}@businessos.internal`,
+                jobTitle: session.user.role === "OWNER" ? "Managing Director & Principal Architect" : "Lead Engineering Specialist",
+                department: "ENGINEERING",
+                employmentType: "FULL_TIME",
+                status: "ACTIVE",
+                startDate: new Date(),
+              },
+            });
+          }
+        }
+      }
+
       employeeId = employee?.id || null;
     }
 
     if (!employeeId) {
       return NextResponse.json(
-        { ok: false, message: "No employee profile found for your account." },
+        { ok: false, message: "Unable to resolve or initialize employee profile." },
         { status: 404 },
       );
     }
@@ -66,7 +111,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ ok: false, message: "Unauthorized." }, { status: 401 });
     }
 
-    const employee = await db.employee.findFirst({
+    let employee = await db.employee.findFirst({
       where: {
         OR: [
           { userId: session.user.id },
@@ -74,6 +119,26 @@ export async function POST(req: NextRequest) {
         ],
       },
     });
+
+    if (!employee) {
+      const user = await db.user.findUnique({
+        where: { id: session.user.id },
+        include: { workspace: true },
+      });
+      const workspaceId = user?.workspace?.id || user?.workspaceId;
+      if (workspaceId) {
+        employee = await db.employee.findFirst({
+          where: { workspaceId },
+          orderBy: { createdAt: "asc" },
+        });
+        if (employee && !employee.userId) {
+          employee = await db.employee.update({
+            where: { id: employee.id },
+            data: { userId: session.user.id, email: session.user.email || employee.email },
+          });
+        }
+      }
+    }
 
     if (!employee) {
       return NextResponse.json(

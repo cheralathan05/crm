@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { resolveTaskLayer, resolveTaskRequirement } from "@/lib/tasks-types";
+
 export type AttentionCategory =
   | "BLOCKED"
   | "READY"
@@ -30,16 +32,16 @@ export type LiveAttentionMatrixProps = {
 };
 
 export function LiveAttentionMatrix({ tasks = [], onSelectTask }: LiveAttentionMatrixProps) {
-  const [activeCategory, setActiveCategory] = useState<AttentionCategory>("BLOCKED");
+  const [activeCategory, setActiveCategory] = useState<AttentionCategory>("READY");
   const now = new Date();
 
   // 1. Group tasks by real operational state
   const blockedTasks = tasks.filter((t) => t.status === "BLOCKED" || t.priority === "URGENT");
-  const readyTasks = tasks.filter((t) => t.status === "TODO" && !t.dependencies?.some?.((d: any) => d.status !== "DONE"));
+  const readyTasks = tasks.filter((t) => (t.status === "TODO" || t.status === "READY") && !t.dependencies?.some?.((d: any) => d.status !== "DONE"));
   const reviewTasks = tasks.filter((t) => t.status === "IN_REVIEW" || t.status === "CHANGES_REQUESTED");
   const overdueTasks = tasks.filter((t) => t.dueAt && new Date(t.dueAt) < now && t.status !== "DONE" && t.status !== "COMPLETED");
   const unassignedTasks = tasks.filter((t) => !t.assigneeName && t.status !== "DONE");
-  const criticalPathTasks = tasks.filter((t) => t.layer === "DATABASE" || t.priority === "HIGH" || (t.dependencies && t.dependencies.length > 0));
+  const criticalPathTasks = tasks.filter((t) => resolveTaskLayer(t) === "DATABASE" || t.priority === "HIGH" || (t.dependencies && t.dependencies.length > 0));
   const failedVerificationTasks = tasks.filter((t) => t.status === "CHANGES_REQUESTED" || (t.testResults && t.testResults.some((tr: any) => tr.status === "FAILING")));
 
   const categories = [
@@ -106,10 +108,10 @@ export function LiveAttentionMatrix({ tasks = [], onSelectTask }: LiveAttentionM
   return (
     <div className="bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl p-5 shadow-xs space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[var(--bos-border)] pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
-          <span className="font-mono text-[11px] uppercase tracking-wider text-[var(--bos-accent)] font-bold">
-            LIVE ATTENTION MATRIX
+          <span className="text-[10px] font-mono text-[var(--bos-accent)] uppercase tracking-wider font-bold">
+            Live Attention Matrix
           </span>
           <h3 className="text-[14px] font-bold text-[var(--bos-text-primary)]">
             Execution Focus Grouped by Operational Reason
@@ -120,11 +122,12 @@ export function LiveAttentionMatrix({ tasks = [], onSelectTask }: LiveAttentionM
         </span>
       </div>
 
-      {/* Category Selection Tabs */}
-      <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+      {/* Category Pills Bar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {categories.map((cat) => {
           const Icon = cat.icon;
           const isSelected = activeCategory === cat.id;
+
           return (
             <button
               key={cat.id}
@@ -159,52 +162,61 @@ export function LiveAttentionMatrix({ tasks = [], onSelectTask }: LiveAttentionM
             </p>
           </div>
         ) : (
-          activeGroup.items.map((item) => (
-            <div
-              key={item.id}
-              onClick={() => onSelectTask(item)}
-              className="p-3.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] rounded-xl transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
-            >
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 flex-wrap">
-                  {item.code && (
-                    <span className={cn(
-                      "text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded",
-                      item.layer === "DATABASE" ? "bg-purple-500/10 text-purple-600" :
-                      item.layer === "BACKEND" ? "bg-emerald-500/10 text-emerald-600" :
-                      item.layer === "FRONTEND" ? "bg-sky-500/10 text-sky-600" : "bg-amber-500/10 text-amber-600"
-                    )}>
-                      {item.code}
+          activeGroup.items.map((item) => {
+            const layer = resolveTaskLayer(item);
+            const reqInfo = resolveTaskRequirement(item);
+
+            return (
+              <div
+                key={item.id}
+                onClick={() => onSelectTask(item)}
+                className="p-3.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] rounded-xl transition-all cursor-pointer group flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs"
+              >
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {item.code && (
+                      <span className={cn(
+                        "text-[9.5px] font-mono font-bold px-1.5 py-0.5 rounded",
+                        layer === "DATABASE" ? "bg-purple-500/10 text-purple-600" :
+                        layer === "BACKEND" ? "bg-emerald-500/10 text-emerald-600" :
+                        layer === "FRONTEND" ? "bg-sky-500/10 text-sky-600" :
+                        layer === "TESTING" ? "bg-amber-500/10 text-amber-600" :
+                        "bg-indigo-500/10 text-indigo-600"
+                      )}>
+                        {item.code}
+                      </span>
+                    )}
+                    <h4 className="text-[13px] font-semibold text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors">
+                      {item.title}
+                    </h4>
+                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bos-surface)] text-[var(--bos-text-secondary)]">
+                      {item.priority}
                     </span>
-                  )}
-                  <h4 className="text-[13px] font-semibold text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors">
-                    {item.title}
-                  </h4>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bos-surface)] text-[var(--bos-text-secondary)]">
-                    {item.priority}
+                  </div>
+
+                  <p className="text-[11.5px] text-[var(--bos-text-secondary)] line-clamp-1">
+                    {item.description || item.blockedReason || item.expectedResult || "Executable work item"}
+                  </p>
+
+                  <div className="flex items-center gap-3 text-[10.5px] font-mono text-[var(--bos-text-tertiary)] pt-0.5">
+                    <span className="font-semibold text-[var(--bos-text-secondary)]">{layer}</span>
+                    <span>·</span>
+                    <span className="text-[var(--bos-accent)]">{reqInfo.title}</span>
+                    <span>·</span>
+                    <span>Owner: {item.assigneeName || "Unassigned"}</span>
+                    {item.estimatedHours && <span>· {item.estimatedHours}h</span>}
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--bos-border)]">
+                  <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--bos-surface)] text-[var(--bos-text-primary)]">
+                    {item.status}
                   </span>
-                </div>
-
-                <p className="text-[11.5px] text-[var(--bos-text-secondary)] line-clamp-1">
-                  {item.blockedReason || item.description || item.expectedResult || "Executable work item"}
-                </p>
-
-                <div className="flex items-center gap-3 text-[10.5px] font-mono text-[var(--bos-text-tertiary)] pt-0.5">
-                  {item.project && <span>Project: {item.project.name}</span>}
-                  {item.sourceRequirementId && <span>REQ: {item.sourceRequirementId}</span>}
-                  <span>Owner: {item.assigneeName || "Unassigned"}</span>
-                  {item.dueAt && <span>Due: {new Date(item.dueAt).toLocaleDateString()}</span>}
+                  <ChevronRight className="w-4 h-4 text-[var(--bos-text-tertiary)] group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </div>
-
-              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-[var(--bos-border)]">
-                <span className="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-[var(--bos-surface)] text-[var(--bos-text-primary)]">
-                  {item.status}
-                </span>
-                <ChevronRight className="w-4 h-4 text-[var(--bos-text-tertiary)] group-hover:translate-x-0.5 transition-transform" />
-              </div>
-            </div>
-          ))
+            );
+          })
         )}
       </div>
     </div>

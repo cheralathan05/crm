@@ -80,6 +80,18 @@ export async function POST(_req: Request, { params }: Ctx) {
       tasks: plan.tasks,
     });
 
+    try {
+      const { processProjectEvent } = await import("@/lib/events/project-event-engine");
+      await processProjectEvent({
+        eventType: "PROJECT_CREATED",
+        projectId: project.id,
+        actorId: session.user.id,
+        actorName: session.user.name ?? "Owner",
+      });
+    } catch (err) {
+      console.error("Project created event trigger failed:", err);
+    }
+
     return NextResponse.json({
       ok: true,
       project: { id: project.id, code: project.code, name: project.name, stage: project.stage },

@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { resolveTaskLayer, resolveTaskRequirement } from "@/lib/tasks-types";
+
 export type FlowColumn =
   | "READY"
   | "BUILDING"
@@ -102,7 +104,8 @@ export function EngineeringFlowBoard({
                 {/* Cards List */}
                 <div className="space-y-2.5 mt-2.5">
                   {colTasks.map((task) => {
-                    const layer = (task.layer || task.workstream || "").toUpperCase();
+                    const layer = resolveTaskLayer(task);
+                    const reqInfo = resolveTaskRequirement(task);
                     const passedCriteria = (task.acceptanceCriteria || []).filter((c: any) => c.status === "PASSED").length;
                     const totalCriteria = task.acceptanceCriteria?.length || 0;
 
@@ -118,7 +121,9 @@ export function EngineeringFlowBoard({
                             "text-[9.5px] font-mono font-bold px-1.5 py-0.2 rounded",
                             layer === "DATABASE" ? "bg-purple-500/10 text-purple-600" :
                             layer === "BACKEND" ? "bg-emerald-500/10 text-emerald-600" :
-                            layer === "FRONTEND" ? "bg-sky-500/10 text-sky-600" : "bg-amber-500/10 text-amber-600"
+                            layer === "FRONTEND" ? "bg-sky-500/10 text-sky-600" :
+                            layer === "TESTING" ? "bg-amber-500/10 text-amber-600" :
+                            "bg-indigo-500/10 text-indigo-600"
                           )}>
                             {task.code || task.workId || "TSK"}
                           </span>
@@ -134,8 +139,9 @@ export function EngineeringFlowBoard({
 
                         {/* Layer & Requirement Link */}
                         <div className="flex items-center gap-1.5 text-[10px] font-mono text-[var(--bos-text-tertiary)] truncate">
-                          <span>{layer || "CORE"}</span>
-                          {task.sourceRequirementId && <span>· {task.sourceRequirementId}</span>}
+                          <span className="font-semibold">{layer}</span>
+                          <span className="text-[var(--bos-border)]">·</span>
+                          <span className="truncate">{reqInfo.title}</span>
                         </div>
 
                         {/* Owner & Verification Stats */}

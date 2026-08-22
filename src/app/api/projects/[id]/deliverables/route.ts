@@ -88,29 +88,52 @@ export async function PATCH(req: Request, { params }: Ctx) {
     data: updateData,
   });
 
-  // Log activity
-  let actType = "DELIVERABLE_UPDATED";
-  let actTitle = `Deliverable updated: "${deliverable.title}"`;
-  if (body.status === "INTERNAL_REVIEW") {
-    actType = "DELIVERABLE_SUBMITTED";
-    actTitle = `Deliverable ready for internal review: "${deliverable.title}"`;
+  if (body.status === "ACCEPTED") {
+    try {
+      const { processProjectEvent } = await import("@/lib/events/project-event-engine");
+      await processProjectEvent({
+        eventType: "DELIVERABLE_APPROVED",
+        deliverableId: deliverable.id,
+        projectId: id,
+        actorId: session.user.id,
+        actorName: session.user.name ?? "Manager",
+        payload: { clientName: body.clientApprovedBy || project.client.companyName },
+      });
+    } catch (err) {
+      console.error("Deliverable approval event failed:", err);
+    }
   } else if (body.status === "DELIVERED_TO_CLIENT" || body.status === "CLIENT_REVIEW") {
-    actType = "DELIVERED_TO_CLIENT";
-    actTitle = `Deliverable submitted to client: "${deliverable.title}"`;
-  } else if (body.status === "ACCEPTED") {
-    actType = "CLIENT_ACCEPTED";
-    actTitle = `Deliverable accepted by client: "${deliverable.title}"`;
-  }
+    try {
+      const { processProjectEvent } = await import("@/lib/events/project-event-engine");
+      await processProjectEvent({
+        eventType: "DELIVERABLE_SUBMITTED",
+        deliverableId: deliverable.id,
+        projectId: id,
+        actorId: session.user.id,
+        actorName: session.user.name ?? "Manager",
+      });
+    } catch (err) {
+      console.error("Deliverable submitted event failed:", err);
+    }
+  } else {
+    // Log activity
+    let actType = "DELIVERABLE_UPDATED";
+    let actTitle = `Deliverable updated: "${deliverable.title}"`;
+    if (body.status === "INTERNAL_REVIEW") {
+      actType = "DELIVERABLE_SUBMITTED";
+      actTitle = `Deliverable ready for internal review: "${deliverable.title}"`;
+    }
 
-  await db.projectActivity.create({
-    data: {
-      projectId: id,
-      type: actType,
-      title: actTitle,
-      detail: body.clientFeedback || `Status changed to ${body.status}`,
-      actorName: session.user.name ?? "Manager",
-    },
-  });
+    await db.projectActivity.create({
+      data: {
+        projectId: id,
+        type: actType,
+        title: actTitle,
+        detail: body.clientFeedback || `Status changed to ${body.status}`,
+        actorName: session.user.name ?? "Manager",
+      },
+    });
+  }
 
   return NextResponse.json({ ok: true, deliverable });
 }

@@ -17,6 +17,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { resolveTaskLayer, resolveTaskRequirement } from "@/lib/tasks-types";
+
 export type WorkTreeViewProps = {
   tasks: any[];
   deliverables?: any[];
@@ -30,15 +32,13 @@ export function WorkTreeView({
   onSelectTask,
   onNewTaskUnderReq,
 }: WorkTreeViewProps) {
-  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({
-    "REQ-ALL": true,
-  });
+  const [expandedNodes, setExpandedNodes] = useState<Record<string, boolean>>({});
 
   const toggleNode = (nodeId: string) => {
     setExpandedNodes((prev) => ({ ...prev, [nodeId]: !prev[nodeId] }));
   };
 
-  // Group tasks by Requirement -> Layer
+  // Group tasks by Requirement Module -> Technical Layer
   const reqGroups: Record<
     string,
     {
@@ -50,37 +50,46 @@ export function WorkTreeView({
         BACKEND: any[];
         FRONTEND: any[];
         TESTING: any[];
-        OTHER: any[];
+        DEVOPS: any[];
       };
     }
   > = {};
 
+  let reqSequence = 1;
+  const titleToReqIdMap = new Map<string, string>();
+
   tasks.forEach((t) => {
-    const reqId = t.sourceRequirementId || t.code?.split("-")[0] || "REQ-001";
-    if (!reqGroups[reqId]) {
+    // Resolve requirement descriptor
+    const reqInfo = resolveTaskRequirement(t, reqSequence);
+    let assignedReqId = reqInfo.reqId;
+
+    if (!titleToReqIdMap.has(reqInfo.title)) {
+      assignedReqId = `REQ-${String(reqSequence++).padStart(3, "0")}`;
+      titleToReqIdMap.set(reqInfo.title, assignedReqId);
+    } else {
+      assignedReqId = titleToReqIdMap.get(reqInfo.title)!;
+    }
+
+    if (!reqGroups[assignedReqId]) {
       const matchedDeliv = deliverables.find(
-        (d: any) => d.id === t.deliverableId || d.title?.toLowerCase().includes(reqId.toLowerCase()),
+        (d: any) => d.id === t.deliverableId || d.title?.toLowerCase() === reqInfo.title.toLowerCase(),
       );
-      reqGroups[reqId] = {
-        reqId,
-        title: t.sourceRequirementTitle || `Requirement ${reqId}`,
+      reqGroups[assignedReqId] = {
+        reqId: assignedReqId,
+        title: reqInfo.title,
         deliverable: matchedDeliv,
         layers: {
           DATABASE: [],
           BACKEND: [],
           FRONTEND: [],
           TESTING: [],
-          OTHER: [],
+          DEVOPS: [],
         },
       };
     }
 
-    const layerKey = (t.layer || t.workstream || "").toUpperCase();
-    if (layerKey === "DATABASE") reqGroups[reqId].layers.DATABASE.push(t);
-    else if (layerKey === "BACKEND") reqGroups[reqId].layers.BACKEND.push(t);
-    else if (layerKey === "FRONTEND") reqGroups[reqId].layers.FRONTEND.push(t);
-    else if (layerKey === "TESTING" || layerKey === "QA") reqGroups[reqId].layers.TESTING.push(t);
-    else reqGroups[reqId].layers.OTHER.push(t);
+    const layerKey = resolveTaskLayer(t);
+    reqGroups[assignedReqId].layers[layerKey].push(t);
   });
 
   const reqList = Object.values(reqGroups);
@@ -113,21 +122,20 @@ export function WorkTreeView({
       </div>
 
       {/* Work Tree Nodes */}
-      <div className="space-y-3">
-        {reqList.map((rg) => {
-          const isExpanded = expandedNodes[rg.reqId] !== false;
+      <div className="space-y-3">        {reqList.map((rg) => {
+          const isExpanded = expandedNodes[rg.reqId] ?? true;
           const totalTasksInReq =
             rg.layers.DATABASE.length +
             rg.layers.BACKEND.length +
             rg.layers.FRONTEND.length +
             rg.layers.TESTING.length +
-            rg.layers.OTHER.length;
+            rg.layers.DEVOPS.length;
           const completedCount = [
             ...rg.layers.DATABASE,
             ...rg.layers.BACKEND,
             ...rg.layers.FRONTEND,
             ...rg.layers.TESTING,
-            ...rg.layers.OTHER,
+            ...rg.layers.DEVOPS,
           ].filter((t) => t.status === "DONE" || t.status === "COMPLETED").length;
 
           return (
@@ -286,6 +294,36 @@ export function WorkTreeView({
                             <div className="flex items-center gap-2 text-[10.5px] font-mono">
                               <span className="text-[var(--bos-text-secondary)]">{t.assigneeName || "Unassigned"}</span>
                               <span className="px-1.5 py-0.2 rounded bg-[var(--bos-bg)] text-amber-600 font-bold">{t.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* DevOps Layer */}
+                  {rg.layers.DEVOPS.length > 0 && (
+                    <div className="space-y-2 pl-4 border-l-2 border-indigo-500/40">
+                      <div className="flex items-center gap-1.5 text-indigo-600 font-mono text-[11px] font-bold">
+                        <Layers className="w-3.5 h-3.5" />
+                        <span>DEVOPS & INFRASTRUCTURE ({rg.layers.DEVOPS.length})</span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {rg.layers.DEVOPS.map((t) => (
+                          <div
+                            key={t.id}
+                            onClick={() => onSelectTask(t)}
+                            className="p-2.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] hover:border-indigo-500 rounded-lg flex items-center justify-between cursor-pointer transition-all group"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">{t.code || "OPS"}</span>
+                              <span className="text-[12px] font-medium text-[var(--bos-text-primary)] group-hover:text-indigo-600 transition-colors">
+                                {t.title}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2 text-[10.5px] font-mono">
+                              <span className="text-[var(--bos-text-secondary)]">{t.assigneeName || "Unassigned"}</span>
+                              <span className="px-1.5 py-0.2 rounded bg-[var(--bos-bg)] text-indigo-600 font-bold">{t.status}</span>
                             </div>
                           </div>
                         ))}

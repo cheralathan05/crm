@@ -475,6 +475,18 @@ export async function approveProposal(token: string, input: { clientName?: strin
     );
   }
 
+  // Autonomous Project Operating System — Automatically provision and launch project from approved proposal
+  try {
+    const { processProjectEvent } = await import("@/lib/events/project-event-engine");
+    await processProjectEvent({
+      eventType: "PROPOSAL_APPROVED",
+      proposalId: proposal.id,
+      actorName: input.clientName ?? proposal.client.companyName,
+    });
+  } catch (err) {
+    console.error("Autonomous project launch event failed:", err);
+  }
+
   // Client confirmation email — best effort, never blocks the approval.
   if (workspace && proposal.client.email) {
     await sendProposalApprovalConfirmationEmail({

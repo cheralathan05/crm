@@ -133,40 +133,40 @@ export type TechnicalLayerType = "DATABASE" | "BACKEND" | "FRONTEND" | "TESTING"
 export function resolveTaskLayer(t: any): TechnicalLayerType {
   if (!t) return "FRONTEND";
 
-  // Check explicit layer field
-  if (t.layer) {
-    const l = String(t.layer).toUpperCase();
-    if (l.includes("DATA") || l.includes("SCHEMA") || l === "DB") return "DATABASE";
-    if (l.includes("BACK") || l.includes("API") || l.includes("SERVICE")) return "BACKEND";
-    if (l.includes("FRONT") || l.includes("UI") || l.includes("DESIGN") || l.includes("WEB")) return "FRONTEND";
-    if (l.includes("TEST") || l.includes("QA") || l.includes("VERIF")) return "TESTING";
-    if (l.includes("DEV") || l.includes("INFRA") || l.includes("DEPLOY") || l.includes("PIPELINE")) return "DEVOPS";
-  }
-
-  // Check workstream
+  // Check workstream first (most specific business intent)
   if (t.workstream) {
     const ws = String(t.workstream).toUpperCase();
     if (ws === "DATABASE") return "DATABASE";
     if (ws === "BACKEND" || ws === "INTEGRATION") return "BACKEND";
-    if (ws === "FRONTEND" || ws === "DESIGN") return "FRONTEND";
     if (ws === "QA" || ws === "TESTING") return "TESTING";
     if (ws === "DEPLOYMENT") return "DEVOPS";
   }
 
   // Robust contextual heuristics based on task title and description
   const text = `${t.title || ""} ${t.description || ""}`.toLowerCase();
-  if (text.includes("database") || text.includes("schema") || text.includes("prisma") || text.includes("migration") || text.includes("relational model")) {
+  if (text.includes("database") || text.includes("schema") || text.includes("prisma") || text.includes("migration") || text.includes("relational model") || text.includes("table")) {
     return "DATABASE";
   }
-  if (text.includes("api route") || text.includes("rest endpoint") || text.includes("backend") || text.includes("auth") || text.includes("session token") || text.includes("middleware") || text.includes("security guard")) {
+  if (text.includes("api route") || text.includes("rest endpoint") || text.includes("backend") || text.includes("auth") || text.includes("session token") || text.includes("middleware") || text.includes("security guard") || text.includes("controller") || text.includes("handler")) {
     return "BACKEND";
   }
-  if (text.includes("test") || text.includes("qa") || text.includes("acceptance") || text.includes("regression") || text.includes("verification")) {
+  if (text.includes("test") || text.includes("qa") || text.includes("acceptance") || text.includes("regression") || text.includes("verification") || text.includes("audit")) {
     return "TESTING";
   }
-  if (text.includes("deploy") || text.includes("ci/cd") || text.includes("cutover") || text.includes("repository") || text.includes("dns") || text.includes("pipeline")) {
+  if (text.includes("deploy") || text.includes("ci/cd") || text.includes("cutover") || text.includes("repository") || text.includes("dns") || text.includes("pipeline") || text.includes("staging")) {
     return "DEVOPS";
   }
+
+  // Check explicit layer field if valid
+  if (t.layer) {
+    const l = String(t.layer).toUpperCase();
+    if (l.includes("DATA") || l.includes("SCHEMA") || l === "DB") return "DATABASE";
+    if (l.includes("BACK") || l.includes("API") || l.includes("SERVICE")) return "BACKEND";
+    if (l.includes("TEST") || l.includes("QA") || l.includes("VERIF")) return "TESTING";
+    if (l.includes("DEV") || l.includes("INFRA") || l.includes("DEPLOY") || l.includes("PIPELINE")) return "DEVOPS";
+    if (l.includes("FRONT") || l.includes("UI") || l.includes("DESIGN") || l.includes("WEB")) return "FRONTEND";
+  }
+
   return "FRONTEND";
 }
 

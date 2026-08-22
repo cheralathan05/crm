@@ -111,15 +111,31 @@ export async function PATCH(req: Request, { params }: Ctx) {
   });
 
   if (body.status === "DONE") {
-    await db.projectActivity.create({
-      data: {
+    try {
+      const { processProjectEvent } = await import("@/lib/events/project-event-engine");
+      await processProjectEvent({
+        eventType: "TASK_COMPLETED",
+        taskId: task.id,
         projectId: id,
-        type: "TASK_COMPLETED",
-        title: `Task completed: "${task.title}"`,
-        detail: `Completed by ${session.user.name ?? "Team Member"}`,
+        actorId: session.user.id,
         actorName: session.user.name ?? "Team Member",
-      },
-    });
+      });
+    } catch (err) {
+      console.error("Task completion event processing failed:", err);
+    }
+  } else if (body.status === "IN_PROGRESS") {
+    try {
+      const { processProjectEvent } = await import("@/lib/events/project-event-engine");
+      await processProjectEvent({
+        eventType: "TASK_STARTED",
+        taskId: task.id,
+        projectId: id,
+        actorId: session.user.id,
+        actorName: session.user.name ?? "Team Member",
+      });
+    } catch (err) {
+      console.error("Task started event processing failed:", err);
+    }
   }
 
   return NextResponse.json({ ok: true, task });

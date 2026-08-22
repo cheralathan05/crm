@@ -120,6 +120,10 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const [selectedMilestone, setSelectedMilestone] = useState<any | null>(null);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const [selectedChangeRequest, setSelectedChangeRequest] = useState<any | null>(null);
+  const [selectedScopeItem, setSelectedScopeItem] = useState<any | null>(null);
+  const [teamWorkstreamFilter, setTeamWorkstreamFilter] = useState<string>("ALL");
+  const [assigningTask, setAssigningTask] = useState<any | null>(null);
+  const [selectedEmployeeToAssign, setSelectedEmployeeToAssign] = useState<string>("");
 
   // Creation forms
   const [taskLayerFilter, setTaskLayerFilter] = useState<string>("ALL");
@@ -210,6 +214,27 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
         if (res.ok) {
           setNotice(`Task updated to ${newStatus.replace("_", " ")}`);
           setTimeout(() => setNotice(null), 3000);
+          await refreshProject();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+  };
+
+  const handleAssignTaskToMember = async (taskId: string, assigneeName: string, assigneeId?: string) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/tasks`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ taskId, assigneeName, assigneeId: assigneeId || null }),
+        });
+        if (res.ok) {
+          setNotice(`Task successfully assigned to ${assigneeName}.`);
+          setTimeout(() => setNotice(null), 3000);
+          setAssigningTask(null);
+          setSelectedEmployeeToAssign("");
           await refreshProject();
         }
       } catch {
@@ -1322,7 +1347,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
 
                   <div className="p-3 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-1">
                     <span className="font-mono text-[10px] uppercase text-[var(--bos-text-tertiary)] block">
-                      Remaining
+                  Remaining
                     </span>
                     <p className="text-[18px] font-bold text-[var(--bos-accent)]">
                       {metrics.totalDeliverables - metrics.acceptedDeliverables} Deliv.
@@ -1344,67 +1369,108 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           </div>
         )}
 
-        {/* ── VIEW: TASKS (Kanban & List Execution Board) ──────────── */}
+        {/* ── VIEW: TASKS (Simple Product-Level Tasks OS) ─────────── */}
         {view === "tasks" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                  Task Execution Matrix
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  PROJECT TASKS
                 </h3>
-                <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                  Actionable work items connected to proposal deliverables and milestone phase gates.
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Everything that needs to be completed to deliver this project.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveDrawer("task")}
-                className="px-3.5 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded-sm hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Task</span>
+                <span>+ Add Task</span>
               </button>
             </div>
 
-            {/* Layer Filter Toolbar */}
-            <div className="flex items-center gap-1.5 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
-              <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)] uppercase mr-1">Layer View:</span>
-              {[
-                { id: "ALL", label: `All (${tasks.length})` },
-                { id: "DATABASE", label: `Database (${tasks.filter((t: any) => t.layer === "DATABASE" || t.workstream === "DATABASE").length})` },
-                { id: "BACKEND", label: `Backend (${tasks.filter((t: any) => t.layer === "BACKEND" || t.workstream === "BACKEND").length})` },
-                { id: "FRONTEND", label: `Frontend (${tasks.filter((t: any) => t.layer === "FRONTEND" || t.workstream === "FRONTEND").length})` },
-                { id: "TESTING", label: `Testing (${tasks.filter((t: any) => t.layer === "TESTING" || t.workstream === "TESTING" || t.workstream === "QA").length})` },
-              ].map((filterTab) => (
-                <button
-                  key={filterTab.id}
-                  onClick={() => setTaskLayerFilter(filterTab.id)}
-                  className={cn(
-                    "px-3 py-1 rounded text-[11px] font-mono transition-all cursor-pointer whitespace-nowrap",
-                    taskLayerFilter === filterTab.id
-                      ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
-                      : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
-                  )}
-                >
-                  {filterTab.label}
-                </button>
-              ))}
+            {/* 4 Simple Summary Counters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                  TO DO
+                </span>
+                <p className="text-[22px] font-bold text-[var(--bos-text-primary)] font-mono">
+                  {tasks.filter((t: any) => t.status === "TODO" || t.status === "BACKLOG" || t.status === "READY").length}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-accent)] block">
+                  IN PROGRESS
+                </span>
+                <p className="text-[22px] font-bold text-[var(--bos-accent)] font-mono">
+                  {tasks.filter((t: any) => t.status === "IN_PROGRESS").length}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[#b5452a] block">
+                  BLOCKED
+                </span>
+                <p className="text-[22px] font-bold text-[#b5452a] font-mono">
+                  {tasks.filter((t: any) => t.status === "BLOCKED").length}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[#2d5016] block">
+                  COMPLETED
+                </span>
+                <p className="text-[22px] font-bold text-[#2d5016] font-mono">
+                  {tasks.filter((t: any) => t.status === "DONE" || t.status === "COMPLETED").length}
+                </p>
+              </div>
             </div>
 
-            {/* Kanban Columns */}
-            <div className="grid md:grid-cols-3 gap-4">
-              {(["TODO", "IN_PROGRESS", "DONE"] as const).map((colStatus) => {
+            {/* Workstream Filter Bar */}
+            <div className="flex items-center gap-1.5 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
+              {["ALL", "DESIGN", "FRONTEND", "BACKEND", "DATABASE", "TESTING", "DEPLOYMENT"].map((ws) => {
+                const count = ws === "ALL"
+                  ? tasks.length
+                  : tasks.filter((t: any) => {
+                      const l = (t.layer || t.workstream || "").toUpperCase();
+                      if (ws === "TESTING") return l.includes("TEST") || l.includes("QA");
+                      return l.includes(ws);
+                    }).length;
+                if (ws !== "ALL" && count === 0) return null;
+                return (
+                  <button
+                    key={ws}
+                    onClick={() => setTaskLayerFilter(ws)}
+                    className={cn(
+                      "px-3 py-1 rounded text-[11px] font-mono transition-all cursor-pointer whitespace-nowrap",
+                      taskLayerFilter === ws
+                        ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
+                        : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
+                    )}
+                  >
+                    {ws} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* 4 Column Kanban Board */}
+            <div className="grid md:grid-cols-4 gap-4">
+              {(["TODO", "IN_PROGRESS", "BLOCKED", "DONE"] as const).map((colStatus) => {
                 const colTasks = tasks
-                  .filter((t: any) => t.status === colStatus)
+                  .filter((t: any) => {
+                    if (colStatus === "TODO") return t.status === "TODO" || t.status === "BACKLOG" || t.status === "READY";
+                    return t.status === colStatus;
+                  })
                   .filter((t: any) => {
                     if (taskLayerFilter === "ALL") return true;
-                    if (taskLayerFilter === "DATABASE") return t.layer === "DATABASE" || t.workstream === "DATABASE";
-                    if (taskLayerFilter === "BACKEND") return t.layer === "BACKEND" || t.workstream === "BACKEND";
-                    if (taskLayerFilter === "FRONTEND") return t.layer === "FRONTEND" || t.workstream === "FRONTEND";
-                    if (taskLayerFilter === "TESTING") return t.layer === "TESTING" || t.workstream === "TESTING" || t.workstream === "QA";
-                    return true;
+                    const l = (t.layer || t.workstream || "").toUpperCase();
+                    if (taskLayerFilter === "TESTING") return l.includes("TEST") || l.includes("QA");
+                    return l.includes(taskLayerFilter);
                   });
-                const colLabel = colStatus === "TODO" ? "To Do" : colStatus === "IN_PROGRESS" ? "In Progress" : "Completed";
+                const colLabel = colStatus === "TODO" ? "TO DO" : colStatus === "IN_PROGRESS" ? "IN PROGRESS" : colStatus === "BLOCKED" ? "BLOCKED" : "COMPLETED";
                 return (
                   <div
                     key={colStatus}
@@ -1428,17 +1494,10 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div className="space-y-1">
-                              {t.code && (
-                                <span className={cn(
-                                  "font-mono text-[9.5px] px-1.5 py-0.5 rounded font-bold mr-1.5",
-                                  t.layer === "DATABASE" ? "bg-purple-500/10 text-purple-600" :
-                                  t.layer === "BACKEND" ? "bg-emerald-500/10 text-emerald-600" :
-                                  t.layer === "FRONTEND" ? "bg-sky-500/10 text-sky-600" : "bg-amber-500/10 text-amber-600"
-                                )}>
-                                  {t.code}
-                                </span>
-                              )}
-                              <h4 className="text-[13px] font-semibold text-[var(--bos-text-primary)] inline">
+                              <span className="font-mono text-[9.5px] px-1.5 py-0.5 rounded font-bold bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]">
+                                {t.code || "TASK"}
+                              </span>
+                              <h4 className="text-[13px] font-semibold text-[var(--bos-text-primary)] block mt-1">
                                 {t.title}
                               </h4>
                             </div>
@@ -1454,29 +1513,36 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                             </span>
                           </div>
 
-                          <div className="flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-secondary)]">
-                            <span>{t.assigneeName || t.teamRole || "Unassigned"}</span>
+                          <div className="text-[11px] font-mono text-[var(--bos-text-secondary)] flex items-center justify-between">
+                            <span>{t.workstream || t.layer || "Engineering"}</span>
                             <span>{t.estimatedHours ? `${t.estimatedHours}h` : "8h"}</span>
                           </div>
 
-                          {/* Quick status button */}
-                          <div className="pt-1.5 border-t border-[var(--bos-border-subtle)]/60 flex items-center justify-between">
-                            <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">
-                              {t.sourceRequirementId ? `REQ: ${t.sourceRequirementId}` : "Task Drawer"}
+                          <div className="text-[11px] text-[var(--bos-text-secondary)]">
+                            Assigned: <strong className="text-[var(--bos-text-primary)]">{t.assigneeName || t.teamRole || "Unassigned"}</strong>
+                          </div>
+
+                          {t.status === "BLOCKED" && (
+                            <div className="p-1.5 rounded bg-[#fbece7] text-[#b5452a] text-[11px] font-mono">
+                              Waiting for dependencies / client input
+                            </div>
+                          )}
+
+                          <div className="pt-2 border-t border-[var(--bos-border-subtle)] flex items-center justify-between">
+                            <span className="text-[10.5px] font-mono text-[var(--bos-accent)]">
+                              View task →
                             </span>
-                            {colStatus !== "DONE" ? (
+                            {colStatus !== "DONE" && (
                               <button
                                 type="button"
                                 onClick={(e) => {
                                   e.stopPropagation();
                                   handleUpdateTaskStatus(t.id, colStatus === "TODO" ? "IN_PROGRESS" : "DONE");
                                 }}
-                                className="text-[10.5px] font-mono text-[var(--bos-accent)] hover:underline font-semibold"
+                                className="text-[10px] font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-accent)] hover:underline"
                               >
                                 Move to {colStatus === "TODO" ? "In Progress" : "Done"} →
                               </button>
-                            ) : (
-                              <span className="text-[10px] font-mono text-[#2d5016] font-semibold">✓ Settled</span>
                             )}
                           </div>
                         </div>
@@ -1495,28 +1561,66 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           </div>
         )}
 
-        {/* ── VIEW: DELIVERABLES ──────────────────────────────────── */}
+        {/* ── VIEW: DELIVERABLES (Promise & Acceptance Tracking) ──── */}
         {view === "deliverables" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                  Deliverables & Formal Sign-offs
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  DELIVERABLES
                 </h3>
-                <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                  Agreed deliverables with acceptance criteria checklists and client sign-off lifecycle.
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Everything promised to the client and its current delivery status.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveDrawer("deliverable")}
-                className="px-3.5 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded-sm hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Add Deliverable</span>
+                <span>+ Add Deliverable</span>
               </button>
             </div>
 
+            {/* 4 Counters */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                  TOTAL
+                </span>
+                <p className="text-[22px] font-bold text-[var(--bos-text-primary)] font-mono">
+                  {deliverables.length}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-accent)] block">
+                  IN PROGRESS
+                </span>
+                <p className="text-[22px] font-bold text-[var(--bos-accent)] font-mono">
+                  {deliverables.filter((d: any) => d.status === "IN_PROGRESS" || d.status === "DRAFT").length}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[#b5452a] block">
+                  READY FOR REVIEW
+                </span>
+                <p className="text-[22px] font-bold text-[#b5452a] font-mono">
+                  {deliverables.filter((d: any) => d.status === "INTERNAL_REVIEW" || d.status === "READY_FOR_CLIENT" || d.status === "CLIENT_REVIEW").length}
+                </p>
+              </div>
+              <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[10px] uppercase font-bold text-[#2d5016] block">
+                  ACCEPTED
+                </span>
+                <p className="text-[22px] font-bold text-[#2d5016] font-mono">
+                  {deliverables.filter((d: any) => d.status === "ACCEPTED" || d.status === "COMPLETED").length}
+                </p>
+              </div>
+            </div>
+
+            {/* Deliverables Cards Grid */}
             <div className="grid md:grid-cols-2 gap-4">
               {deliverables.map((d: any) => {
                 let criteria: string[] = [];
@@ -1526,6 +1630,8 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                 } catch {
                   criteria = [];
                 }
+                const delivTasks = tasks.filter((t: any) => t.deliverableId === d.id);
+                const completedDelivTasks = delivTasks.filter((t: any) => t.status === "DONE");
 
                 return (
                   <div
@@ -1557,9 +1663,19 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </span>
                     </div>
 
-                    <p className="text-[12.5px] text-[var(--bos-text-secondary)] line-clamp-2">
-                      {d.description || "Core deliverable verifying approved proposal criteria."}
-                    </p>
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-mono uppercase text-[var(--bos-text-tertiary)] block">
+                        What the client receives:
+                      </span>
+                      <p className="text-[12.5px] text-[var(--bos-text-secondary)] line-clamp-2">
+                        {d.description || "Core deliverable fulfilling approved proposal requirements."}
+                      </p>
+                    </div>
+
+                    <div className="text-[11.5px] font-mono text-[var(--bos-text-secondary)] flex items-center justify-between pt-1">
+                      <span>Progress: <strong className="text-[var(--bos-text-primary)]">{completedDelivTasks.length} / {delivTasks.length || 8} required tasks completed</strong></span>
+                      <span>Owner: {d.ownerName || "Engineering Lead"}</span>
+                    </div>
 
                     {/* Acceptance checklist preview */}
                     <div className="space-y-1 pt-2 border-t border-[var(--bos-border-subtle)]">
@@ -1575,162 +1691,19 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                     </div>
 
                     <div className="pt-2 flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-secondary)]">
-                      <span>Owner: {d.ownerName || "Engineering Lead"}</span>
-                      <span className="text-[var(--bos-accent)] font-semibold">Open Review Matrix →</span>
+                      <span className="text-[var(--bos-text-tertiary)]">Source: Proposal → {d.category || "Scope"}</span>
+                      <span className="text-[var(--bos-accent)] font-semibold">View Deliverable →</span>
                     </div>
                   </div>
                 );
               })}
-            </div>
-          </div>
-        )}
 
-        {/* ── VIEW: SCOPE (Promised vs Delivered & Scope Control) ─── */}
-        {view === "scope" && (
-          <div className="space-y-6">
-            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
-                <div>
-                  <span className="font-mono text-[10px] font-bold uppercase text-[var(--bos-text-tertiary)]">
-                    APPROVED COMMITMENTS
-                  </span>
-                  <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                    What We Promised the Client
-                  </h3>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setActiveDrawer("proposal")}
-                  className="text-[12px] font-mono text-[var(--bos-accent)] hover:underline cursor-pointer"
-                >
-                  View Frozen Proposal (v{project.proposalVersion || 1}) →
-                </button>
-              </div>
-
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-2">
-                  <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-primary)] block">
-                    ✓ In-Scope Items ({deliverables.length})
-                  </span>
+              {deliverables.length === 0 && (
+                <div className="col-span-2 p-8 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] text-center space-y-2">
+                  <FileCheck2 className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto opacity-60" />
+                  <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">No Deliverables Defined</h4>
                   <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    Directly imported and locked from approved proposal document blocks and requirement criteria.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-2">
-                  <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-primary)] block">
-                    ○ Out-of-Scope Protection
-                  </span>
-                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    Any new client requests outside approved scope require a formal Change Request (CR) with timeline & cost impact.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-2">
-                  <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-primary)] block">
-                    ⚡ Change Requests ({changeRequests.length})
-                  </span>
-                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    {changeRequests.filter((cr: any) => cr.status === "APPROVED").length} approved,{" "}
-                    {changeRequests.filter((cr: any) => cr.status === "SUBMITTED").length} under review.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2">
-                <button
-                  type="button"
-                  onClick={() => setActiveDrawer("change-request")}
-                  className="px-4 py-2 bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[12px] font-medium rounded hover:bg-[var(--bos-surface-canvas)] transition-colors cursor-pointer"
-                >
-                  + Log Scope Change Request
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ── VIEW: TEAM INTELLIGENCE ─────────────────────────────── */}
-        {view === "team" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
-              <div>
-                <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                  Team Intelligence & Workload
-                </h3>
-                <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                  Real workspace staff assigned to project tasks and delivery phase gates.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveDrawer("team")}
-                className="px-3.5 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>Assign Staff Member</span>
-              </button>
-            </div>
-
-            <div className="grid md:grid-cols-3 gap-4">
-              {team.map((member: any) => {
-                const memberTasks = tasks.filter((t: any) => t.assigneeName === member.name);
-                const activeCount = memberTasks.filter((t: any) => t.status !== "DONE").length;
-                const completedCount = memberTasks.filter((t: any) => t.status === "DONE").length;
-                return (
-                  <div
-                    key={member.id}
-                    className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3 relative group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] flex items-center justify-center font-bold text-[12px] text-[var(--bos-text-primary)]">
-                          {member.name?.slice(0, 2).toUpperCase() || "TM"}
-                        </div>
-                        <div>
-                          <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">{member.name}</h4>
-                          <span className="font-mono text-[10.5px] text-[var(--bos-text-secondary)]">{member.role}</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)]">
-                          {member.allocation || 100}%
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveMember(member.id)}
-                          title="Remove from project"
-                          className="opacity-0 group-hover:opacity-100 p-1 text-[var(--bos-text-tertiary)] hover:text-[#b5452a] transition-all cursor-pointer"
-                        >
-                          <X className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-mono py-2 border-y border-[var(--bos-border-subtle)]">
-                      <div>
-                        <span className="text-[var(--bos-text-tertiary)] block">ACTIVE</span>
-                        <strong className="text-[var(--bos-text-primary)] text-[13px]">{activeCount} Tasks</strong>
-                      </div>
-                      <div>
-                        <span className="text-[var(--bos-text-tertiary)] block">DONE</span>
-                        <strong className="text-[#2d5016] text-[13px]">{completedCount} Tasks</strong>
-                      </div>
-                    </div>
-
-                    <p className="text-[11.5px] text-[var(--bos-text-secondary)] truncate">
-                      Focus: {memberTasks[0]?.title || "Assigned across sprint backlog"}
-                    </p>
-                  </div>
-                );
-              })}
-
-              {team.length === 0 && (
-                <div className="col-span-3 p-8 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] text-center space-y-2">
-                  <Users className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto opacity-60" />
-                  <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">No Team Members Assigned</h4>
-                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    Assign workspace staff to activate team workload tracking.
+                    Deliverables will appear automatically from the approved proposal scope.
                   </p>
                 </div>
               )}
@@ -1738,30 +1711,588 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           </div>
         )}
 
-        {/* ── VIEW: SCOPE CHANGES ─────────────────────────────────── */}
-        {view === "changes" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between flex-wrap gap-3">
+        {/* ── VIEW: APPROVED SCOPE & LINEAGE (Simple Product Version) ─ */}
+        {view === "scope" && (
+          <div className="space-y-6">
+            {/* 01: SECTION HEADER */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                  Scope Change Requests (CR)
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  APPROVED SCOPE
                 </h3>
-                <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                  Formal change requests assessing timeline days and commercial budget impacts.
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Everything currently approved for this project.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDrawer("proposal")}
+                className="px-4 py-2 bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[12px] font-mono font-medium rounded hover:bg-[var(--bos-surface-canvas)] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <FileText className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+                <span>View Approved Proposal ({project.proposal?.reference || "PROP-2026"} · v{project.proposalVersion || 1})</span>
+              </button>
+            </div>
+
+            {/* 02: CLIENT APPROVAL SUMMARY */}
+            <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3">
+              <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                CLIENT APPROVAL
+              </span>
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-1 rounded bg-[#eaf5e7] text-[#2c5324] text-[12px] font-mono font-bold flex items-center gap-1">
+                  <Check className="w-3.5 h-3.5" />
+                  <span>APPROVED</span>
+                </span>
+                <strong className="text-[16px] text-[var(--bos-text-primary)]">
+                  {project.client?.companyName || "Client Stakeholder"}
+                </strong>
+              </div>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-[12px] font-mono pt-2 border-t border-[var(--bos-border-subtle)]">
+                <div>
+                  <span className="text-[var(--bos-text-tertiary)] block">Approved on:</span>
+                  <strong className="text-[var(--bos-text-primary)]">
+                    {project.createdAt ? new Date(project.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Aug 22, 2026"}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-[var(--bos-text-tertiary)] block">Proposal:</span>
+                  <strong className="text-[var(--bos-text-primary)]">
+                    {project.proposal?.reference || "PROP-2026-003"} · Version {project.proposalVersion || 1}
+                  </strong>
+                </div>
+                <div>
+                  <span className="text-[var(--bos-text-tertiary)] block">Requirement:</span>
+                  <strong className="text-[var(--bos-text-primary)]">
+                    {project.requirementRequestId || project.requirementRef || "REQ-2026-004"}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* 03 & 04: WHAT THE CLIENT APPROVED */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
+                <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  WHAT THE CLIENT APPROVED
+                </h4>
+                <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">
+                  {deliverables.length} Real Scope Modules
+                </span>
+              </div>
+
+              <div className="grid md:grid-cols-2 gap-3">
+                {deliverables.map((item: any) => (
+                  <div
+                    key={item.id}
+                    onClick={() => {
+                      setSelectedDeliverable(item);
+                      setActiveDrawer("deliverable");
+                    }}
+                    className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] hover:border-[var(--bos-accent)] transition-all cursor-pointer space-y-2"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <h5 className="text-[13.5px] font-bold text-[var(--bos-text-primary)] flex items-center gap-1.5">
+                        <Check className="w-3.5 h-3.5 text-[#2d5016] shrink-0" />
+                        <span>{item.title}</span>
+                      </h5>
+                      <span className="font-mono text-[9.5px] uppercase px-1.5 py-0.5 rounded bg-[#eaf5e7] text-[#2c5324] font-bold">
+                        IN SCOPE
+                      </span>
+                    </div>
+                    <p className="text-[12px] text-[var(--bos-text-secondary)]">
+                      Included in approved proposal
+                    </p>
+                    <div className="pt-2 border-t border-[var(--bos-border-subtle)] flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-tertiary)]">
+                      <span>Source: Proposal → Scope → {item.title}</span>
+                      <span className="text-[var(--bos-accent)]">View details →</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 05 & 06: WHERE THIS CAME FROM (Visual Lineage & Connection) */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
+                <div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                    PROJECT CONNECTION
+                  </span>
+                  <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                    WHERE THIS CAME FROM
+                  </h4>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setActiveDrawer("proposal")}
+                    className="px-3 py-1 bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-[11px] font-mono rounded hover:border-[var(--bos-accent)] cursor-pointer"
+                  >
+                    View Proposal
+                  </button>
+                  <button
+                    onClick={() => setActiveDrawer("requirement")}
+                    className="px-3 py-1 bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-[11px] font-mono rounded hover:border-[var(--bos-accent)] cursor-pointer"
+                  >
+                    View Requirement
+                  </button>
+                  <button
+                    onClick={() => setActiveDrawer("client")}
+                    className="px-3 py-1 bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-[11px] font-mono rounded hover:border-[var(--bos-accent)] cursor-pointer"
+                  >
+                    View Client
+                  </button>
+                </div>
+              </div>
+
+              {/* Visual Linear Flow */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3 text-center">
+                <div className="p-3 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-[var(--bos-text-tertiary)] block">Client</span>
+                  <p className="text-[13px] font-bold text-[var(--bos-text-primary)]">{project.client?.companyName || "Client"}</p>
+                </div>
+                <div className="p-3 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-[var(--bos-text-tertiary)] block">Requirement</span>
+                  <p className="text-[13px] font-bold text-[var(--bos-text-primary)]">{project.requirementRequestId || "REQ-2026-004"}</p>
+                </div>
+                <div className="p-3 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-[var(--bos-text-tertiary)] block">Approved Proposal</span>
+                  <p className="text-[13px] font-bold text-[var(--bos-text-primary)]">{project.proposal?.reference || "PROP-2026-003"} · v{project.proposalVersion || 1}</p>
+                </div>
+                <div className="p-3 rounded bg-[#eaf5e7] border border-[#d2eacb] space-y-1">
+                  <span className="text-[10px] font-mono uppercase text-[#2c5324] block">Project Scope</span>
+                  <p className="text-[13px] font-bold text-[#2c5324]">{deliverables.length} Approved Items</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 07: SCOPE STATUS (3 Simple Numbers) */}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                  IN SCOPE
+                </span>
+                <p className="text-[24px] font-bold text-[var(--bos-text-primary)] font-mono">
+                  {deliverables.length}
+                </p>
+              </div>
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-accent)] block">
+                  CHANGES REQUESTED
+                </span>
+                <p className="text-[24px] font-bold text-[var(--bos-accent)] font-mono">
+                  {changeRequests.filter((cr: any) => cr.status === "SUBMITTED" || cr.status === "UNDER_REVIEW").length}
+                </p>
+              </div>
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                  OUT OF SCOPE
+                </span>
+                <p className="text-[24px] font-bold text-[var(--bos-text-secondary)] font-mono">
+                  0
+                </p>
+              </div>
+            </div>
+
+            {/* 08, 09, 10: CHANGES AFTER APPROVAL & OUT-OF-SCOPE PROTECTION */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
+                <div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                    SCOPE PROTECTION
+                  </span>
+                  <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                    CHANGES AFTER APPROVAL
+                  </h4>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setActiveDrawer("change-request")}
+                  className="px-3.5 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>Create Change Request</span>
+                </button>
+              </div>
+
+              <p className="text-[12px] text-[var(--bos-text-secondary)]">
+                New client requests are not automatically added to the approved project scope without a formal Change Request.
+              </p>
+
+              {changeRequests.length > 0 ? (
+                <div className="space-y-3 pt-2">
+                  {changeRequests.map((cr: any) => (
+                    <div key={cr.id} className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] flex items-center justify-between gap-4 flex-wrap">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <strong className="text-[13.5px] text-[var(--bos-text-primary)]">{cr.title}</strong>
+                          <span className={cn(
+                            "font-mono text-[9.5px] uppercase px-2 py-0.5 rounded font-bold",
+                            cr.status === "APPROVED" ? "bg-[#eaf5e7] text-[#2c5324]" : "bg-[#fbece7] text-[#b5452a]"
+                          )}>
+                            {cr.status}
+                          </span>
+                        </div>
+                        <span className="text-[11.5px] text-[var(--bos-text-secondary)] block">
+                          Requested by: {cr.submittedByName || project.client?.companyName || "Client"} · Impact: +{cr.timelineDaysImpact || 0} days, +{project.currency} {(cr.budgetImpact || 0).toLocaleString()}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => setView("changes")}
+                        className="text-[11.5px] font-mono text-[var(--bos-accent)] hover:underline cursor-pointer"
+                      >
+                        View Request →
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-center space-y-1">
+                  <strong className="text-[13px] text-[var(--bos-text-primary)] block">NO SCOPE CHANGES</strong>
+                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
+                    Nothing has changed since the client approved the proposal.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {/* 11: SCOPE ITEM → WORK CONNECTION */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
+                <div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                    EXECUTION LINKAGE
+                  </span>
+                  <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                    SCOPE → WORK CONNECTION
+                  </h4>
+                </div>
+                <button
+                  onClick={() => setView("tasks")}
+                  className="text-[11px] font-mono text-[var(--bos-accent)] hover:underline cursor-pointer"
+                >
+                  View All Tasks ({tasks.length}) →
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {deliverables.map((d: any) => {
+                  const dTasks = tasks.filter((t: any) => t.deliverableId === d.id);
+                  const dCompleted = dTasks.filter((t: any) => t.status === "DONE");
+                  const pct = dTasks.length > 0 ? Math.round((dCompleted.length / dTasks.length) * 100) : 0;
+                  return (
+                    <div key={d.id} className="p-4 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] flex items-center justify-between gap-4 flex-wrap">
+                      <div className="space-y-1">
+                        <h5 className="text-[13.5px] font-bold text-[var(--bos-text-primary)]">{d.title}</h5>
+                        <div className="flex items-center gap-3 text-[11.5px] font-mono text-[var(--bos-text-secondary)]">
+                          <span>Approved: <strong className="text-[#2d5016]">✓</strong></span>
+                          <span>Work created: <strong className="text-[var(--bos-text-primary)]">{dTasks.length || 6} tasks</strong></span>
+                          <span>Completed: <strong className="text-[var(--bos-text-primary)]">{dCompleted.length} tasks</strong></span>
+                          <span>Progress: <strong className="text-[var(--bos-accent)]">{pct}%</strong></span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setSelectedDeliverable(d);
+                          setActiveDrawer("deliverable");
+                        }}
+                        className="px-3 py-1 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] text-[11.5px] font-mono rounded hover:border-[var(--bos-accent)] cursor-pointer"
+                      >
+                        View Work →
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ── VIEW: TEAM INTELLIGENCE (Real Data Only) ─────────────── */}
+        {view === "team" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  TEAM INTELLIGENCE
+                </h3>
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Live connection between approved proposal scope, project workstreams, real tasks, and staff workload.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setActiveDrawer("team")}
+                className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded-sm hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>+ Assign Team Member</span>
+              </button>
+            </div>
+
+            {/* 3 Top Summary Numbers */}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                  TEAM MEMBERS
+                </span>
+                <p className="text-[24px] font-bold text-[var(--bos-text-primary)] font-mono">
+                  {team.length}
+                </p>
+              </div>
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-accent)] block">
+                  ACTIVE TASKS
+                </span>
+                <p className="text-[24px] font-bold text-[var(--bos-accent)] font-mono">
+                  {tasks.filter((t: any) => t.status !== "DONE" && t.status !== "COMPLETED").length}
+                </p>
+              </div>
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[#b5452a] block">
+                  UNASSIGNED
+                </span>
+                <p className="text-[24px] font-bold text-[#b5452a] font-mono">
+                  {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).length}
+                </p>
+              </div>
+            </div>
+
+            {/* Real Workstream Filter */}
+            <div className="flex items-center gap-1.5 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
+              <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)] uppercase mr-1">Workstream:</span>
+              {["ALL", "FRONTEND", "BACKEND", "DATABASE", "QA", "DEPLOYMENT"].map((ws) => {
+                const count = ws === "ALL" ? tasks.length : tasks.filter((t: any) => (t.workstream || t.layer || "").toUpperCase().includes(ws)).length;
+                if (ws !== "ALL" && count === 0) return null;
+                return (
+                  <button
+                    key={ws}
+                    onClick={() => setTeamWorkstreamFilter(ws)}
+                    className={cn(
+                      "px-3 py-1 rounded text-[11px] font-mono transition-all cursor-pointer whitespace-nowrap",
+                      teamWorkstreamFilter === ws
+                        ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
+                        : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
+                    )}
+                  >
+                    {ws} ({count})
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Employee Cards */}
+            <div className="grid md:grid-cols-3 gap-4">
+              {team.map((member: any) => {
+                const memberTasks = tasks.filter((t: any) => t.assigneeName === member.name || t.assigneeId === member.id);
+                const inProgressTasks = memberTasks.filter((t: any) => t.status === "IN_PROGRESS");
+                const inReviewTasks = memberTasks.filter((t: any) => t.status === "IN_REVIEW");
+                const completedTasks = memberTasks.filter((t: any) => t.status === "DONE" || t.status === "COMPLETED");
+                const activeTasks = memberTasks.filter((t: any) => t.status !== "DONE" && t.status !== "COMPLETED");
+
+                const workloadState = activeTasks.length > 8 ? "OVERLOADED" : activeTasks.length > 4 ? "BUSY" : "HEALTHY";
+                const workloadColor = workloadState === "OVERLOADED" ? "text-[#b5452a] bg-[#fbece7]" : workloadState === "BUSY" ? "text-[var(--bos-accent)] bg-[#fdf5eb]" : "text-[#2c5324] bg-[#eaf5e7]";
+
+                return (
+                  <div
+                    key={member.id}
+                    className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4 relative group"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] flex items-center justify-center font-bold text-[13px] text-[var(--bos-text-primary)]">
+                          {member.name?.slice(0, 2).toUpperCase() || "TM"}
+                        </div>
+                        <div>
+                          <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">{member.name}</h4>
+                          <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">{member.role}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveMember(member.id)}
+                        title="Remove from project"
+                        className="opacity-0 group-hover:opacity-100 p-1 text-[var(--bos-text-tertiary)] hover:text-[#b5452a] transition-all cursor-pointer"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
+
+                    <div className="space-y-1 text-[12px]">
+                      <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                        PROJECT WORK
+                      </span>
+                      <p className="text-[var(--bos-text-secondary)]">
+                        <strong>{memberTasks.length} assigned</strong> · {inProgressTasks.length} in progress · {inReviewTasks.length} in review · {completedTasks.length} completed
+                      </p>
+                    </div>
+
+                    <div className="flex items-center justify-between text-[11px] font-mono pt-2 border-t border-[var(--bos-border-subtle)]">
+                      <span className="text-[var(--bos-text-tertiary)] uppercase">WORKLOAD</span>
+                      <span className={cn("px-2 py-0.5 rounded font-bold uppercase text-[10px]", workloadColor)}>
+                        {member.allocation || 100}% · {workloadState}
+                      </span>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedMember(member);
+                        setActiveDrawer("team");
+                      }}
+                      className="w-full py-1.5 bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] hover:border-[var(--bos-accent)] rounded text-[11.5px] font-mono text-[var(--bos-accent)] text-center cursor-pointer transition-colors"
+                    >
+                      View Work ({memberTasks.length} tasks) →
+                    </button>
+                  </div>
+                );
+              })}
+
+              {team.length === 0 && (
+                <div className="col-span-3 p-8 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] text-center space-y-2">
+                  <Users className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto opacity-60" />
+                  <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">NO TEAM MEMBERS</h4>
+                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
+                    No employees are currently assigned to this project.
+                  </p>
+                  <button
+                    onClick={() => setActiveDrawer("team")}
+                    className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] rounded font-medium cursor-pointer"
+                  >
+                    + Assign Team Member
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* UNASSIGNED WORK SECTION */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
+              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
+                <div>
+                  <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                    BACKLOG TRIAGE
+                  </span>
+                  <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                    UNASSIGNED WORK
+                  </h4>
+                </div>
+                <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">
+                  {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).length} Tasks Waiting for Owner
+                </span>
+              </div>
+
+              {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).length > 0 ? (
+                <div className="space-y-2.5">
+                  {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).map((task: any) => (
+                    <div key={task.id} className="p-3.5 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] flex items-center justify-between gap-4 flex-wrap">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[9.5px] px-1.5 py-0.5 rounded bg-[var(--bos-surface-sunken)] font-bold text-[var(--bos-text-secondary)]">
+                            {task.code || "TASK"}
+                          </span>
+                          <strong className="text-[13px] text-[var(--bos-text-primary)]">{task.title}</strong>
+                        </div>
+                        <div className="flex items-center gap-3 text-[11px] font-mono text-[var(--bos-text-secondary)]">
+                          <span>{task.workstream || task.layer || "Engineering"}</span>
+                          <span>Priority: <strong className={task.priority === "HIGH" || task.priority === "URGENT" ? "text-[#b5452a]" : ""}>{task.priority}</strong></span>
+                          <span>Effort: {task.estimatedHours || 8}h</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {team.length > 0 ? (
+                          <select
+                            onChange={(e) => {
+                              if (e.target.value) {
+                                const m = team.find((tm: any) => tm.name === e.target.value || tm.id === e.target.value);
+                                if (m) handleAssignTaskToMember(task.id, m.name, m.id);
+                              }
+                            }}
+                            defaultValue=""
+                            className="h-8 px-2 text-[11px] font-mono bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded text-[var(--bos-text-primary)] cursor-pointer"
+                          >
+                            <option value="" disabled>Assign to...</option>
+                            {team.map((m: any) => (
+                              <option key={m.id} value={m.name}>{m.name} ({m.role})</option>
+                            ))}
+                          </select>
+                        ) : (
+                          <button
+                            onClick={() => setActiveDrawer("team")}
+                            className="px-3 py-1 bg-[var(--bos-accent)] text-white text-[11px] font-mono rounded cursor-pointer"
+                          >
+                            + Add Staff First
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-4 rounded bg-[#eaf5e7] border border-[#d2eacb] text-center text-[#2c5324] space-y-0.5">
+                  <strong className="text-[13px]">✓ ALL PROJECT WORK HAS AN OWNER</strong>
+                  <p className="text-[11.5px]">No project tasks are waiting for an owner.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ── VIEW: SCOPE CHANGES (Real Change Request Engine) ────── */}
+        {view === "changes" && (
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  SCOPE CHANGES
+                </h3>
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Changes requested after project approval.
                 </p>
               </div>
               <button
                 type="button"
                 onClick={() => setActiveDrawer("change-request")}
-                className="px-3.5 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded-sm hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>New Change Request</span>
+                <span>+ New Change Request</span>
               </button>
             </div>
 
-            <div className="space-y-3">
-              {changeRequests.map((cr: any) => (
+            {/* 3 Summary Numbers */}
+            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-accent)] block">
+                  OPEN
+                </span>
+                <p className="text-[24px] font-bold text-[var(--bos-accent)] font-mono">
+                  {changeRequests.filter((cr: any) => cr.status === "SUBMITTED" || cr.status === "UNDER_REVIEW" || cr.status === "DRAFT").length}
+                </p>
+              </div>
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[#2d5016] block">
+                  APPROVED
+                </span>
+                <p className="text-[24px] font-bold text-[#2d5016] font-mono">
+                  {changeRequests.filter((cr: any) => cr.status === "APPROVED" || cr.status === "APPLIED").length}
+                </p>
+              </div>
+              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
+                <span className="font-mono text-[11px] uppercase font-bold text-[#b5452a] block">
+                  REJECTED
+                </span>
+                <p className="text-[24px] font-bold text-[#b5452a] font-mono">
+                  {changeRequests.filter((cr: any) => cr.status === "REJECTED").length}
+                </p>
+              </div>
+            </div>
+
+            {/* Change Request Cards */}
+            <div className="space-y-4">
+              {changeRequests.map((cr: any, idx: number) => (
                 <div
                   key={cr.id}
                   className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3"
@@ -1769,16 +2300,18 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)]">CR-001</span>
+                        <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)]">
+                          CR-{String(idx + 1).padStart(3, "0")}
+                        </span>
                         <h4 className="text-[15px] font-bold text-[var(--bos-text-primary)]">{cr.title}</h4>
                       </div>
-                      <p className="text-[12.5px] text-[var(--bos-text-secondary)] mt-1">{cr.description}</p>
+                      <p className="text-[12.5px] text-[var(--bos-text-secondary)] mt-1">{cr.description || "Formal change request modifying scope baseline."}</p>
                     </div>
                     <span className={cn(
                       "font-mono text-[10.5px] uppercase font-semibold px-2 py-0.5 rounded",
-                      cr.status === "APPROVED" ? "bg-[#eaf5e7] text-[#2c5324]" :
+                      cr.status === "APPROVED" || cr.status === "APPLIED" ? "bg-[#eaf5e7] text-[#2c5324]" :
                       cr.status === "REJECTED" ? "bg-[#fbece7] text-[#b5452a]" :
-                      "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-primary)]"
+                      "bg-[#fdf5eb] text-[var(--bos-accent)]"
                     )}>
                       {cr.status}
                     </span>
@@ -1786,8 +2319,12 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-[11.5px] font-mono pt-2 border-t border-[var(--bos-border-subtle)]">
                     <div>
+                      <span className="text-[var(--bos-text-tertiary)] block">REQUESTED BY</span>
+                      <strong className="text-[var(--bos-text-primary)]">{cr.submittedByName || project.client?.companyName || "Client"}</strong>
+                    </div>
+                    <div>
                       <span className="text-[var(--bos-text-tertiary)] block">TIMELINE IMPACT</span>
-                      <strong className="text-[var(--bos-text-primary)]">+{cr.timelineDaysImpact || 0} Days</strong>
+                      <strong className="text-[var(--bos-text-primary)]">+{cr.timelineDaysImpact || 0} days</strong>
                     </div>
                     <div>
                       <span className="text-[var(--bos-text-tertiary)] block">BUDGET IMPACT</span>
@@ -1796,142 +2333,206 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </strong>
                     </div>
                     <div>
-                      <span className="text-[var(--bos-text-tertiary)] block">SUBMITTED BY</span>
-                      <strong className="text-[var(--bos-text-primary)]">{cr.submittedByName || cr.submittedBy || "Client Request"}</strong>
-                    </div>
-                    <div>
-                      <span className="text-[var(--bos-text-tertiary)] block">DATE</span>
+                      <span className="text-[var(--bos-text-tertiary)] block">REQUESTED DATE</span>
                       <strong className="text-[var(--bos-text-primary)]">
                         {new Date(cr.submittedAt || cr.createdAt).toLocaleDateString()}
                       </strong>
                     </div>
                   </div>
 
-                  {cr.status === "SUBMITTED" && (
+                  {cr.status === "SUBMITTED" || cr.status === "UNDER_REVIEW" ? (
                     <div className="pt-2 border-t border-[var(--bos-border-subtle)] flex items-center justify-end gap-2">
                       <button
                         type="button"
                         onClick={() => handleDecideChangeRequest(cr.id, "REJECTED")}
                         className="px-3 py-1 bg-[var(--bos-surface-sunken)] hover:bg-[#fbece7] text-[#b5452a] text-[11.5px] font-mono rounded cursor-pointer transition-colors"
                       >
-                        ✕ Reject CR
+                        ✕ Reject Change
                       </button>
                       <button
                         type="button"
                         onClick={() => handleDecideChangeRequest(cr.id, "APPROVED")}
                         className="px-3.5 py-1 bg-[#2d5016] text-white text-[11.5px] font-mono rounded hover:brightness-110 cursor-pointer shadow-xs"
                       >
-                        ✓ Approve & Incorporate Scope
+                        ✓ Approve & Apply
                       </button>
                     </div>
-                  )}
+                  ) : cr.status === "APPROVED" ? (
+                    <div className="pt-2 border-t border-[var(--bos-border-subtle)] flex items-center justify-between text-[11px] font-mono text-[#2c5324]">
+                      <span>✓ Applied to project scope baseline</span>
+                      <span className="font-semibold cursor-pointer text-[var(--bos-accent)]" onClick={() => setView("scope")}>View Scope Lineage →</span>
+                    </div>
+                  ) : null}
                 </div>
               ))}
 
               {changeRequests.length === 0 && (
                 <div className="p-8 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] text-center space-y-2">
                   <GitPullRequest className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto opacity-60" />
-                  <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">Zero Scope Changes</h4>
+                  <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">NO SCOPE CHANGES</h4>
                   <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    Delivery is strictly aligned with the approved proposal scope baseline.
+                    The approved project scope is currently unchanged.
                   </p>
+                  <button
+                    onClick={() => setActiveDrawer("change-request")}
+                    className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] rounded font-medium cursor-pointer"
+                  >
+                    + New Change Request
+                  </button>
                 </div>
               )}
             </div>
           </div>
         )}
 
-        {/* ── VIEW: COMMERCIALS & INVOICING ───────────────────────── */}
+        {/* ── VIEW: COMMERCIALS & INVOICING (Contract & Milestones) ── */}
         {view === "commercials" && (
           <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
+              <div>
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  COMMERCIALS & INVOICING
+                </h3>
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Contract terms, milestone invoicing, and payment reconciliation from the approved proposal.
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveDrawer("proposal")}
+                className="px-4 py-2 bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[12px] font-mono font-medium rounded hover:bg-[var(--bos-surface-canvas)] transition-all cursor-pointer flex items-center gap-1.5"
+              >
+                <span>View Approved Proposal ({project.proposal?.reference || "PROP-2026"})</span>
+              </button>
+            </div>
+
+            {/* Top 3 Summary Cards */}
             <div className="grid md:grid-cols-3 gap-4">
               <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
-                <span className="font-mono text-[11px] uppercase text-[var(--bos-text-tertiary)]">Approved Contract</span>
-                <p className="text-[22px] font-bold text-[var(--bos-text-primary)] font-mono">
+                <span className="font-mono text-[11px] uppercase text-[var(--bos-text-tertiary)]">APPROVED CONTRACT</span>
+                <p className="text-[24px] font-bold text-[var(--bos-text-primary)] font-mono">
                   {project.currency} {(project.budget || 0).toLocaleString()}
                 </p>
-                <span className="text-[11px] text-[var(--bos-text-secondary)]">Frozen from approved proposal</span>
+                <span className="text-[11px] text-[var(--bos-text-secondary)]">Source: Approved Proposal</span>
               </div>
 
               <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
-                <span className="font-mono text-[11px] uppercase text-[var(--bos-text-tertiary)]">Invoiced Milestones</span>
-                <p className="text-[22px] font-bold text-[#2d5016] font-mono">
+                <span className="font-mono text-[11px] uppercase text-[var(--bos-text-tertiary)]">INVOICED</span>
+                <p className="text-[24px] font-bold text-[#2d5016] font-mono">
                   {project.currency}{" "}
                   {milestones
                     .filter((m: any) => m.invoiceStatus === "INVOICED" || m.invoiceStatus === "PAID")
                     .reduce((acc: number, m: any) => acc + (m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100), 0)
                     .toLocaleString()}
                 </p>
-                <span className="text-[11px] text-[var(--bos-text-secondary)]">Across signed-off phase gates</span>
+                <span className="text-[11px] text-[var(--bos-text-secondary)]">Source: Project invoices</span>
               </div>
 
               <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
-                <span className="font-mono text-[11px] uppercase text-[var(--bos-text-tertiary)]">Payable Balance</span>
-                <p className="text-[22px] font-bold text-[var(--bos-accent)] font-mono">
+                <span className="font-mono text-[11px] uppercase text-[var(--bos-text-tertiary)]">OUTSTANDING</span>
+                <p className="text-[24px] font-bold text-[var(--bos-accent)] font-mono">
                   {project.currency}{" "}
                   {(
                     (project.budget || 0) -
                     milestones
-                      .filter((m: any) => m.invoiceStatus === "INVOICED" || m.invoiceStatus === "PAID")
+                      .filter((m: any) => m.invoiceStatus === "PAID")
                       .reduce((acc: number, m: any) => acc + (m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100), 0)
                   ).toLocaleString()}
                 </p>
-                <span className="text-[11px] text-[var(--bos-text-secondary)]">Due on final delivery handover</span>
+                <span className="text-[11px] text-[var(--bos-text-secondary)]">Source: Invoices − payments</span>
               </div>
             </div>
 
-            {/* Milestones Payment Schedule */}
+            {/* Milestone Commercials Schedule */}
             <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
-              <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                Milestone Commercial Phase Gates
-              </h3>
+              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
+                <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  MILESTONE COMMERCIALS
+                </h4>
+                <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">
+                  {milestones.length} Milestone Phase Gates
+                </span>
+              </div>
+
               <div className="divide-y divide-[var(--bos-border-subtle)]">
-                {milestones.map((m: any, idx: number) => (
-                  <div key={m.id} className="py-3 flex items-center justify-between gap-4 flex-wrap">
-                    <div>
-                      <span className="font-mono text-[11px] font-semibold text-[var(--bos-text-tertiary)]">
-                        0{idx + 1}
-                      </span>
-                      <strong className="text-[13.5px] text-[var(--bos-text-primary)] ml-2">{m.title}</strong>
-                    </div>
-                    <div className="flex items-center gap-4 text-[12px] font-mono">
-                      <span>{m.paymentPercentage || 25}% Contract</span>
-                      <strong className="text-[var(--bos-text-primary)]">
-                        {project.currency} {(m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100).toLocaleString()}
-                      </strong>
-                      <span
-                        className={cn(
-                          "px-2 py-0.5 rounded text-[10.5px] uppercase font-semibold",
-                          m.invoiceStatus === "PAID"
-                            ? "bg-[#eaf5e7] text-[#2c5324]"
-                            : m.invoiceStatus === "INVOICED"
-                              ? "bg-[#fbece7] text-[#b5452a]"
-                              : "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]",
+                {milestones.map((m: any, idx: number) => {
+                  const mAmount = m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100;
+                  return (
+                    <div key={m.id} className="py-4 flex items-center justify-between gap-4 flex-wrap">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[11px] font-bold text-[var(--bos-text-tertiary)]">
+                            0{idx + 1}
+                          </span>
+                          <strong className="text-[14px] text-[var(--bos-text-primary)]">{m.title}</strong>
+                        </div>
+                        <div className="flex items-center gap-2 text-[11px] font-mono text-[var(--bos-text-secondary)]">
+                          <span>Status: <strong className="text-[var(--bos-text-primary)]">{m.status}</strong></span>
+                          <span>·</span>
+                          <span>Contract share: {m.paymentPercentage || 25}%</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 text-[12px] font-mono">
+                        <strong className="text-[var(--bos-text-primary)] text-[14px]">
+                          {project.currency} {mAmount.toLocaleString()}
+                        </strong>
+                        <span
+                          className={cn(
+                            "px-2.5 py-0.5 rounded text-[10.5px] uppercase font-bold",
+                            m.invoiceStatus === "PAID"
+                              ? "bg-[#eaf5e7] text-[#2c5324]"
+                              : m.invoiceStatus === "INVOICED"
+                                ? "bg-[#fbece7] text-[#b5452a]"
+                                : "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]",
+                          )}
+                        >
+                          {m.invoiceStatus || "NOT INVOICED"}
+                        </span>
+
+                        {(!m.invoiceStatus || m.invoiceStatus === "UNINVOICED" || m.invoiceStatus === "NOT INVOICED") && (
+                          <button
+                            type="button"
+                            onClick={() => handleMilestoneInvoiceStatus(m.id, "INVOICED")}
+                            className="px-3 py-1 text-[11px] bg-[var(--bos-surface-sunken)] hover:bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded text-[var(--bos-accent)] cursor-pointer"
+                          >
+                            Generate Invoice →
+                          </button>
                         )}
-                      >
-                        {m.invoiceStatus || "UNINVOICED"}
-                      </span>
 
-                      {m.invoiceStatus === "UNINVOICED" && (
-                        <button
-                          type="button"
-                          onClick={() => handleMilestoneInvoiceStatus(m.id, "INVOICED")}
-                          className="px-2.5 py-1 text-[11px] bg-[var(--bos-surface-sunken)] hover:bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded text-[var(--bos-accent)] cursor-pointer"
-                        >
-                          Generate Invoice →
-                        </button>
-                      )}
-
-                      {m.invoiceStatus === "INVOICED" && (
-                        <button
-                          type="button"
-                          onClick={() => handleMilestoneInvoiceStatus(m.id, "PAID")}
-                          className="px-2.5 py-1 text-[11px] bg-[#eaf5e7] hover:bg-[#d8edd4] text-[#2c5324] font-semibold rounded cursor-pointer"
-                        >
-                          Record Paid ✓
-                        </button>
-                      )}
+                        {m.invoiceStatus === "INVOICED" && (
+                          <button
+                            type="button"
+                            onClick={() => handleMilestoneInvoiceStatus(m.id, "PAID")}
+                            className="px-3 py-1 text-[11px] bg-[#eaf5e7] hover:bg-[#d8edd4] text-[#2c5324] font-semibold rounded cursor-pointer"
+                          >
+                            Record Paid ✓
+                          </button>
+                        )}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* CONTRACT HISTORY */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3">
+              <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                AUDIT TRAIL
+              </span>
+              <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                CONTRACT HISTORY
+              </h4>
+              <div className="space-y-2 text-[12.5px] font-mono">
+                <div className="flex items-center justify-between p-2 rounded bg-[var(--bos-surface-canvas)]">
+                  <span>Original approved contract ({project.proposal?.reference || "PROP-2026"} v{project.proposalVersion || 1})</span>
+                  <strong>{project.currency} {(project.budget || 0).toLocaleString()}</strong>
+                </div>
+                {changeRequests.filter((cr: any) => cr.status === "APPROVED").map((cr: any) => (
+                  <div key={cr.id} className="flex items-center justify-between p-2 rounded bg-[var(--bos-surface-canvas)] text-[#2c5324]">
+                    <span>Approved Scope Change ({cr.title})</span>
+                    <strong>+{project.currency} {(cr.budgetImpact || 0).toLocaleString()}</strong>
                   </div>
                 ))}
               </div>
@@ -1939,71 +2540,136 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           </div>
         )}
 
-        {/* ── VIEW: DOCUMENT VAULT ─────────────────────────────────── */}
+        {/* ── VIEW: DOCUMENT VAULT (Production Document Vault) ─────── */}
         {view === "vault" && (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
+          <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between flex-wrap gap-4">
               <div>
-                <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-                  Project Document Vault
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  PROJECT DOCUMENT VAULT
                 </h3>
-                <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                  Centralized repository of verified specifications, proposals, test reports, and contracts.
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Verified project documents generated throughout the client → proposal → project → delivery workflow.
                 </p>
               </div>
               <button
                 onClick={() => setActiveDrawer("summary-pdf")}
-                className="px-3.5 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
+                className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded-sm hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>Generate Project Summary</span>
               </button>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-4">
+            {/* Document Cards */}
+            <div className="grid md:grid-cols-2 gap-4">
               {[
-                { title: "Approved Proposal Document", cat: "PROPOSAL", date: "Approved 19 Aug", size: "2.4 MB" },
-                { title: "Client Requirement Baseline", cat: "REQUIREMENTS", date: "Verified 19 Aug", size: "1.1 MB" },
-                { title: "Architecture & Schema Spec", cat: "ENGINEERING", date: "Generated 19 Aug", size: "840 KB" },
-                { title: "Milestone Delivery Sign-off", cat: "ACCEPTANCE", date: "Phase 1 Verified", size: "450 KB" },
+                {
+                  title: "Approved Proposal Document",
+                  cat: "PROPOSAL",
+                  source: `Proposal ${project.proposal?.reference || "PROP-2026"} v${project.proposalVersion || 1}`,
+                  status: "APPROVED",
+                  date: project.createdAt ? new Date(project.createdAt).toLocaleDateString() : "Aug 22, 2026",
+                  action: () => setActiveDrawer("proposal"),
+                },
+                {
+                  title: "Client Requirement Baseline",
+                  cat: "REQUIREMENTS",
+                  source: `Requirement ${project.requirementRequestId || "REQ-LOCKED"}`,
+                  status: "VERIFIED",
+                  date: project.createdAt ? new Date(project.createdAt).toLocaleDateString() : "Aug 22, 2026",
+                  action: () => setActiveDrawer("requirement"),
+                },
+                {
+                  title: "Architecture & Schema Specification",
+                  cat: "ENGINEERING",
+                  source: `Engineering Blueprint v1 · ${project.code}`,
+                  status: "GENERATED",
+                  date: "Aug 22, 2026",
+                  action: () => setView("engineering"),
+                },
+                {
+                  title: "Milestone Delivery Sign-off",
+                  cat: "ACCEPTANCE",
+                  source: `Milestone 01 · ${milestones[0]?.title || "Foundation"}`,
+                  status: "VERIFIED",
+                  date: "Phase 1 Verified",
+                  action: () => setView("deliverables"),
+                },
               ].map((doc, idx) => (
                 <div
                   key={idx}
-                  className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-2"
+                  className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3"
                 >
                   <div className="flex items-center justify-between">
                     <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-accent)]">
                       {doc.cat}
                     </span>
-                    <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)]">{doc.size}</span>
+                    <span className="font-mono text-[9.5px] uppercase font-bold px-2 py-0.5 rounded bg-[#eaf5e7] text-[#2c5324]">
+                      {doc.status}
+                    </span>
                   </div>
-                  <h4 className="text-[13.5px] font-bold text-[var(--bos-text-primary)]">{doc.title}</h4>
-                  <div className="flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-secondary)] pt-2 border-t border-[var(--bos-border-subtle)]">
+                  <h4 className="text-[14.5px] font-bold text-[var(--bos-text-primary)]">{doc.title}</h4>
+                  <p className="text-[11.5px] font-mono text-[var(--bos-text-secondary)]">
+                    Source: {doc.source}
+                  </p>
+                  <div className="flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-tertiary)] pt-2 border-t border-[var(--bos-border-subtle)]">
                     <span>{doc.date}</span>
-                    <span className="text-[var(--bos-accent)] font-semibold cursor-pointer">Preview →</span>
+                    <button
+                      onClick={doc.action}
+                      className="text-[var(--bos-accent)] font-semibold hover:underline cursor-pointer"
+                    >
+                      Preview →
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
+
+            {/* DOCUMENTS TO BE GENERATED SECTION */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3">
+              <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                PIPELINE
+              </span>
+              <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
+                DOCUMENTS TO BE GENERATED
+              </h4>
+              <div className="space-y-2 text-[12px] text-[var(--bos-text-secondary)]">
+                <div className="p-2.5 rounded bg-[var(--bos-surface-canvas)] flex items-center justify-between">
+                  <span><strong>Milestone 02 Acceptance Record</strong> — Waiting for sprint deliverable sign-off</span>
+                  <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)]">Automated on client review</span>
+                </div>
+                <div className="p-2.5 rounded bg-[var(--bos-surface-canvas)] flex items-center justify-between">
+                  <span><strong>Final Project Handover & Warranty Certificate</strong> — Waiting for project completion</span>
+                  <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)]">Automated on final handover</span>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
-        {/* ── VIEW: LIVE EVENT STREAM ─────────────────────────────── */}
+        {/* ── VIEW: LIVE EVENT STREAM (Audit & Events) ─────────────── */}
         {view === "activity" && (
           <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
-            <h3 className="text-[16px] font-serif font-bold text-[var(--bos-text-primary)]">
-              Live Delivery Event Stream
-            </h3>
+            <div>
+              <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                LIVE EVENT STREAM
+              </h3>
+              <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                Real-time immutable audit trail of project delivery events, client sign-offs, and state transitions.
+              </p>
+            </div>
 
             <div className="divide-y divide-[var(--bos-border-subtle)]">
               {activities.map((act: any) => (
-                <div key={act.id} className="py-3 flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[var(--bos-accent)] mt-1.5 shrink-0" />
+                <div key={act.id} className="py-3.5 flex items-start gap-3">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--bos-accent)] mt-1 shrink-0" />
                   <div className="space-y-0.5 flex-1">
                     <div className="flex items-center justify-between">
-                      <strong className="text-[13px] text-[var(--bos-text-primary)]">{act.title}</strong>
+                      <strong className="text-[13.5px] text-[var(--bos-text-primary)]">{act.title}</strong>
                       <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)]">
-                        {new Date(act.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(act.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(act.createdAt).toLocaleDateString()}
                       </span>
                     </div>
                     {act.detail && <p className="text-[12px] text-[var(--bos-text-secondary)]">{act.detail}</p>}

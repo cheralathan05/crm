@@ -12,11 +12,12 @@ export async function GET(req: Request) {
     return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
   }
 
-  const workspace = await db.workspace.findUnique({
-    where: { ownerId: session.user.id },
-    select: { id: true },
+  const user = await db.user.findUnique({
+    where: { id: session.user.id },
+    include: { workspace: true },
   });
-  if (!workspace) {
+  const workspaceId = user?.workspace?.id || user?.workspaceId;
+  if (!workspaceId) {
     return NextResponse.json({ ok: false, message: "Workspace not found." }, { status: 404 });
   }
 
@@ -35,7 +36,7 @@ export async function GET(req: Request) {
   const todayEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
 
   const whereClause: any = {
-    client: { workspaceId: workspace.id },
+    client: { workspaceId },
     ...(projectId ? { projectId } : {}),
     ...(clientId ? { clientId } : {}),
     ...(workstream ? { workstream } : {}),

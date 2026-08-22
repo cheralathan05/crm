@@ -16,6 +16,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+import { resolveTaskLayer } from "@/lib/tasks-types";
+
 export type ExecutionGraphProps = {
   project?: any;
   tasks?: any[];
@@ -40,10 +42,10 @@ export function ExecutionGraph({
   }
 
   const deliverables = project.deliverables || [];
-  const dbTasks = tasks.filter((t) => t.layer === "DATABASE" || t.workstream === "DATABASE");
-  const beTasks = tasks.filter((t) => t.layer === "BACKEND" || t.workstream === "BACKEND");
-  const feTasks = tasks.filter((t) => t.layer === "FRONTEND" || t.workstream === "FRONTEND");
-  const qaTasks = tasks.filter((t) => t.layer === "TESTING" || t.workstream === "TESTING" || t.workstream === "QA");
+  const dbTasks = tasks.filter((t) => resolveTaskLayer(t) === "DATABASE");
+  const beTasks = tasks.filter((t) => resolveTaskLayer(t) === "BACKEND");
+  const feTasks = tasks.filter((t) => resolveTaskLayer(t) === "FRONTEND");
+  const qaTasks = tasks.filter((t) => resolveTaskLayer(t) === "TESTING");
   const completedTasks = tasks.filter((t) => t.status === "DONE" || t.status === "COMPLETED");
   const verifiedTasks = tasks.filter((t) => (t.evidenceRecords && t.evidenceRecords.length > 0) || t.status === "DONE");
   const acceptedDelivs = deliverables.filter((d: any) => d.status === "ACCEPTED");
