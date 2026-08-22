@@ -39,21 +39,61 @@ export function CapabilityMap({ blueprint, deliverables = [], onSelectNode }: Ca
     );
   }
 
+  // Extract requirements meta from rawAnalysis if present
+  const reqObjMap = new Map<string, { id: string; title: string; description?: string; category?: string; priority?: string; acceptanceCriteria?: any[] }>();
+  try {
+    const raw = typeof blueprint.rawAnalysis === "string" ? JSON.parse(blueprint.rawAnalysis) : blueprint.rawAnalysis;
+    if (raw?.requirements && Array.isArray(raw.requirements)) {
+      raw.requirements.forEach((r: any) => {
+        if (r.id) reqObjMap.set(r.id, r);
+      });
+    }
+  } catch {}
+
   // Group technical items by requirement
   const reqMap = new Map<string, {
     reqId: string;
     title: string;
+    description?: string;
+    priority?: string;
+    category?: string;
     fe: any[];
     api: any[];
     db: any[];
     tests: any[];
   }>();
 
+  // Initialize from known requirements first so all proposal requirements are present with accurate metadata
+  reqObjMap.forEach((r, reqId) => {
+    reqMap.set(reqId, {
+      reqId,
+      title: r.title || `Requirement ${reqId}`,
+      description: r.description,
+      priority: r.priority,
+      category: r.category,
+      fe: [],
+      api: [],
+      db: [],
+      tests: [],
+    });
+  });
+
   // Extract from database entities
   (blueprint.databaseEntities || []).forEach((d: any) => {
     const reqId = d.requirementId || "REQ-001";
     if (!reqMap.has(reqId)) {
-      reqMap.set(reqId, { reqId, title: `Requirement ${reqId}`, fe: [], api: [], db: [], tests: [] });
+      const rObj = reqObjMap.get(reqId);
+      reqMap.set(reqId, {
+        reqId,
+        title: rObj?.title || `Requirement ${reqId}`,
+        description: rObj?.description,
+        priority: rObj?.priority,
+        category: rObj?.category,
+        fe: [],
+        api: [],
+        db: [],
+        tests: [],
+      });
     }
     reqMap.get(reqId)!.db.push(d);
   });
@@ -62,7 +102,18 @@ export function CapabilityMap({ blueprint, deliverables = [], onSelectNode }: Ca
   (blueprint.backendApis || []).forEach((b: any) => {
     const reqId = b.requirementId || "REQ-001";
     if (!reqMap.has(reqId)) {
-      reqMap.set(reqId, { reqId, title: `Requirement ${reqId}`, fe: [], api: [], db: [], tests: [] });
+      const rObj = reqObjMap.get(reqId);
+      reqMap.set(reqId, {
+        reqId,
+        title: rObj?.title || `Requirement ${reqId}`,
+        description: rObj?.description,
+        priority: rObj?.priority,
+        category: rObj?.category,
+        fe: [],
+        api: [],
+        db: [],
+        tests: [],
+      });
     }
     reqMap.get(reqId)!.api.push(b);
   });
@@ -71,7 +122,18 @@ export function CapabilityMap({ blueprint, deliverables = [], onSelectNode }: Ca
   (blueprint.frontendCapabilities || []).forEach((f: any) => {
     const reqId = f.requirementId || "REQ-001";
     if (!reqMap.has(reqId)) {
-      reqMap.set(reqId, { reqId, title: `Requirement ${reqId}`, fe: [], api: [], db: [], tests: [] });
+      const rObj = reqObjMap.get(reqId);
+      reqMap.set(reqId, {
+        reqId,
+        title: rObj?.title || `Requirement ${reqId}`,
+        description: rObj?.description,
+        priority: rObj?.priority,
+        category: rObj?.category,
+        fe: [],
+        api: [],
+        db: [],
+        tests: [],
+      });
     }
     reqMap.get(reqId)!.fe.push(f);
   });
@@ -80,7 +142,18 @@ export function CapabilityMap({ blueprint, deliverables = [], onSelectNode }: Ca
   (blueprint.testSpecifications || []).forEach((t: any) => {
     const reqId = t.requirementId || "REQ-001";
     if (!reqMap.has(reqId)) {
-      reqMap.set(reqId, { reqId, title: `Requirement ${reqId}`, fe: [], api: [], db: [], tests: [] });
+      const rObj = reqObjMap.get(reqId);
+      reqMap.set(reqId, {
+        reqId,
+        title: rObj?.title || `Requirement ${reqId}`,
+        description: rObj?.description,
+        priority: rObj?.priority,
+        category: rObj?.category,
+        fe: [],
+        api: [],
+        db: [],
+        tests: [],
+      });
     }
     reqMap.get(reqId)!.tests.push(t);
   });
@@ -113,6 +186,7 @@ export function CapabilityMap({ blueprint, deliverables = [], onSelectNode }: Ca
               <button
                 key={rg.reqId}
                 onClick={() => setActiveReqId(rg.reqId)}
+                title={rg.title}
                 className={cn(
                   "text-[11px] font-mono px-2.5 py-1 rounded-md border transition-all cursor-pointer",
                   (selectedGroup?.reqId === rg.reqId)
@@ -142,12 +216,24 @@ export function CapabilityMap({ blueprint, deliverables = [], onSelectNode }: Ca
               </div>
               <button
                 onClick={() => onSelectNode({ type: "REQ", id: selectedGroup.reqId, name: selectedGroup.title })}
-                className="p-3.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] rounded-lg text-left transition-all group cursor-pointer"
+                className="p-3.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] rounded-lg text-left transition-all group cursor-pointer space-y-1.5"
               >
-                <span className="text-[11px] font-mono text-[var(--bos-accent)] font-semibold">{selectedGroup.reqId}</span>
-                <h4 className="text-[13px] font-medium text-[var(--bos-text-primary)] mt-1 group-hover:text-[var(--bos-accent)] transition-colors">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-mono text-[var(--bos-accent)] font-semibold">{selectedGroup.reqId}</span>
+                  {selectedGroup.priority && (
+                    <span className="text-[9.5px] font-mono uppercase px-1.5 py-0.5 rounded bg-amber-500/10 text-amber-600 dark:text-amber-400 font-semibold">
+                      {selectedGroup.priority}
+                    </span>
+                  )}
+                </div>
+                <h4 className="text-[13.5px] font-bold text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors line-clamp-2">
                   {selectedGroup.title}
                 </h4>
+                {selectedGroup.description && (
+                  <p className="text-[11.5px] text-[var(--bos-text-secondary)] line-clamp-2">
+                    {selectedGroup.description}
+                  </p>
+                )}
                 <div className="mt-2.5 pt-2 border-t border-[var(--bos-border)] flex items-center justify-between text-[11px] text-[var(--bos-text-tertiary)]">
                   <span>Scope Item</span>
                   <ChevronRight className="w-3 h-3 text-[var(--bos-text-tertiary)] group-hover:translate-x-0.5 transition-transform" />

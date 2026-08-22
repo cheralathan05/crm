@@ -149,13 +149,21 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const [clientReqNeededFor, setClientReqNeededFor] = useState("");
   const [clientReqIsBlocker, setClientReqIsBlocker] = useState(true);
 
+  // Team member form
+  const [newMemberName, setNewMemberName] = useState("");
+  const [newMemberRole, setNewMemberRole] = useState("Lead Engineer");
+  const [newMemberEmail, setNewMemberEmail] = useState("");
+  const [newMemberAllocation, setNewMemberAllocation] = useState(100);
+
   // Deliverable review form
   const [reviewFeedback, setReviewFeedback] = useState("");
 
   // AI Copilot state
   const [copilotQuery, setCopilotQuery] = useState("");
+  const [copilotLoading, setCopilotLoading] = useState(false);
+  const [copilotSource, setCopilotSource] = useState<string | null>(null);
   const [copilotMessages, setCopilotMessages] = useState<
-    Array<{ role: "user" | "assistant"; text: string; action?: string }>
+    Array<{ role: "user" | "assistant"; text: string; action?: string; source?: string }>
   >([
     {
       role: "assistant",
@@ -338,6 +346,29 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
     });
   };
 
+  const handleDecideChangeRequest = async (changeRequestId: string, status: "APPROVED" | "REJECTED", adminResponse?: string) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/change-requests`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            changeRequestId,
+            status,
+            adminResponse: adminResponse || `Decision: ${status}`,
+          }),
+        });
+        if (res.ok) {
+          setNotice(`Change request marked ${status}.`);
+          setTimeout(() => setNotice(null), 3000);
+          await refreshProject();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+  };
+
   const handleCreateClientRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!clientReqTitle.trim()) return;
@@ -368,6 +399,74 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
     });
   };
 
+  const handleAddMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMemberName.trim() || !newMemberRole.trim()) return;
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/team`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: newMemberName.trim(),
+            role: newMemberRole.trim(),
+            email: newMemberEmail.trim() || undefined,
+            allocation: Number(newMemberAllocation),
+          }),
+        });
+        if (res.ok) {
+          setNewMemberName("");
+          setNewMemberEmail("");
+          setActiveDrawer(null);
+          setNotice("Team specialist allocated to project.");
+          setTimeout(() => setNotice(null), 3000);
+          await refreshProject();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/team?memberId=${memberId}`, {
+          method: "DELETE",
+        });
+        if (res.ok) {
+          setNotice("Staff member removed from project team.");
+          setTimeout(() => setNotice(null), 3000);
+          await refreshProject();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+  };
+
+  const handleMilestoneInvoiceStatus = async (milestoneId: string, invoiceStatus: "UNINVOICED" | "INVOICED" | "PAID") => {
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/projects/${projectId}/milestones`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            milestoneId,
+            invoiceStatus,
+          }),
+        });
+        if (res.ok) {
+          setNotice(`Milestone invoice updated to ${invoiceStatus}.`);
+          setTimeout(() => setNotice(null), 3000);
+          await refreshProject();
+        }
+      } catch {
+        /* ignore */
+      }
+    });
+  };
+
   const handleProjectStage = async (newStage: string) => {
     startTransition(async () => {
       try {
@@ -387,43 +486,53 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
     });
   };
 
-  const handleCopilotAsk = (questionText?: string) => {
+  const handleCopilotAsk = async (questionText?: string) => {
     const q = (questionText || copilotQuery).trim();
-    if (!q || !data) return;
+    if (!q || !data || copilotLoading) return;
 
     const userMsg = { role: "user" as const, text: q };
-    let reply = "";
-    let action: string | undefined = undefined;
-
-    const lower = q.toLowerCase();
-    if (lower.includes("block") || lower.includes("risk")) {
-      const blockedT = data.project.tasks?.filter((t: any) => t.status === "BLOCKED" || t.priority === "URGENT");
-      if (blockedT?.length > 0) {
-        reply = `Identified ${blockedT.length} urgent/blocked task(s): "${blockedT[0].title}". Affected milestone: ${data.metrics.currentMilestone?.title || "Active Phase"}.`;
-        action = "Resolve Blocker";
-      } else {
-        reply = "Zero critical blockers detected. All active sprints are progressing within target schedule.";
-      }
-    } else if (lower.includes("promised") || lower.includes("scope") || lower.includes("approved")) {
-      reply = `The client approved Proposal ${data.project.proposal?.reference || "PROP"} (v${data.project.proposalVersion || 1}) for ${data.project.currency} ${(data.project.budget || 0).toLocaleString()}. Approved scope includes ${data.project.deliverables?.length || 0} deliverables and ${data.project.milestones?.length || 0} milestone phase gates.`;
-      action = "View Scope Control";
-    } else if (lower.includes("next") || lower.includes("what should we do")) {
-      reply = `Next Recommended Action: ${data.metrics.nextBestAction.title}. ${data.metrics.nextBestAction.description}`;
-      action = data.metrics.nextBestAction.actionLabel;
-    } else if (lower.includes("deliverable") || lower.includes("ready")) {
-      const rev = data.project.deliverables?.filter((d: any) => d.status === "INTERNAL_REVIEW");
-      if (rev?.length > 0) {
-        reply = `"${rev[0].title}" is in internal review and ready for client sign-off submission.`;
-        action = "Submit to Client";
-      } else {
-        reply = `${data.metrics.acceptedDeliverables} of ${data.metrics.totalDeliverables} deliverables have been formally accepted by the client.`;
-      }
-    } else {
-      reply = `Project ${data.project.code} is currently in ${data.project.stage} stage with ${data.metrics.progress}% overall delivery progress. ${data.metrics.completedTasks}/${data.metrics.totalTasks} tasks completed across ${data.project.team?.length || 0} assigned workspace specialists.`;
-    }
-
-    setCopilotMessages((prev) => [...prev, userMsg, { role: "assistant", text: reply, action }]);
+    setCopilotMessages((prev) => [...prev, userMsg]);
     setCopilotQuery("");
+    setCopilotLoading(true);
+
+    try {
+      const res = await fetch(`/api/projects/${projectId}/assistant`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: q }),
+      });
+      const json = await res.json();
+      if (json.ok && json.answer) {
+        setCopilotMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: json.answer,
+            action: json.nextRecommendedAction || undefined,
+            source: json.source,
+          },
+        ]);
+        setCopilotSource(json.source || "OLLAMA");
+      } else {
+        setCopilotMessages((prev) => [
+          ...prev,
+          {
+            role: "assistant",
+            text: json.message || "Failed to analyze project database state.",
+          },
+        ]);
+      }
+    } catch {
+      setCopilotMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          text: "Network error connecting to project intelligence service.",
+        },
+      ]);
+    } finally {
+      setCopilotLoading(false);
+    }
   };
 
   // ── Skeletons / Error ─────────────────────────────────────────────────────
@@ -1571,7 +1680,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                 return (
                   <div
                     key={member.id}
-                    className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3"
+                    className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-3 relative group"
                   >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2.5">
@@ -1583,9 +1692,19 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                           <span className="font-mono text-[10.5px] text-[var(--bos-text-secondary)]">{member.role}</span>
                         </div>
                       </div>
-                      <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)]">
-                        {member.allocation || 100}%
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)]">
+                          {member.allocation || 100}%
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMember(member.id)}
+                          title="Remove from project"
+                          className="opacity-0 group-hover:opacity-100 p-1 text-[var(--bos-text-tertiary)] hover:text-[#b5452a] transition-all cursor-pointer"
+                        >
+                          <X className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </div>
 
                     <div className="grid grid-cols-2 gap-2 text-center text-[11px] font-mono py-2 border-y border-[var(--bos-border-subtle)]">
@@ -1655,7 +1774,12 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </div>
                       <p className="text-[12.5px] text-[var(--bos-text-secondary)] mt-1">{cr.description}</p>
                     </div>
-                    <span className="font-mono text-[10.5px] uppercase font-semibold px-2 py-0.5 rounded bg-[var(--bos-surface-sunken)]">
+                    <span className={cn(
+                      "font-mono text-[10.5px] uppercase font-semibold px-2 py-0.5 rounded",
+                      cr.status === "APPROVED" ? "bg-[#eaf5e7] text-[#2c5324]" :
+                      cr.status === "REJECTED" ? "bg-[#fbece7] text-[#b5452a]" :
+                      "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-primary)]"
+                    )}>
                       {cr.status}
                     </span>
                   </div>
@@ -1673,7 +1797,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                     </div>
                     <div>
                       <span className="text-[var(--bos-text-tertiary)] block">SUBMITTED BY</span>
-                      <strong className="text-[var(--bos-text-primary)]">{cr.submittedBy || "Client Request"}</strong>
+                      <strong className="text-[var(--bos-text-primary)]">{cr.submittedByName || cr.submittedBy || "Client Request"}</strong>
                     </div>
                     <div>
                       <span className="text-[var(--bos-text-tertiary)] block">DATE</span>
@@ -1682,6 +1806,25 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </strong>
                     </div>
                   </div>
+
+                  {cr.status === "SUBMITTED" && (
+                    <div className="pt-2 border-t border-[var(--bos-border-subtle)] flex items-center justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleDecideChangeRequest(cr.id, "REJECTED")}
+                        className="px-3 py-1 bg-[var(--bos-surface-sunken)] hover:bg-[#fbece7] text-[#b5452a] text-[11.5px] font-mono rounded cursor-pointer transition-colors"
+                      >
+                        ✕ Reject CR
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDecideChangeRequest(cr.id, "APPROVED")}
+                        className="px-3.5 py-1 bg-[#2d5016] text-white text-[11.5px] font-mono rounded hover:brightness-110 cursor-pointer shadow-xs"
+                      >
+                        ✓ Approve & Incorporate Scope
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))}
 
@@ -1716,7 +1859,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                   {project.currency}{" "}
                   {milestones
                     .filter((m: any) => m.invoiceStatus === "INVOICED" || m.invoiceStatus === "PAID")
-                    .reduce((acc: number, m: any) => acc + (m.paymentAmount || 0), 0)
+                    .reduce((acc: number, m: any) => acc + (m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100), 0)
                     .toLocaleString()}
                 </p>
                 <span className="text-[11px] text-[var(--bos-text-secondary)]">Across signed-off phase gates</span>
@@ -1730,7 +1873,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                     (project.budget || 0) -
                     milestones
                       .filter((m: any) => m.invoiceStatus === "INVOICED" || m.invoiceStatus === "PAID")
-                      .reduce((acc: number, m: any) => acc + (m.paymentAmount || 0), 0)
+                      .reduce((acc: number, m: any) => acc + (m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100), 0)
                   ).toLocaleString()}
                 </p>
                 <span className="text-[11px] text-[var(--bos-text-secondary)]">Due on final delivery handover</span>
@@ -1751,10 +1894,10 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </span>
                       <strong className="text-[13.5px] text-[var(--bos-text-primary)] ml-2">{m.title}</strong>
                     </div>
-                    <div className="flex items-center gap-6 text-[12px] font-mono">
+                    <div className="flex items-center gap-4 text-[12px] font-mono">
                       <span>{m.paymentPercentage || 25}% Contract</span>
                       <strong className="text-[var(--bos-text-primary)]">
-                        {project.currency} {(m.paymentAmount || (project.budget || 0) * 0.25).toLocaleString()}
+                        {project.currency} {(m.paymentAmount || (project.budget || 0) * (m.paymentPercentage || 25) / 100).toLocaleString()}
                       </strong>
                       <span
                         className={cn(
@@ -1768,6 +1911,26 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       >
                         {m.invoiceStatus || "UNINVOICED"}
                       </span>
+
+                      {m.invoiceStatus === "UNINVOICED" && (
+                        <button
+                          type="button"
+                          onClick={() => handleMilestoneInvoiceStatus(m.id, "INVOICED")}
+                          className="px-2.5 py-1 text-[11px] bg-[var(--bos-surface-sunken)] hover:bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded text-[var(--bos-accent)] cursor-pointer"
+                        >
+                          Generate Invoice →
+                        </button>
+                      )}
+
+                      {m.invoiceStatus === "INVOICED" && (
+                        <button
+                          type="button"
+                          onClick={() => handleMilestoneInvoiceStatus(m.id, "PAID")}
+                          className="px-2.5 py-1 text-[11px] bg-[#eaf5e7] hover:bg-[#d8edd4] text-[#2c5324] font-semibold rounded cursor-pointer"
+                        >
+                          Record Paid ✓
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -2167,6 +2330,81 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                 </form>
               )}
 
+              {/* TEAM MEMBER ASSIGNMENT DRAWER */}
+              {activeDrawer === "team" && (
+                <form onSubmit={handleAddMember} className="space-y-4">
+                  <h3 className="text-[16px] font-bold text-[var(--bos-text-primary)]">Assign Team Specialist</h3>
+                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
+                    Allocate workspace engineers and specialists to this project with explicit capacity commitment.
+                  </p>
+
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase text-[var(--bos-text-secondary)] mb-1">
+                      Staff Member Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={newMemberName}
+                      onChange={(e) => setNewMemberName(e.target.value)}
+                      placeholder="e.g. Maya Chen"
+                      className="w-full h-9 px-3 text-[13px] bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded-sm text-[var(--bos-text-primary)]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase text-[var(--bos-text-secondary)] mb-1">
+                        Role / Specialization *
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={newMemberRole}
+                        onChange={(e) => setNewMemberRole(e.target.value)}
+                        placeholder="e.g. Full-Stack Lead"
+                        className="w-full h-9 px-3 text-[13px] bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded-sm text-[var(--bos-text-primary)]"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-mono uppercase text-[var(--bos-text-secondary)] mb-1">
+                        Allocation %
+                      </label>
+                      <input
+                        type="number"
+                        min={10}
+                        max={100}
+                        step={10}
+                        value={newMemberAllocation}
+                        onChange={(e) => setNewMemberAllocation(Number(e.target.value))}
+                        className="w-full h-9 px-3 text-[13px] bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded-sm text-[var(--bos-text-primary)]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-mono uppercase text-[var(--bos-text-secondary)] mb-1">
+                      Email Address (Optional)
+                    </label>
+                    <input
+                      type="email"
+                      value={newMemberEmail}
+                      onChange={(e) => setNewMemberEmail(e.target.value)}
+                      placeholder="maya@company.com"
+                      className="w-full h-9 px-3 text-[13px] bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] rounded-sm text-[var(--bos-text-primary)]"
+                    />
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full py-2.5 bg-[var(--bos-accent)] text-white text-[12.5px] font-medium rounded hover:brightness-95 transition-all cursor-pointer mt-4"
+                  >
+                    {isPending ? "Assigning..." : "Commit Staff Allocation"}
+                  </button>
+                </form>
+              )}
+
               {/* CLIENT REQUEST DRAWER */}
               {activeDrawer === "client-request" && (
                 <form onSubmit={handleCreateClientRequest} className="space-y-4">
@@ -2216,11 +2454,16 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               {activeDrawer === "copilot" && (
                 <div className="space-y-4 flex flex-col h-full justify-between">
                   <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[var(--bos-accent)]" />
-                      <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                        Project Delivery Copilot
-                      </h3>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-4 h-4 text-[var(--bos-accent)]" />
+                        <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
+                          Project Delivery Copilot
+                        </h3>
+                      </div>
+                      <span className="font-mono text-[9.5px] uppercase font-bold px-2 py-0.5 rounded bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)] border border-[var(--bos-border-subtle)]">
+                        {copilotSource === "OLLAMA" ? "● Ollama AI Live" : "● Database Grounded"}
+                      </span>
                     </div>
 
                     <div className="space-y-2.5 max-h-[380px] overflow-y-auto pr-1">
@@ -2228,41 +2471,58 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                         <div
                           key={i}
                           className={cn(
-                            "p-3 rounded-lg text-[12.5px] space-y-1.5",
+                            "p-3.5 rounded-lg text-[12.5px] space-y-1.5 leading-relaxed",
                             msg.role === "assistant"
                               ? "bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-[var(--bos-text-primary)]"
                               : "bg-[var(--bos-accent)] text-white ml-6",
                           )}
                         >
-                          <span className="font-mono text-[10px] uppercase font-bold opacity-75 block">
-                            {msg.role === "assistant" ? "Copilot" : "You"}
-                          </span>
-                          <p>{msg.text}</p>
+                          <div className="flex items-center justify-between">
+                            <span className="font-mono text-[10px] uppercase font-bold opacity-75">
+                              {msg.role === "assistant" ? "Copilot Intelligence" : "You"}
+                            </span>
+                            {msg.source && (
+                              <span className="font-mono text-[9px] opacity-60">
+                                {msg.source}
+                              </span>
+                            )}
+                          </div>
+                          <div className="whitespace-pre-wrap">{msg.text}</div>
                           {msg.action && (
                             <button
                               onClick={() => {
-                                if (msg.action?.includes("Blocker")) setView("tasks");
-                                else if (msg.action?.includes("Scope")) setView("scope");
-                                else if (msg.action?.includes("Client")) setView("deliverables");
+                                if (msg.action?.toLowerCase().includes("blocker")) setView("tasks");
+                                else if (msg.action?.toLowerCase().includes("scope")) setView("scope");
+                                else if (msg.action?.toLowerCase().includes("deliverable") || msg.action?.toLowerCase().includes("client")) setView("deliverables");
+                                else if (msg.action?.toLowerCase().includes("team") || msg.action?.toLowerCase().includes("staff")) setView("team");
+                                else setView("tasks");
                               }}
-                              className="inline-block mt-1 px-2.5 py-1 rounded bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[11px] font-mono font-semibold text-[var(--bos-accent)] hover:bg-[var(--bos-surface-panel)] cursor-pointer"
+                              className="inline-block mt-1.5 px-2.5 py-1 rounded bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[11px] font-mono font-semibold text-[var(--bos-accent)] hover:bg-[var(--bos-surface-panel)] cursor-pointer"
                             >
                               Execute: {msg.action} →
                             </button>
                           )}
                         </div>
                       ))}
+
+                      {copilotLoading && (
+                        <div className="p-3 rounded-lg bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-[12px] font-mono text-[var(--bos-text-secondary)] flex items-center gap-2">
+                          <Loader2 className="w-4 h-4 animate-spin text-[var(--bos-accent)]" />
+                          <span>Analyzing real project database state via Ollama...</span>
+                        </div>
+                      )}
                     </div>
                   </div>
 
                   <div className="pt-3 border-t border-[var(--bos-border-subtle)] space-y-2">
                     <div className="flex gap-1.5 flex-wrap">
-                      {["What is blocking?", "What did client approve?", "Summarize project"].map((preset) => (
+                      {["What should we do next?", "What is blocking engineering?", "What did client approve?", "Summarize project architecture"].map((preset) => (
                         <button
                           key={preset}
                           type="button"
+                          disabled={copilotLoading}
                           onClick={() => handleCopilotAsk(preset)}
-                          className="px-2 py-1 rounded bg-[var(--bos-surface-sunken)] text-[10.5px] font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
+                          className="px-2 py-1 rounded bg-[var(--bos-surface-sunken)] text-[10.5px] font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] cursor-pointer disabled:opacity-50"
                         >
                           {preset}
                         </button>
@@ -2280,10 +2540,11 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       />
                       <button
                         type="button"
+                        disabled={copilotLoading || !copilotQuery.trim()}
                         onClick={() => handleCopilotAsk()}
-                        className="px-3 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 cursor-pointer"
+                        className="px-3 py-1.5 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded hover:brightness-95 cursor-pointer disabled:opacity-50 flex items-center gap-1"
                       >
-                        Ask
+                        {copilotLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <span>Ask</span>}
                       </button>
                     </div>
                   </div>

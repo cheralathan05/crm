@@ -50,7 +50,7 @@ export async function orchestrateEngineeringBlueprint(params: {
     return { ok: false, error: "Project not found in database.", code: "NOT_FOUND" };
   }
 
-  // 2. Parse approved scope snapshot from database
+  // 2. Parse approved scope snapshot from database & real proposal document
   let scopeItems: Array<{
     id: string;
     category: string;
@@ -60,13 +60,101 @@ export async function orchestrateEngineeringBlueprint(params: {
     acceptanceCriteria?: string[];
   }> = [];
 
-  try {
-    if (project.scopeSnapshot) {
-      scopeItems = JSON.parse(project.scopeSnapshot);
-    }
-  } catch {}
+  // A. Extract directly from proposal document blocks (feature_card, module_card, deliverable)
+  if (project.proposal?.document) {
+    try {
+      const pDoc = JSON.parse(project.proposal.document);
+      (pDoc.sections || []).forEach((sec: any) => {
+        (sec.blocks || []).forEach((b: any, bIdx: number) => {
+          if (b.type === "feature_card" && b.title) {
+            if (!scopeItems.some((s) => s.title.toLowerCase() === b.title.toLowerCase())) {
+              scopeItems.push({
+                id: `scope-doc-${bIdx + 1}`,
+                category: "FEATURE",
+                title: b.title,
+                detail: b.purpose || b.businessNeed || b.expectedOutcome || "Approved proposal feature capability",
+                priority: b.priority || "HIGH",
+                acceptanceCriteria: b.acceptanceCriteria || b.capabilities || [],
+              });
+            }
+          } else if (b.type === "module_card" && b.title) {
+            if (!scopeItems.some((s) => s.title.toLowerCase() === b.title.toLowerCase())) {
+              scopeItems.push({
+                id: `scope-mod-${bIdx + 1}`,
+                category: "MODULE",
+                title: b.title,
+                detail: b.description || "Approved system module",
+                priority: "HIGH",
+                acceptanceCriteria: b.features || [],
+              });
+            }
+          } else if (b.type === "deliverable" && (b.name || b.title)) {
+            const dTitle = b.name || b.title;
+            if (!scopeItems.some((s) => s.title.toLowerCase() === dTitle.toLowerCase())) {
+              scopeItems.push({
+                id: `scope-deliv-${bIdx + 1}`,
+                category: "DELIVERABLE",
+                title: dTitle,
+                detail: b.description || b.scope || "Proposal deliverable artifact",
+                priority: "HIGH",
+                acceptanceCriteria: b.acceptance ? [b.acceptance] : [],
+              });
+            }
+          }
+        });
+      });
+    } catch {}
+  }
 
-  // Fallback to project deliverables if scopeSnapshot is empty
+  // B. Extract from linked requirement request features
+  const reqRequestId = project.requirementRequestId || project.proposal?.requirementRequestId;
+  if (reqRequestId) {
+    try {
+      const reqFeatures = await db.requirementFeature.findMany({
+        where: { requestId: reqRequestId },
+        orderBy: { order: "asc" },
+      });
+      reqFeatures.forEach((rf, rfIdx) => {
+        let acs: string[] = [];
+        try {
+          if (rf.acceptanceCriteria) acs = JSON.parse(rf.acceptanceCriteria);
+        } catch {}
+        if (!scopeItems.some((s) => s.title.toLowerCase() === rf.name.toLowerCase())) {
+          scopeItems.push({
+            id: `scope-req-${rfIdx + 1}`,
+            category: "FEATURE",
+            title: rf.name,
+            detail: rf.description || `Core requirement capability: ${rf.name}`,
+            priority: rf.priority || "HIGH",
+            acceptanceCriteria: acs,
+          });
+        }
+      });
+    } catch {}
+  }
+
+  // C. Extract from project scopeSnapshot
+  if (project.scopeSnapshot) {
+    try {
+      const snap = JSON.parse(project.scopeSnapshot);
+      if (Array.isArray(snap)) {
+        snap.forEach((s: any, sIdx: number) => {
+          if (s.title && !scopeItems.some((item) => item.title.toLowerCase() === s.title.toLowerCase())) {
+            scopeItems.push({
+              id: s.id || `scope-snap-${sIdx + 1}`,
+              category: s.category || "FEATURE",
+              title: s.title,
+              detail: s.detail || s.description || "Approved scope baseline",
+              priority: s.priority || "HIGH",
+              acceptanceCriteria: s.acceptanceCriteria || [],
+            });
+          }
+        });
+      }
+    } catch {}
+  }
+
+  // D. Fallback to project deliverables if still empty
   if (scopeItems.length === 0 && project.deliverables.length > 0) {
     scopeItems = project.deliverables.map((d, idx) => {
       let criteria: string[] = [];
@@ -74,7 +162,7 @@ export async function orchestrateEngineeringBlueprint(params: {
         if (d.acceptanceCriteria) criteria = JSON.parse(d.acceptanceCriteria);
       } catch {}
       return {
-        id: `scope-${idx + 1}`,
+        id: `scope-dlv-${idx + 1}`,
         category: d.category || "FEATURE",
         title: d.title,
         detail: d.description || "Approved project deliverable",
@@ -418,6 +506,94 @@ export async function orchestrateEngineeringBlueprint(params: {
   };
 }
 
+function toCleanSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 45) || "module";
+}
+
+function toCleanPascalCase(title: string): string {
+  const words = title
+    .replace(/&/g, "And")
+    .replace(/[^a-zA-Z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean);
+  if (words.length === 0) return "ModuleEntity";
+  const pascal = words.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join("");
+  return pascal.slice(0, 30);
+}
+
+function toCleanTableName(title: string): string {
+  const slug = toCleanSlug(title).replace(/-/g, "_");
+  return slug.endsWith("s") ? slug : `${slug}s`;
+}
+
+function generateDomainFields(title: string, entityName: string): any[] {
+  const t = title.toLowerCase();
+  if (t.includes("page") || t.includes("content") || t.includes("blog") || t.includes("article") || t.includes("cms")) {
+    return [
+      { name: "id", type: "String", isPk: true, isFk: false, isNullable: false, isUnique: true, description: "CUID primary key" },
+      { name: "projectId", type: "String", isPk: false, isFk: true, fkTarget: "ClientProject", isNullable: false, isUnique: false, description: "Project tenant isolation" },
+      { name: "title", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, description: "Page or content title" },
+      { name: "slug", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: true, description: "SEO URL slug" },
+      { name: "body", type: "String", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Rich HTML or Markdown content" },
+      { name: "status", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'DRAFT'", description: "DRAFT | PUBLISHED | ARCHIVED" },
+      { name: "publishedAt", type: "DateTime", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Live publication date" },
+      { name: "metaTitle", type: "String", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "SEO meta title" },
+      { name: "metaDescription", type: "String", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "SEO meta description" },
+      { name: "authorName", type: "String", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Author or editor name" },
+      { name: "createdAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Created timestamp" },
+      { name: "updatedAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Updated timestamp" },
+    ];
+  }
+
+  if (t.includes("user") || t.includes("auth") || t.includes("member") || t.includes("account") || t.includes("role") || t.includes("profile")) {
+    return [
+      { name: "id", type: "String", isPk: true, isFk: false, isNullable: false, isUnique: true, description: "CUID primary key" },
+      { name: "projectId", type: "String", isPk: false, isFk: true, fkTarget: "ClientProject", isNullable: false, isUnique: false, description: "Project tenant isolation" },
+      { name: "email", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: true, description: "Primary login email" },
+      { name: "fullName", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, description: "Full user name" },
+      { name: "role", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'MEMBER'", description: "RBAC role level" },
+      { name: "status", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'ACTIVE'", description: "ACTIVE | SUSPENDED | INVITED" },
+      { name: "permissions", type: "Json", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Granular capability flags" },
+      { name: "lastLoginAt", type: "DateTime", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Session audit timestamp" },
+      { name: "createdAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Registration timestamp" },
+      { name: "updatedAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Updated timestamp" },
+    ];
+  }
+
+  if (t.includes("payment") || t.includes("invoice") || t.includes("billing") || t.includes("checkout") || t.includes("commercial") || t.includes("price")) {
+    return [
+      { name: "id", type: "String", isPk: true, isFk: false, isNullable: false, isUnique: true, description: "CUID primary key" },
+      { name: "projectId", type: "String", isPk: false, isFk: true, fkTarget: "ClientProject", isNullable: false, isUnique: false, description: "Project tenant isolation" },
+      { name: "invoiceNumber", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: true, description: "Official reference sequence" },
+      { name: "amount", type: "Float", isPk: false, isFk: false, isNullable: false, isUnique: false, description: "Total billing value" },
+      { name: "currency", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'INR'", description: "Currency standard" },
+      { name: "status", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'UNPAID'", description: "UNPAID | PAID | OVERDUE" },
+      { name: "paymentMethod", type: "String", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "STRIPE | WIRE | RAZORPAY" },
+      { name: "dueDate", type: "DateTime", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Payment cutoff" },
+      { name: "paidAt", type: "DateTime", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Settlement timestamp" },
+      { name: "createdAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Generated timestamp" },
+      { name: "updatedAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Updated timestamp" },
+    ];
+  }
+
+  // Default clean domain entity
+  return [
+    { name: "id", type: "String", isPk: true, isFk: false, isNullable: false, isUnique: true, description: "CUID primary key" },
+    { name: "projectId", type: "String", isPk: false, isFk: true, fkTarget: "ClientProject", isNullable: false, isUnique: false, description: "Project tenant isolation" },
+    { name: "title", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, description: `${entityName} title or descriptor` },
+    { name: "status", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'ACTIVE'", description: "Operational lifecycle status" },
+    { name: "description", type: "String", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Detailed summary and notes" },
+    { name: "metadata", type: "Json", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Dynamic attributes and config" },
+    { name: "createdAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Audit creation timestamp" },
+    { name: "updatedAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Audit update timestamp" },
+  ];
+}
+
 /**
  * Deterministic technical synthesizer that guarantees 100% real traceability
  * directly from approved scope items when local Ollama is offline.
@@ -438,10 +614,10 @@ function synthesizeDeterministicBlueprint(input: {
     const dlvId = `DLV-${String(idx + 1).padStart(3, "0")}`;
     const acs = (s.acceptanceCriteria && s.acceptanceCriteria.length > 0
       ? s.acceptanceCriteria
-      : [`Functional validation of ${s.title}`, `Zero critical defects`]
+      : [`Functional verification of ${s.title}`, `Zero critical severity defects in production`]
     ).map((ac, acIdx) => ({
       id: `AC-${String(idx + 1).padStart(3, "0")}.${acIdx + 1}`,
-      criterion: ac,
+      criterion: typeof ac === "string" ? ac : (ac as any).name || `Criterion for ${s.title}`,
       verificationType: "INTEGRATION_TEST",
     }));
 
@@ -465,10 +641,11 @@ function synthesizeDeterministicBlueprint(input: {
   const dependencies: any[] = [];
 
   reqs.forEach((r, idx) => {
-    const entityName = r.title.replace(/[^a-zA-Z0-9]/g, "").slice(0, 20) || `Module${idx + 1}`;
-    const tableName = entityName.toLowerCase() + "s";
-    const slug = r.title.toLowerCase().replace(/[^a-z0-9]/g, "-");
+    const entityName = toCleanPascalCase(r.title);
+    const tableName = toCleanTableName(r.title);
+    const slug = toCleanSlug(r.title);
     const acId = r.acceptanceCriteria[0]?.id || `AC-${String(idx + 1).padStart(3, "0")}.1`;
+    const fields = generateDomainFields(r.title, entityName);
 
     // 1. Database Entity
     database.push({
@@ -477,24 +654,16 @@ function synthesizeDeterministicBlueprint(input: {
       purpose: `Stores structured operational records for ${r.title}`,
       technicalReason: `Required by ${r.id} to ensure persistent, relational state management`,
       requirementId: r.id,
-      fields: [
-        { name: "id", type: "String", isPk: true, isFk: false, isNullable: false, isUnique: true, description: "CUID primary key" },
-        { name: "projectId", type: "String", isPk: false, isFk: true, fkTarget: "ClientProject", isNullable: false, isUnique: false, description: "Tenant scoping" },
-        { name: "name", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, description: "Title or descriptor" },
-        { name: "status", type: "String", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "'ACTIVE'", description: "Lifecycle state" },
-        { name: "metadata", type: "Json", isPk: false, isFk: false, isNullable: true, isUnique: false, description: "Dynamic attributes" },
-        { name: "createdAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Audit creation timestamp" },
-        { name: "updatedAt", type: "DateTime", isPk: false, isFk: false, isNullable: false, isUnique: false, default: "now()", description: "Audit update timestamp" },
-      ],
+      fields,
       relationships: [
         { type: "MANY_TO_ONE", targetEntity: "ClientProject", foreignKey: "projectId", cardinality: "N:1" },
       ],
       indexes: ["projectId", "status", "createdAt"],
       constraints: ["PRIMARY KEY (id)", "FOREIGN KEY (projectId) REFERENCES ClientProject(id)"],
-      queryPatterns: [`SELECT * FROM ${tableName} WHERE projectId = ? AND status = ?`],
+      queryPatterns: [`SELECT * FROM ${tableName} WHERE projectId = ? AND status = ? ORDER BY createdAt DESC`],
       migrationImpact: "LOW - isolated table provisioning",
       confidence: "HIGH",
-      reason: `Directly models data persistence for ${r.id}`,
+      reason: `Directly models data persistence for ${r.id} (${r.title})`,
     });
 
     // 2. Backend APIs
@@ -502,10 +671,10 @@ function synthesizeDeterministicBlueprint(input: {
       method: "GET" as const,
       path: `/api/v1/${slug}`,
       version: "v1",
-      purpose: `Query and list ${r.title} records with filtering and pagination`,
+      purpose: `Query and filter ${r.title} records with tenancy validation`,
       requirementId: r.id,
       acceptanceCriterionId: acId,
-      requestSchema: { page: "number", limit: "number", search: "string" },
+      requestSchema: { page: "number", limit: "number", search: "string", status: "string" },
       responseSchema: { items: "array", total: "number", page: "number" },
       errorSchema: { ok: "boolean", message: "string" },
       authentication: true,
@@ -515,7 +684,7 @@ function synthesizeDeterministicBlueprint(input: {
       events: [],
       testCoverage: [`test_${slug}_list_query`],
       confidence: "HIGH" as const,
-      reason: `Supports frontend data fetching for ${r.id}`,
+      reason: `Supports frontend data querying for ${r.id}`,
     };
 
     const apiPost = {
@@ -525,7 +694,7 @@ function synthesizeDeterministicBlueprint(input: {
       purpose: `Create and validate new ${r.title} record`,
       requirementId: r.id,
       acceptanceCriterionId: acId,
-      requestSchema: { name: "string", metadata: "object" },
+      requestSchema: { title: "string", status: "string", metadata: "object" },
       responseSchema: { ok: "boolean", data: "object" },
       errorSchema: { ok: "boolean", message: "string", errors: "array" },
       authentication: true,
@@ -543,19 +712,19 @@ function synthesizeDeterministicBlueprint(input: {
     // 3. Backend Service
     backendServices.push({
       name: `${entityName}Service`,
-      description: `Domain service executing business validation and persistence for ${r.title}`,
+      description: `Domain service executing business validation and transactional persistence for ${r.title}`,
       requirementId: r.id,
       methods: [
         { name: "list", parameters: ["projectId", "filter"], returnType: `Promise<${entityName}[]>`, description: "Query records" },
         { name: "create", parameters: ["projectId", "input"], returnType: `Promise<${entityName}>`, description: "Validate and insert record" },
       ],
       businessRules: [
-        `Tenant isolation: must enforce projectId ownership`,
-        `Mandatory fields validated before persistence`,
+        `Tenant isolation: strictly enforces projectId authorization`,
+        `Payload validation against JSON schema definitions`,
       ],
       events: [`${slug}.created`, `${slug}.updated`],
       confidence: "HIGH",
-      reason: `Encapsulates domain logic for ${r.id}`,
+      reason: `Encapsulates business domain logic for ${r.id}`,
     });
 
     // 4. Frontend Capabilities
@@ -564,7 +733,7 @@ function synthesizeDeterministicBlueprint(input: {
         name: `${r.title} Workspace View`,
         type: "PAGE" as const,
         route: `/${slug}`,
-        description: `Primary dashboard and operational console for ${r.title}`,
+        description: `Primary console and operational management view for ${r.title}`,
         requirementId: r.id,
         acceptanceCriterionId: acId,
         components: [`${entityName}List`, `${entityName}FilterBar`, `${entityName}DetailDrawer`],
@@ -578,7 +747,7 @@ function synthesizeDeterministicBlueprint(input: {
         name: `Create ${r.title} Dialog`,
         type: "DIALOG" as const,
         route: `/${slug}?action=create`,
-        description: `Modal form for configuring and submitting ${r.title}`,
+        description: `Modal workflow for inputting and validating new ${r.title} entries`,
         requirementId: r.id,
         acceptanceCriterionId: acId,
         components: [`${entityName}Form`, "ValidationAlert"],
