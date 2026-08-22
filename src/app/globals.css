@@ -11,7 +11,11 @@
   /* Light theme foundation */
   --bos-bg: #fffdf9;
   --bos-surface: #f5f2ec;
+  --bos-surface-panel: #ffffff;
+  --bos-surface-canvas: #fffdf9;
+  --bos-surface-sunken: #f0ece1;
   --bos-border: #e7e2d8;
+  --bos-border-subtle: #e7e2d8;
   --bos-border-strong: #cdc6ba;
   --bos-text-primary: #1a1714;
   --bos-text-secondary: #6b655c;
@@ -67,7 +71,11 @@
 .dark {
   --bos-bg: #141210;
   --bos-surface: #1e1b18;
+  --bos-surface-panel: #1a1714;
+  --bos-surface-canvas: #141210;
+  --bos-surface-sunken: #110f0d;
   --bos-border: #2d2925;
+  --bos-border-subtle: #24201c;
   --bos-border-strong: #423d38;
   --bos-text-primary: #f0ede8;
   --bos-text-secondary: #a39e96;

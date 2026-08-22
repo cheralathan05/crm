@@ -485,14 +485,14 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
     <div className="min-h-screen bg-[var(--bos-surface-canvas)] pb-24">
       {/* ── NOTICE BANNER ────────────────────────────────────────── */}
       {notice && (
-        <div className="bg-[#2d5016] text-white text-[12px] font-mono py-2 px-6 text-center flex items-center justify-center gap-2 sticky top-0 z-50 shadow-md">
+        <div className="bg-[#2d5016] text-white text-[12px] font-mono py-2 px-6 text-center flex items-center justify-center gap-2 shadow-md">
           <CheckCircle2 className="w-4 h-4" />
           <span>{notice}</span>
         </div>
       )}
 
       {/* ── 04: PROJECT COMMAND HEADER ───────────────────────────── */}
-      <header className="border-b border-[var(--bos-border-subtle)] bg-[var(--bos-surface-panel)] sticky top-0 z-40">
+      <header className="border-b border-[var(--bos-border-subtle)] bg-[var(--bos-surface-panel)]">
         <div className="max-w-7xl mx-auto px-6 py-4 space-y-3">
           <div className="flex items-center justify-between gap-4 flex-wrap">
             {/* Left Title & Status */}

@@ -40,6 +40,8 @@ export async function POST(req: Request, { params }: Ctx) {
     include: {
       client: true,
       proposal: true,
+      team: true,
+      changeRequests: { orderBy: { createdAt: "desc" } },
       milestones: { orderBy: { order: "asc" } },
       deliverables: { include: { tasks: true } },
       tasks: { orderBy: { createdAt: "asc" } },
@@ -70,8 +72,16 @@ export async function POST(req: Request, { params }: Ctx) {
   // 2. Prepare Grounded Context
   const contextSummary = {
     projectName: project.name,
+    projectCode: project.code,
+    client: project.client.companyName,
     stage: project.stage,
     health: project.health,
+    budget: `${project.currency} ${(project.budget || 0).toLocaleString()}`,
+    manager: project.managerName || "Unassigned",
+    teamRoster: project.team.map((m) => `${m.name} (${m.role}, ${m.allocation}% allocation)`),
+    milestones: project.milestones.map((m) => `${m.title} [Status: ${m.status}, Invoicing: ${m.invoiceStatus}]`),
+    deliverables: project.deliverables.map((d) => `${d.title} [Status: ${d.status}]`),
+    changeRequests: project.changeRequests.map((cr) => `${cr.title} [Status: ${cr.status}, Timeline: +${cr.impactTimelineDays}d]`),
     overallReadiness: readiness.overallState,
     primaryBlocker: readiness.primaryBlockerText,
     databaseEntities: bp?.databaseEntities.map((d) => `${d.name} (${d.purpose})`) || [],

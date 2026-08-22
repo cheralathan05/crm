@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import {
   Shield,
@@ -27,6 +27,21 @@ import {
 import { cn } from "@/lib/utils";
 
 export default function EmployeeOnboardingPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[var(--bos-bg)] flex flex-col items-center justify-center gap-3">
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)]" />
+          <p className="text-[13px] font-mono text-[var(--bos-text-secondary)]">Loading onboarding workspace…</p>
+        </div>
+      }
+    >
+      <EmployeeOnboardingContent />
+    </Suspense>
+  );
+}
+
+function EmployeeOnboardingContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const previewEmployeeId = searchParams.get("previewEmployeeId");
