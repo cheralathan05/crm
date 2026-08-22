@@ -126,3 +126,93 @@ export type CommandCenterMetrics = {
     capacity: number;
   }>;
 };
+
+/* ── Smart Layer & Requirement Resolvers ────────────────────────── */
+export type TechnicalLayerType = "DATABASE" | "BACKEND" | "FRONTEND" | "TESTING" | "DEVOPS";
+
+export function resolveTaskLayer(t: any): TechnicalLayerType {
+  if (!t) return "FRONTEND";
+
+  // Check explicit layer field
+  if (t.layer) {
+    const l = String(t.layer).toUpperCase();
+    if (l.includes("DATA") || l.includes("SCHEMA") || l === "DB") return "DATABASE";
+    if (l.includes("BACK") || l.includes("API") || l.includes("SERVICE")) return "BACKEND";
+    if (l.includes("FRONT") || l.includes("UI") || l.includes("DESIGN") || l.includes("WEB")) return "FRONTEND";
+    if (l.includes("TEST") || l.includes("QA") || l.includes("VERIF")) return "TESTING";
+    if (l.includes("DEV") || l.includes("INFRA") || l.includes("DEPLOY") || l.includes("PIPELINE")) return "DEVOPS";
+  }
+
+  // Check workstream
+  if (t.workstream) {
+    const ws = String(t.workstream).toUpperCase();
+    if (ws === "DATABASE") return "DATABASE";
+    if (ws === "BACKEND" || ws === "INTEGRATION") return "BACKEND";
+    if (ws === "FRONTEND" || ws === "DESIGN") return "FRONTEND";
+    if (ws === "QA" || ws === "TESTING") return "TESTING";
+    if (ws === "DEPLOYMENT") return "DEVOPS";
+  }
+
+  // Robust contextual heuristics based on task title and description
+  const text = `${t.title || ""} ${t.description || ""}`.toLowerCase();
+  if (text.includes("database") || text.includes("schema") || text.includes("prisma") || text.includes("migration") || text.includes("relational model")) {
+    return "DATABASE";
+  }
+  if (text.includes("api route") || text.includes("rest endpoint") || text.includes("backend") || text.includes("auth") || text.includes("session token") || text.includes("middleware") || text.includes("security guard")) {
+    return "BACKEND";
+  }
+  if (text.includes("test") || text.includes("qa") || text.includes("acceptance") || text.includes("regression") || text.includes("verification")) {
+    return "TESTING";
+  }
+  if (text.includes("deploy") || text.includes("ci/cd") || text.includes("cutover") || text.includes("repository") || text.includes("dns") || text.includes("pipeline")) {
+    return "DEVOPS";
+  }
+  return "FRONTEND";
+}
+
+export function resolveTaskRequirement(t: any, defaultIndex = 1): { reqId: string; title: string } {
+  if (!t) return { reqId: `REQ-00${defaultIndex}`, title: "Core Requirement" };
+
+  if (t.sourceRequirementId && t.sourceRequirementId !== "TSK") {
+    return {
+      reqId: t.sourceRequirementId,
+      title: t.sourceRequirementTitle || t.deliverable?.title || `Requirement ${t.sourceRequirementId}`,
+    };
+  }
+
+  if (t.sourceRequirementTitle) {
+    return {
+      reqId: `REQ-${String(defaultIndex).padStart(3, "0")}`,
+      title: t.sourceRequirementTitle,
+    };
+  }
+
+  if (t.deliverable?.title) {
+    return {
+      reqId: `REQ-${String(defaultIndex).padStart(3, "0")}`,
+      title: t.deliverable.title,
+    };
+  }
+
+  if (t.sourceDeliverableTitle) {
+    return {
+      reqId: `REQ-${String(defaultIndex).padStart(3, "0")}`,
+      title: t.sourceDeliverableTitle,
+    };
+  }
+
+  // Extract from title (e.g. "for Pages & content" -> "Pages & Content")
+  const forMatch = (t.title || "").match(/for\s+["']?([^"']+)["']?$/i);
+  if (forMatch && forMatch[1]) {
+    const cleanTitle = forMatch[1].trim();
+    return {
+      reqId: `REQ-${String(defaultIndex).padStart(3, "0")}`,
+      title: cleanTitle.charAt(0).toUpperCase() + cleanTitle.slice(1),
+    };
+  }
+
+  return {
+    reqId: `REQ-${String(defaultIndex).padStart(3, "0")}`,
+    title: t.milestone?.title || "System Foundation & Architecture",
+  };
+}

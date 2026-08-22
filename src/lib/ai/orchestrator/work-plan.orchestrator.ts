@@ -27,7 +27,6 @@ export async function generateProposedWorkPlan(params: {
     where: { id: params.projectId },
     include: {
       blueprints: {
-        where: { status: "APPROVED" },
         orderBy: { version: "desc" },
         take: 1,
         include: {
@@ -47,7 +46,7 @@ export async function generateProposedWorkPlan(params: {
 
   const blueprint = project.blueprints[0];
   if (!blueprint) {
-    return { ok: false, error: "No approved engineering blueprint found. Please approve a blueprint before generating work plans." };
+    return { ok: false, error: "No engineering blueprint found. Please generate a blueprint before generating work plans." };
   }
 
   const isUp = await isOllamaAvailable();
@@ -207,7 +206,7 @@ export async function commitWorkPlanToTasks(params: {
       client: true,
       milestones: { orderBy: { order: "asc" } },
       deliverables: true,
-      blueprints: { where: { status: "APPROVED" }, orderBy: { version: "desc" }, take: 1 },
+      blueprints: { orderBy: { version: "desc" }, take: 1 },
     },
   });
 
