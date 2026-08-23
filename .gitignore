@@ -7,3 +7,7 @@ node_modules
 .next/
 
 tsconfig.tsbuildinfo
+
+.next/
+
+tsconfig.tsbuildinfo
