@@ -153,16 +153,12 @@ body {
     linear-gradient(to right, var(--bos-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--bos-line) 1px, transparent 1px);
   background-size: var(--bos-grid-unit) var(--bos-grid-unit);
-  mask-image: radial-gradient(
-    ellipse 80% 60% at 50% 50%,
-    rgba(0, 0, 0, 0.35) 0%,
-    transparent 100%
-  );
-  -webkit-mask-image: radial-gradient(
-    ellipse 80% 60% at 50% 50%,
-    rgba(0, 0, 0, 0.35) 0%,
-    transparent 100%
-  );
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 50%,
+      rgba(0, 0, 0, 0.35) 0%,
+      transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 50%,
+      rgba(0, 0, 0, 0.35) 0%,
+      transparent 100%);
 }
 
 .system-grid__accent-line {
@@ -170,14 +166,12 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    var(--bos-line-strong) 20%,
-    var(--bos-accent) 50%,
-    var(--bos-line-strong) 80%,
-    transparent 100%
-  );
+  background: linear-gradient(90deg,
+      transparent 0%,
+      var(--bos-line-strong) 20%,
+      var(--bos-accent) 50%,
+      var(--bos-line-strong) 80%,
+      transparent 100%);
   opacity: 0.3;
 }
 
@@ -382,6 +376,7 @@ body {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: none;
@@ -390,6 +385,7 @@ body {
 
 /* ── Reduce motion ─────────────────────── */
 @media (prefers-reduced-motion: reduce) {
+
   *,
   *::before,
   *::after {

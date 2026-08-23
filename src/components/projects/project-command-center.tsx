@@ -1049,7 +1049,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               onClick={() => setActiveDrawer("client-request")}
               className="hover:text-[var(--bos-text-primary)] hover:underline cursor-pointer"
             >
-            + Create Client Request
+              + Create Client Request
             </button>
           </div>
         )}
@@ -1347,7 +1347,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
 
                   <div className="p-3 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-1">
                     <span className="font-mono text-[10px] uppercase text-[var(--bos-text-tertiary)] block">
-                  Remaining
+                      Remaining
                     </span>
                     <p className="text-[18px] font-bold text-[var(--bos-accent)]">
                       {metrics.totalDeliverables - metrics.acceptedDeliverables} Deliv.
@@ -1434,10 +1434,10 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                 const count = ws === "ALL"
                   ? tasks.length
                   : tasks.filter((t: any) => {
-                      const l = (t.layer || t.workstream || "").toUpperCase();
-                      if (ws === "TESTING") return l.includes("TEST") || l.includes("QA");
-                      return l.includes(ws);
-                    }).length;
+                    const l = (t.layer || t.workstream || "").toUpperCase();
+                    if (ws === "TESTING") return l.includes("TEST") || l.includes("QA");
+                    return l.includes(ws);
+                  }).length;
                 if (ws !== "ALL" && count === 0) return null;
                 return (
                   <button
@@ -2310,8 +2310,8 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                     <span className={cn(
                       "font-mono text-[10.5px] uppercase font-semibold px-2 py-0.5 rounded",
                       cr.status === "APPROVED" || cr.status === "APPLIED" ? "bg-[#eaf5e7] text-[#2c5324]" :
-                      cr.status === "REJECTED" ? "bg-[#fbece7] text-[#b5452a]" :
-                      "bg-[#fdf5eb] text-[var(--bos-accent)]"
+                        cr.status === "REJECTED" ? "bg-[#fbece7] text-[#b5452a]" :
+                          "bg-[#fdf5eb] text-[var(--bos-accent)]"
                     )}>
                       {cr.status}
                     </span>
