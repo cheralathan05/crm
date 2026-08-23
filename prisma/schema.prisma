@@ -1,0 +1,2070 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+enum UserRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  DISABLED
+}
+
+enum UserProvider {
+  EMAIL
+  GOOGLE
+}
+
+/* ── Client Command Center ────────────────────────────────────── */
+
+enum ClientStatus {
+  LEAD
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ClientStage {
+  LEAD
+  QUALIFIED
+  REQUIREMENTS
+  PROPOSAL
+  APPROVAL
+  PROJECT
+  DELIVERY
+}
+
+enum ClientHealth {
+  HEALTHY
+  NEEDS_ATTENTION
+  AT_RISK
+  INACTIVE
+}
+
+enum ContactChannel {
+  EMAIL
+  PHONE
+  WHATSAPP
+}
+
+enum ActivityType {
+  CALL
+  MEETING
+  NOTE
+  FOLLOW_UP
+  EMAIL
+  MESSAGE
+}
+
+enum RequirementStatus {
+  SUBMITTED
+  UNDER_REVIEW
+  CHANGES_REQUESTED
+  APPROVED
+  REJECTED
+}
+
+enum RequirementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum ProposalStatus {
+  DRAFT
+  FINALIZED
+  SENT
+  DELIVERED
+  VIEWED
+  CHANGES_REQUESTED
+  REVISION_IN_PROGRESS
+  REVISION_READY
+  RESENT
+  APPROVED
+  REJECTED
+  EXPIRED
+  ARCHIVED
+}
+
+enum ProjectStage {
+  PLANNING
+  DISCOVERY
+  DESIGN
+  DEVELOPMENT
+  TESTING
+  DELIVERY
+  COMPLETED
+}
+
+enum ProjectHealth {
+  ON_TRACK
+  AT_RISK
+  BLOCKED
+}
+
+enum TaskStatus {
+  BACKLOG
+  READY
+  TODO
+  IN_PROGRESS
+  BLOCKED
+  IN_REVIEW
+  CHANGES_REQUESTED
+  READY_FOR_CLIENT
+  CLIENT_REVIEW
+  CLIENT_APPROVED
+  COMPLETED
+  DONE
+  CANCELLED
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum AcceptanceCriteriaStatus {
+  NOT_STARTED
+  PASSED
+  FAILED
+  NOT_APPLICABLE
+}
+
+enum DependencyType {
+  BLOCKS
+  BLOCKED_BY
+}
+
+enum ClientVisibility {
+  INTERNAL
+  CLIENT_VISIBLE
+}
+
+enum TaskReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentType {
+  CONTRACT
+  INVOICE
+  PARTIAL
+  MILESTONE
+}
+
+enum DocumentCategory {
+  REQUIREMENT
+  PROPOSAL
+  CONTRACT
+  INVOICE
+  PROJECT_FILE
+  CLIENT_UPLOAD
+}
+
+enum MessageChannel {
+  EMAIL
+  WHATSAPP
+  CALL
+  MEETING
+  INTERNAL_NOTE
+}
+
+enum AuditEntity {
+  CLIENT
+  CONTACT
+  ACTIVITY
+  REQUIREMENT
+  PROPOSAL
+  PROJECT
+  TASK
+  PAYMENT
+  DOCUMENT
+  MESSAGE
+  NOTE
+}
+
+enum AuditAction {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+  OWNER_CHANGED
+  CONTACT_ADDED
+  REQUIREMENT_CREATED
+  PROPOSAL_CREATED
+  PROPOSAL_SENT
+  PROPOSAL_APPROVED
+  PROJECT_CREATED
+  TASK_ASSIGNED
+  PAYMENT_UPDATED
+  DOCUMENT_UPLOADED
+  CLIENT_ARCHIVED
+  CLIENT_RESTORED
+  ACTIVITY_ADDED
+  NOTE_ADDED
+  MESSAGE_ADDED
+  STAGE_CHANGED
+  CUSTOM_FIELD_UPDATED
+}
+
+model User {
+  id             String              @id @default(cuid())
+  name           String
+  companyName    String
+  email          String              @unique
+  passwordHash   String
+  emailVerified  DateTime?
+  role           UserRole            @default(OWNER)
+  status         UserStatus          @default(ACTIVE)
+  provider       UserProvider        @default(EMAIL)
+  googleId       String?             @unique
+  lastLoginAt    DateTime?
+  sessionVersion Int                 @default(1)
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  tokens         VerificationToken[]
+  workspace      Workspace?
+  onboarding     Onboarding?
+  employee       Employee?
+}
+
+model Workspace {
+  id            String   @id @default(cuid())
+  companyName   String
+  owner         User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  ownerId       String   @unique
+  profile       WorkspaceProfile?
+  business      BusinessProfile?
+  preferences   WorkspacePreferences?
+  notifications NotificationPreferences?
+  setup         WorkspaceSetup?
+  clients       Client[]
+  customFieldDefs ClientCustomFieldDef[]
+  requirementRequests RequirementRequest[]
+  requirementQuestions RequirementQuestion[]
+  questionDeliveries QuestionDelivery[]
+  updateProposals RequirementUpdateProposal[]
+  conflicts RequirementConflict[]
+  copilotMessages ClientCopilotMessage[]
+  employees     Employee[]
+  roles         OrganizationRole[]
+  teams         OrganizationTeam[]
+  invitations   EmployeeInvitation[]
+  employeeAuditEvents EmployeeAuditEvent[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+/* ── Client Command Center models ────────────────────────────── */
+
+/**
+ * A client — the center of one complete business relationship.
+ * Everything else in the Command Center hangs off this record.
+ */
+model Client {
+  id             String           @id @default(cuid())
+  workspace      Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  companyName    String
+  industry       String?
+  businessType   String?
+  description    String?
+  website        String?
+  domain         String?
+  email          String?
+  phone          String?
+  status         ClientStatus     @default(LEAD)
+  stage          ClientStage      @default(LEAD)
+  leadSource     String?
+  leadScore      Int?             @default(0)
+  ownerId        String?
+  ownerName      String?
+  primaryContactId String?
+  tags           String?          @default("[]")
+  customFields   String?          @default("{}")
+  relationshipScore Int?          @default(0)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  lastActivityAt DateTime?
+
+  contacts       Contact[]
+  activities     ClientActivity[]
+  requirements   ClientRequirement[]
+  proposals      ClientProposal[]
+  projects       ClientProject[]
+  tasks          ClientTask[]
+  payments       ClientPayment[]
+  documents      ClientDocument[]
+  messages       ClientMessage[]
+  notes          ClientNote[]
+  auditEvents    ClientAuditEvent[]
+  requirementRequests RequirementRequest[]
+  requirementQuestions RequirementQuestion[]
+  updateProposals RequirementUpdateProposal[]
+  conflicts RequirementConflict[]
+  copilotMessages ClientCopilotMessage[]
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, companyName])
+}
+
+/** People inside the client company. */
+model Contact {
+  id            String          @id @default(cuid())
+  client        Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  name          String
+  role          String?
+  email         String?
+  phone         String?
+  whatsapp      String?
+  preferredChannel ContactChannel? @default(EMAIL)
+  isPrimary     Boolean         @default(false)
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([clientId])
+}
+
+/** Composed business activities — calls, meetings, follow-ups, notes. */
+model ClientActivity {
+  id          String       @id @default(cuid())
+  client      Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  type        ActivityType
+  title       String
+  note        String?
+  actorId     String?
+  actorName   String?
+  dueAt       DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+/** What the client needs — from submission to approval. */
+model ClientRequirement {
+  id            String              @id @default(cuid())
+  client        Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  title         String
+  description   String?
+  status        RequirementStatus   @default(SUBMITTED)
+  priority      RequirementPriority @default(MEDIUM)
+  questionCount Int                 @default(0)
+  answeredCount Int                 @default(0)
+  reviewerId    String?
+  reviewerName  String?
+  submittedAt   DateTime            @default(now())
+  approvedAt    DateTime?
+
+  @@index([clientId, status])
+}
+
+/** Priced proposals sent to the client. */
+model ClientProposal {
+  id              String          @id @default(cuid())
+  client          Client          @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId        String
+  /** The approved requirement this proposal was built from. */
+  requirementRequestId String?
+  reference       String?         // e.g. PROP-2026-001
+  title           String
+  amount          Float?          @default(0)
+  currency        String          @default("INR")
+  status          ProposalStatus  @default(DRAFT)
+  /** The full editable proposal document (JSON). */
+  document        String          @default("{}")
+  /** Stored PDF (relative path under uploads/). */
+  pdfPath         String?
+  pdfPages        Int?            @default(0)
+  finalizedAt     DateTime?
+  sentAt          DateTime?
+  viewedAt        DateTime?
+  validUntil      DateTime?
+  /** Working version number — each finalized version is frozen. */
+  version         Int             @default(1)
+  /** Secure client access token — created on first send. */
+  tokenHash       String?         @unique
+  tokenExpiresAt  DateTime?
+  tokenRevokedAt  DateTime?
+  tokenRevokedReason String?
+  /** Delivery recipients for the latest send. */
+  sentTo          String?
+  sentToName      String?
+  /** Client view tracking. */
+  firstViewedAt   DateTime?
+  lastViewedAt    DateTime?
+  viewCount       Int             @default(0)
+  /** True rejection (client chose not to proceed). */
+  rejectedAt      DateTime?
+  rejectedReason  String?
+  rejectedDetails String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  deliveries      ProposalDelivery[]
+  views           ProposalView[]
+  approvals       ProposalApproval[]
+  changeRequests  ProposalChangeRequest[]
+  rejections      ProposalRejection[]
+  versions        ProposalVersion[]
+  projects        ClientProject[]
+
+  @@index([clientId, status])
+}
+
+/**
+ * One immutable finalized version of a proposal. Every finalize writes a
+ * frozen snapshot (document + PDF) — revisions never overwrite history.
+ */
+model ProposalVersion {
+  id               String   @id @default(cuid())
+  proposal         ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId       String
+  version          Int
+  title            String
+  amount           Float?
+  currency         String   @default("INR")
+  /** The exact document JSON at finalization time. */
+  document         String   @default("{}")
+  pdfPath          String?
+  pdfPages         Int?
+  status           String   @default("FINALIZED") // FINALIZED | SENT | VIEWED | CHANGES_REQUESTED | APPROVED | REJECTED
+  changeRequestIds String   @default("[]")
+  basedOnVersion   Int?
+  createdById      String?
+  createdByName    String?
+  finalizedAt      DateTime?
+  sentAt           DateTime?
+  approvedAt       DateTime?
+  createdAt        DateTime @default(now())
+
+  @@unique([proposalId, version])
+  @@index([proposalId, status])
+}
+
+/** Honest email delivery trail — one row per send attempt. */
+model ProposalDelivery {
+  id                String   @id @default(cuid())
+  proposal          ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId        String
+  workspaceId       String
+  clientId          String
+  proposalVersion   Int      @default(1)
+  recipientName     String
+  recipientEmail    String
+  kind              String   @default("INITIAL") // INITIAL | REVISION | RESEND
+  status            String   @default("SENT")    // QUEUED | SENDING | SENT | DELIVERED | FAILED | BOUNCED
+  provider          String?
+  providerMessageId String?
+  sentAt            DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  createdAt         DateTime @default(now())
+
+  @@index([proposalId, createdAt])
+  @@index([workspaceId, createdAt])
+}
+
+/** Client views of the secure proposal page — deduped into sessions. */
+model ProposalView {
+  id            String   @id @default(cuid())
+  proposal      ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId    String
+  workspaceId   String
+  clientId      String
+  sessionId     String?
+  firstViewedAt DateTime @default(now())
+  lastViewedAt  DateTime @default(now())
+  viewCount     Int      @default(1)
+  pdfOpened     Boolean  @default(false)
+  pdfViewedAt   DateTime?
+
+  @@index([proposalId])
+}
+
+/** Explicit client approval of a proposal version. */
+model ProposalApproval {
+  id              String   @id @default(cuid())
+  proposal        ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId      String
+  workspaceId     String
+  clientId        String
+  proposalVersion Int      @default(1)
+  approvedAt      DateTime @default(now())
+  approvalMethod  String   @default("SECURE_LINK")
+  clientName      String?
+
+  @@index([proposalId])
+}
+
+/** A structured client change request against a proposal version. */
+model ProposalChangeRequest {
+  id               String   @id @default(cuid())
+  proposal         ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId       String
+  workspaceId      String
+  clientId         String
+  proposalVersion  Int      @default(1)
+  reference        String   @default("")
+  /** Client-selected reason labels. */
+  reasons          String   @default("[]")
+  /** Affected proposal sections. */
+  sections         String   @default("[]")
+  message          String
+  priority         String   @default("MEDIUM") // LOW | MEDIUM | HIGH | BLOCKING
+  status           String   @default("SUBMITTED") // SUBMITTED | UNDER_REVIEW | ACCEPTED | CLARIFICATION_REQUIRED | DECLINED | IMPLEMENTED | RESOLVED | CANCELLED
+  adminResponse    String?
+  submittedByName  String?
+  submittedAt      DateTime @default(now())
+  decidedAt        DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  items            ProposalChangeRequestItem[]
+
+  @@index([proposalId, status])
+}
+
+/** One structured requested change (current → requested value). */
+model ProposalChangeRequestItem {
+  id               String   @id @default(cuid())
+  changeRequest    ProposalChangeRequest @relation(fields: [changeRequestId], references: [id], onDelete: Cascade)
+  changeRequestId  String
+  section          String
+  field            String?
+  currentValue     String?
+  requestedValue   String?
+  reason           String?
+  status           String   @default("PENDING") // PENDING | ACCEPTED | DECLINED
+  adminResponse    String?
+
+  @@index([changeRequestId])
+}
+
+/** A true rejection — the client explicitly chose not to proceed. */
+model ProposalRejection {
+  id              String   @id @default(cuid())
+  proposal        ClientProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  proposalId      String
+  workspaceId     String
+  clientId        String
+  proposalVersion Int      @default(1)
+  reason          String
+  details         String?
+  clientName      String?
+  rejectedAt      DateTime @default(now())
+
+  @@index([proposalId])
+}
+
+/** Client work — projects, stages, tasks, deliverables, milestones. */
+model ClientProject {
+  id                   String        @id @default(cuid())
+  client               Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId             String
+  proposal             ClientProposal? @relation(fields: [proposalId], references: [id], onDelete: SetNull)
+  proposalId           String?
+  proposalVersion      Int?
+  requirementRequestId String?
+  name                 String
+  code                 String?       // e.g. PRJ-2026-001
+  description          String?
+  stage                ProjectStage  @default(PLANNING)
+  health               ProjectHealth @default(ON_TRACK)
+  progress             Int           @default(0)
+  budget               Float?        @default(0)
+  currency             String        @default("INR")
+  managerId            String?
+  managerName          String?
+  startedAt            DateTime?
+  deadline             DateTime?
+  targetCompletion     DateTime?
+  completedAt          DateTime?
+  scopeSnapshot        String?       @default("{}")
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @default(now()) @updatedAt
+
+  tasks                ClientTask[]
+  milestones           ProjectMilestone[]
+  deliverables         ProjectDeliverable[]
+  team                 ProjectMember[]
+  changeRequests       ProjectChangeRequest[]
+  activities           ProjectActivity[]
+  blueprints           EngineeringBlueprint[]
+  clarifications       ClarificationItem[]
+  drifts               ArchitectureDrift[]
+  staffAllocations     ProjectStaffAllocation[]
+
+  @@index([clientId])
+  @@index([proposalId])
+}
+
+/** Project milestone phase gates. */
+model ProjectMilestone {
+  id                String        @id @default(cuid())
+  project           ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String
+  title             String
+  phase             String        @default("PHASE_1")
+  description       String?
+  order             Int           @default(0)
+  status            String        @default("PLANNED") // PLANNED | IN_PROGRESS | IN_REVIEW | COMPLETED
+  progress          Int           @default(0)
+  targetDate        DateTime?
+  completedAt       DateTime?
+  paymentPercentage Float?
+  paymentAmount     Float?
+  invoiceStatus     String        @default("UNINVOICED") // UNINVOICED | INVOICED | PAID
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @default(now()) @updatedAt
+
+  deliverables      ProjectDeliverable[]
+  tasks             ClientTask[]
+
+  @@index([projectId, order])
+}
+
+/** Project deliverable artifacts with client review lifecycle. */
+model ProjectDeliverable {
+  id                  String        @id @default(cuid())
+  project             ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId           String
+  milestone           ProjectMilestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId         String?
+  title               String
+  description         String?
+  category            String?       @default("ENGINEERING")
+  proposalFeatureName String?
+  acceptanceCriteria  String        @default("[]")
+  status              String        @default("DRAFT") // DRAFT | INTERNAL_REVIEW | DELIVERED_TO_CLIENT | CLIENT_REVIEW | ACCEPTED | CHANGES_REQUESTED
+  submittedAt         DateTime?
+  clientApprovedAt    DateTime?
+  clientApprovedBy    String?
+  clientFeedback      String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @default(now()) @updatedAt
+
+  tasks               ClientTask[]
+  changeRequests      ProjectChangeRequest[]
+  frontendCapabilities FrontendCapability[]
+  backendApis         BackendApi[]
+  databaseEntities    DatabaseEntity[]
+  testSpecifications  TestSpecification[]
+  evidenceRecords     EvidenceRecord[]
+
+  @@index([projectId, status])
+  @@index([milestoneId])
+}
+
+/** Project team allocation and roles. */
+model ProjectMember {
+  id          String        @id @default(cuid())
+  project     ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  userId      String?
+  name        String
+  role        String        @default("Engineer")
+  email       String?
+  avatar      String?
+  allocation  Int           @default(100) // percentage
+  joinedAt    DateTime      @default(now())
+
+  @@index([projectId])
+}
+
+/** Formal change requests against project deliverables/scope. */
+model ProjectChangeRequest {
+  id                 String              @id @default(cuid())
+  project            ClientProject       @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId          String
+  deliverable        ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId      String?
+  title              String
+  description        String
+  reason             String?
+  impactScope        String?
+  impactTimelineDays Int                 @default(0)
+  impactBudgetAmount Float               @default(0)
+  status             String              @default("SUBMITTED") // SUBMITTED | UNDER_REVIEW | APPROVED | REJECTED | IMPLEMENTED
+  submittedByName    String?
+  submittedAt        DateTime            @default(now())
+  decidedAt          DateTime?
+  adminResponse      String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @default(now()) @updatedAt
+
+  @@index([projectId, status])
+}
+
+/** Live operational event trail for the project. */
+model ProjectActivity {
+  id        String        @id @default(cuid())
+  project   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
+  type      String
+  title     String
+  detail    String?
+  actorName String?
+  createdAt DateTime      @default(now())
+
+  @@index([projectId, createdAt])
+}
+
+/** Tasks across client projects — execution backbone with Work DNA & traceability. */
+model ClientTask {
+  id                      String              @id @default(cuid())
+  code                    String?             // e.g. TSK-028
+  client                  Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId                String
+  project                 ClientProject?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId               String?
+  milestone               ProjectMilestone?   @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  milestoneId             String?
+  deliverable             ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId           String?
+  title                   String
+  description             String?
+  expectedResult          String?
+  blockedReason           String?
+  workstream              String?             @default("FRONTEND") // DISCOVERY, DESIGN, FRONTEND, BACKEND, DATABASE, INTEGRATION, QA, DEPLOYMENT, CLIENT_REVIEW
+  status                  TaskStatus          @default(TODO)
+  priority                TaskPriority        @default(MEDIUM)
+  clientVisibility        ClientVisibility    @default(INTERNAL)
+  teamRole                String?
+  assigneeId              String?
+  assigneeName            String?
+  dueAt                   DateTime?
+  startedAt               DateTime?
+  completedAt             DateTime?
+  estimatedHours          Float?
+  actualHours             Float?
+  order                   Int                 @default(0)
+
+  // Traceability & Lineage (Work DNA Source)
+  sourceType              String?             // REQUIREMENT | PROPOSAL_SCOPE | DELIVERABLE | MANUAL | CHANGE_REQUEST
+  sourceRequirementId     String?
+  sourceRequirementTitle  String?
+  sourceProposalId        String?
+  sourceProposalReference String?
+  sourceScopeItem         String?
+  sourceDeliverableTitle  String?
+  sourceSection           String?
+
+  // Intelligent Engineering System Linkage
+  blueprintId             String?
+  blueprint               EngineeringBlueprint? @relation(fields: [blueprintId], references: [id], onDelete: SetNull)
+  layer                   String?             @default("FRONTEND") // FRONTEND | BACKEND | DATABASE | INTEGRATION | SECURITY | TESTING | DEPLOYMENT
+  workId                  String?             // e.g. FE-001, BE-001, DB-001, QA-001
+  testSpecificationId     String?
+  testSpecification       TestSpecification?  @relation(fields: [testSpecificationId], references: [id], onDelete: SetNull)
+
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @default(now()) @updatedAt
+
+  subtasks                SubTask[]
+  acceptanceCriteria      TaskAcceptanceCriterion[]
+  dependencies            TaskDependency[]    @relation("TaskDependsOn")
+  dependentOnMe           TaskDependency[]    @relation("TaskBlocks")
+  comments                TaskComment[]
+  attachments             TaskAttachment[]
+  reviews                 TaskReview[]
+  activities              TaskActivity[]
+  timeEntries             TaskTimeEntry[]
+  evidenceRecords         EvidenceRecord[]
+
+  @@index([clientId, status])
+  @@index([projectId])
+  @@index([milestoneId])
+  @@index([deliverableId])
+  @@index([workstream])
+  @@index([blueprintId])
+  @@index([layer])
+}
+
+model SubTask {
+  id           String      @id @default(cuid())
+  task         ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId       String
+  title        String
+  completed    Boolean     @default(false)
+  assigneeName String?
+  assigneeId   String?
+  order        Int         @default(0)
+  completedAt  DateTime?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @default(now()) @updatedAt
+
+  @@index([taskId, order])
+}
+
+model TaskAcceptanceCriterion {
+  id          String                   @id @default(cuid())
+  task        ClientTask               @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+  criterion   String
+  status      AcceptanceCriteriaStatus @default(NOT_STARTED)
+  notes       String?
+  order       Int                      @default(0)
+  verifiedAt  DateTime?
+  verifiedBy  String?
+  createdAt   DateTime                 @default(now())
+  updatedAt   DateTime                 @default(now()) @updatedAt
+
+  @@index([taskId, order])
+}
+
+model TaskDependency {
+  id                String         @id @default(cuid())
+  task              ClientTask     @relation("TaskDependsOn", fields: [taskId], references: [id], onDelete: Cascade)
+  taskId            String
+  dependsOnTask     ClientTask     @relation("TaskBlocks", fields: [dependsOnTaskId], references: [id], onDelete: Cascade)
+  dependsOnTaskId   String
+  dependencyType    DependencyType @default(BLOCKED_BY)
+  createdAt         DateTime       @default(now())
+
+  @@unique([taskId, dependsOnTaskId])
+  @@index([taskId])
+  @@index([dependsOnTaskId])
+}
+
+model TaskComment {
+  id              String      @id @default(cuid())
+  task            ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId          String
+  authorId        String?
+  authorName      String
+  authorRole      String?
+  content         String
+  isClientVisible Boolean     @default(false)
+  createdAt       DateTime    @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskAttachment {
+  id             String      @id @default(cuid())
+  task           ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId         String
+  name           String
+  url            String
+  size           Int         @default(0)
+  category       String      @default("SPECIFICATION") // SPECIFICATION | DESIGN | DELIVERABLE | TEST_REPORT | SCREENSHOT
+  uploadedByName String?
+  createdAt      DateTime    @default(now())
+
+  @@index([taskId])
+}
+
+model TaskReview {
+  id           String           @id @default(cuid())
+  task         ClientTask       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId       String
+  reviewerId   String?
+  reviewerName String
+  status       TaskReviewStatus @default(PENDING)
+  feedback     String?
+  submittedAt  DateTime         @default(now())
+  decidedAt    DateTime?
+  createdAt    DateTime         @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskActivity {
+  id        String      @id @default(cuid())
+  task      ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId    String
+  type      String      // TASK_CREATED | STATUS_CHANGED | ASSIGNED | SUBMITTED_FOR_REVIEW | REVIEWED | CHANGES_REQUESTED | COMPLETED | BLOCKED | UNBLOCKED
+  title     String
+  detail    String?
+  actorName String?
+  createdAt DateTime    @default(now())
+
+  @@index([taskId, createdAt])
+}
+
+model TaskTimeEntry {
+  id          String      @id @default(cuid())
+  task        ClientTask  @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId      String
+  userId      String?
+  userName    String
+  hours       Float
+  description String?
+  loggedAt    DateTime    @default(now())
+  createdAt   DateTime    @default(now())
+
+  @@index([taskId, loggedAt])
+}
+
+/** Money — contract, invoices, payments. */
+model ClientPayment {
+  id            String        @id @default(cuid())
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId      String
+  type          PaymentType
+  label         String?
+  amount        Float
+  currency      String        @default("INR")
+  status        PaymentStatus @default(PENDING)
+  invoiceNumber String?
+  dueAt         DateTime?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+
+  @@index([clientId, status])
+}
+
+/** Files organized by relationship. */
+model ClientDocument {
+  id          String            @id @default(cuid())
+  client      Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  category    DocumentCategory
+  name        String
+  url         String?
+  size        Int?              @default(0)
+  uploadedByName String?
+  createdAt   DateTime          @default(now())
+
+  @@index([clientId, category])
+}
+
+/** Communication with the client. */
+model ClientMessage {
+  id        String         @id @default(cuid())
+  client    Client         @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  channel   MessageChannel
+  subject   String
+  body      String?
+  direction String         @default("IN") // IN | OUT
+  fromName  String?
+  at        DateTime       @default(now())
+
+  @@index([clientId, at])
+}
+
+/** Internal notes / client memory. */
+model ClientNote {
+  id        String    @id @default(cuid())
+  client    Client    @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId  String
+  content   String
+  authorId  String?
+  authorName String?
+  createdAt DateTime  @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+/** Audit trail — who changed what and when (separate from activity). */
+model ClientAuditEvent {
+  id         String       @id @default(cuid())
+  client     Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId   String
+  entity     AuditEntity
+  action     AuditAction
+  entityId   String?
+  actorId    String?
+  actorName  String?
+  before     String?      @default("{}")
+  after      String?      @default("{}")
+  createdAt  DateTime     @default(now())
+
+  @@index([clientId, createdAt])
+}
+
+/** Workspace-defined custom client fields (stored dynamically as JSON). */
+/* ── Client Requirement Workspace ──────────────────────────────
+   The guided project-discovery flow. Admin configures a request,
+   the client completes it through a secure token link, and the
+   structured result feeds proposals and projects.
+──────────────────────────────────────────────────────────────── */
+
+enum RequirementProjectType {
+  WEBSITE
+  WEB_APP
+  MOBILE_APP
+  SAAS
+  ECOMMERCE
+  INTERNAL_SYSTEM
+  OTHER
+}
+
+enum RequirementRequestStatus {
+  DRAFT
+  SENT
+  IN_PROGRESS
+  SUBMITTED
+  CHANGES_REQUESTED
+  REVISION_SUBMITTED
+  APPROVED
+  REVOKED
+}
+
+enum FeaturePriority {
+  MUST_HAVE
+  SHOULD_HAVE
+  NICE_TO_HAVE
+}
+
+enum RequirementEventType {
+  REQUEST_CREATED
+  REQUEST_SENT
+  REQUEST_REMINDED
+  LINK_OPENED
+  SECTION_SAVED
+  SECTION_COMPLETED
+  FILE_UPLOADED
+  CHANGES_REQUESTED
+  CLIENT_COMMENTED
+  CLARIFICATION_GENERATED
+  CLARIFICATION_REQUESTED
+  CLARIFICATION_APPROVED
+  CLARIFICATION_ANSWERED
+  CLARIFICATION_REVIEWED
+  CLARIFICATION_REMINDED
+  CLARIFICATION_RESOLVED
+  UPDATE_PROPOSED
+  UPDATE_APPLIED
+  PROPOSAL_BLOCKED
+  SUBMITTED
+  REVISION_SUBMITTED
+  APPROVED
+  PROPOSAL_CREATED
+  PROPOSAL_FINALIZED
+  PROPOSAL_SENT
+  PROPOSAL_VIEWED
+  PROPOSAL_CHANGES_REQUESTED
+  PROPOSAL_APPROVED
+  PROPOSAL_REJECTED
+  REQUEST_REVOKED
+}
+
+/** One guided requirement collection for a client, accessed by secure token. */
+model RequirementRequest {
+  id             String   @id @default(cuid())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  client         Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  reference      String
+  title          String
+  projectType    RequirementProjectType @default(OTHER)
+  status         RequirementRequestStatus @default(DRAFT)
+  revision       Int      @default(1)
+  tokenHash      String   @unique
+  tokenExpiresAt DateTime?
+  tokenRevokedAt DateTime?
+  tokenRevokedReason String?
+  sentTo         String?
+  sentAt         DateTime?
+  lastOpenedAt   DateTime?
+  submittedAt    DateTime?
+  approvedAt     DateTime?
+  currentSection String   @default("business")
+  completeness   Int      @default(0)
+  readiness      Int      @default(0)
+  responderName  String?
+  responderRole  String?
+  responderEmail String?
+  createdById    String?
+  createdByName  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  answers     RequirementAnswer[]
+  features    RequirementFeature[]
+  attachments RequirementAttachment[]
+  comments    RequirementComment[]
+  revisions   RequirementRevision[]
+  events      RequirementEvent[]
+  questions    RequirementQuestion[]
+  updateProposals RequirementUpdateProposal[]
+  conflicts    RequirementConflict[]
+
+  @@index([workspaceId, status])
+  @@index([clientId])
+}
+
+/** One section's structured answers (JSON data, typed by section config). */
+model RequirementAnswer {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  section     String
+  data        String   @default("{}")
+  completedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([requestId, section])
+}
+
+/** A feature the client selected and configured — task-ready data. */
+model RequirementFeature {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  name        String
+  priority    FeaturePriority @default(SHOULD_HAVE)
+  users       String   @default("[]")
+  description String   @default("")
+  config      String   @default("{}")
+  acceptanceCriteria String @default("[]")
+  dependencies String  @default("[]")
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clarificationQuestions RequirementQuestion[]
+
+  @@index([requestId])
+}
+
+/** Files uploaded by the client or admin into the request. */
+model RequirementAttachment {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  section     String
+  name        String
+  mime        String
+  size        Int
+  path        String
+  uploadedByName String?
+  createdAt   DateTime @default(now())
+
+  @@index([requestId])
+}
+
+/** Clarification threads — admin requests, client replies. */
+enum QuestionStatus {
+  DRAFT
+  READY_FOR_REVIEW
+  APPROVED
+  READY_TO_SEND
+  SENDING
+  SENT
+  DELIVERED
+  OPENED
+  ANSWERED
+  UNDER_REVIEW
+  RESOLVED
+  EXPIRED
+  FAILED
+  CANCELLED
+  BLOCKED
+}
+
+enum DeliveryStatus {
+  SENDING
+  SENT
+  FAILED
+}
+
+enum DeliveryKind {
+  INITIAL
+  REMINDER
+}
+
+/**
+ * A clarification question emailed to the client — the Ask the Client loop.
+ * Every question is bound to one workspace + client + requirement + section,
+ * carries its own secure response token, and keeps a delivery trail. Never
+ * an unassociated email.
+ */
+model RequirementQuestion {
+  id                 String            @id @default(cuid())
+  workspace          Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId        String
+  client             Client            @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId           String
+  requirement        RequirementRequest @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId      String
+  /** The requirement item this question targets — a feature when available. */
+  feature            RequirementFeature? @relation(fields: [featureId], references: [id], onDelete: SetNull)
+  featureId          String?
+  section            String
+  /** Scope classification — e.g. Features / Payments / User Roles. */
+  category           String?
+  subcategory        String?
+  /** The admin's working question — may be rough; never sent as-is. */
+  question           String
+  /** The professional client-facing question — what the client actually sees. */
+  clientQuestion     String?
+  /** Internal note — never sent to the client. */
+  internalNote       String?
+  currentUnderstanding String?
+  whyWeAsk           String?
+  helpText           String?
+  answerType         String            @default("LONG_TEXT")
+  options            String            @default("[]")
+  priority           String            @default("MEDIUM")
+  isBlocking         Boolean           @default(false)
+  impact             String            @default("{}")
+  qualityScore       Int?
+  qualityFlags       String            @default("[]")
+  dependsOnQuestionId String?
+  dependsOnAnswer    String?
+  /** Question revision — only the latest approved version is sent. */
+  version            Int               @default(1)
+  editHistory        String            @default("[]")
+  generatedAt        DateTime?
+  generatedById      String?
+  approvedAt         DateTime?
+  approvedById       String?
+  reviewedAt         DateTime?
+  resolvedAt         DateTime?
+  recipientContactId String?
+  recipientName      String
+  recipientEmail     String
+  createdById        String?
+  createdByName      String?
+  status             QuestionStatus    @default(DRAFT)
+  sentAt             DateTime?
+  deliveredAt        DateTime?
+  openedAt           DateTime?
+  respondedAt        DateTime?
+  response           String?
+  /** Structured answer payload (options array, number, date, file…). */
+  answerData         String?
+  respondedByName    String?
+  tokenHash          String            @unique
+  tokenExpiresAt     DateTime?
+  tokenRevokedAt     DateTime?
+  tokenRevokedReason String?
+  createdAt          DateTime          @default(now())
+  updatedAt          DateTime          @updatedAt
+
+  deliveries QuestionDelivery[]
+  updateProposals RequirementUpdateProposal[]
+
+  @@index([workspaceId, status])
+  @@index([requirementId, status])
+  @@index([clientId, createdAt])
+  @@index([featureId])
+}
+
+/** Controlled requirement changes proposed from resolved clarification answers. */
+enum UpdateProposalStatus {
+  PENDING
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
+model RequirementUpdateProposal {
+  id             String                @id @default(cuid())
+  workspace      Workspace             @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  client         Client                @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  requirement    RequirementRequest    @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId  String
+  question       RequirementQuestion   @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId     String
+  summary        String
+  currentValue   String?
+  proposedValue  String?
+  impact         String                @default("{}")
+  status         UpdateProposalStatus  @default(PENDING)
+  createdById    String?
+  createdByName  String?
+  decidedAt      DateTime?
+  createdAt      DateTime              @default(now())
+
+  @@index([requirementId, status])
+}
+
+/** Flagged conflicts between client answers or against the approved requirement. */
+model RequirementConflict {
+  id             String              @id @default(cuid())
+  workspace      Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String
+  client         Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId       String
+  requirement    RequirementRequest  @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId  String
+  description    String
+  detail         String?
+  status         String              @default("OPEN")
+  resolvedAt     DateTime?
+  createdAt      DateTime            @default(now())
+
+  @@index([requirementId, status])
+}
+
+/** Honest delivery trail — one row per send attempt (initial + reminders). */
+model QuestionDelivery {
+  id                String            @id @default(cuid())
+  workspace         Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId       String
+  question          RequirementQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  questionId        String
+  kind              DeliveryKind      @default(INITIAL)
+  recipient         String
+  provider          String?
+  providerMessageId String?
+  status            DeliveryStatus    @default(SENDING)
+  sentAt            DateTime?
+  deliveredAt       DateTime?
+  openedAt          DateTime?
+  failedAt          DateTime?
+  failureReason     String?
+  createdAt         DateTime          @default(now())
+
+  @@index([questionId, createdAt])
+}
+
+/** Clarification threads — admin requests, client replies. */
+model RequirementComment {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  author      String   @default("ADMIN") // ADMIN | CLIENT
+  authorName  String
+  section     String?
+  message     String
+  resolvedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+/** Immutable snapshots of every submission — the revision system. */
+model RequirementRevision {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  revision    Int
+  submittedByName String?
+  submittedAt DateTime @default(now())
+  snapshot    String   @default("{}")
+  changes     String   @default("[]")
+
+  @@unique([requestId, revision])
+}
+
+/** Activity timeline — every real event in the request's life. */
+model RequirementEvent {
+  id          String   @id @default(cuid())
+  request     RequirementRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId   String
+  type        RequirementEventType
+  label       String
+  detail      String?
+  meta        String   @default("{}")
+  createdAt   DateTime @default(now())
+
+  @@index([requestId, createdAt])
+}
+
+/** One message in the lead's private AI conversation — scoped to
+ *  workspace + client + user. Never mixes lead contexts. */
+model ClientCopilotMessage {
+  id          String   @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  clientId    String
+  userId      String
+  role        String   @default("USER") // USER | ASSISTANT
+  via         String   @default("text") // text | voice
+  content     String
+  createdAt   DateTime @default(now())
+
+  @@index([clientId, userId, createdAt])
+}
+
+model ClientCustomFieldDef {
+  id          String   @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  label       String
+  type        String   @default("text") // text | number | select | date | tags
+  options     String?  @default("[]")
+  createdAt   DateTime @default(now())
+
+  @@unique([workspaceId, label])
+}
+
+model Onboarding {
+  id                       String    @id @default(cuid())
+  user                     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId                   String    @unique
+  overviewComplete         Boolean   @default(false)
+  workspaceSetupComplete   Boolean   @default(false)
+  workspaceSetupCompletedAt DateTime?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+}
+
+model WorkspaceProfile {
+  id            String    @id @default(cuid())
+  workspace     Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId   String    @unique
+  legalName     String?
+  website       String?
+  businessEmail String?
+  businessPhone String?
+  updatedAt     DateTime  @updatedAt
+}
+
+model BusinessProfile {
+  id              String    @id @default(cuid())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId     String    @unique
+  industry        String?
+  businessType    String?
+  businessModel   String?
+  description     String?
+  services        String? @default("[]")
+  targetCustomers String? @default("[]")
+  updatedAt       DateTime  @updatedAt
+}
+
+model WorkspacePreferences {
+  id             String    @id @default(cuid())
+  workspace      Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId    String    @unique
+  theme          String    @default("SYSTEM")
+  defaultLanding String    @default("OVERVIEW")
+  timezone       String?
+  dateFormat     String    @default("DD/MM/YYYY")
+  updatedAt      DateTime  @updatedAt
+}
+
+model NotificationPreferences {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String    @unique
+  email       Boolean   @default(true)
+  tasks       Boolean   @default(true)
+  clients     Boolean   @default(true)
+  projects    Boolean   @default(true)
+  proposals   Boolean   @default(true)
+  system      Boolean   @default(true)
+  updatedAt   DateTime  @updatedAt
+}
+
+model WorkspaceSetup {
+  id              String    @id @default(cuid())
+  workspace       Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId     String    @unique
+  leadSources     String? @default("[]")
+  approvalFlow    String? @default("[]")
+  executionMode   String?
+  teamSize        String?
+  roles           String? @default("[]")
+  workTypes       String? @default("[]")
+  projectDuration String?
+  clientVolume    String?
+  currentTools    String? @default("[]")
+  updatedAt       DateTime  @updatedAt
+}
+
+model VerificationToken {
+  id        String    @id @default(cuid())
+  tokenHash String
+  type      TokenType
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId, type])
+  @@index([expiresAt])
+  @@unique([tokenHash])
+}
+
+/* ── Intelligent Project Engineering System models ────────────── */
+
+/**
+ * First-class persisted & versioned engineering blueprint.
+ * Bridges business proposals/requirements to technical architecture.
+ */
+model EngineeringBlueprint {
+  id               String        @id @default(cuid())
+  project          ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId        String
+  proposalId       String?
+  proposalVersion  Int           @default(1)
+  version          Int           @default(1)
+  status           String        @default("DRAFT") // DRAFT | GENERATING | READY_FOR_REVIEW | CHANGES_REQUESTED | APPROVED | SUPERSEDED | FAILED
+  model            String        @default("llama3")
+  modelVersion     String?
+  promptVersion    String        @default("1.0.0")
+  inputHash        String?
+  outputHash       String?
+  approvedAt       DateTime?
+  approvedById     String?
+  approvedByName   String?
+  approvalComment  String?
+  rawAnalysis      String?       @default("{}")
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  frontendCapabilities FrontendCapability[]
+  backendApis         BackendApi[]
+  backendServices     BackendService[]
+  databaseEntities    DatabaseEntity[]
+  integrations        IntegrationRequirement[]
+  securityRequirements SecurityRequirement[]
+  testSpecifications  TestSpecification[]
+  dependencies        EngineeringDependency[]
+  clarifications      ClarificationItem[]
+  drifts              ArchitectureDrift[]
+  tasks               ClientTask[]
+
+  @@unique([projectId, version])
+  @@index([projectId, status])
+}
+
+/** Traceable frontend page, component, form, drawer or dialog. */
+model FrontendCapability {
+  id                     String               @id @default(cuid())
+  blueprint              EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId            String
+  requirementId          String?              // e.g. REQ-001
+  deliverable            ProjectDeliverable?  @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId          String?
+  acceptanceCriterionId  String?              // e.g. AC-001
+  name                   String
+  type                   String               @default("PAGE") // PAGE | COMPONENT | FORM | TABLE | DIALOG | DRAWER
+  route                  String?
+  description            String?
+  components             String               @default("[]") // JSON string of component names
+  apiDependencies        String               @default("[]") // JSON string of required APIs
+  stateDependencies      String               @default("[]") // JSON string
+  permissionRequirements String               @default("[]") // JSON string
+  status                 String               @default("PLANNED") // PLANNED | READY | IN_PROGRESS | COMPLETED | BLOCKED
+  confidence             String               @default("HIGH") // HIGH | MEDIUM | LOW
+  reason                 String?
+  order                  Int                  @default(0)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  @@index([blueprintId, status])
+  @@index([requirementId])
+  @@index([deliverableId])
+}
+
+/** Formal backend API contract. */
+model BackendApi {
+  id                     String               @id @default(cuid())
+  blueprint              EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId            String
+  requirementId          String?              // e.g. REQ-001
+  deliverable            ProjectDeliverable?  @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId          String?
+  acceptanceCriterionId  String?              // e.g. AC-001
+  method                 String               // GET | POST | PUT | PATCH | DELETE
+  path                   String               // e.g. /api/v1/workspaces
+  version                String               @default("v1")
+  purpose                String
+  requestSchema          String               @default("{}")
+  responseSchema         String               @default("{}")
+  errorSchema            String               @default("{}")
+  authentication         Boolean              @default(true)
+  authorization          String?              // e.g. OWNER | ADMIN
+  rateLimits             String?
+  service                String?              // e.g. WorkspaceService.create()
+  databaseDependencies   String               @default("[]") // JSON array of entity names
+  events                 String               @default("[]") // JSON array of emitted events
+  testCoverage           String               @default("[]") // JSON array of test names
+  status                 String               @default("PLANNED") // PLANNED | READY | IN_PROGRESS | COMPLETED | BLOCKED
+  confidence             String               @default("HIGH")
+  reason                 String?
+  order                  Int                  @default(0)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+
+  @@index([blueprintId, status])
+  @@index([requirementId])
+  @@index([deliverableId])
+}
+
+/** Domain service, business rules & transaction boundary. */
+model BackendService {
+  id            String               @id @default(cuid())
+  blueprint     EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId   String
+  requirementId String?
+  name          String               // e.g. WorkspaceService
+  description   String?
+  methods       String               @default("[]") // JSON array of methods
+  businessRules String               @default("[]") // JSON array of rules
+  events        String               @default("[]")
+  status        String               @default("PLANNED")
+  confidence    String               @default("HIGH")
+  reason        String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([blueprintId])
+}
+
+/** Real database entity with columns, relationships, indexes and migration impact. */
+model DatabaseEntity {
+  id              String               @id @default(cuid())
+  blueprint       EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId     String
+  requirementId   String?              // Which requirement created it
+  deliverable     ProjectDeliverable?  @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId   String?
+  name            String               // e.g. Workspace
+  tableName       String               // e.g. workspaces
+  purpose         String               // Why does this entity exist?
+  technicalReason String?
+  fields          String               @default("[]") // JSON array: [{name, type, isPk, isFk, isNullable, isUnique, default}]
+  relationships   String               @default("[]") // JSON array: [{type, targetEntity, foreignKey, cardinality}]
+  indexes         String               @default("[]") // JSON array of index definitions
+  constraints     String               @default("[]") // JSON array of constraints
+  queryPatterns   String               @default("[]") // JSON array of primary access patterns
+  migrationImpact String?              // Migration risk assessment
+  status          String               @default("PLANNED") // PLANNED | VERIFIED | MIGRATED | REVIEW_REQUIRED
+  confidence      String               @default("HIGH")
+  reason          String?
+  isUnplanned     Boolean              @default(false)
+  order           Int                  @default(0)
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+
+  @@index([blueprintId, status])
+  @@index([requirementId])
+}
+
+/** External integrations, webhooks, and third-party APIs. */
+model IntegrationRequirement {
+  id            String               @id @default(cuid())
+  blueprint     EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId   String
+  requirementId String?
+  name          String
+  type          String               @default("REST") // REST | GRAPHQL | WEBHOOK | GRPC | SDK | SMTP | OAUTH
+  provider      String?
+  direction     String               @default("OUTBOUND") // INBOUND | OUTBOUND | BIDIRECTIONAL
+  authType      String?              // API_KEY | OAUTH2 | BASIC | JWT | NONE
+  payloadFormat String?              @default("JSON")
+  syncMode      String               @default("ASYNC") // SYNC | ASYNC | EVENT_DRIVEN
+  errorStrategy String?              // RETRY_WITH_EXPONENTIAL_BACKOFF | DEAD_LETTER_QUEUE | FALLBACK
+  status        String               @default("PLANNED")
+  confidence    String               @default("HIGH")
+  reason        String?
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+
+  @@index([blueprintId])
+}
+
+/** Security, RBAC, authentication & audit policies. */
+model SecurityRequirement {
+  id                      String               @id @default(cuid())
+  blueprint               EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId             String
+  requirementId           String?
+  name                    String
+  category                String               @default("AUTHORIZATION") // AUTHENTICATION | AUTHORIZATION | DATA_PROTECTION | AUDIT | RATE_LIMITING | ENCRYPTION
+  description             String
+  authenticationMechanism String?
+  authorizationRules      String               @default("[]")
+  dataProtection          String?
+  auditPolicy             String?
+  status                  String               @default("PLANNED")
+  confidence              String               @default("HIGH")
+  reason                  String?
+  createdAt               DateTime             @default(now())
+  updatedAt               DateTime             @updatedAt
+
+  @@index([blueprintId])
+}
+
+/** Generated test specifications linked to acceptance criteria. */
+model TestSpecification {
+  id                    String               @id @default(cuid())
+  blueprint             EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId           String
+  requirementId         String?
+  deliverable           ProjectDeliverable?  @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId         String?
+  acceptanceCriterionId String?
+  testType              String               @default("API") // UNIT | INTEGRATION | API | DATABASE | AUTHORIZATION | E2E | SECURITY | PERFORMANCE | UAT
+  name                  String
+  description           String
+  setupSteps            String               @default("[]") // JSON string array
+  executionSteps        String               @default("[]") // JSON string array
+  expectedOutcome       String
+  verifiedAt            DateTime?
+  verifiedBy            String?
+  status                String               @default("PENDING") // PENDING | RUNNING | PASSED | FAILING | BLOCKED
+  confidence            String               @default("HIGH")
+  reason                String?
+  order                 Int                  @default(0)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  tasks                 ClientTask[]
+
+  @@index([blueprintId, status])
+  @@index([requirementId])
+  @@index([deliverableId])
+}
+
+/** Inter-layer & intra-layer dependency graph. */
+model EngineeringDependency {
+  id             String               @id @default(cuid())
+  blueprint      EngineeringBlueprint @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId    String
+  sourceLayer    String               // DATABASE | BACKEND | FRONTEND | TESTING | INTEGRATION
+  sourceId       String
+  sourceName     String
+  targetLayer    String
+  targetId       String
+  targetName     String
+  dependencyType String               @default("BLOCKS") // BLOCKS | REQUIRED_BY | VERIFIES
+  isBlocking     Boolean              @default(true)
+  reason         String?
+  createdAt      DateTime             @default(now())
+
+  @@index([blueprintId])
+}
+
+/** Ambiguities identified during technical analysis requiring human clarification. */
+model ClarificationItem {
+  id                  String                @id @default(cuid())
+  blueprint           EngineeringBlueprint? @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId         String?
+  project             ClientProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId           String
+  question            String
+  sourceRequirementId String?
+  impact              String                @default("[]") // JSON array e.g. ["Frontend", "Backend", "Database"]
+  priority            String                @default("MEDIUM") // LOW | MEDIUM | HIGH | BLOCKING
+  status              String                @default("OPEN") // OPEN | ANSWERED | RESOLVED | REJECTED
+  answer              String?
+  resolvedAt          DateTime?
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+
+  @@index([projectId, status])
+  @@index([blueprintId])
+}
+
+/** Detected architecture drift between approved blueprint and actual implementation. */
+model ArchitectureDrift {
+  id                 String                @id @default(cuid())
+  blueprint          EngineeringBlueprint? @relation(fields: [blueprintId], references: [id], onDelete: Cascade)
+  blueprintId        String?
+  project            ClientProject         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId          String
+  category           String                // DATABASE_ENTITY | BACKEND_API | FRONTEND_CAPABILITY | MISSING_TEST
+  entityName         String
+  approvedDefinition String?               @default("{}")
+  actualDefinition   String?               @default("{}")
+  difference         String
+  status             String                @default("FLAGGED") // FLAGGED | REVIEWED | ACCEPTED | DISMISSED
+  reviewNotes        String?
+  createdAt          DateTime              @default(now())
+  resolvedAt         DateTime?
+
+  @@index([projectId, status])
+  @@index([blueprintId])
+}
+
+/** Immutable verification proof attached to tasks, deliverables, and acceptance criteria. */
+model EvidenceRecord {
+  id            String              @id @default(cuid())
+  task          ClientTask?         @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId        String?
+  deliverable   ProjectDeliverable? @relation(fields: [deliverableId], references: [id], onDelete: SetNull)
+  deliverableId String?
+  requirementId String?
+  type          String              @default("GIT_COMMIT") // GIT_COMMIT | PULL_REQUEST | CI_TEST | MIGRATION_RESULT | DEPLOYMENT_URL | SCREENSHOT | REVIEW_SIGNOFF | CLIENT_ACCEPTANCE
+  title         String
+  url           String?
+  description   String?
+  metadata      String?             @default("{}")
+  verifiedBy    String?
+  verifiedAt    DateTime            @default(now())
+  createdAt     DateTime            @default(now())
+
+  @@index([taskId])
+  @@index([deliverableId])
+  @@index([requirementId])
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   EMPLOYEE OS: IDENTITY, ACCESS, CAPABILITY & EXECUTION PLATFORM
+   ═══════════════════════════════════════════════════════════════════ */
+
+/** An Employee — a core execution node in the business graph. */
+model Employee {
+  id                        String              @id @default(cuid())
+  workspace                 Workspace           @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId               String
+  user                      User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  userId                    String?             @unique
+  employeeCode              String              // e.g. EMP-001
+  fullName                  String
+  preferredName             String?
+  email                     String
+  phone                     String?
+  avatar                    String?
+  status                    String              @default("INVITED") // INVITED | ACTIVE | SUSPENDED | OFFBOARDED
+  role                      OrganizationRole?   @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  roleId                    String?
+  team                      OrganizationTeam?   @relation("TeamMembers", fields: [teamId], references: [id], onDelete: SetNull)
+  teamId                    String?
+  ledTeams                  OrganizationTeam[]  @relation("TeamLead")
+  department                String              @default("ENGINEERING") // ENGINEERING | DESIGN | PRODUCT | QA | OPERATIONS
+  timezone                  String              @default("UTC+05:30")
+  location                  String?
+  employmentType            String              @default("FULL_TIME") // FULL_TIME | PART_TIME | CONTRACTOR | INTERN
+  
+  // Operational Responsibilities
+  primaryResponsibility     String?
+  secondaryResponsibilities String              @default("[]") // JSON string array
+  accountabilities          String              @default("[]") // JSON string array
+  deliverableOwnership      String              @default("[]") // JSON string array
+  approvalResponsibility    String              @default("[]") // JSON string array
+  escalationResponsibility  String              @default("[]") // JSON string array
+  
+  // Structured Capability Matrix
+  capabilities              String              @default("[]") // JSON array: [{category, skill, level, yearsExperience, verifiedAt}]
+  
+  // Custom Granular Access Overrides (JSON string of permissions)
+  customPermissions         String              @default("{}")
+  
+  // Workload & Capacity Targets
+  capacityTargetHours       Float               @default(40.0)
+  
+  // Lifecycle Timestamps
+  joinedAt                  DateTime            @default(now())
+  activatedAt               DateTime?
+  lastActiveAt              DateTime?
+  offboardedAt              DateTime?
+  offboardedReason          String?
+  offboardedNotes           String?
+  createdAt                 DateTime            @default(now())
+  updatedAt                 DateTime            @updatedAt
+
+  invitations               EmployeeInvitation[]
+  auditEvents               EmployeeAuditEvent[]
+  projectAllocations        ProjectStaffAllocation[]
+  onboardingState           EmployeeOnboardingState?
+  policyAcknowledgements    EmployeePolicyAcknowledgement[]
+  toolAccesses              EmployeeToolAccess[]
+
+  @@unique([workspaceId, email])
+  @@unique([workspaceId, employeeCode])
+  @@index([workspaceId, status])
+  @@index([roleId])
+  @@index([teamId])
+}
+
+/** First-class Organization Role with responsibility definition & permission templates. */
+model OrganizationRole {
+  id                   String       @id @default(cuid())
+  workspace            Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId          String
+  name                 String       // e.g. "Staff Full-Stack Engineer"
+  code                 String       // e.g. "ROLE-DEV-01"
+  department           String       @default("ENGINEERING")
+  purpose              String       // Why does this role exist in the company?
+  responsibilities     String       @default("[]") // JSON string array
+  requiredCapabilities String       @default("[]") // JSON string array
+  permissionTemplate   String       @default("{}") // JSON object of permissions
+  isSystemDefault      Boolean      @default(false)
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  employees            Employee[]
+  invitations          EmployeeInvitation[]
+
+  @@unique([workspaceId, code])
+  @@index([workspaceId, department])
+}
+
+/** Organization Team (e.g. Core Platform, Design & UX, QA Verification). */
+model OrganizationTeam {
+  id                   String       @id @default(cuid())
+  workspace            Workspace    @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId          String
+  name                 String       // e.g. "Platform Architecture"
+  code                 String       // e.g. "TEAM-PLATFORM"
+  department           String       @default("ENGINEERING")
+  description          String?
+  teamLead             Employee?    @relation("TeamLead", fields: [teamLeadId], references: [id], onDelete: SetNull)
+  teamLeadId           String?
+  createdAt            DateTime     @default(now())
+  updatedAt            DateTime     @updatedAt
+
+  members              Employee[]   @relation("TeamMembers")
+  invitations          EmployeeInvitation[]
+
+  @@unique([workspaceId, code])
+  @@index([workspaceId])
+}
+
+/** Real invitation lifecycle with secure cryptographic tokens and email dispatching. */
+model EmployeeInvitation {
+  id               String            @id @default(cuid())
+  workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId      String
+  employee         Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId       String
+  recipientEmail   String
+  recipientName    String
+  role             OrganizationRole? @relation(fields: [roleId], references: [id], onDelete: SetNull)
+  roleId           String?
+  team             OrganizationTeam? @relation(fields: [teamId], references: [id], onDelete: SetNull)
+  teamId           String?
+  tokenHash        String            @unique
+  status           String            @default("PENDING") // DRAFT | READY | SENDING | SENT | OPENED | ACCEPTED | EXPIRED | REVOKED | FAILED
+  sentAt           DateTime?
+  lastOpenedAt     DateTime?
+  acceptedAt       DateTime?
+  expiresAt        DateTime
+  revokedAt        DateTime?
+  deliveryAttempts Int               @default(0)
+  deliveryError    String?
+  invitedById      String?
+  invitedByName    String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@index([workspaceId, status])
+  @@index([employeeId])
+}
+
+/** Immutable audit trail for all employee, role, permission, and staffing events. */
+model EmployeeAuditEvent {
+  id          String    @id @default(cuid())
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId String
+  employee    Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  employeeId  String?
+  action      String    // EMPLOYEE_CREATED | INVITATION_SENT | INVITATION_OPENED | INVITATION_ACCEPTED | ROLE_CHANGED | TEAM_CHANGED | PERMISSION_CHANGED | PROJECT_ASSIGNED | TASK_ASSIGNED | TASK_COMPLETED | EMPLOYEE_SUSPENDED | EMPLOYEE_OFFBOARDED
+  actorId     String?
+  actorName   String?
+  detail      String?
+  beforeState String?   @default("{}")
+  afterState  String?   @default("{}")
+  createdAt   DateTime  @default(now())
+
+  @@index([workspaceId, createdAt])
+  @@index([employeeId])
+}
+
+/** Project staffing allocation linking employee to client project & capacity percentage. */
+model ProjectStaffAllocation {
+  id                   String        @id @default(cuid())
+  employee             Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId           String
+  project              ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId            String
+  projectRole          String        @default("Engineer")
+  allocationPercentage Int           @default(100) // e.g. 50% or 100%
+  workstream           String?       @default("ENGINEERING")
+  joinedAt             DateTime      @default(now())
+  releasedAt           DateTime?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  @@unique([employeeId, projectId])
+  @@index([projectId])
+  @@index([employeeId])
+}
+
+/** Operational Employee Onboarding & Work Readiness State Machine. */
+model EmployeeOnboardingState {
+  id                     String    @id @default(cuid())
+  employee               Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId             String    @unique
+  status                 String    @default("IN_PROGRESS") // NOT_STARTED | IN_PROGRESS | BLOCKED | READY | COMPLETED
+  readinessScore         Int       @default(0) // 0 - 100
+  identityReviewedAt     DateTime?
+  roleReviewedAt         DateTime?
+  accessReviewedAt       DateTime?
+  firstActionCompletedAt DateTime?
+  completedAt            DateTime?
+  completedBy            String?
+  blockers               String    @default("[]") // JSON string array of blocker items
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  @@index([status])
+}
+
+/** First-class Employee Policy Acknowledgement with cryptographic and version tracking. */
+model EmployeePolicyAcknowledgement {
+  id             String    @id @default(cuid())
+  workspaceId    String
+  employee       Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId     String
+  policyCode     String    // e.g. SEC-POL-01, DATA-PROT-01, REMOTE-WORK-01
+  title          String
+  category       String    @default("SECURITY") // SECURITY | CODE_OF_CONDUCT | DATA_PROTECTION | REMOTE_WORK
+  version        String    @default("1.0")
+  content        String
+  isRequired     Boolean   @default(true)
+  acknowledgedAt DateTime?
+  acknowledgedIp String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@unique([employeeId, policyCode, version])
+  @@index([employeeId, isRequired])
+}
+
+/** Employee Tool Access Lifecycle & Permissions. */
+model EmployeeToolAccess {
+  id                String    @id @default(cuid())
+  workspaceId       String
+  employee          Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId        String
+  toolKey           String    // GITHUB | FIGMA | GOOGLE_WORKSPACE | SLACK | BUSINESS_OS
+  toolName          String
+  category          String    @default("WORKSPACE") // CODE | DESIGN | COMMUNICATION | WORKSPACE
+  status            String    @default("NOT_CONFIGURED") // CONNECTED | PENDING | NOT_CONFIGURED | ACCESS_REQUESTED | DENIED
+  accountIdentifier String?
+  requestedAt       DateTime?
+  grantedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@unique([employeeId, toolKey])
+  @@index([employeeId, status])
+}
+

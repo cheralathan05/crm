@@ -1,0 +1,413 @@
+@import "tailwindcss";
+
+/* =============================================
+   BUSINESS OS — DESIGN SYSTEM
+   Signature visual language for a premium
+   business operating system.
+   ============================================= */
+
+/* ── Theme tokens ─────────────────────────── */
+:root {
+  /* Light theme foundation */
+  --bos-bg: #fffdf9;
+  --bos-surface: #f5f2ec;
+  --bos-surface-panel: #ffffff;
+  --bos-surface-canvas: #fffdf9;
+  --bos-surface-sunken: #f0ece1;
+  --bos-border: #e7e2d8;
+  --bos-border-subtle: #e7e2d8;
+  --bos-border-strong: #cdc6ba;
+  --bos-text-primary: #1a1714;
+  --bos-text-secondary: #6b655c;
+  --bos-text-tertiary: #9a948a;
+  --bos-text-inverse: #f0ede8;
+
+  /* Brand accent — warm terracotta */
+  --bos-accent: #b5452a;
+  --bos-accent-hover: #9e3b22;
+  --bos-accent-subtle: #f5edea;
+  --bos-accent-ring: rgba(181, 69, 42, 0.25);
+
+  /* System elements */
+  --bos-line: rgba(26, 23, 20, 0.08);
+  --bos-line-strong: rgba(26, 23, 20, 0.18);
+  --bos-overlay: rgba(26, 23, 20, 0.04);
+  --bos-glow: rgba(181, 69, 42, 0.06);
+
+  /* Semantic */
+  --bos-success: #2b7a4b;
+  --bos-warning: #a67c2e;
+  --bos-error: #c43a31;
+  --bos-info: #2f6f9f;
+
+  /* Shadows */
+  --bos-shadow-sm: 0 1px 2px rgba(26, 23, 20, 0.04);
+  --bos-shadow-md: 0 4px 12px rgba(26, 23, 20, 0.06);
+  --bos-shadow-lg: 0 8px 32px rgba(26, 23, 20, 0.08);
+
+  /* Typography */
+  --bos-font-ui: var(--font-geist-sans, "Inter", system-ui, sans-serif);
+  --bos-font-mono: var(--font-geist-mono, "JetBrains Mono", monospace);
+
+  /* Spacing scale */
+  --bos-gap-xs: 4px;
+  --bos-gap-sm: 8px;
+  --bos-gap-md: 16px;
+  --bos-gap-lg: 24px;
+  --bos-gap-xl: 32px;
+  --bos-gap-2xl: 48px;
+  --bos-gap-3xl: 64px;
+
+  /* Animation */
+  --bos-duration-fast: 180ms;
+  --bos-duration-normal: 300ms;
+  --bos-duration-slow: 450ms;
+
+  /* Grid */
+  --bos-grid-unit: 80px;
+}
+
+/* Dark theme */
+.dark {
+  --bos-bg: #141210;
+  --bos-surface: #1e1b18;
+  --bos-surface-panel: #1a1714;
+  --bos-surface-canvas: #141210;
+  --bos-surface-sunken: #110f0d;
+  --bos-border: #2d2925;
+  --bos-border-subtle: #24201c;
+  --bos-border-strong: #423d38;
+  --bos-text-primary: #f0ede8;
+  --bos-text-secondary: #a39e96;
+  --bos-text-tertiary: #6b655c;
+  --bos-text-inverse: #1a1714;
+
+  --bos-accent: #d46a4e;
+  --bos-accent-hover: #e07a5e;
+  --bos-accent-subtle: rgba(212, 106, 78, 0.1);
+  --bos-accent-ring: rgba(212, 106, 78, 0.3);
+
+  --bos-line: rgba(240, 237, 232, 0.06);
+  --bos-line-strong: rgba(240, 237, 232, 0.14);
+  --bos-overlay: rgba(240, 237, 232, 0.03);
+  --bos-glow: rgba(212, 106, 78, 0.08);
+
+  --bos-success: #4caf7b;
+  --bos-warning: #c9a24e;
+  --bos-error: #e0605a;
+  --bos-info: #5b9bd5;
+
+  --bos-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --bos-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
+  --bos-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+@theme inline {
+  --color-background: var(--bos-bg);
+  --color-foreground: var(--bos-text-primary);
+  --font-sans: var(--bos-font-ui);
+  --font-mono: var(--bos-font-mono);
+}
+
+/* ── Base styles ─────────────────────────── */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background: var(--bos-bg);
+  color: var(--bos-text-primary);
+  font-family: var(--bos-font-ui);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+}
+
+/* ── Selection ───────────────────────────── */
+::selection {
+  background: var(--bos-accent);
+  color: white;
+}
+
+/* ── Focus ──────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--bos-accent);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* ── System Grid ────────────────────────── */
+.system-grid {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.system-grid__pattern {
+  width: 100%;
+  height: 100%;
+  background-image:
+    linear-gradient(to right, var(--bos-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--bos-line) 1px, transparent 1px);
+  background-size: var(--bos-grid-unit) var(--bos-grid-unit);
+  mask-image: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    rgba(0, 0, 0, 0.35) 0%,
+    transparent 100%
+  );
+  -webkit-mask-image: radial-gradient(
+    ellipse 80% 60% at 50% 50%,
+    rgba(0, 0, 0, 0.35) 0%,
+    transparent 100%
+  );
+}
+
+.system-grid__accent-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--bos-line-strong) 20%,
+    var(--bos-accent) 50%,
+    var(--bos-line-strong) 80%,
+    transparent 100%
+  );
+  opacity: 0.3;
+}
+
+/* ── Section markers ─────────────────────── */
+.section-number {
+  font-family: var(--bos-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: var(--bos-text-tertiary);
+  text-transform: uppercase;
+}
+
+/* ── Structural dividers ─────────────────── */
+.bos-divider {
+  height: 1px;
+  background: var(--bos-line);
+  width: 100%;
+}
+
+.bos-divider-strong {
+  height: 1px;
+  background: var(--bos-line-strong);
+  width: 100%;
+}
+
+/* ── Input base ──────────────────────────── */
+.bos-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--bos-line-strong);
+  padding: 12px 0 10px;
+  font-size: 14px;
+  font-family: var(--bos-font-ui);
+  color: var(--bos-text-primary);
+  letter-spacing: -0.01em;
+  transition: border-color var(--bos-duration-fast) ease;
+  outline: none;
+}
+
+.bos-input::placeholder {
+  color: var(--bos-text-tertiary);
+  font-size: 14px;
+}
+
+.bos-input:hover {
+  border-color: var(--bos-border-strong);
+}
+
+.bos-input:focus {
+  border-color: var(--bos-accent);
+}
+
+.bos-input.error {
+  border-color: var(--bos-error);
+}
+
+.bos-input.success {
+  border-color: var(--bos-success);
+}
+
+.bos-input:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ── Label base ──────────────────────────── */
+.bos-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--bos-text-secondary);
+  margin-bottom: 4px;
+}
+
+/* ── Button base ─────────────────────────── */
+.bos-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--bos-font-ui);
+  letter-spacing: 0.02em;
+  border: none;
+  cursor: pointer;
+  transition: all var(--bos-duration-fast) ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.bos-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bos-btn--primary {
+  background: var(--bos-accent);
+  color: white;
+  border-radius: 3px;
+}
+
+.bos-btn--primary:hover:not(:disabled) {
+  background: var(--bos-accent-hover);
+}
+
+.bos-btn--primary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.bos-btn--secondary {
+  background: transparent;
+  color: var(--bos-text-primary);
+  border: 1px solid var(--bos-border);
+  border-radius: 3px;
+}
+
+.bos-btn--secondary:hover:not(:disabled) {
+  border-color: var(--bos-border-strong);
+  background: var(--bos-overlay);
+}
+
+.bos-btn--ghost {
+  background: transparent;
+  color: var(--bos-text-secondary);
+  border: none;
+  border-radius: 3px;
+  height: auto;
+  padding: 6px 12px;
+  font-size: 12px;
+}
+
+.bos-btn--ghost:hover:not(:disabled) {
+  color: var(--bos-text-primary);
+  background: var(--bos-overlay);
+}
+
+/* ── Link styles ──────────────────────────── */
+.bos-link {
+  color: var(--bos-text-secondary);
+  font-size: 12px;
+  text-decoration: none;
+  transition: color var(--bos-duration-fast) ease;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-family: var(--bos-font-ui);
+}
+
+.bos-link:hover {
+  color: var(--bos-text-primary);
+}
+
+.bos-link--accent {
+  color: var(--bos-accent);
+}
+
+.bos-link--accent:hover {
+  color: var(--bos-accent-hover);
+}
+
+/* ── Scrollbar ──────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bos-border-strong);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--bos-text-tertiary);
+}
+
+/* Hide scrollbars on horizontal nav rails (mobile) */
+.no-scrollbar {
+  scrollbar-width: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* ── Section entrance (requirement workspace) ─ */
+.req-enter {
+  animation: req-enter var(--bos-duration-normal) ease both;
+}
+
+@keyframes req-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ── Reduce motion ─────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Responsive grid unit ───────────────── */
+@media (max-width: 1024px) {
+  :root {
+    --bos-grid-unit: 64px;
+  }
+}
+
+@media (max-width: 768px) {
+  :root {
+    --bos-grid-unit: 48px;
+  }
+}
