@@ -58,10 +58,23 @@ import {
   Users,
   X,
   Zap,
+  Code2,
+  Server,
+  Database,
+  Globe,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { NextBestAction } from "@/lib/projects";
 import { EngineeringHub } from "./engineering/engineering-hub";
+import { ProjectOverviewBlueprint } from "./engineering/project-overview-blueprint";
+import { FrontendArchitectureView } from "./engineering/frontend-architecture-view";
+import { BackendArchitectureView } from "./engineering/backend-architecture-view";
+import { DatabaseArchitectureView } from "./engineering/database-architecture-view";
+import { ApiArchitectureView } from "./engineering/api-architecture-view";
+import { IntegrationsArchitectureView } from "./engineering/integrations-architecture-view";
+import { AuthSecurityView } from "./engineering/auth-security-view";
+import { TestingArchitectureView } from "./engineering/testing-architecture-view";
+import { DeploymentArchitectureView } from "./engineering/deployment-architecture-view";
 
 type ProjectDetailData = {
   project: any;
@@ -77,10 +90,20 @@ type ProjectDetailData = {
 };
 
 type ActiveWorkspaceView =
-  | "story"
+  | "overview"
   | "engineering"
+  | "frontend"
+  | "backend"
+  | "database"
+  | "apis"
+  | "integrations"
+  | "auth"
+  | "testing"
+  | "deployment"
   | "tasks"
   | "deliverables"
+  | "timeline"
+  | "story"
   | "scope"
   | "team"
   | "changes"
@@ -91,10 +114,11 @@ type ActiveWorkspaceView =
 export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const router = useRouter();
   const [data, setData] = useState<ProjectDetailData | null>(null);
+  const [blueprint, setBlueprint] = useState<any | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [view, setView] = useState<ActiveWorkspaceView>("story");
+  const [view, setView] = useState<ActiveWorkspaceView>("overview");
   const [isPending, startTransition] = useTransition();
 
   // Drawers & Context Modals
@@ -177,10 +201,17 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
 
   const refreshProject = async () => {
     try {
-      const res = await fetch(`/api/projects/${projectId}`);
-      const json = await res.json();
-      if (!res.ok || !json.ok) throw new Error(json.message || "Failed to load project.");
+      const [resPrj, resBp] = await Promise.all([
+        fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/blueprint`),
+      ]);
+      const json = await resPrj.json();
+      const jsonBp = await resBp.json();
+      if (!resPrj.ok || !json.ok) throw new Error(json.message || "Failed to load project.");
       setData(json);
+      if (jsonBp.ok && jsonBp.blueprint) {
+        setBlueprint(jsonBp.blueprint);
+      }
       // Keep selected items updated
       if (selectedTask) {
         const updatedT = json.project.tasks?.find((t: any) => t.id === selectedTask.id);
@@ -888,16 +919,23 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
       <div className="max-w-7xl mx-auto px-6 pt-6">
         <div className="flex items-center gap-1 border-b border-[var(--bos-border-subtle)] pb-2 overflow-x-auto">
           {[
-            { id: "story", label: "Project Story & Execution", icon: Rocket },
-            { id: "engineering", label: "Engineering Control Hub", icon: Layers },
+            { id: "overview", label: "Overview", icon: Rocket },
+            { id: "engineering", label: "Engineering Hub", icon: Layers },
+            { id: "frontend", label: `Frontend (${blueprint?.frontendCapabilities?.length || 0})`, icon: Globe },
+            { id: "backend", label: `Backend (${blueprint?.backendServices?.length || 0})`, icon: Server },
+            { id: "database", label: `Database (${blueprint?.databaseEntities?.length || 0})`, icon: Database },
+            { id: "apis", label: `APIs (${blueprint?.backendApis?.length || 0})`, icon: Code2 },
+            { id: "integrations", label: `Integrations (${blueprint?.integrations?.length || 0})`, icon: GitBranch },
+            { id: "testing", label: `Testing (${blueprint?.testSpecifications?.length || 0})`, icon: ShieldCheck },
             { id: "tasks", label: `Tasks (${tasks.length})`, icon: ListTodo },
             { id: "deliverables", label: `Deliverables (${deliverables.length})`, icon: FileCheck2 },
-            { id: "scope", label: "Approved Scope & Lineage", icon: ShieldCheck },
-            { id: "team", label: `Team Intelligence (${team.length})`, icon: Users },
-            { id: "changes", label: `Scope Changes (${changeRequests.length})`, icon: GitPullRequest },
-            { id: "commercials", label: "Commercials & Invoicing", icon: Coins },
-            { id: "vault", label: "Document Vault", icon: FileText },
-            { id: "activity", label: `Live Event Stream (${activities.length})`, icon: History },
+            { id: "timeline", label: "Timeline", icon: MilestoneIcon },
+            { id: "scope", label: "Scope", icon: ShieldCheck },
+            { id: "team", label: `Team (${team.length})`, icon: Users },
+            { id: "changes", label: `Changes (${changeRequests.length})`, icon: GitPullRequest },
+            { id: "commercials", label: "Commercials", icon: Coins },
+            { id: "vault", label: "Vault", icon: FileText },
+            { id: "activity", label: `Activity (${activities.length})`, icon: History },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = view === tab.id;
@@ -1054,6 +1092,106 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           </div>
         )}
 
+        {/* ── VIEW: EXECUTIVE OVERVIEW (WHAT ARE WE BUILDING?) ───── */}
+        {view === "overview" && (
+          <ProjectOverviewBlueprint
+            project={project}
+            blueprint={blueprint}
+            metrics={metrics}
+            onNavigateTab={(tabName) => setView(tabName as ActiveWorkspaceView)}
+            onOpenRequirementDrawer={() => setActiveDrawer("requirement")}
+            onSelectFeature={(feat) => {
+              setSelectedScopeItem(feat);
+              setActiveDrawer("requirement");
+            }}
+          />
+        )}
+
+        {/* ── VIEW: FRONTEND ARCHITECTURE ─────────────────────────── */}
+        {view === "frontend" && (
+          <FrontendArchitectureView
+            blueprint={blueprint}
+            tasks={tasks}
+            onSelectCapability={(cap) => {
+              // Open drawer or view
+            }}
+            onOpenTraceability={(node) => {
+              // Drawer traceability
+            }}
+          />
+        )}
+
+        {/* ── VIEW: BACKEND ARCHITECTURE ──────────────────────────── */}
+        {view === "backend" && (
+          <BackendArchitectureView
+            blueprint={blueprint}
+            tasks={tasks}
+            onSelectService={(srv) => {
+              // Open drawer or view
+            }}
+            onOpenTraceability={(node) => {
+              // Drawer traceability
+            }}
+          />
+        )}
+
+        {/* ── VIEW: DATABASE ARCHITECTURE ─────────────────────────── */}
+        {view === "database" && (
+          <DatabaseArchitectureView
+            entities={blueprint?.databaseEntities || []}
+            backendApis={blueprint?.backendApis || []}
+            onSelectEntity={(entity) => {
+              // Select entity
+            }}
+          />
+        )}
+
+        {/* ── VIEW: APIS & CONNECTION MAP ─────────────────────────── */}
+        {view === "apis" && (
+          <ApiArchitectureView
+            blueprint={blueprint}
+            tasks={tasks}
+            onSelectApi={(api) => {
+              // Select API
+            }}
+          />
+        )}
+
+        {/* ── VIEW: INTEGRATIONS ──────────────────────────────────── */}
+        {view === "integrations" && (
+          <IntegrationsArchitectureView
+            blueprint={blueprint}
+            project={project}
+          />
+        )}
+
+        {/* ── VIEW: AUTH & SECURITY ───────────────────────────────── */}
+        {view === "auth" && (
+          <AuthSecurityView
+            blueprint={blueprint}
+            project={project}
+          />
+        )}
+
+        {/* ── VIEW: TESTING & VERIFICATION ────────────────────────── */}
+        {view === "testing" && (
+          <TestingArchitectureView
+            blueprint={blueprint}
+            tasks={tasks}
+            onSelectTest={(test) => {
+              // Select test
+            }}
+          />
+        )}
+
+        {/* ── VIEW: DEPLOYMENT & INFRASTRUCTURE ───────────────────── */}
+        {view === "deployment" && (
+          <DeploymentArchitectureView
+            project={project}
+            blueprint={blueprint}
+          />
+        )}
+
         {/* ── VIEW: ENGINEERING CONTROL SYSTEM ───────────────────── */}
         {view === "engineering" && (
           <EngineeringHub
@@ -1065,8 +1203,8 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           />
         )}
 
-        {/* ── VIEW: STORY & EXECUTION ─────────────────────────────── */}
-        {view === "story" && (
+        {/* ── VIEW: STORY & EXECUTION (TIMELINE) ───────────────────── */}
+        {(view === "story" || view === "timeline") && (
           <div className="space-y-6">
             {/* 07: Project Journey Roadmap */}
             <section className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
