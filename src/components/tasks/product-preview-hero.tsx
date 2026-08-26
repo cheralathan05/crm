@@ -25,6 +25,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TaskProductUnderstanding } from "@/lib/tasks";
+import { InteractiveProductPreview } from "./interactive-product-preview";
 
 export type ProductPreviewHeroProps = {
   understanding?: TaskProductUnderstanding;
@@ -40,7 +41,7 @@ export function ProductPreviewHero({
   onOpenProductMap,
 }: ProductPreviewHeroProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"AI_IMAGE" | "CANVAS" | "CONTRACT" | "SCHEMA">("AI_IMAGE");
+  const [activeTab, setActiveTab] = useState<"LIVE_PRODUCT" | "AI_IMAGE" | "CANVAS" | "CONTRACT" | "SCHEMA">("LIVE_PRODUCT");
   const [previewOutdated, setPreviewOutdated] = useState(false);
   const [activeFieldFilter, setActiveFieldFilter] = useState("");
   const [aiImageUrl, setAiImageUrl] = useState<string | null>(null);
@@ -143,7 +144,7 @@ export function ProductPreviewHero({
             {previewOutdated ? "OUTDATED" : "CURRENT ARCHITECTURE"}
           </span>
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border bg-[var(--bos-accent)]/10 border-[var(--bos-accent)]/30 text-[var(--bos-accent)] font-semibold">
-            {aiModel}
+            Interactive Live App
           </span>
           <span className="text-[11px] font-mono text-[var(--bos-text-muted)]">
             Layer: <span className="text-[var(--bos-text-primary)] font-bold">{layer}</span>
@@ -154,16 +155,16 @@ export function ProductPreviewHero({
           {/* Tab Switcher */}
           <div className="flex items-center bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-lg p-0.5 text-[11px] font-mono">
             <button
-              onClick={() => setActiveTab("AI_IMAGE")}
+              onClick={() => setActiveTab("LIVE_PRODUCT")}
               className={cn(
-                "px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer",
-                activeTab === "AI_IMAGE"
-                  ? "bg-[var(--bos-accent)] text-white font-bold"
+                "px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer font-bold",
+                activeTab === "LIVE_PRODUCT"
+                  ? "bg-[var(--bos-accent)] text-white shadow-xs"
                   : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
               )}
             >
-              <ImageIcon className="w-3 h-3" />
-              AI Image
+              <Sparkles className="w-3 h-3 text-amber-300" />
+              Live Product
             </button>
             <button
               onClick={() => setActiveTab("CANVAS")}
@@ -175,7 +176,7 @@ export function ProductPreviewHero({
               )}
             >
               <Globe className="w-3 h-3" />
-              Component View
+              Components
             </button>
             <button
               onClick={() => setActiveTab("CONTRACT")}
@@ -200,6 +201,19 @@ export function ProductPreviewHero({
             >
               <Database className="w-3 h-3" />
               DB
+            </button>
+            <button
+              onClick={() => setActiveTab("AI_IMAGE")}
+              className={cn(
+                "px-2 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer text-[10px]",
+                activeTab === "AI_IMAGE"
+                  ? "bg-[var(--bos-accent)] text-white font-bold"
+                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
+              )}
+              title="View experimental AI image concept"
+            >
+              <ImageIcon className="w-3 h-3" />
+              AI Art
             </button>
           </div>
 
@@ -237,6 +251,24 @@ export function ProductPreviewHero({
           >
             Generate Updated Preview
           </button>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+         TAB 0: LIVE INTERACTIVE PRODUCT (KILLER REAL FEATURES)
+         ══════════════════════════════════════════════════════════════ */}
+      {activeTab === "LIVE_PRODUCT" && (
+        <div className="space-y-3">
+          <InteractiveProductPreview
+            projectName={projectName}
+            featureName={featureName}
+            featureDescription={featureDescription}
+            layer={layer}
+            tableName={primaryEntity?.tableName}
+            apiPath={primaryApi?.path}
+            actions={actions}
+            components={components}
+          />
         </div>
       )}
 
