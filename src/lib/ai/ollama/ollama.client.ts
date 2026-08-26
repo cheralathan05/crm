@@ -7,7 +7,7 @@
 ──────────────────────────────────────────────────────────────── */
 
 export const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
-export const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "llama3";
+export const OLLAMA_MODEL = process.env.OLLAMA_MODEL ?? "qwen3:8b";
 
 export type OllamaChatResult = {
   ok: boolean;
@@ -47,6 +47,28 @@ export async function getInstalledOllamaModels(): Promise<string[]> {
   }
 }
 
+/** Dynamically resolve model from installed Ollama models if not explicitly set */
+export async function resolveOllamaModel(requestedModel?: string): Promise<string> {
+  if (requestedModel) return requestedModel;
+  if (process.env.OLLAMA_MODEL) return process.env.OLLAMA_MODEL;
+
+  try {
+    const models = await getInstalledOllamaModels();
+    if (models.length > 0) {
+      const preferred = models.find((m) =>
+        m.toLowerCase().includes("qwen3") ||
+        m.toLowerCase().includes("qwen2.5") ||
+        m.toLowerCase().includes("qwen") ||
+        m.toLowerCase().includes("llama3") ||
+        m.toLowerCase().includes("mistral")
+      );
+      return preferred || models[0];
+    }
+  } catch {}
+
+  return OLLAMA_MODEL;
+}
+
 /**
  * Execute a structured non-streaming chat with Ollama.
  * Automatically enforces JSON format when format='json'.
@@ -58,7 +80,7 @@ export async function askOllamaJson(params: {
   temperature?: number;
   timeoutMs?: number;
 }): Promise<OllamaChatResult> {
-  const model = params.model ?? OLLAMA_MODEL;
+  const model = await resolveOllamaModel(params.model);
   const timeoutMs = params.timeoutMs ?? 60000;
   const startTime = Date.now();
 
@@ -153,7 +175,7 @@ export async function askOllamaText(params: {
   temperature?: number;
   timeoutMs?: number;
 }): Promise<OllamaChatResult> {
-  const model = params.model ?? OLLAMA_MODEL;
+  const model = await resolveOllamaModel(params.model);
   const timeoutMs = params.timeoutMs ?? 60000;
   const startTime = Date.now();
 

@@ -5,23 +5,28 @@ import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
+  Bot,
   Calendar,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
   Clock,
+  Cpu,
   ExternalLink,
   History,
   Layers,
   Link2,
+  ListTodo,
   Loader2,
   Lock,
   MessageSquare,
   Play,
   Send,
+  Sparkles,
   Unlock,
   X,
+  Zap,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { WorkDNA } from "@/lib/tasks";
@@ -131,6 +136,15 @@ export function TaskExecutionWorkspace({
   const [evidenceDescription, setEvidenceDescription] = useState("");
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
 
+  // AI Copilot State
+  const [ollamaOnline, setOllamaOnline] = useState<boolean | null>(null);
+  const [ollamaModel, setOllamaModel] = useState<string>("qwen3:8b");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiGuide, setAiGuide] = useState<string | null>(null);
+  const [aiQuestion, setAiQuestion] = useState("");
+  const [aiAnswer, setAiAnswer] = useState<string | null>(null);
+  const [showAiCopilot, setShowAiCopilot] = useState(false);
+
   const fetchTaskDetails = async () => {
     try {
       setLoading(true);
@@ -149,9 +163,23 @@ export function TaskExecutionWorkspace({
     }
   };
 
+  const checkOllamaStatus = async () => {
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/ai-assist`);
+      const json = await res.json();
+      if (json.ok) {
+        setOllamaOnline(json.isOnline);
+        if (json.model) setOllamaModel(json.model);
+      }
+    } catch {
+      setOllamaOnline(false);
+    }
+  };
+
   useEffect(() => {
     if (taskId) {
       fetchTaskDetails();
+      checkOllamaStatus();
     }
   }, [taskId]);
 
@@ -309,6 +337,87 @@ export function TaskExecutionWorkspace({
     });
   };
 
+  // AI Action 1: Auto-generate implementation steps from Ollama
+  const handleAiGenerateSubtasks = async () => {
+    setAiLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/ai-assist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "SUGGEST_SUBTASKS",
+          autoApplySubtasks: true,
+        }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        setNotice(`AI generated ${json.suggestedSteps?.length || 0} implementation steps from database criteria.`);
+        setTimeout(() => setNotice(null), 4000);
+        await fetchTaskDetails();
+        onTaskUpdated?.();
+      } else {
+        setError(json.message || "Failed to generate AI subtasks.");
+      }
+    } catch {
+      setError("Unable to reach Ollama AI engine.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // AI Action 2: Get technical implementation plan
+  const handleAiGetGuide = async () => {
+    setAiLoading(true);
+    setError(null);
+    setShowAiCopilot(true);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/ai-assist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "EXPLAIN_WORK" }),
+      });
+      const json = await res.json();
+      if (json.ok && json.content) {
+        setAiGuide(json.content);
+      } else {
+        setError(json.message || "Ollama did not return an implementation plan.");
+      }
+    } catch {
+      setError("Unable to reach Ollama AI engine.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
+  // AI Action 3: Free-form Question to Ollama
+  const handleAiAskQuestion = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!aiQuestion.trim()) return;
+    setAiLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/tasks/${taskId}/ai-assist`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "ASK_QUESTION",
+          prompt: aiQuestion.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (json.ok && json.content) {
+        setAiAnswer(json.content);
+      } else {
+        setError(json.message || "Ollama could not answer the question.");
+      }
+    } catch {
+      setError("Unable to reach Ollama AI engine.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   if (loading && !data) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
@@ -410,7 +519,16 @@ export function TaskExecutionWorkspace({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
+            {/* Ollama Status Pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[11px] font-mono text-[var(--bos-text-secondary)]">
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                ollamaOnline ? "bg-emerald-500 animate-pulse" : "bg-amber-500"
+              )} />
+              <span>AI {ollamaOnline ? `Ollama (${ollamaModel})` : "Local Engine"}</span>
+            </div>
+
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)] transition-colors cursor-pointer"
@@ -462,15 +580,49 @@ export function TaskExecutionWorkspace({
 
             {/* ── 1. WHAT DO I NEED TO DO? ─────────────────────────── */}
             <section className="space-y-3">
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[var(--bos-accent)]" />
-                <h2 className="text-[12px] font-mono uppercase tracking-wider font-bold text-[var(--bos-text-secondary)]">
-                  WHAT DO I NEED TO DO?
-                </h2>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-[var(--bos-accent)]" />
+                  <h2 className="text-[12px] font-mono uppercase tracking-wider font-bold text-[var(--bos-text-secondary)]">
+                    WHAT DO I NEED TO DO?
+                  </h2>
+                </div>
+
+                {/* AI Plan Trigger */}
+                <button
+                  onClick={handleAiGetGuide}
+                  disabled={aiLoading}
+                  className="text-[12px] font-mono font-medium text-[var(--bos-accent)] hover:underline flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{aiLoading ? "Consulting AI..." : "AI Implementation Guide"}</span>
+                </button>
               </div>
+
               <div className="p-4 rounded-xl bg-[var(--bos-surface-subtle)] border border-[var(--bos-border)] text-[14px] leading-relaxed text-[var(--bos-text-primary)] font-normal whitespace-pre-line">
                 {workInstruction}
               </div>
+
+              {/* AI Technical Guide Output */}
+              {aiGuide && (
+                <div className="p-4 rounded-xl bg-[var(--bos-accent-subtle)] border border-[var(--bos-accent)]/30 space-y-2 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-[12px] font-mono font-bold text-[var(--bos-accent)]">
+                      <Bot className="w-4 h-4" />
+                      <span>AI IMPLEMENTATION BLUEPRINT (OLLAMA)</span>
+                    </div>
+                    <button
+                      onClick={() => setAiGuide(null)}
+                      className="text-xs text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
+                    >
+                      Dismiss
+                    </button>
+                  </div>
+                  <div className="text-[13px] leading-relaxed text-[var(--bos-text-primary)] whitespace-pre-line">
+                    {aiGuide}
+                  </div>
+                </div>
+              )}
             </section>
 
             {/* ── 2. WHAT DOES DONE LOOK LIKE? ─────────────────────── */}
@@ -565,11 +717,25 @@ export function TaskExecutionWorkspace({
                     YOUR WORK
                   </h2>
                 </div>
-                {totalSubtasks > 0 && (
-                  <span className="text-[12px] font-mono text-[var(--bos-text-secondary)]">
-                    {completedSubtasks} of {totalSubtasks} completed ({subtaskProgress}%)
-                  </span>
-                )}
+
+                <div className="flex items-center gap-3">
+                  {totalSubtasks > 0 && (
+                    <span className="text-[12px] font-mono text-[var(--bos-text-secondary)]">
+                      {completedSubtasks} of {totalSubtasks} completed ({subtaskProgress}%)
+                    </span>
+                  )}
+                  
+                  {/* AI Subtask Generator Button */}
+                  <button
+                    type="button"
+                    onClick={handleAiGenerateSubtasks}
+                    disabled={aiLoading}
+                    className="text-[11.5px] font-mono text-[var(--bos-accent)] hover:underline flex items-center gap-1 cursor-pointer disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3 h-3" />
+                    <span>AI Generate Steps</span>
+                  </button>
+                </div>
               </div>
 
               {totalSubtasks > 0 && (
@@ -779,7 +945,60 @@ export function TaskExecutionWorkspace({
               )}
             </section>
 
-            {/* ── 6. COMMENTS / COMMUNICATION ──────────────────────── */}
+            {/* ── 6. AI WORK COPILOT (ASK OLLAMA ABOUT THIS TASK) ─── */}
+            <section className="space-y-3 p-4 rounded-xl bg-[var(--bos-surface-subtle)] border border-[var(--bos-border)]">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-lg bg-[var(--bos-accent)] text-white flex items-center justify-center font-bold text-xs">
+                    <Sparkles className="w-3.5 h-3.5" />
+                  </div>
+                  <h2 className="text-[12px] font-mono uppercase tracking-wider font-bold text-[var(--bos-text-primary)]">
+                    AI TASK COPILOT (GROUNDED IN REAL DB)
+                  </h2>
+                </div>
+                <span className="text-[11px] font-mono text-[var(--bos-text-secondary)]">
+                  Local Ollama Engine
+                </span>
+              </div>
+
+              {aiAnswer && (
+                <div className="p-3.5 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-accent)]/30 space-y-1.5 animate-in fade-in duration-200">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-bold text-[var(--bos-accent)] flex items-center gap-1">
+                      <Bot className="w-3.5 h-3.5" />
+                      <span>Copilot Answer</span>
+                    </span>
+                    <button
+                      onClick={() => setAiAnswer(null)}
+                      className="text-xs text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  <p className="text-[13px] text-[var(--bos-text-primary)] leading-relaxed whitespace-pre-line">{aiAnswer}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleAiAskQuestion} className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Ask AI Copilot anything about this task or code plan..."
+                  value={aiQuestion}
+                  onChange={(e) => setAiQuestion(e.target.value)}
+                  className="flex-1 px-3.5 py-2 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[13px] text-[var(--bos-text-primary)] placeholder-[var(--bos-text-secondary)] focus:outline-none focus:border-[var(--bos-accent)]"
+                />
+                <button
+                  type="submit"
+                  disabled={aiLoading || !aiQuestion.trim()}
+                  className="px-4 py-2 rounded-lg bg-[var(--bos-accent)] text-white text-[12.5px] font-semibold hover:opacity-90 disabled:opacity-40 transition-all cursor-pointer flex items-center gap-1.5"
+                >
+                  {aiLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
+                  <span>Ask AI</span>
+                </button>
+              </form>
+            </section>
+
+            {/* ── 7. COMMENTS / COMMUNICATION ──────────────────────── */}
             <section className="space-y-3">
               <div className="flex items-center gap-2">
                 <MessageSquare className="w-4 h-4 text-[var(--bos-text-secondary)]" />
@@ -823,7 +1042,7 @@ export function TaskExecutionWorkspace({
               </form>
             </section>
 
-            {/* ── 7. WHY THIS TASK EXISTS (TRACEABILITY ACCORDION) ──── */}
+            {/* ── 8. WHY THIS TASK EXISTS (TRACEABILITY ACCORDION) ──── */}
             <section className="border-t border-[var(--bos-border)] pt-4">
               <button
                 onClick={() => setShowTraceability((prev) => !prev)}
@@ -862,7 +1081,7 @@ export function TaskExecutionWorkspace({
               )}
             </section>
 
-            {/* ── 8. ACTIVITY TIMELINE ─────────────────────────────── */}
+            {/* ── 9. ACTIVITY TIMELINE ─────────────────────────────── */}
             <section className="border-t border-[var(--bos-border)] pt-4 space-y-2">
               <div className="flex items-center gap-2">
                 <History className="w-4 h-4 text-[var(--bos-text-secondary)]" />
