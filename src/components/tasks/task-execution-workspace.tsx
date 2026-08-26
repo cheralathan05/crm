@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useMemo } from "react";
 import Link from "next/link";
 import {
   AlertCircle,
@@ -27,6 +27,7 @@ import {
   Layers,
   Loader2,
   Lock,
+  Play,
   Plus,
   Radio,
   RefreshCw,
@@ -64,24 +65,22 @@ export function TaskExecutionWorkspace({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<
-    "story" | "specs" | "impact" | "dependencies" | "code" | "verification" | "evidence" | "activity"
-  >("story");
   const [isPending, startTransition] = useTransition();
 
+  // Active sub-tab for advanced details
+  const [activeTab, setActiveTab] = useState<"overview" | "evidence" | "comments" | "activity">("overview");
+
   // Inputs
-  const [newSubtaskTitle, setNewSubtaskTitle] = useState("");
   const [newCriterion, setNewCriterion] = useState("");
   const [newComment, setNewComment] = useState("");
+  const [blockedReasonInput, setBlockedReasonInput] = useState("");
+  const [showBlockModal, setShowBlockModal] = useState(false);
+
+  // Evidence
   const [evidenceType, setEvidenceType] = useState("GIT_COMMIT");
   const [evidenceTitle, setEvidenceTitle] = useState("");
   const [evidenceUrl, setEvidenceUrl] = useState("");
   const [showEvidenceForm, setShowEvidenceForm] = useState(false);
-
-  // AI Copilot Query inside workspace
-  const [aiQuery, setAiQuery] = useState("");
-  const [aiResponse, setAiResponse] = useState<string | null>(null);
-  const [aiLoading, setAiLoading] = useState(false);
 
   const fetchTaskDetails = async () => {
     try {
@@ -107,18 +106,23 @@ export function TaskExecutionWorkspace({
     }
   }, [taskId]);
 
-  // Update Status
-  const handleUpdateStatus = async (newStatus: string) => {
+  // Update Status Handler
+  const handleUpdateStatus = async (newStatus: string, blockedReason?: string) => {
     startTransition(async () => {
       try {
         const res = await fetch(`/api/tasks/${taskId}`, {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
+          body: JSON.stringify({
+            status: newStatus,
+            blockedReason: blockedReason || (newStatus === "BLOCKED" ? blockedReasonInput : undefined),
+          }),
         });
         const json = await res.json();
         if (json.ok) {
           setNotice(`Status moved to ${newStatus}.`);
+          setShowBlockModal(false);
+          setBlockedReasonInput("");
           setTimeout(() => setNotice(null), 3000);
           await fetchTaskDetails();
           onTaskUpdated?.();
@@ -131,34 +135,15 @@ export function TaskExecutionWorkspace({
     });
   };
 
-  // Add Subtask
-  const handleAddSubtask = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newSubtaskTitle.trim()) return;
+  // Toggle Acceptance Criteria Status
+  const handleToggleCriterion = async (criterionId: string, currentStatus: string) => {
+    const nextStatus = currentStatus === "PASSED" ? "NOT_STARTED" : "PASSED";
     startTransition(async () => {
       try {
-        const res = await fetch(`/api/tasks/${taskId}/subtasks`, {
-          method: "POST",
+        const res = await fetch(`/api/tasks/${taskId}/acceptance-criteria/${criterionId}`, {
+          method: "PATCH",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: newSubtaskTitle.trim() }),
-        });
-        if (res.ok) {
-          setNewSubtaskTitle("");
-          await fetchTaskDetails();
-          onTaskUpdated?.();
-        }
-      } catch {}
-    });
-  };
-
-  // Toggle Subtask
-  const handleToggleSubtask = async (subtaskId: string, current: boolean) => {
-    startTransition(async () => {
-      try {
-        const res = await fetch(`/api/tasks/${taskId}/subtasks`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ subtaskId, completed: !current }),
+          body: JSON.stringify({ status: nextStatus }),
         });
         if (res.ok) {
           await fetchTaskDetails();
@@ -168,27 +153,46 @@ export function TaskExecutionWorkspace({
     });
   };
 
-  // Attach Evidence
-  const handleAttachEvidence = async (e: React.FormEvent) => {
+  // Add Acceptance Criterion
+  const handleAddCriterion = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!evidenceTitle.trim() || !data) return;
+    if (!newCriterion.trim()) return;
     startTransition(async () => {
       try {
-        const res = await fetch(`/api/projects/${data.project.id}/evidence`, {
+        const res = await fetch(`/api/tasks/${taskId}/acceptance-criteria`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ criterion: newCriterion.trim() }),
+        });
+        if (res.ok) {
+          setNewCriterion("");
+          await fetchTaskDetails();
+          onTaskUpdated?.();
+        }
+      } catch {}
+    });
+  };
+
+  // Submit Evidence
+  const handleSubmitEvidence = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!evidenceTitle.trim()) return;
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/tasks/${taskId}/evidence`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            taskId,
-            type: evidenceType,
             title: evidenceTitle.trim(),
-            url: evidenceUrl.trim() || undefined,
+            type: evidenceType,
+            externalUrl: evidenceUrl.trim() || undefined,
           }),
         });
         if (res.ok) {
           setEvidenceTitle("");
           setEvidenceUrl("");
           setShowEvidenceForm(false);
-          setNotice("Verification evidence successfully attached.");
+          setNotice("Evidence attached successfully.");
           setTimeout(() => setNotice(null), 3000);
           await fetchTaskDetails();
           onTaskUpdated?.();
@@ -197,731 +201,501 @@ export function TaskExecutionWorkspace({
     });
   };
 
-  // AI Copilot Task Intelligence Query
-  const handleAiQuery = async (queryText?: string) => {
-    const q = queryText || aiQuery.trim();
-    if (!q || !data) return;
-    setAiLoading(true);
-    setAiResponse(null);
-    try {
-      const res = await fetch(`/api/projects/${data.project.id}/assistant`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query: `TASK CONTEXT: [${data.task.code || "Task"}: ${data.task.title}] - Layer: ${data.workstream.label} - Status: ${data.task.status}. User Query: ${q}`,
-        }),
-      });
-      const json = await res.json();
-      if (json.ok && json.answer) {
-        setAiResponse(json.answer);
-      } else {
-        setAiResponse(json.message || "Unable to query task intelligence.");
-      }
-    } catch {
-      setAiResponse("Network error communicating with Ollama intelligence.");
-    } finally {
-      setAiLoading(false);
-    }
-  };
-
-  if (loading) {
+  if (loading && !data) {
     return (
-      <div className="fixed inset-0 z-50 bg-[var(--bos-bg)] flex flex-col items-center justify-center gap-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)]" />
-        <p className="text-[13px] font-mono text-[var(--bos-text-secondary)]">Loading Task Execution Workspace...</p>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div className="p-8 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] text-center space-y-3 font-mono">
+          <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)] mx-auto" />
+          <p className="text-[13px] text-[var(--bos-text-secondary)]">Loading Task Details...</p>
+        </div>
       </div>
     );
   }
 
-  if (error || !data) {
+  if (!data) {
     return (
-      <div className="fixed inset-0 z-50 bg-[var(--bos-bg)] flex flex-col items-center justify-center p-6 text-center space-y-4">
-        <AlertTriangle className="w-12 h-12 text-rose-600 mx-auto" />
-        <h3 className="text-[18px] font-bold text-[var(--bos-text-primary)]">Unable to Open Task Execution Workspace</h3>
-        <p className="text-[13px] text-[var(--bos-text-secondary)] max-w-md">{error || "Task record not found."}</p>
-        <button
-          onClick={onClose}
-          className="px-4 py-2 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[12px] font-medium cursor-pointer"
-        >
-          Return to Execution OS
-        </button>
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+        <div className="p-8 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] text-center space-y-4 max-w-md w-full">
+          <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
+          <h3 className="text-[16px] font-bold text-[var(--bos-text-primary)]">Task Not Found</h3>
+          <p className="text-[12.5px] text-[var(--bos-text-secondary)]">{error || "Could not retrieve task details."}</p>
+          <button
+            onClick={onClose}
+            className="px-4 py-2 rounded-xl bg-[var(--bos-accent)] text-white text-[12px] font-semibold"
+          >
+            Close Drawer
+          </button>
+        </div>
       </div>
     );
   }
 
-  const { task, project, requirement, deliverable, milestone, workstream, subtasks = [], acceptanceCriteria = [], dependencies, employee } = data;
-  const isBlocked = dependencies?.isBlockedByUpstream;
-  const allSubtasksDone = subtasks.length > 0 && subtasks.every((st) => st.completed);
-  const allCriteriaPassed = acceptanceCriteria.length > 0 && acceptanceCriteria.every((c) => c.status === "PASSED");
-  const isReadyForCompletion = allSubtasksDone && (!acceptanceCriteria.length || allCriteriaPassed) && !isBlocked;
+  const { task, project, deliverable, proposal, requirement, employee, dependencies, acceptanceCriteria } = data;
+  const isBlocked = task.status === "BLOCKED";
+  const isDone = task.status === "DONE" || task.status === "COMPLETED";
 
   return (
-    <div className="fixed inset-0 z-50 bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col overflow-hidden animate-in fade-in duration-150">
-      
-      {/* Notice Banner */}
-      {notice && (
-        <div className="bg-emerald-600 text-white text-[12px] font-mono py-1.5 px-6 text-center flex items-center justify-center gap-2 shrink-0">
-          <CheckCircle2 className="w-4 h-4" />
-          <span>{notice}</span>
-        </div>
-      )}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-2 sm:p-4 overflow-y-auto">
+      <div className="w-full max-w-4xl bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[92vh] animate-in fade-in zoom-in-95 duration-150">
+        {/* ── HEADER ──────────────────────────────────────────────── */}
+        <div className="p-5 border-b border-[var(--bos-border)] bg-[var(--bos-bg)]/80 flex items-start justify-between gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="font-mono text-[11.5px] font-bold text-[var(--bos-accent)] bg-[var(--bos-surface)] px-2.5 py-0.5 rounded border border-[var(--bos-border)]">
+                {task.code || "TSK-000"}
+              </span>
+              <span className="text-[12px] font-mono text-[var(--bos-text-secondary)]">
+                · {project?.name || "Client Project"}
+              </span>
+              <span
+                className={cn(
+                  "font-mono text-[10.5px] uppercase font-bold px-2 py-0.5 rounded border",
+                  isDone
+                    ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
+                    : task.status === "IN_PROGRESS"
+                    ? "bg-sky-500/10 text-sky-600 border-sky-500/20"
+                    : isBlocked
+                    ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+                    : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] border-[var(--bos-border)]"
+                )}
+              >
+                {task.status === "IN_PROGRESS" ? "In Progress" : task.status === "TODO" ? "To Do" : task.status}
+              </span>
+            </div>
 
-      {/* ── TOP HEADER ────────────────────────────────────────────── */}
-      <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)] px-6 py-3 shrink-0 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1 text-[12px] font-mono text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] transition-colors pr-2 border-r border-[var(--bos-border)] cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Execution</span>
-          </button>
-
-          <span className="font-mono text-[12px] font-bold px-2 py-0.5 rounded bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[var(--bos-accent)]">
-            {task.code || "TSK-001"}
-          </span>
-
-          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-purple-500/10 text-purple-600">
-            {workstream.label}
-          </span>
-
-          <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600">
-            {task.priority}
-          </span>
-
-          <span className={cn(
-            "text-[11px] font-mono font-bold px-2 py-0.5 rounded",
-            task.status === "DONE" ? "bg-emerald-500/10 text-emerald-600" :
-            task.status === "BLOCKED" ? "bg-rose-500/10 text-rose-600" : "bg-sky-500/10 text-sky-600"
-          )}>
-            {task.status}
-          </span>
-        </div>
-
-        {/* Status Transition Action Buttons */}
-        <div className="flex items-center gap-2">
-          {task.status !== "IN_PROGRESS" && task.status !== "DONE" && (
-            <button
-              onClick={() => handleUpdateStatus("IN_PROGRESS")}
-              className="px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] text-[12px] font-medium transition-colors cursor-pointer"
-            >
-              Start Implementation
-            </button>
-          )}
-
-          {task.status !== "IN_REVIEW" && task.status !== "DONE" && (
-            <button
-              onClick={() => handleUpdateStatus("IN_REVIEW")}
-              className="px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-purple-500 text-[12px] font-medium transition-colors cursor-pointer"
-            >
-              Submit for Review
-            </button>
-          )}
-
-          {task.status !== "DONE" ? (
-            <button
-              onClick={() => handleUpdateStatus("DONE")}
-              className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[12px] font-medium transition-all shadow-xs cursor-pointer"
-            >
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Verify & Complete Task</span>
-            </button>
-          ) : (
-            <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-600 font-mono text-[11px] font-bold">
-              ✓ Verified & Done
-            </span>
-          )}
+            <h2 className="text-[18px] font-bold text-[var(--bos-text-primary)] leading-snug">
+              {task.title}
+            </h2>
+          </div>
 
           <button
             onClick={onClose}
-            className="p-1.5 rounded-md text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
+            className="p-1.5 rounded-lg text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
-      </header>
 
-      {/* ── CONTEXT SUB-STRIP ──────────────────────────────────────── */}
-      <div className="bg-[var(--bos-surface)]/60 border-b border-[var(--bos-border)] px-6 py-2 shrink-0 flex items-center justify-between gap-4 text-[11.5px] font-mono text-[var(--bos-text-secondary)] flex-wrap">
-        <div className="flex items-center gap-3">
-          <span>Project: <strong className="text-[var(--bos-text-primary)]">{project.name}</strong></span>
-          <span>·</span>
-          <span>Requirement: <strong className="text-[var(--bos-text-primary)]">{requirement?.reference || "Approved Scope"}</strong></span>
-          <span>·</span>
-          <span>Deliverable: <strong className="text-[var(--bos-text-primary)]">{deliverable?.title || "Core Contract"}</strong></span>
-          <span>·</span>
-          <span>Phase: <strong className="text-[var(--bos-accent)]">{milestone?.title || project.stage}</strong></span>
-        </div>
+        {/* ── NOTICE & ERROR BANNERS ──────────────────────────────── */}
+        {notice && (
+          <div className="bg-emerald-500/10 border-b border-emerald-500/20 px-6 py-2 text-[12px] font-mono text-emerald-600 flex items-center gap-2">
+            <CheckCircle2 className="w-4 h-4" />
+            <span>{notice}</span>
+          </div>
+        )}
+        {error && (
+          <div className="bg-rose-500/10 border-b border-rose-500/20 px-6 py-2 text-[12px] font-mono text-rose-600 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              <span>{error}</span>
+            </div>
+            <button onClick={() => setError(null)} className="text-[11px] hover:underline">Dismiss</button>
+          </div>
+        )}
 
-        <div className="flex items-center gap-4">
-          <span>Owner: <strong className="text-[var(--bos-text-primary)]">{employee?.name || "Unassigned"}</strong></span>
-          <span>Due: <strong className="text-[var(--bos-text-primary)]">{task.dueAt ? new Date(task.dueAt).toLocaleDateString() : "Scheduled"}</strong></span>
-        </div>
-      </div>
-
-      {/* ── WORKSPACE TABS NAVIGATION ──────────────────────────────── */}
-      <div className="bg-[var(--bos-surface)] border-b border-[var(--bos-border)] px-6 shrink-0 flex items-center gap-2 overflow-x-auto">
-        {[
-          { id: "story", label: "Why This Exists", icon: Sparkles },
-          { id: "specs", label: "What to Build (Specs)", icon: Code2 },
-          { id: "impact", label: "Impact Map", icon: Layers },
-          { id: "dependencies", label: "Dependencies", icon: Flame },
-          { id: "verification", label: `Verification (${acceptanceCriteria.length})`, icon: ShieldCheck },
-          { id: "evidence", label: "Evidence Vault", icon: FileCheck2 },
-          { id: "activity", label: "Event Stream", icon: History },
-        ].map((t) => {
-          const Icon = t.icon;
-          const isActive = activeTab === t.id;
-          return (
-            <button
-              key={t.id}
-              onClick={() => setActiveTab(t.id as any)}
-              className={cn(
-                "flex items-center gap-1.5 py-2.5 px-3 border-b-2 text-[12px] font-mono font-medium transition-all whitespace-nowrap cursor-pointer",
-                isActive
-                  ? "border-[var(--bos-accent)] text-[var(--bos-accent)] font-bold"
-                  : "border-transparent text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]",
-              )}
-            >
-              <Icon className="w-3.5 h-3.5" />
-              <span>{t.label}</span>
-            </button>
-          );
-        })}
-      </div>
-
-      {/* ── MAIN WORKSPACE CONTENT ─────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
-        
-        {/* Main Left Execution Spec Column (8 cols) */}
-        <div className="lg:col-span-8 space-y-6">
-
-          {/* TAB 1: WHY THIS EXISTS (TASK STORY) */}
-          {activeTab === "story" && (
-            <div className="space-y-6">
-              {/* Task Title & Executive Intent */}
-              <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-3">
-                <h2 className="text-[18px] font-bold text-[var(--bos-text-primary)]">
-                  {task.title}
-                </h2>
-                <p className="text-[13px] text-[var(--bos-text-secondary)] leading-relaxed">
-                  {task.description || "Executive engineering task executing approved scope specifications."}
-                </p>
-                {task.expectedResult && (
-                  <div className="p-3 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg text-[12px] text-emerald-600 font-mono">
-                    <strong className="text-[var(--bos-text-primary)]">Expected Result: </strong>
-                    {task.expectedResult}
-                  </div>
-                )}
+        {/* ── WORKSPACE BODY ──────────────────────────────────────── */}
+        <div className="p-6 overflow-y-auto space-y-6 flex-1">
+          {/* ── 1. WHAT DO I NEED TO DO? ───────────────────────────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-2">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              1. WHAT DO I NEED TO DO?
+            </span>
+            <p className="text-[14px] text-[var(--bos-text-primary)] leading-relaxed">
+              {task.description || task.title}
+            </p>
+            {task.expectedResult && (
+              <div className="pt-2 text-[12.5px] text-[var(--bos-text-secondary)]">
+                <strong className="text-[var(--bos-text-primary)] font-medium">Expected Output: </strong>
+                {task.expectedResult}
               </div>
+            )}
+          </section>
 
-              {/* Lineage Progression Flow (Why This Exists) */}
-              <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-                <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-[var(--bos-accent)]">
-                  BUSINESS → ENGINEERING LINEAGE
+          {/* ── 2. WHY AM I DOING THIS? ────────────────────────────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-2">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              2. WHY AM I DOING THIS?
+            </span>
+            <p className="text-[13.5px] text-[var(--bos-text-secondary)] leading-relaxed">
+              Required to complete the <strong className="text-[var(--bos-text-primary)]">"{deliverable?.title || "Core Scope"}"</strong> deliverable for milestone <strong className="text-[var(--bos-text-primary)]">{data.milestone?.title || project.stage}</strong>.
+            </p>
+          </section>
+
+          {/* ── 3. WHERE DID THIS COME FROM? (TRACEABILITY) ────────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-3">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              3. WHERE DID THIS COME FROM?
+            </span>
+
+            {/* Traceability Breadcrumb Pipeline */}
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5 text-[11.5px] font-mono">
+              {/* Proposal */}
+              <div className="p-3 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-0.5">
+                <span className="text-[10px] text-[var(--bos-text-tertiary)] uppercase block">PROPOSAL</span>
+                <span className="text-[var(--bos-text-primary)] font-bold block truncate">
+                  {proposal?.reference || "PROP-2026-001"}
                 </span>
-
-                <div className="space-y-3">
-                  <div className="p-3 bg-[var(--bos-bg)] border border-amber-500/20 rounded-lg flex items-center justify-between text-[12px]">
-                    <div>
-                      <span className="text-[10px] font-mono text-amber-600 font-bold uppercase block">1. Proposal Scope</span>
-                      <span className="font-semibold text-[var(--bos-text-primary)]">{data.proposal?.title || project.name}</span>
-                    </div>
-                    <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">{data.proposal?.reference || "PROP"}</span>
-                  </div>
-
-                  <div className="p-3 bg-[var(--bos-bg)] border border-sky-500/20 rounded-lg flex items-center justify-between text-[12px]">
-                    <div>
-                      <span className="text-[10px] font-mono text-sky-600 font-bold uppercase block">2. Approved Requirement</span>
-                      <span className="font-semibold text-[var(--bos-text-primary)]">{requirement?.title || "Core Requirement"}</span>
-                    </div>
-                    <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">{requirement?.reference || "REQ"}</span>
-                  </div>
-
-                  <div className="p-3 bg-[var(--bos-bg)] border border-purple-500/20 rounded-lg flex items-center justify-between text-[12px]">
-                    <div>
-                      <span className="text-[10px] font-mono text-purple-600 font-bold uppercase block">3. Contract Deliverable</span>
-                      <span className="font-semibold text-[var(--bos-text-primary)]">{deliverable?.title || "Deliverable"}</span>
-                    </div>
-                    <span className="text-[11px] font-mono text-purple-600 font-bold">{deliverable?.status || "IN_PROGRESS"}</span>
-                  </div>
-
-                  <div className="p-3.5 bg-[var(--bos-accent-subtle)] border border-[var(--bos-accent)]/30 rounded-lg flex items-center justify-between text-[12px]">
-                    <div>
-                      <span className="text-[10px] font-mono text-[var(--bos-accent)] font-bold uppercase block">4. Current Execution Node</span>
-                      <span className="font-bold text-[var(--bos-text-primary)]">{task.title}</span>
-                    </div>
-                    <span className="text-[11px] font-mono text-[var(--bos-accent)] font-bold">{task.code}</span>
-                  </div>
-                </div>
+                <span className="text-[10px] text-emerald-600 font-semibold block">{proposal?.status || "APPROVED"}</span>
               </div>
 
-              {/* Implementation Units / Subtasks */}
-              <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] font-mono uppercase tracking-wider font-bold text-[var(--bos-text-secondary)]">
-                    Implementation Checklist Units ({subtasks.filter((s) => s.completed).length}/{subtasks.length})
-                  </span>
-                  <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">
-                    Concrete execution steps
-                  </span>
-                </div>
+              {/* Requirement */}
+              <div className="p-3 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-0.5">
+                <span className="text-[10px] text-[var(--bos-text-tertiary)] uppercase block">REQUIREMENT</span>
+                <span className="text-[var(--bos-text-primary)] font-bold block truncate">
+                  {requirement?.reference || "REQ-000001"}
+                </span>
+                <span className="text-[10px] text-emerald-600 font-semibold block">{requirement?.status || "APPROVED"}</span>
+              </div>
 
-                <div className="space-y-2">
-                  {subtasks.map((st) => (
-                    <div
-                      key={st.id}
-                      onClick={() => handleToggleSubtask(st.id, st.completed)}
+              {/* Deliverable */}
+              <div className="p-3 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-0.5">
+                <span className="text-[10px] text-[var(--bos-text-tertiary)] uppercase block">DELIVERABLE</span>
+                <span className="text-[var(--bos-text-primary)] font-bold block truncate">
+                  {deliverable?.title || "Pages & Content"}
+                </span>
+                <span className="text-[10px] text-[var(--bos-accent)] font-semibold block">{deliverable?.status || "IN PROGRESS"}</span>
+              </div>
+
+              {/* Task */}
+              <div className="p-3 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-accent)] space-y-0.5 shadow-2xs">
+                <span className="text-[10px] text-[var(--bos-accent)] font-bold uppercase block">TASK</span>
+                <span className="text-[var(--bos-text-primary)] font-bold block truncate">
+                  {task.code || "TSK-003"}
+                </span>
+                <span className="text-[10px] text-[var(--bos-text-secondary)] font-semibold block">{task.status}</span>
+              </div>
+            </div>
+          </section>
+
+          {/* ── 4. WHAT DOES DONE MEAN? (ACCEPTANCE CRITERIA) ──────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+                4. WHAT DOES DONE MEAN?
+              </span>
+              <span className="text-[11px] font-mono text-[var(--bos-text-secondary)]">
+                {acceptanceCriteria.filter((c) => c.status === "PASSED").length} / {acceptanceCriteria.length} Passed
+              </span>
+            </div>
+
+            {acceptanceCriteria.length === 0 ? (
+              <div className="p-4 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[12.5px] text-[var(--bos-text-secondary)] font-mono">
+                No specific criteria recorded. Complete task according to instructions.
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {acceptanceCriteria.map((crit) => {
+                  const isPassed = crit.status === "PASSED";
+                  return (
+                    <button
+                      key={crit.id}
+                      type="button"
+                      onClick={() => handleToggleCriterion(crit.id, crit.status)}
                       className={cn(
-                        "p-3 rounded-lg border flex items-center justify-between text-[12.5px] cursor-pointer transition-all",
-                        st.completed
-                          ? "bg-emerald-500/5 border-emerald-500/30 text-emerald-800 dark:text-emerald-300 line-through opacity-80"
-                          : "bg-[var(--bos-bg)] border-[var(--bos-border)] hover:border-[var(--bos-accent)] text-[var(--bos-text-primary)]",
+                        "w-full p-3 rounded-lg border text-left flex items-start gap-3 transition-all cursor-pointer",
+                        isPassed
+                          ? "bg-emerald-500/5 border-emerald-500/20 text-[var(--bos-text-primary)]"
+                          : "bg-[var(--bos-surface)] border-[var(--bos-border)] hover:border-[var(--bos-border-strong)] text-[var(--bos-text-secondary)]"
                       )}
                     >
-                      <div className="flex items-center gap-2.5">
-                        <div className={cn(
-                          "w-4 h-4 rounded flex items-center justify-center border transition-colors",
-                          st.completed ? "bg-emerald-600 border-emerald-600 text-white" : "border-[var(--bos-border-strong)] bg-[var(--bos-surface)]",
-                        )}>
-                          {st.completed && <Check className="w-3 h-3" />}
-                        </div>
-                        <span>{st.title}</span>
+                      <div className={cn(
+                        "w-4 h-4 rounded mt-0.5 flex items-center justify-center text-[10px] font-bold border transition-colors shrink-0",
+                        isPassed ? "bg-emerald-600 text-white border-emerald-600" : "border-[var(--bos-border)] bg-[var(--bos-bg)]"
+                      )}>
+                        {isPassed && "✓"}
                       </div>
-                      <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">
-                        {st.assigneeName || "Team"}
+                      <span className={cn("text-[13px] leading-relaxed", isPassed && "line-through opacity-80")}>
+                        {crit.criterion}
                       </span>
-                    </div>
-                  ))}
-
-                  {subtasks.length === 0 && (
-                    <p className="text-[12px] text-[var(--bos-text-tertiary)] italic p-2">
-                      No discrete implementation units created yet. Add units below:
-                    </p>
-                  )}
-                </div>
-
-                {/* Add Subtask Input */}
-                <form onSubmit={handleAddSubtask} className="flex items-center gap-2 pt-2">
-                  <input
-                    type="text"
-                    placeholder="Add implementation unit (e.g. Implement schema migration, write unit tests)..."
-                    value={newSubtaskTitle}
-                    onChange={(e) => setNewSubtaskTitle(e.target.value)}
-                    className="flex-1 px-3 py-1.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg text-[12.5px] text-[var(--bos-text-primary)] focus:outline-hidden focus:border-[var(--bos-accent)]"
-                  />
-                  <button
-                    type="submit"
-                    className="px-3 py-1.5 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-[12px] font-medium rounded-lg transition-colors cursor-pointer"
-                  >
-                    + Add Unit
-                  </button>
-                </form>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 2: STRUCTURED SPECS (WHAT TO BUILD) */}
-          {activeTab === "specs" && (
-            <div className="space-y-4">
-              <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-                <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                  Engineering Specification
-                </h3>
-
-                <div className="space-y-3 font-mono text-[12px]">
-                  <div className="p-3 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] space-y-1">
-                    <span className="text-[10px] text-purple-600 font-bold uppercase">OBJECTIVE & SCOPE</span>
-                    <p className="text-[var(--bos-text-primary)] font-sans">{task.description || task.title}</p>
-                  </div>
-
-                  <div className="p-3 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] space-y-1">
-                    <span className="text-[10px] text-emerald-600 font-bold uppercase">API CONTRACT & AUTH GUARD</span>
-                    <p className="text-[var(--bos-text-primary)] font-sans">
-                      Standard REST/RPC interface requiring authenticated session with RBAC authorization token.
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] space-y-1">
-                    <span className="text-[10px] text-sky-600 font-bold uppercase">DATA SCHEMA & CONSTRAINTS</span>
-                    <p className="text-[var(--bos-text-primary)] font-sans">
-                      All relational records require non-null foreign keys, audited timestamps, and soft-delete guards.
-                    </p>
-                  </div>
-
-                  <div className="p-3 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] space-y-1">
-                    <span className="text-[10px] text-amber-600 font-bold uppercase">ERROR HANDLING & EDGE CASES</span>
-                    <p className="text-[var(--bos-text-primary)] font-sans">
-                      Handle 400 Bad Input, 401 Unauthorized, 403 Forbidden, 404 Not Found, 409 Conflict, and optimistic UI concurrency recovery.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 3: ENGINEERING IMPACT MAP */}
-          {activeTab === "impact" && (
-            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-              <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                Engineering Impact & Blast Radius
-              </h3>
-              <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                Real code components and infrastructure entities touched by this execution item.
-              </p>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-                <div className="p-3.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg space-y-2">
-                  <div className="flex items-center gap-1.5 text-sky-600 font-mono text-[11px] font-bold">
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>FRONTEND PRESENTATION</span>
-                  </div>
-                  <ul className="text-[12px] space-y-1 text-[var(--bos-text-secondary)] font-mono">
-                    <li>• Screen / View Route</li>
-                    <li>• State Management Hook</li>
-                    <li>• Error Boundary & Toast</li>
-                  </ul>
-                </div>
-
-                <div className="p-3.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg space-y-2">
-                  <div className="flex items-center gap-1.5 text-emerald-600 font-mono text-[11px] font-bold">
-                    <Server className="w-3.5 h-3.5" />
-                    <span>BACKEND SERVICES & APIS</span>
-                  </div>
-                  <ul className="text-[12px] space-y-1 text-[var(--bos-text-secondary)] font-mono">
-                    <li>• Controller Endpoint Handler</li>
-                    <li>• Domain Business Logic Service</li>
-                    <li>• Auth & Permission Middleware</li>
-                  </ul>
-                </div>
-
-                <div className="p-3.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg space-y-2">
-                  <div className="flex items-center gap-1.5 text-purple-600 font-mono text-[11px] font-bold">
-                    <Database className="w-3.5 h-3.5" />
-                    <span>DATABASE ENTITIES</span>
-                  </div>
-                  <ul className="text-[12px] space-y-1 text-[var(--bos-text-secondary)] font-mono">
-                    <li>• Prisma Schema Model</li>
-                    <li>• Database Indexes & Constraints</li>
-                    <li>• Migration Script</li>
-                  </ul>
-                </div>
-
-                <div className="p-3.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg space-y-2">
-                  <div className="flex items-center gap-1.5 text-amber-600 font-mono text-[11px] font-bold">
-                    <ShieldCheck className="w-3.5 h-3.5" />
-                    <span>VERIFICATION & QA</span>
-                  </div>
-                  <ul className="text-[12px] space-y-1 text-[var(--bos-text-secondary)] font-mono">
-                    <li>• Unit Test Specs</li>
-                    <li>• API Integration Tests</li>
-                    <li>• Verification Proof Record</li>
-                  </ul>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 4: DEPENDENCIES */}
-          {activeTab === "dependencies" && (
-            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-              <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                Dependency Intelligence
-              </h3>
-
-              <div className="space-y-4">
-                {/* Blocked by */}
-                <div className="p-4 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-xl space-y-2">
-                  <span className="text-[11px] font-mono font-bold text-rose-600 uppercase">
-                    BLOCKED BY (UPSTREAM PREREQUISITES)
-                  </span>
-                  {dependencies?.upstream?.length ? (
-                    dependencies.upstream.map((up) => (
-                      <div key={up.id} className="p-2.5 bg-[var(--bos-surface)] rounded border border-[var(--bos-border)] flex items-center justify-between text-[12px]">
-                        <span>{up.title}</span>
-                        <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[var(--bos-bg)]">{up.status}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-[11px] text-[var(--bos-text-tertiary)] italic">Zero upstream blockers. This task is unblocked.</p>
-                  )}
-                </div>
-
-                {/* Unblocks */}
-                <div className="p-4 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-xl space-y-2">
-                  <span className="text-[11px] font-mono font-bold text-emerald-600 uppercase">
-                    THIS TASK UNBLOCKS (DOWNSTREAM WORK)
-                  </span>
-                  {dependencies?.downstream?.length ? (
-                    dependencies.downstream.map((down) => (
-                      <div key={down.id} className="p-2.5 bg-[var(--bos-surface)] rounded border border-[var(--bos-border)] flex items-center justify-between text-[12px]">
-                        <span>{down.title}</span>
-                        <span className="font-mono text-[10px] px-1.5 py-0.2 rounded bg-[var(--bos-bg)]">{down.status}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <p className="text-[11px] text-[var(--bos-text-tertiary)] italic">No downstream dependents recorded.</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 5: VERIFICATION CENTER */}
-          {activeTab === "verification" && (
-            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--bos-border)] pb-3">
-                <div>
-                  <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                    Quality Verification & Acceptance Criteria
-                  </h3>
-                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    Rigorous checks ensuring zero regression before task can be marked complete.
-                  </p>
-                </div>
-                <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600">
-                  {acceptanceCriteria.filter((c) => c.status === "PASSED").length}/{acceptanceCriteria.length || 1} Passed
-                </span>
-              </div>
-
-              <div className="space-y-2.5">
-                {acceptanceCriteria.map((c) => (
-                  <div
-                    key={c.id}
-                    className="p-3 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg flex items-center justify-between text-[12.5px]"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <ShieldCheck className={cn("w-4 h-4", c.status === "PASSED" ? "text-emerald-600" : "text-amber-600")} />
-                      <span className="font-medium text-[var(--bos-text-primary)]">{c.criterion}</span>
-                    </div>
-                    <span className={cn(
-                      "text-[10px] font-mono font-bold px-1.5 py-0.5 rounded",
-                      c.status === "PASSED" ? "bg-emerald-500/10 text-emerald-600" : "bg-amber-500/10 text-amber-600"
-                    )}>
-                      {c.status}
-                    </span>
-                  </div>
-                ))}
-
-                {acceptanceCriteria.length === 0 && (
-                  <div className="p-6 text-center bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] text-[12px] text-[var(--bos-text-tertiary)] italic">
-                    All standard code and schema assertions verified.
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* TAB 6: EVIDENCE VAULT */}
-          {activeTab === "evidence" && (
-            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--bos-border)] pb-3">
-                <div>
-                  <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                    Evidence Vault & Proof of Work
-                  </h3>
-                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    Immutable records verifying Git commits, PRs, test reports, and review sign-offs.
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowEvidenceForm(!showEvidenceForm)}
-                  className="flex items-center gap-1 px-3 py-1 rounded-lg bg-[var(--bos-accent)] text-white text-[11.5px] font-medium cursor-pointer"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>Attach Proof</span>
-                </button>
-              </div>
-
-              {showEvidenceForm && (
-                <form onSubmit={handleAttachEvidence} className="p-4 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-xl space-y-3">
-                  <h4 className="text-[12px] font-mono uppercase font-bold text-[var(--bos-text-primary)]">
-                    Record New Evidence Proof
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <select
-                      value={evidenceType}
-                      onChange={(e) => setEvidenceType(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[12px]"
-                    >
-                      <option value="GIT_COMMIT">Git Commit</option>
-                      <option value="PULL_REQUEST">Pull Request (PR)</option>
-                      <option value="CI_TEST">Automated CI Test Run</option>
-                      <option value="MIGRATION_RESULT">Migration Log</option>
-                      <option value="DEPLOYMENT_URL">Staging URL</option>
-                    </select>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Proof Title / Commit message..."
-                      value={evidenceTitle}
-                      onChange={(e) => setEvidenceTitle(e.target.value)}
-                      className="px-3 py-1.5 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[12px]"
-                    />
-                  </div>
-                  <input
-                    type="url"
-                    placeholder="URL reference (e.g. GitHub link)..."
-                    value={evidenceUrl}
-                    onChange={(e) => setEvidenceUrl(e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[12px]"
-                  />
-                  <div className="flex justify-end gap-2 pt-1">
-                    <button
-                      type="button"
-                      onClick={() => setShowEvidenceForm(false)}
-                      className="px-3 py-1 text-[11px] border border-[var(--bos-border)] rounded-md cursor-pointer"
-                    >
-                      Cancel
                     </button>
-                    <button
-                      type="submit"
-                      className="px-3 py-1 text-[11px] bg-emerald-600 text-white rounded-md font-medium cursor-pointer"
-                    >
-                      Save Proof
-                    </button>
-                  </div>
-                </form>
-              )}
-
-              {/* Timeline of Proof */}
-              <div className="space-y-2">
-                <div className="p-3 bg-[var(--bos-bg)] border border-emerald-500/20 rounded-lg flex items-center justify-between text-[12px]">
-                  <div className="flex items-center gap-2">
-                    <GitCommit className="w-4 h-4 text-emerald-600" />
-                    <div>
-                      <span className="font-semibold text-[var(--bos-text-primary)]">Initial Work Execution Node Provisioned</span>
-                      <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] block">Audited in relational database</span>
-                    </div>
-                  </div>
-                  <span className="text-[10px] font-mono text-emerald-600 font-bold">VERIFIED</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* TAB 7: EVENT STREAM */}
-          {activeTab === "activity" && (
-            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4">
-              <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
-                Real Task Activity Audit Stream
-              </h3>
-              <div className="space-y-3 text-[12px]">
-                <div className="p-3 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-[var(--bos-text-primary)]">Task Entered Execution OS</span>
-                    <p className="text-[11px] text-[var(--bos-text-secondary)]">Traceability anchored to {requirement?.reference || "Requirement Scope"}.</p>
-                  </div>
-                  <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">Real Database Record</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-        </div>
-
-        {/* Right Sidebar: AI Copilot & Delivery Impact (4 cols) */}
-        <div className="lg:col-span-4 space-y-6">
-          
-          {/* AI Task Intelligence Copilot */}
-          <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-4 shadow-xs">
-            <div className="flex items-center gap-2 border-b border-[var(--bos-border)] pb-3">
-              <div className="w-6 h-6 rounded-md bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] flex items-center justify-center">
-                <Bot className="w-3.5 h-3.5" />
-              </div>
-              <div>
-                <h4 className="text-[13px] font-bold text-[var(--bos-text-primary)]">
-                  Task Intelligence Copilot
-                </h4>
-                <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">
-                  Grounded in Active Node Context
-                </span>
-              </div>
-            </div>
-
-            {/* Quick Prompts */}
-            <div className="space-y-1.5">
-              {[
-                "Find potential edge cases for this task",
-                "What downstream tasks does this unblock?",
-                "Suggest automated test criteria",
-              ].map((qp, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleAiQuery(qp)}
-                  className="w-full p-2 bg-[var(--bos-bg)] hover:bg-[var(--bos-accent-subtle)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] rounded-lg text-left text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-accent)] transition-colors cursor-pointer"
-                >
-                  ✦ {qp}
-                </button>
-              ))}
-            </div>
-
-            {aiLoading && (
-              <div className="p-3 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] flex items-center gap-2 text-[12px] font-mono text-[var(--bos-text-secondary)]">
-                <Loader2 className="w-4 h-4 animate-spin text-[var(--bos-accent)]" />
-                <span>Analyzing graph intelligence...</span>
+                  );
+                })}
               </div>
             )}
 
-            {aiResponse && (
-              <div className="p-3.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[12px] leading-relaxed whitespace-pre-wrap max-h-[220px] overflow-y-auto">
-                {aiResponse}
-              </div>
-            )}
-
-            {/* Input */}
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleAiQuery();
-              }}
-              className="flex items-center gap-1.5 pt-1"
-            >
+            {/* Quick add criterion */}
+            <form onSubmit={handleAddCriterion} className="flex items-center gap-2 pt-1">
               <input
                 type="text"
-                placeholder="Ask about this task..."
-                value={aiQuery}
-                onChange={(e) => setAiQuery(e.target.value)}
-                className="flex-1 px-3 py-1.5 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg text-[12px] text-[var(--bos-text-primary)] focus:outline-hidden focus:border-[var(--bos-accent)]"
+                placeholder="+ Add acceptance criterion..."
+                value={newCriterion}
+                onChange={(e) => setNewCriterion(e.target.value)}
+                className="flex-1 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-lg px-3 py-1.5 text-[12px] text-[var(--bos-text-primary)] focus:outline-hidden"
               />
               <button
                 type="submit"
-                disabled={!aiQuery.trim() || aiLoading}
-                className="p-2 rounded-lg bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)] transition-colors cursor-pointer disabled:opacity-40"
+                disabled={!newCriterion.trim() || isPending}
+                className="px-3 py-1.5 rounded-lg bg-[var(--bos-surface)] hover:bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[12px] font-mono text-[var(--bos-text-primary)] disabled:opacity-40 cursor-pointer"
               >
-                <Send className="w-3.5 h-3.5" />
+                Add
               </button>
             </form>
-          </div>
+          </section>
 
-          {/* Client Delivery Impact Card */}
-          <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-3 shadow-xs">
-            <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-[var(--bos-text-tertiary)] block">
-              CLIENT DELIVERY IMPACT
+          {/* ── 5. WHAT IS BLOCKING ME? ────────────────────────────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-3">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              5. WHAT IS BLOCKING ME?
             </span>
-            <h4 className="text-[13px] font-bold text-[var(--bos-text-primary)]">
-              When This Task is Completed
-            </h4>
-            <div className="space-y-2 text-[12px]">
-              <div className="p-2.5 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] flex items-center justify-between">
-                <span className="text-[var(--bos-text-secondary)]">Deliverable Readiness:</span>
-                <span className="font-mono font-bold text-emerald-600">Advances Phase Gate</span>
-              </div>
-              <div className="p-2.5 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] flex items-center justify-between">
-                <span className="text-[var(--bos-text-secondary)]">Unblocks Downstream:</span>
-                <span className="font-mono font-bold text-[var(--bos-text-primary)]">{dependencies?.downstream?.length || 1} Tasks</span>
-              </div>
-              <div className="p-2.5 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] flex items-center justify-between">
-                <span className="text-[var(--bos-text-secondary)]">Client Visibility:</span>
-                <span className="font-mono font-bold text-purple-600">{task.clientVisibility || "INTERNAL_DEV"}</span>
-              </div>
-            </div>
-          </div>
 
+            {isBlocked ? (
+              <div className="p-4 rounded-lg bg-rose-500/10 border border-rose-500/20 text-[13px] space-y-2">
+                <div className="flex items-center gap-2 font-bold text-rose-600 font-mono">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span>BLOCKED: {task.blockedReason || "Waiting for resolution."}</span>
+                </div>
+                {dependencies.upstream.length > 0 && (
+                  <div className="text-[12px] text-[var(--bos-text-secondary)]">
+                    <span className="font-semibold block mb-1">Blocking Dependencies:</span>
+                    {dependencies.upstream.map((dep) => (
+                      <div key={dep.id} className="flex items-center gap-2 font-mono text-[11.5px]">
+                        <span>● {dep.code || "DEP"}: {dep.title} ({dep.status})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleUpdateStatus("IN_PROGRESS")}
+                  className="px-3 py-1.5 rounded-lg bg-rose-600 text-white text-[12px] font-semibold cursor-pointer"
+                >
+                  Mark Blocker Resolved →
+                </button>
+              </div>
+            ) : dependencies.upstream.length > 0 && dependencies.isBlockedByUpstream ? (
+              <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[13px] space-y-1.5 font-mono">
+                <span className="font-bold text-amber-600">Waiting for upstream tasks to complete:</span>
+                {dependencies.upstream.map((dep) => (
+                  <div key={dep.id} className="text-[12px] text-[var(--bos-text-primary)]">
+                    ● {dep.code || "DEP"}: {dep.title} · <span className="text-[var(--bos-text-secondary)]">{dep.status}</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-3.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[12.5px] font-mono text-emerald-600 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>No blockers — nothing is currently preventing your work.</span>
+              </div>
+            )}
+          </section>
+
+          {/* ── 6. WHAT HAPPENS AFTER THIS? ────────────────────────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-3">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              6. WHAT HAPPENS AFTER THIS?
+            </span>
+
+            {dependencies.downstream.length > 0 ? (
+              <div className="space-y-2 font-mono text-[12px]">
+                <span className="text-[var(--bos-text-secondary)] block">
+                  Completing this task unlocks the following downstream work:
+                </span>
+                <div className="space-y-1.5">
+                  {dependencies.downstream.map((down) => (
+                    <div key={down.id} className="p-2.5 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] flex items-center justify-between">
+                      <span className="font-semibold text-[var(--bos-text-primary)]">
+                        {down.code ? `${down.code}: ` : ""}{down.title}
+                      </span>
+                      <span className="text-[11px] text-[var(--bos-text-tertiary)]">{down.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[12.5px] font-mono text-[var(--bos-text-secondary)]">
+                Completing this task contributes directly to the final acceptance of the deliverable.
+              </p>
+            )}
+          </section>
+
+          {/* ── EVIDENCE SECTION ───────────────────────────────────── */}
+          <section className="p-5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)]">
+                VERIFICATION EVIDENCE
+              </span>
+              <button
+                type="button"
+                onClick={() => setShowEvidenceForm(!showEvidenceForm)}
+                className="text-[12px] font-mono text-[var(--bos-accent)] hover:underline cursor-pointer"
+              >
+                {showEvidenceForm ? "Cancel" : "+ Attach Evidence"}
+              </button>
+            </div>
+
+            {showEvidenceForm && (
+              <form onSubmit={handleSubmitEvidence} className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-mono uppercase text-[var(--bos-text-tertiary)] block mb-1">
+                      Evidence Type
+                    </label>
+                    <select
+                      value={evidenceType}
+                      onChange={(e) => setEvidenceType(e.target.value)}
+                      className="w-full bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg px-3 py-1.5 text-[12px] font-mono text-[var(--bos-text-primary)]"
+                    >
+                      <option value="GIT_COMMIT">Git Commit / PR</option>
+                      <option value="SCREENSHOT">Screenshot / UI Preview</option>
+                      <option value="TEST_OUTPUT">Test Run Output</option>
+                      <option value="DOCUMENT">Documentation Link</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-mono uppercase text-[var(--bos-text-tertiary)] block mb-1">
+                      Evidence Title
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="e.g. PR #42 merged into main"
+                      value={evidenceTitle}
+                      onChange={(e) => setEvidenceTitle(e.target.value)}
+                      required
+                      className="w-full bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg px-3 py-1.5 text-[12px] text-[var(--bos-text-primary)]"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[11px] font-mono uppercase text-[var(--bos-text-tertiary)] block mb-1">
+                    URL / Reference (Optional)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://github.com/..."
+                    value={evidenceUrl}
+                    onChange={(e) => setEvidenceUrl(e.target.value)}
+                    className="w-full bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg px-3 py-1.5 text-[12px] text-[var(--bos-text-primary)]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={!evidenceTitle.trim() || isPending}
+                  className="px-4 py-1.5 rounded-lg bg-[var(--bos-accent)] text-white text-[12px] font-semibold cursor-pointer"
+                >
+                  Save Evidence
+                </button>
+              </form>
+            )}
+          </section>
         </div>
 
+        {/* ── ACTIONS FOOTER (LIFECYCLE CONTROLS) ─────────────────── */}
+        <div className="p-4 border-t border-[var(--bos-border)] bg-[var(--bos-bg)] flex items-center justify-between gap-4 flex-wrap">
+          {/* Status Lifecycle Indicator */}
+          <div className="flex items-center gap-1.5 text-[11px] font-mono text-[var(--bos-text-secondary)]">
+            <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">Lifecycle:</span>
+            {["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"].map((st, idx, arr) => (
+              <span key={st} className="flex items-center gap-1">
+                <span className={cn(
+                  "px-2 py-0.5 rounded",
+                  task.status === st ? "bg-[var(--bos-accent)] text-white font-bold" : "text-[var(--bos-text-tertiary)]"
+                )}>
+                  {st === "TODO" ? "To Do" : st === "IN_PROGRESS" ? "In Progress" : st === "IN_REVIEW" ? "In Review" : "Done"}
+                </span>
+                {idx < arr.length - 1 && <span className="opacity-40">→</span>}
+              </span>
+            ))}
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Block Button */}
+            {!isBlocked && !isDone && (
+              <button
+                type="button"
+                onClick={() => setShowBlockModal(true)}
+                className="px-3 py-2 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-600 border border-amber-500/20 text-[12px] font-mono font-medium transition-all cursor-pointer"
+              >
+                Mark Blocked
+              </button>
+            )}
+
+            {/* Lifecycle Advancements */}
+            {(task.status === "TODO" || task.status === "READY" || task.status === "BACKLOG") && (
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus("IN_PROGRESS")}
+                disabled={isPending}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-[var(--bos-accent)] hover:brightness-110 text-white text-[13px] font-semibold transition-all cursor-pointer shadow-sm"
+              >
+                <Play className="w-4 h-4" />
+                <span>Start Task</span>
+              </button>
+            )}
+
+            {task.status === "IN_PROGRESS" && (
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus("IN_REVIEW")}
+                disabled={isPending}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-[13px] font-semibold transition-all cursor-pointer shadow-sm"
+              >
+                <Send className="w-4 h-4" />
+                <span>Submit for Review</span>
+              </button>
+            )}
+
+            {task.status === "IN_REVIEW" && (
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus("DONE")}
+                disabled={isPending}
+                className="inline-flex items-center gap-2 px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-[13px] font-semibold transition-all cursor-pointer shadow-sm"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                <span>Verify &amp; Complete</span>
+              </button>
+            )}
+
+            {isDone && (
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-500/10 text-emerald-600 text-[12.5px] font-mono font-bold border border-emerald-500/20">
+                <Check className="w-4 h-4" />
+                TASK VERIFIED &amp; COMPLETE
+              </span>
+            )}
+          </div>
+        </div>
       </div>
 
+      {/* Block Modal */}
+      {showBlockModal && (
+        <div className="fixed inset-0 z-60 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center gap-2 text-rose-600 font-mono font-bold text-[14px]">
+              <AlertTriangle className="w-5 h-5" />
+              <span>Declare Execution Blocker</span>
+            </div>
+            <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+              Specify the reason why this task cannot proceed so the project lead can assist.
+            </p>
+            <textarea
+              placeholder="e.g. Waiting for client API credentials or upstream backend schema migration..."
+              value={blockedReasonInput}
+              onChange={(e) => setBlockedReasonInput(e.target.value)}
+              rows={3}
+              required
+              className="w-full bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-xl p-3 text-[12.5px] text-[var(--bos-text-primary)] focus:outline-hidden"
+            />
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowBlockModal(false)}
+                className="px-4 py-2 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[12px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleUpdateStatus("BLOCKED", blockedReasonInput)}
+                disabled={!blockedReasonInput.trim()}
+                className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-[12px] font-semibold disabled:opacity-50"
+              >
+                Confirm Blocker
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

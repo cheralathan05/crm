@@ -917,45 +917,70 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
 
       {/* ── WORKSPACE NAVIGATION TABS ────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 pt-6">
-        <div className="flex items-center gap-1 border-b border-[var(--bos-border-subtle)] pb-2 overflow-x-auto">
-          {[
-            { id: "overview", label: "Overview", icon: Rocket },
-            { id: "engineering", label: "Engineering Hub", icon: Layers },
-            { id: "frontend", label: `Frontend (${blueprint?.frontendCapabilities?.length || 0})`, icon: Globe },
-            { id: "backend", label: `Backend (${blueprint?.backendServices?.length || 0})`, icon: Server },
-            { id: "database", label: `Database (${blueprint?.databaseEntities?.length || 0})`, icon: Database },
-            { id: "apis", label: `APIs (${blueprint?.backendApis?.length || 0})`, icon: Code2 },
-            { id: "integrations", label: `Integrations (${blueprint?.integrations?.length || 0})`, icon: GitBranch },
-            { id: "testing", label: `Testing (${blueprint?.testSpecifications?.length || 0})`, icon: ShieldCheck },
-            { id: "tasks", label: `Tasks (${tasks.length})`, icon: ListTodo },
-            { id: "deliverables", label: `Deliverables (${deliverables.length})`, icon: FileCheck2 },
-            { id: "timeline", label: "Timeline", icon: MilestoneIcon },
-            { id: "scope", label: "Scope", icon: ShieldCheck },
-            { id: "team", label: `Team (${team.length})`, icon: Users },
-            { id: "changes", label: `Changes (${changeRequests.length})`, icon: GitPullRequest },
-            { id: "commercials", label: "Commercials", icon: Coins },
-            { id: "vault", label: "Vault", icon: FileText },
-            { id: "activity", label: `Activity (${activities.length})`, icon: History },
-          ].map((tab) => {
-            const Icon = tab.icon;
-            const isActive = view === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setView(tab.id as ActiveWorkspaceView)}
-                className={cn(
-                  "flex items-center gap-2 px-3.5 py-2 text-[12px] font-mono uppercase tracking-wide rounded-sm transition-all whitespace-nowrap cursor-pointer",
-                  isActive
-                    ? "bg-[var(--bos-surface-panel)] text-[var(--bos-text-primary)] font-bold shadow-xs border border-[var(--bos-border-subtle)] border-b-2 border-b-[var(--bos-accent)]"
-                    : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface-panel)]/50",
-                )}
-              >
-                <Icon className={cn("w-3.5 h-3.5", isActive ? "text-[var(--bos-accent)]" : "opacity-70")} />
-                <span>{tab.label}</span>
-              </button>
-            );
-          })}
+        <div className="flex items-center justify-between gap-4 border-b border-[var(--bos-border-subtle)] pb-2 flex-wrap">
+          {/* Primary Tabs */}
+          <div className="flex items-center gap-1 overflow-x-auto">
+            {[
+              { id: "overview", label: "Overview", icon: Rocket },
+              { id: "engineering", label: "Engineering", icon: Layers },
+              { id: "tasks", label: `Tasks (${tasks.length})`, icon: ListTodo },
+              { id: "deliverables", label: `Deliverables (${deliverables.length})`, icon: FileCheck2 },
+              { id: "team", label: `Team (${team.length})`, icon: Users },
+            ].map((tab) => {
+              const Icon = tab.icon;
+              const isActive = view === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setView(tab.id as ActiveWorkspaceView)}
+                  className={cn(
+                    "flex items-center gap-2 px-3.5 py-2 text-[12px] font-mono uppercase tracking-wide rounded-sm transition-all whitespace-nowrap cursor-pointer",
+                    isActive
+                      ? "bg-[var(--bos-surface-panel)] text-[var(--bos-text-primary)] font-bold shadow-xs border border-[var(--bos-border-subtle)] border-b-2 border-b-[var(--bos-accent)]"
+                      : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface-panel)]/50",
+                  )}
+                >
+                  <Icon className={cn("w-3.5 h-3.5", isActive ? "text-[var(--bos-accent)]" : "opacity-70")} />
+                  <span>{tab.label}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Advanced Engineering & Commercial Views */}
+          <div className="flex items-center gap-1 overflow-x-auto text-[11px] font-mono">
+            <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px] mr-1 hidden sm:inline">Advanced:</span>
+            {[
+              { id: "frontend", label: `Frontend (${blueprint?.frontendCapabilities?.length || 0})` },
+              { id: "backend", label: `Backend (${blueprint?.backendServices?.length || 0})` },
+              { id: "database", label: `Database (${blueprint?.databaseEntities?.length || 0})` },
+              { id: "apis", label: `APIs (${blueprint?.backendApis?.length || 0})` },
+              { id: "testing", label: `Testing (${blueprint?.testSpecifications?.length || 0})` },
+              { id: "timeline", label: "Timeline" },
+              { id: "changes", label: `Changes (${changeRequests.length})` },
+              { id: "commercials", label: "Commercials" },
+              { id: "vault", label: "Vault" },
+              { id: "activity", label: "Activity" },
+            ].map((adv) => {
+              const isActive = view === adv.id;
+              return (
+                <button
+                  key={adv.id}
+                  type="button"
+                  onClick={() => setView(adv.id as ActiveWorkspaceView)}
+                  className={cn(
+                    "px-2 py-1 rounded transition-colors cursor-pointer whitespace-nowrap",
+                    isActive
+                      ? "bg-[var(--bos-accent)] text-white font-bold"
+                      : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface-sunken)]",
+                  )}
+                >
+                  {adv.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
 
@@ -1100,6 +1125,15 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
             metrics={metrics}
             onNavigateTab={(tabName) => setView(tabName as ActiveWorkspaceView)}
             onOpenRequirementDrawer={() => setActiveDrawer("requirement")}
+            onOpenTask={(taskId) => {
+              const t = tasks.find((item: any) => item.id === taskId);
+              if (t) {
+                setSelectedTask(t);
+                setActiveDrawer("task");
+              } else {
+                setView("tasks");
+              }
+            }}
             onSelectFeature={(feat) => {
               setSelectedScopeItem(feat);
               setActiveDrawer("requirement");

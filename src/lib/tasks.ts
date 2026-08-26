@@ -113,6 +113,8 @@ export type WorkDNA = {
     title: string;
     description: string | null;
     expectedResult: string | null;
+    blockedReason?: string | null;
+    assigneeName?: string | null;
     status: string;
     priority: string;
     clientVisibility: string;
@@ -345,6 +347,8 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
       title: task.title,
       description: task.description,
       expectedResult: task.expectedResult,
+      blockedReason: task.blockedReason,
+      assigneeName: task.assigneeName,
       status: task.status,
       priority: task.priority,
       clientVisibility: task.clientVisibility,

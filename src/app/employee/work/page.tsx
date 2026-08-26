@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { signOut } from "next-auth/react";
 import {
   CheckSquare,
@@ -14,7 +13,6 @@ import {
   Package,
   Users,
   Search,
-  Command,
   ArrowRight,
   ChevronDown,
   Building2,
@@ -31,11 +29,13 @@ import {
   AlertCircle,
   X,
   ExternalLink,
+  User,
+  Play,
 } from "lucide-react";
 import { SystemGrid } from "@/components/system-grid";
 import { AmbientBackground } from "@/components/ambient-background";
-
-type TabKey = "MY_WORK" | "PROJECTS" | "DELIVERABLES" | "TEAM" | "ACCESS";
+import { TaskExecutionWorkspace } from "@/components/tasks/task-execution-workspace";
+import { cn } from "@/lib/utils";
 
 export default function EmployeeWorkPage() {
   const router = useRouter();
@@ -44,10 +44,10 @@ export default function EmployeeWorkPage() {
   const [data, setData] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<TabKey>("MY_WORK");
+  // Active Task Drawer
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
 
-  // Filter & Search
+  // Search & Command
   const [searchQuery, setSearchQuery] = useState("");
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
   const [orgDropdownOpen, setOrgDropdownOpen] = useState(false);
@@ -91,24 +91,16 @@ export default function EmployeeWorkPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Time-aware greeting
-  const greeting = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "GOOD MORNING";
-    if (hour < 17) return "GOOD AFTERNOON";
-    return "GOOD EVENING";
-  }, []);
-
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/auth/employee/login" });
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[var(--bos-bg)] flex flex-col items-center justify-center p-6 gap-3 font-sans">
-        <Loader2 className="w-6 h-6 animate-spin text-[var(--bos-accent)]" />
-        <p className="text-xs font-mono text-[var(--bos-text-secondary)] tracking-wider uppercase">
-          RESTORING WORKSPACE CONTEXT...
+      <div className="min-h-screen bg-[var(--bos-bg)] flex flex-col items-center justify-center p-6 gap-3 font-mono">
+        <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)]" />
+        <p className="text-xs text-[var(--bos-text-secondary)] tracking-wider uppercase">
+          RESTORING EMPLOYEE CONTEXT...
         </p>
       </div>
     );
@@ -117,20 +109,20 @@ export default function EmployeeWorkPage() {
   if (error || !data) {
     return (
       <div className="min-h-screen bg-[var(--bos-bg)] flex items-center justify-center p-6 font-sans">
-        <div className="max-w-md w-full p-8 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-sm text-center space-y-4">
+        <div className="max-w-md w-full p-8 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl text-center space-y-4 shadow-xl">
           <AlertCircle className="w-8 h-8 text-rose-600 mx-auto" />
-          <h2 className="text-lg font-medium text-[var(--bos-text-primary)]">Workspace Error</h2>
+          <h2 className="text-lg font-bold text-[var(--bos-text-primary)]">Workspace Error</h2>
           <p className="text-xs text-[var(--bos-text-secondary)] leading-relaxed">{error}</p>
-          <div className="pt-2 flex justify-center gap-2">
+          <div className="pt-2 flex justify-center gap-2 font-mono text-xs">
             <button
               onClick={fetchWorkData}
-              className="px-4 py-2 bg-[var(--bos-accent)] text-white text-xs font-mono font-semibold uppercase rounded-sm"
+              className="px-4 py-2 bg-[var(--bos-accent)] text-white font-semibold uppercase rounded-xl cursor-pointer"
             >
               Retry
             </button>
             <a
               href="/auth/employee/login"
-              className="px-4 py-2 bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)] text-xs font-mono font-semibold uppercase rounded-sm"
+              className="px-4 py-2 bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)] font-semibold uppercase rounded-xl"
             >
               Sign In Again
             </a>
@@ -142,18 +134,45 @@ export default function EmployeeWorkPage() {
 
   const { context, work } = data;
   const { employee, organization, role, team, capabilities, organizations } = context;
-  const { metrics, sections, projects, deliverables, teamMembers, recentActivities } = work;
+  const { metrics, sections, projects, deliverables, teamMembers } = work;
+
+  // Flatten assigned tasks for calculations
+  const allAssignedTasks: any[] = [
+    ...(sections.dueToday || []),
+    ...(sections.inProgress || []),
+    ...(sections.blocked || []),
+    ...(sections.inReview || []),
+    ...(sections.upcoming || []),
+  ];
+
+  // Primary active project
+  const currentProject = projects.length > 0 ? projects[0] : null;
+
+  // MY NEXT TASK (First priority task requiring action)
+  const myNextTask =
+    sections.inProgress?.length > 0
+      ? sections.inProgress[0]
+      : sections.dueToday?.length > 0
+      ? sections.dueToday[0]
+      : sections.upcoming?.length > 0
+      ? sections.upcoming[0]
+      : sections.blocked?.length > 0
+      ? sections.blocked[0]
+      : null;
+
+  // Completed tasks count
+  const completedTasksCount = metrics.completedCount || 0;
 
   return (
     <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
       <SystemGrid />
       <AmbientBackground />
 
-      {/* ── Top Bar ── */}
-      <header className="relative z-20 h-14 border-b border-[var(--bos-line)] bg-[var(--bos-bg)]/80 backdrop-blur-md px-6 flex items-center justify-between">
+      {/* ── TOP NAV BAR ────────────────────────────────────────────── */}
+      <header className="relative z-20 h-14 border-b border-[var(--bos-border)] bg-[var(--bos-bg)]/80 backdrop-blur-md px-6 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2.5">
-            <div className="w-6 h-6 rounded-sm bg-[var(--bos-accent)] text-white flex items-center justify-center font-bold text-xs">
+            <div className="w-6 h-6 rounded-md bg-[var(--bos-accent)] text-white flex items-center justify-center font-bold text-xs">
               ⬡
             </div>
             <span className="font-mono text-xs font-bold tracking-widest text-[var(--bos-text-primary)] uppercase">
@@ -161,13 +180,13 @@ export default function EmployeeWorkPage() {
             </span>
           </div>
 
-          <div className="h-4 w-px bg-[var(--bos-line)]" />
+          <div className="h-4 w-px bg-[var(--bos-border)]" />
 
           {/* Organization Switcher */}
           <div className="relative">
             <button
               onClick={() => setOrgDropdownOpen(!orgDropdownOpen)}
-              className="flex items-center gap-2 px-2.5 py-1 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-xs font-mono text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all cursor-pointer"
+              className="flex items-center gap-2 px-2.5 py-1 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-xs font-mono text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all cursor-pointer"
             >
               <Building2 className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
               <span className="font-semibold">{organization.name}</span>
@@ -175,16 +194,17 @@ export default function EmployeeWorkPage() {
             </button>
 
             {orgDropdownOpen && (
-              <div className="absolute left-0 top-full mt-1.5 w-64 p-2 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-sm shadow-md z-30 font-mono text-xs space-y-1">
+              <div className="absolute left-0 top-full mt-1.5 w-64 p-2 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl shadow-xl z-30 font-mono text-xs space-y-1">
                 <span className="text-[9.5px] uppercase tracking-wider text-[var(--bos-text-tertiary)] px-2 py-1 block">
-                  YOUR ORGANIZATIONS
+                  YOUR WORKSPACE
                 </span>
                 {organizations.map((org: any) => (
                   <div
                     key={org.workspaceId}
-                    className={`flex items-center justify-between p-2 rounded-xs transition-colors ${
-                      org.isCurrent ? "bg-[var(--bos-bg)] font-semibold text-[var(--bos-accent)]" : "text-[var(--bos-text-secondary)] hover:bg-[var(--bos-bg)]"
-                    }`}
+                    className={cn(
+                      "flex items-center justify-between p-2 rounded-lg transition-colors",
+                      org.isCurrent ? "bg-[var(--bos-bg)] font-semibold text-[var(--bos-accent)]" : "text-[var(--bos-text-secondary)]"
+                    )}
                   >
                     <div>
                       <span className="block">{org.workspaceName}</span>
@@ -196,430 +216,342 @@ export default function EmployeeWorkPage() {
               </div>
             )}
           </div>
-
-          <span className="hidden sm:inline-flex px-2 py-0.5 rounded-xs bg-[var(--bos-surface)] border border-[var(--bos-line)] text-[10.5px] font-mono text-[var(--bos-text-secondary)]">
-            {role.name} · {team.name}
-          </span>
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Onboarding Overview Link */}
-          <a
-            href="/employee/onboarding"
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-xs font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all cursor-pointer"
-          >
-            <Shield className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
-            <span className="hidden sm:inline">Onboarding Overview</span>
-          </a>
-
-          {/* Quick Command Trigger */}
           <button
             onClick={() => setCommandPaletteOpen(true)}
-            className="flex items-center gap-2 px-3 py-1.5 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-xs font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all cursor-pointer"
+            className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] text-xs font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-all cursor-pointer"
           >
             <Search className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Quick command</span>
-            <kbd className="px-1.5 py-0.5 rounded-xs bg-[var(--bos-bg)] border border-[var(--bos-line)] text-[10px]">
+            <span className="hidden sm:inline">Command Palette</span>
+            <kbd className="px-1.5 py-0.5 rounded bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[10px]">
               ⌘K
             </kbd>
           </button>
 
-          {/* User & Logout */}
-          <div className="flex items-center gap-2 pl-2 border-l border-[var(--bos-line)]">
-            <span className="text-xs font-mono text-[var(--bos-text-primary)] font-medium hidden md:inline">
-              {employee.fullName}
-            </span>
-            <button
-              onClick={handleLogout}
-              title="Sign out of Business OS"
-              className="p-1.5 rounded-sm hover:bg-[var(--bos-surface)] text-[var(--bos-text-tertiary)] hover:text-rose-600 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-            </button>
-          </div>
+          <button
+            onClick={handleLogout}
+            title="Sign out"
+            className="p-1.5 rounded-lg hover:bg-[var(--bos-surface)] text-[var(--bos-text-tertiary)] hover:text-rose-600 transition-colors cursor-pointer"
+          >
+            <LogOut className="w-4 h-4" />
+          </button>
         </div>
       </header>
 
-      {/* ── Main Layout ── */}
-      <div className="relative z-10 flex-1 max-w-7xl w-full mx-auto p-6 sm:p-8 space-y-8">
-        {/* Welcome Banner */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 border-b border-[var(--bos-line)] pb-6">
-          <div>
-            <span className="font-mono text-[10.5px] font-bold uppercase tracking-widest text-[var(--bos-accent)] block mb-1">
-              OPERATING ENVIRONMENT ACTIVE
+      {/* ── MAIN EMPLOYEE CONTENT ───────────────────────────────────── */}
+      <main className="relative z-10 flex-1 max-w-6xl w-full mx-auto p-6 sm:p-8 space-y-8">
+        {/* ── 01. EMPLOYEE HEADER (WHO AM I?) ────────────────────────── */}
+        <section className="p-6 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-14 h-14 rounded-2xl bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] border border-[var(--bos-accent-ring)] flex items-center justify-center font-bold text-xl font-mono">
+              {employee.fullName ? employee.fullName.charAt(0).toUpperCase() : "E"}
+            </div>
+
+            <div className="space-y-0.5">
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-[var(--bos-text-primary)]">
+                  {employee.fullName.toUpperCase()}
+                </h1>
+                <span className="px-2 py-0.5 rounded font-mono text-[10.5px] uppercase font-bold bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+                  {employee.status || "ACTIVE"}
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 text-[12.5px] font-mono text-[var(--bos-text-secondary)] flex-wrap">
+                <span className="font-semibold text-[var(--bos-text-primary)]">{role?.name || "Specialist"}</span>
+                <span>·</span>
+                <span>{team?.name || "Product Engineering"}</span>
+                <span>·</span>
+                <span>{employee.employeeCode || "EMP-001"}</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 02. MY WORK SUMMARY COUNTS ─────────────────────────────── */}
+        <section className="space-y-2">
+          <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+            MY WORK
+          </span>
+
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {/* TODAY */}
+            <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+              <span className="font-mono text-[10.5px] font-bold uppercase text-rose-600 block">TODAY</span>
+              <div className="text-[22px] font-mono font-bold text-[var(--bos-text-primary)]">
+                {metrics.dueTodayCount || 0}
+              </div>
+            </div>
+
+            {/* IN PROGRESS */}
+            <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+              <span className="font-mono text-[10.5px] font-bold uppercase text-sky-600 block">IN PROGRESS</span>
+              <div className="text-[22px] font-mono font-bold text-[var(--bos-text-primary)]">
+                {metrics.inProgressCount || 0}
+              </div>
+            </div>
+
+            {/* UPCOMING */}
+            <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+              <span className="font-mono text-[10.5px] font-bold uppercase text-[var(--bos-accent)] block">UPCOMING</span>
+              <div className="text-[22px] font-mono font-bold text-[var(--bos-text-primary)]">
+                {sections.upcoming?.length || 0}
+              </div>
+            </div>
+
+            {/* COMPLETED */}
+            <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+              <span className="font-mono text-[10.5px] font-bold uppercase text-emerald-600 block">COMPLETED</span>
+              <div className="text-[22px] font-mono font-bold text-[var(--bos-text-primary)]">
+                {completedTasksCount}
+              </div>
+            </div>
+
+            {/* BLOCKED */}
+            <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+              <span className="font-mono text-[10.5px] font-bold uppercase text-amber-600 block">BLOCKED</span>
+              <div className="text-[22px] font-mono font-bold text-[var(--bos-text-primary)]">
+                {metrics.blockedCount || 0}
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* ── 03. MY CURRENT PROJECT & MY NEXT TASK ─────────────────── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* MY CURRENT PROJECT */}
+          <section className="p-6 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-4 shadow-xs">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              MY CURRENT PROJECT
             </span>
-            <h1 className="text-2xl sm:text-3xl font-light tracking-tight text-[var(--bos-text-primary)]">
-              {greeting}, {employee.fullName.split(" ")[0]}
-            </h1>
-            <p className="text-xs text-[var(--bos-text-secondary)] mt-1">
-              Here's what needs your attention in <strong className="text-[var(--bos-text-primary)]">{organization.name}</strong>.
+
+            {currentProject ? (
+              <div className="space-y-3">
+                <div>
+                  <h3 className="text-[17px] font-bold text-[var(--bos-text-primary)]">
+                    {currentProject.name}
+                  </h3>
+                  <p className="text-[12px] font-mono text-[var(--bos-text-secondary)] mt-0.5">
+                    Client: {currentProject.clientName || "Client"}
+                  </p>
+                </div>
+
+                <div className="space-y-1.5 pt-2 border-t border-[var(--bos-border)] text-[12px] font-mono">
+                  <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
+                    <span>Role:</span>
+                    <strong className="text-[var(--bos-text-primary)]">{role?.name || currentProject.role || "Specialist"}</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
+                    <span>Project Phase:</span>
+                    <strong className="text-[var(--bos-text-primary)]">{currentProject.stage}</strong>
+                  </div>
+                  <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
+                    <span>Stage Progress:</span>
+                    <strong className="text-[var(--bos-accent)]">{currentProject.progress}%</strong>
+                  </div>
+                </div>
+
+                <div className="w-full bg-[var(--bos-bg)] h-2 rounded-full overflow-hidden">
+                  <div
+                    className="bg-[var(--bos-accent)] h-full transition-all duration-300 rounded-full"
+                    style={{ width: `${currentProject.progress}%` }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <div className="p-6 text-center bg-[var(--bos-bg)] rounded-xl font-mono text-[12.5px] text-[var(--bos-text-secondary)]">
+                NO ACTIVE PROJECTS — You have not been assigned to a project yet.
+              </div>
+            )}
+          </section>
+
+          {/* MY NEXT TASK */}
+          <section className="p-6 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-4 shadow-xs">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+              MY NEXT TASK
+            </span>
+
+            {myNextTask ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)] bg-[var(--bos-bg)] px-2 py-0.5 rounded border border-[var(--bos-border)]">
+                    {myNextTask.code || "TSK-001"}
+                  </span>
+                  <span className={cn(
+                    "font-mono text-[10.5px] uppercase font-bold px-2 py-0.5 rounded border",
+                    myNextTask.status === "BLOCKED" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-sky-500/10 text-sky-600 border-sky-500/20"
+                  )}>
+                    {myNextTask.status}
+                  </span>
+                </div>
+
+                <h3 className="text-[16px] font-bold text-[var(--bos-text-primary)] leading-snug">
+                  {myNextTask.title}
+                </h3>
+
+                <div className="space-y-1 pt-2 border-t border-[var(--bos-border)] text-[12px] font-mono text-[var(--bos-text-secondary)]">
+                  <div className="flex items-center justify-between">
+                    <span>Due:</span>
+                    <strong className="text-[var(--bos-text-primary)]">
+                      {myNextTask.dueAt ? new Date(myNextTask.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Not specified"}
+                    </strong>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span>Priority:</span>
+                    <strong className={cn(
+                      myNextTask.priority === "URGENT" || myNextTask.priority === "HIGH" ? "text-rose-600" : "text-[var(--bos-text-primary)]"
+                    )}>
+                      {myNextTask.priority || "Medium"}
+                    </strong>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTaskId(myNextTask.id)}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-[var(--bos-accent)] hover:brightness-110 text-white text-[13px] font-semibold transition-all cursor-pointer shadow-sm mt-2"
+                >
+                  <span>Open Task →</span>
+                </button>
+              </div>
+            ) : (
+              <div className="p-6 text-center bg-[var(--bos-bg)] rounded-xl font-mono text-[12.5px] text-[var(--bos-text-secondary)]">
+                NO TASKS ASSIGNED — You currently have no assigned tasks.
+              </div>
+            )}
+          </section>
+        </div>
+
+        {/* ── 04. MY PROJECT CONTEXT ───────────────────────────────── */}
+        <section className="p-6 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-6 shadow-xs">
+          <div>
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)]">
+              MY PROJECT CONTEXT
+            </span>
+            <p className="text-[12.5px] text-[var(--bos-text-secondary)] mt-0.5">
+              Clear summary of what we are building, your concrete responsibility, and blockers.
             </p>
           </div>
 
-          {/* Metric Status Strips */}
-          <div className="flex items-center gap-2 font-mono text-xs">
-            <div className="px-3 py-2 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)]">
-              <span className="text-[9.5px] uppercase text-[var(--bos-text-tertiary)] block">DUE TODAY</span>
-              <span className={`text-base font-bold ${metrics.dueTodayCount > 0 ? "text-rose-600" : "text-[var(--bos-text-primary)]"}`}>
-                {metrics.dueTodayCount}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* 1. WHAT WE ARE BUILDING */}
+            <div className="p-4 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-1.5">
+              <span className="font-mono text-[10.5px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                WHAT WE ARE BUILDING
               </span>
+              <p className="text-[13px] text-[var(--bos-text-primary)] leading-relaxed">
+                {currentProject?.name ? `${currentProject.name} — scalable engineering platform developed for ${currentProject.clientName || "the client"} under approved specifications.` : "Not specified in active project."}
+              </p>
             </div>
-            <div className="px-3 py-2 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)]">
-              <span className="text-[9.5px] uppercase text-[var(--bos-text-tertiary)] block">IN PROGRESS</span>
-              <span className="text-base font-bold text-[var(--bos-accent)]">{metrics.inProgressCount}</span>
-            </div>
-            <div className="px-3 py-2 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)]">
-              <span className="text-[9.5px] uppercase text-[var(--bos-text-tertiary)] block">BLOCKED</span>
-              <span className={`text-base font-bold ${metrics.blockedCount > 0 ? "text-amber-600" : "text-[var(--bos-text-primary)]"}`}>
-                {metrics.blockedCount}
+
+            {/* 2. MY RESPONSIBILITY */}
+            <div className="p-4 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-1.5">
+              <span className="font-mono text-[10.5px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                MY RESPONSIBILITY
               </span>
+              <p className="text-[13px] text-[var(--bos-text-primary)] leading-relaxed">
+                {role?.name || "Specialist"} responsibility across {deliverables.length > 0 ? deliverables.map((d: any) => d.title).slice(0, 3).join(", ") : "project execution tasks"}.
+              </p>
             </div>
-            <div className="px-3 py-2 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)]">
-              <span className="text-[9.5px] uppercase text-[var(--bos-text-tertiary)] block">PROJECTS</span>
-              <span className="text-base font-bold text-[var(--bos-text-primary)]">{metrics.projectsCount}</span>
+
+            {/* 3. WHAT I AM WAITING FOR */}
+            <div className="p-4 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-1.5">
+              <span className="font-mono text-[10.5px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                WHAT I AM WAITING FOR
+              </span>
+              {sections.blocked?.length > 0 ? (
+                <div className="space-y-1 text-[12.5px] text-amber-600 font-mono">
+                  {sections.blocked.map((bt: any) => (
+                    <div key={bt.id}>● {bt.title}: {bt.blockedReason || "Waiting for resolution"}</div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-[13px] text-emerald-600 font-mono">
+                  NO BLOCKERS — Nothing is currently preventing your work.
+                </p>
+              )}
+            </div>
+
+            {/* 4. WHAT I HAVE COMPLETED */}
+            <div className="p-4 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-1.5">
+              <span className="font-mono text-[10.5px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                WHAT I HAVE COMPLETED
+              </span>
+              <p className="text-[13px] text-[var(--bos-text-primary)] font-mono">
+                {completedTasksCount} task{completedTasksCount === 1 ? "" : "s"} verified and marked complete in this workspace.
+              </p>
             </div>
           </div>
-        </div>
+        </section>
 
-        {/* Navigation Tabs */}
-        <div className="flex items-center gap-1 border-b border-[var(--bos-line)] pb-2 font-mono text-xs">
-          {[
-            { id: "MY_WORK", label: "MY WORK" },
-            { id: "PROJECTS", label: `PROJECTS (${projects.length})` },
-            { id: "DELIVERABLES", label: `DELIVERABLES (${deliverables.length})` },
-            { id: "TEAM", label: `TEAM (${teamMembers.length})` },
-            { id: "ACCESS", label: "MY ACCESS" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as TabKey)}
-              className={`px-3 py-1.5 rounded-sm transition-colors cursor-pointer ${
-                activeTab === tab.id
-                  ? "bg-[var(--bos-surface)] text-[var(--bos-text-primary)] font-semibold border border-[var(--bos-border)] shadow-2xs"
-                  : "text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </div>
-
-        {/* ── TAB 1: MY WORK (Execution Backbone) ── */}
-        {activeTab === "MY_WORK" && (
-          <div className="space-y-8">
-            {/* DUE TODAY */}
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Flame className="w-4 h-4 text-rose-600" />
-                  <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-primary)]">
-                    DUE TODAY & OVERDUE
-                  </h2>
-                </div>
-                <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
-                  {sections.dueToday.length} item{sections.dueToday.length === 1 ? "" : "s"}
-                </span>
-              </div>
-
-              {sections.dueToday.length > 0 ? (
-                <div className="grid grid-cols-1 gap-2">
-                  {sections.dueToday.map((task: any) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-center font-mono">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 mx-auto mb-1.5" />
-                  <span className="text-xs font-semibold text-[var(--bos-text-primary)] block">NO WORK DUE TODAY</span>
-                  <p className="text-[11px] text-[var(--bos-text-tertiary)] mt-0.5">You're clear for now.</p>
-                </div>
-              )}
-            </section>
-
-            {/* BLOCKED */}
-            {sections.blocked.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="w-4 h-4 text-amber-600" />
-                    <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-amber-600">
-                      BLOCKED WORK
-                    </h2>
-                  </div>
-                  <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
-                    {sections.blocked.length} item{sections.blocked.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2">
-                  {sections.blocked.map((task: any) => (
-                    <TaskCard key={task.id} task={task} isBlocked />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* IN PROGRESS */}
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-[var(--bos-accent)]" />
-                  <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-primary)]">
-                    IN PROGRESS
-                  </h2>
-                </div>
-                <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
-                  {sections.inProgress.length} item{sections.inProgress.length === 1 ? "" : "s"}
-                </span>
-              </div>
-
-              {sections.inProgress.length > 0 ? (
-                <div className="grid grid-cols-1 gap-2">
-                  {sections.inProgress.map((task: any) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-center font-mono">
-                  <span className="text-xs font-medium text-[var(--bos-text-secondary)] block">NO TASKS CURRENTLY IN PROGRESS</span>
-                  <p className="text-[11px] text-[var(--bos-text-tertiary)] mt-0.5">Select upcoming work to begin execution.</p>
-                </div>
-              )}
-            </section>
-
-            {/* WAITING FOR REVIEW */}
-            {sections.inReview.length > 0 && (
-              <section className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <CheckSquare className="w-4 h-4 text-indigo-600" />
-                    <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-primary)]">
-                      WAITING FOR REVIEW & QA
-                    </h2>
-                  </div>
-                  <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
-                    {sections.inReview.length} item{sections.inReview.length === 1 ? "" : "s"}
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 gap-2">
-                  {sections.inReview.map((task: any) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {/* UPCOMING */}
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-[var(--bos-text-tertiary)]" />
-                  <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-secondary)]">
-                    UPCOMING & BACKLOG
-                  </h2>
-                </div>
-                <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
-                  {sections.upcoming.length} item{sections.upcoming.length === 1 ? "" : "s"}
-                </span>
-              </div>
-
-              {sections.upcoming.length > 0 ? (
-                <div className="grid grid-cols-1 gap-2">
-                  {sections.upcoming.map((task: any) => (
-                    <TaskCard key={task.id} task={task} />
-                  ))}
-                </div>
-              ) : (
-                <div className="p-6 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-center font-mono">
-                  <span className="text-xs font-medium text-[var(--bos-text-secondary)] block">NO UPCOMING TASKS</span>
-                  <p className="text-[11px] text-[var(--bos-text-tertiary)] mt-0.5">All tasks assigned to you are up to date.</p>
-                </div>
-              )}
-            </section>
+        {/* ── 05. ALL ASSIGNED TASKS LIST ───────────────────────────── */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <span className="font-mono text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)]">
+              ALL ASSIGNED TASKS ({allAssignedTasks.length})
+            </span>
           </div>
-        )}
 
-        {/* ── TAB 2: PROJECTS ── */}
-        {activeTab === "PROJECTS" && (
-          <div className="space-y-4">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-primary)]">
-              ASSIGNED CLIENT PROJECTS
-            </h2>
-
-            {projects.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {projects.map((proj: any) => (
-                  <div
-                    key={proj.id}
-                    className="p-5 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-3 font-mono"
-                  >
-                    <div className="flex items-start justify-between">
-                      <div>
-                        <span className="text-[10px] text-[var(--bos-accent)] font-bold uppercase tracking-wider block">
-                          {proj.code || "PROJECT"} · {proj.clientName}
-                        </span>
-                        <h3 className="text-base font-medium text-[var(--bos-text-primary)] font-sans mt-0.5">
-                          {proj.name}
-                        </h3>
-                      </div>
-                      <span className="px-2 py-0.5 rounded-xs bg-[var(--bos-bg)] border border-[var(--bos-line)] text-[10px] text-[var(--bos-text-secondary)]">
-                        {proj.stage}
-                      </span>
-                    </div>
-
-                    <div className="space-y-1">
-                      <div className="flex items-center justify-between text-[11px]">
-                        <span className="text-[var(--bos-text-tertiary)]">Stage Progress</span>
-                        <span className="font-semibold text-[var(--bos-text-primary)]">{proj.progress}%</span>
-                      </div>
-                      <div className="w-full h-1.5 bg-[var(--bos-bg)] rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-[var(--bos-accent)] transition-all"
-                          style={{ width: `${proj.progress}%` }}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="pt-2 border-t border-[var(--bos-line)] flex items-center justify-between text-[11px] text-[var(--bos-text-secondary)]">
-                      <span>Role: <strong className="text-[var(--bos-text-primary)]">{proj.role}</strong></span>
-                      <span>Allocated: {proj.allocation}%</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-center font-mono">
-                <FolderGit2 className="w-6 h-6 text-[var(--bos-text-tertiary)] mx-auto mb-2" />
-                <span className="text-xs font-medium text-[var(--bos-text-secondary)] block">NO DIRECT PROJECT ALLOCATIONS</span>
-                <p className="text-[11px] text-[var(--bos-text-tertiary)] mt-0.5">You are available for project staffing.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── TAB 3: DELIVERABLES ── */}
-        {activeTab === "DELIVERABLES" && (
-          <div className="space-y-4">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-primary)]">
-              PROJECT DELIVERABLES & MILESTONES
-            </h2>
-
-            {deliverables.length > 0 ? (
-              <div className="grid grid-cols-1 gap-2">
-                {deliverables.map((del: any) => (
-                  <div
-                    key={del.id}
-                    className="p-4 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-border)] flex items-center justify-between font-mono text-xs"
-                  >
-                    <div>
-                      <span className="text-[10px] text-[var(--bos-accent)] uppercase block">
-                        {del.projectName} · {del.category}
-                      </span>
-                      <strong className="text-sm font-sans font-medium text-[var(--bos-text-primary)] block mt-0.5">
-                        {del.title}
-                      </strong>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-xs bg-[var(--bos-bg)] border border-[var(--bos-line)] text-[10.5px]">
-                      {del.status}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="p-8 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-line)] text-center font-mono">
-                <Package className="w-6 h-6 text-[var(--bos-text-tertiary)] mx-auto mb-2" />
-                <span className="text-xs font-medium text-[var(--bos-text-secondary)] block">NO DELIVERABLES PENDING</span>
-                <p className="text-[11px] text-[var(--bos-text-tertiary)] mt-0.5">Deliverables are created from approved proposals.</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ── TAB 4: TEAM ── */}
-        {activeTab === "TEAM" && (
-          <div className="space-y-4">
-            <h2 className="text-xs font-mono font-bold uppercase tracking-wider text-[var(--bos-text-primary)]">
-              ORGANIZATION TEAM · {team.name}
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-              {teamMembers.map((member: any) => (
+          {allAssignedTasks.length === 0 ? (
+            <div className="p-8 text-center bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl font-mono text-[13px] text-[var(--bos-text-secondary)]">
+              NO TASKS ASSIGNED — You currently have no assigned tasks.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {allAssignedTasks.map((t) => (
                 <div
-                  key={member.id}
-                  className={`p-4 rounded-sm bg-[var(--bos-surface)] border font-mono text-xs space-y-1.5 ${
-                    member.isCurrentUser ? "border-[var(--bos-accent)] shadow-2xs" : "border-[var(--bos-line)]"
-                  }`}
+                  key={t.id}
+                  onClick={() => setActiveTaskId(t.id)}
+                  className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)]/50 transition-all flex items-center justify-between gap-3 cursor-pointer group shadow-2xs"
                 >
-                  <div className="flex items-center justify-between">
-                    <strong className="text-[var(--bos-text-primary)] font-semibold">
-                      {member.name} {member.isCurrentUser && <span className="text-[var(--bos-accent)]">(You)</span>}
-                    </strong>
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-600" />
+                  <div className="space-y-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[10.5px] font-bold text-[var(--bos-accent)] bg-[var(--bos-bg)] px-1.5 py-0.5 rounded border border-[var(--bos-border)]">
+                        {t.code || "TSK"}
+                      </span>
+                      <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
+                        {t.dueAt ? new Date(t.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }) : "No due date"}
+                      </span>
+                    </div>
+                    <h4 className="text-[13.5px] font-bold text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors truncate">
+                      {t.title}
+                    </h4>
                   </div>
-                  <span className="text-[11px] text-[var(--bos-text-secondary)] block">{member.role}</span>
-                  <span className="text-[10px] text-[var(--bos-text-tertiary)] block">{member.department}</span>
+
+                  <span className={cn(
+                    "font-mono text-[10.5px] uppercase font-bold px-2 py-0.5 rounded border shrink-0",
+                    t.status === "IN_PROGRESS" ? "bg-sky-500/10 text-sky-600 border-sky-500/20" : t.status === "BLOCKED" ? "bg-amber-500/10 text-amber-600 border-amber-500/20" : "bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] border-[var(--bos-border)]"
+                  )}>
+                    {t.status}
+                  </span>
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          )}
+        </section>
+      </main>
 
-        {/* ── TAB 5: MY ACCESS ── */}
-        {activeTab === "ACCESS" && (
-          <div className="max-w-2xl space-y-6">
-            <div>
-              <span className="text-[10.5px] font-mono font-bold uppercase tracking-widest text-[var(--bos-accent)] block mb-1">
-                ACCESS & PERMISSIONS
-              </span>
-              <h2 className="text-xl font-normal text-[var(--bos-text-primary)]">
-                Your Operating System Capabilities
-              </h2>
-            </div>
+      {/* ── 06. TASK EXECUTION WORKSPACE MODAL ─────────────────────── */}
+      {activeTaskId && (
+        <TaskExecutionWorkspace
+          taskId={activeTaskId}
+          onClose={() => setActiveTaskId(null)}
+          onTaskUpdated={() => fetchWorkData()}
+        />
+      )}
 
-            <div className="p-5 rounded-sm bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-4 font-mono text-xs">
-              <div>
-                <span className="text-[10px] uppercase text-emerald-600 font-semibold block mb-2">
-                  AUTHORIZED PERMISSIONS:
-                </span>
-                <div className="space-y-2">
-                  {capabilities.permissions.can.map((item: string) => (
-                    <div key={item} className="flex items-start gap-2 text-[var(--bos-text-primary)]">
-                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0 mt-0.5" />
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-[var(--bos-line)]">
-                <span className="text-[10px] uppercase text-[var(--bos-text-tertiary)] font-semibold block mb-2">
-                  ORGANIZATION RESTRICTIONS:
-                </span>
-                <div className="space-y-1 text-[var(--bos-text-tertiary)]">
-                  {capabilities.permissions.cannot.map((item: string) => (
-                    <div key={item} className="flex items-start gap-2">
-                      <span className="opacity-50">—</span>
-                      <span>{item}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ── Command Palette Modal (⌘K) ── */}
+      {/* ── 07. COMMAND PALETTE MODAL (⌘K) ────────────────────────── */}
       {commandPaletteOpen && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/40 backdrop-blur-xs p-4">
-          <div className="w-full max-w-lg bg-[var(--bos-surface)] border border-[var(--bos-border-strong)] rounded-sm shadow-xl overflow-hidden font-mono text-xs animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-center gap-2 p-3 border-b border-[var(--bos-line)]">
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-24 bg-black/50 backdrop-blur-xs p-4">
+          <div className="w-full max-w-lg bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl shadow-2xl overflow-hidden font-mono text-xs animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center gap-2 p-3.5 border-b border-[var(--bos-border)]">
               <Search className="w-4 h-4 text-[var(--bos-text-tertiary)]" />
               <input
                 type="text"
                 autoFocus
-                placeholder="Type a command or navigate workspace..."
+                placeholder="Type a command or search workspace..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="flex-1 bg-transparent text-sm text-[var(--bos-text-primary)] placeholder-[var(--bos-text-tertiary)] focus:outline-hidden"
@@ -634,20 +566,17 @@ export default function EmployeeWorkPage() {
 
             <div className="p-2 space-y-1 max-h-72 overflow-y-auto">
               <span className="text-[9.5px] uppercase tracking-wider text-[var(--bos-text-tertiary)] px-2 py-1 block">
-                PERMITTED ACTIONS
+                ACTIONS
               </span>
               {[
-                { label: "Switch to My Work", action: () => { setActiveTab("MY_WORK"); setCommandPaletteOpen(false); } },
-                { label: "View Assigned Projects", action: () => { setActiveTab("PROJECTS"); setCommandPaletteOpen(false); } },
-                { label: "View Deliverables & Milestones", action: () => { setActiveTab("DELIVERABLES"); setCommandPaletteOpen(false); } },
-                { label: "View Team Pulse", action: () => { setActiveTab("TEAM"); setCommandPaletteOpen(false); } },
-                { label: "Inspect My Access Matrix", action: () => { setActiveTab("ACCESS"); setCommandPaletteOpen(false); } },
+                { label: "Refresh My Work", action: () => { fetchWorkData(); setCommandPaletteOpen(false); } },
+                { label: "View Onboarding Specs", action: () => { router.push("/employee/onboarding"); setCommandPaletteOpen(false); } },
                 { label: "Sign out of Business OS", action: handleLogout },
               ].map((cmd, idx) => (
                 <button
                   key={idx}
                   onClick={cmd.action}
-                  className="w-full flex items-center justify-between p-2 rounded-xs hover:bg-[var(--bos-bg)] text-left text-[var(--bos-text-primary)] cursor-pointer"
+                  className="w-full flex items-center justify-between p-2.5 rounded-lg hover:bg-[var(--bos-bg)] text-left text-[var(--bos-text-primary)] cursor-pointer"
                 >
                   <span>{cmd.label}</span>
                   <ArrowRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />
@@ -659,64 +588,10 @@ export default function EmployeeWorkPage() {
       )}
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-[var(--bos-line)] px-6 py-4 flex items-center justify-between text-[10.5px] font-mono text-[var(--bos-text-tertiary)]">
+      <footer className="relative z-10 border-t border-[var(--bos-border)] px-6 py-4 flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-tertiary)]">
         <span>BUSINESS OS · EMPLOYEE EXECUTION WORKSPACE</span>
         <span>CONNECTED OPERATING ENVIRONMENT</span>
       </footer>
-    </div>
-  );
-}
-
-function TaskCard({ task, isBlocked }: { task: any; isBlocked?: boolean }) {
-  return (
-    <div
-      className={`p-4 rounded-sm bg-[var(--bos-surface)] border transition-all font-mono text-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
-        isBlocked
-          ? "border-amber-500/40 bg-amber-500/5"
-          : "border-[var(--bos-line)] hover:border-[var(--bos-border-strong)]"
-      }`}
-    >
-      <div className="space-y-1">
-        <div className="flex items-center gap-2">
-          <span className="text-[10px] text-[var(--bos-accent)] font-bold uppercase tracking-wider">
-            {task.code || "TASK"}
-          </span>
-          {task.project && (
-            <span className="text-[10.5px] text-[var(--bos-text-secondary)]">
-              · {task.project.name}
-            </span>
-          )}
-          {task.workstream && (
-            <span className="px-1.5 py-0.5 rounded-xs bg-[var(--bos-bg)] border border-[var(--bos-line)] text-[9.5px] text-[var(--bos-text-tertiary)]">
-              {task.workstream}
-            </span>
-          )}
-        </div>
-
-        <h4 className="text-sm font-sans font-medium text-[var(--bos-text-primary)]">
-          {task.title}
-        </h4>
-
-        {isBlocked && task.blockedReason && (
-          <p className="text-[11px] text-amber-700 dark:text-amber-400 font-sans mt-0.5">
-            Blocked reason: {task.blockedReason}
-          </p>
-        )}
-      </div>
-
-      <div className="flex items-center gap-2 shrink-0">
-        <span
-          className={`px-2 py-0.5 rounded-xs text-[10.5px] font-mono ${
-            task.status === "IN_PROGRESS"
-              ? "bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] border border-[var(--bos-accent-ring)]"
-              : task.status === "BLOCKED"
-              ? "bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/20"
-              : "bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] border border-[var(--bos-line)]"
-          }`}
-        >
-          {task.status}
-        </span>
-      </div>
     </div>
   );
 }
