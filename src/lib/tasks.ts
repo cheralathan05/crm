@@ -82,6 +82,7 @@ export type WorkDNA = {
     id: string;
     code: string | null;
     name: string;
+    description: string | null;
     stage: string;
     health: string;
     progress: number;
@@ -189,6 +190,83 @@ export type WorkDNA = {
     verifiedAt: Date;
     createdAt: Date;
   }>;
+  productUnderstanding?: TaskProductUnderstanding;
+};
+
+export type LineageNode = {
+  id: string;
+  type: "REQUIREMENT" | "DELIVERABLE" | "FEATURE" | "PAGE" | "TASK" | "API" | "DATABASE" | "TEST" | "EVIDENCE" | "VERIFIED";
+  label: string;
+  title: string;
+  subtitle?: string;
+  status: string;
+  recordId?: string;
+  details?: any;
+};
+
+export type TaskProductUnderstanding = {
+  projectName: string;
+  projectDescription?: string | null;
+  featureName: string;
+  featureDescription: string;
+  layer: "FRONTEND" | "BACKEND" | "DATABASE" | "API" | "TESTING";
+  actions: string[];
+  components: string[];
+  apiContracts: Array<{
+    id: string;
+    method: string;
+    path: string;
+    purpose: string;
+    requestSchema?: string;
+    responseSchema?: string;
+    status: string;
+  }>;
+  databaseEntities: Array<{
+    id: string;
+    name: string;
+    tableName: string;
+    purpose: string;
+    fields: Array<{ name: string; type: string; isPk?: boolean; isFk?: boolean; isNullable?: boolean }>;
+    relationships: Array<{ type: string; targetEntity: string; foreignKey?: string }>;
+    status: string;
+  }>;
+  backendServices: Array<{
+    id: string;
+    name: string;
+    description?: string | null;
+    methods: string[];
+    businessRules: string[];
+  }>;
+  testSpecifications: Array<{
+    id: string;
+    name: string;
+    testType: string;
+    expectedOutcome: string;
+    status: string;
+  }>;
+  lineage: LineageNode[];
+  workPackage: {
+    title: string;
+    build: string;
+    inputs: {
+      requirements?: string | null;
+      designTokens?: string[];
+      apis?: string[];
+      databases?: string[];
+      dependencies?: string[];
+    };
+    output: string;
+    doneWhen: string[];
+    proof: Array<{
+      id: string;
+      type: string;
+      title: string;
+      url?: string | null;
+      verifiedBy?: string | null;
+      verifiedAt?: Date;
+    }>;
+  };
+  productPreview?: any;
 };
 
 export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
@@ -247,6 +325,19 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
     });
   }
 
+  // Fetch active blueprint for project to load real engineering entities
+  const blueprint = await db.engineeringBlueprint.findFirst({
+    where: { projectId: task.project.id },
+    orderBy: { version: "desc" },
+    include: {
+      frontendCapabilities: { orderBy: { order: "asc" } },
+      backendApis: { orderBy: { order: "asc" } },
+      databaseEntities: { orderBy: { order: "asc" } },
+      backendServices: true,
+      testSpecifications: { orderBy: { order: "asc" } },
+    },
+  });
+
   // Workstream lookup
   const ws = ALL_WORKSTREAMS.find((w) => w.id === task.workstream) || {
     id: task.workstream || "FRONTEND",
@@ -292,6 +383,216 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
   const assignedMember = task.project.team?.find(
     (m) => m.name === task.assigneeName || m.userId === task.assigneeId,
   );
+
+  // Construct real Product Understanding layer
+  let matchedCapability = blueprint?.frontendCapabilities.find(
+    (c) => c.deliverableId === task.deliverableId || c.requirementId === task.sourceRequirementId
+  );
+  if (!matchedCapability && blueprint?.frontendCapabilities.length) {
+    matchedCapability = blueprint.frontendCapabilities[0];
+  }
+
+  const featureName = matchedCapability?.name
+    || task.deliverable?.title
+    || task.title.replace(/^(Build|Design|Implement|Create|Configure)\s+/i, "");
+
+  const featureDescription = matchedCapability?.description
+    || task.deliverable?.description
+    || task.expectedResult
+    || task.description
+    || `Engineered product module for ${task.project.name}.`;
+
+  // Parse actions and components
+  let parsedComponents: string[] = [];
+  if (matchedCapability?.components) {
+    try {
+      const arr = JSON.parse(matchedCapability.components);
+      if (Array.isArray(arr)) parsedComponents = arr;
+    } catch {}
+  }
+  if (parsedComponents.length === 0) {
+    parsedComponents = ["Search Filter", "Data View", "Action Toolbar", "Modal Editor"];
+  }
+
+  // Parse API Contracts
+  const apiContracts = (blueprint?.backendApis || []).map((api) => ({
+    id: api.id,
+    method: api.method,
+    path: api.path,
+    purpose: api.purpose,
+    requestSchema: api.requestSchema,
+    responseSchema: api.responseSchema,
+    status: api.status,
+  }));
+
+  // Parse DB Entities
+  const databaseEntities = (blueprint?.databaseEntities || []).map((dbEnt) => {
+    let fields: any[] = [];
+    let relationships: any[] = [];
+    try { fields = JSON.parse(dbEnt.fields || "[]"); } catch {}
+    try { relationships = JSON.parse(dbEnt.relationships || "[]"); } catch {}
+    return {
+      id: dbEnt.id,
+      name: dbEnt.name,
+      tableName: dbEnt.tableName,
+      purpose: dbEnt.purpose,
+      fields,
+      relationships,
+      status: dbEnt.status,
+    };
+  });
+
+  // Parse Backend Services
+  const backendServices = (blueprint?.backendServices || []).map((svc) => {
+    let methods: string[] = [];
+    let businessRules: string[] = [];
+    try { methods = JSON.parse(svc.methods || "[]"); } catch {}
+    try { businessRules = JSON.parse(svc.businessRules || "[]"); } catch {}
+    return {
+      id: svc.id,
+      name: svc.name,
+      description: svc.description,
+      methods,
+      businessRules,
+    };
+  });
+
+  // Parse Test Specs
+  const testSpecifications = (blueprint?.testSpecifications || []).map((t) => ({
+    id: t.id,
+    name: t.name,
+    testType: t.testType,
+    expectedOutcome: t.expectedOutcome,
+    status: t.status,
+  }));
+
+  // Build Clickable Lineage Nodes
+  const lineage: LineageNode[] = [
+    {
+      id: "node-req",
+      type: "REQUIREMENT",
+      label: "Requirement",
+      title: requirementRequest?.title || task.sourceRequirementTitle || "Client Specification",
+      subtitle: requirementRequest?.reference || "REQ-APPROVED",
+      status: requirementRequest?.status || "APPROVED",
+      recordId: requirementRequest?.id,
+    },
+    {
+      id: "node-deliv",
+      type: "DELIVERABLE",
+      label: "Deliverable",
+      title: task.deliverable?.title || "Project Feature Set",
+      subtitle: task.deliverable?.category || "ENGINEERING",
+      status: task.deliverable?.status || "IN_PROGRESS",
+      recordId: task.deliverable?.id,
+    },
+    {
+      id: "node-feat",
+      type: "FEATURE",
+      label: "Feature",
+      title: featureName,
+      subtitle: task.workstream || "FRONTEND",
+      status: matchedCapability?.status || "READY",
+      recordId: matchedCapability?.id,
+    },
+    {
+      id: "node-page",
+      type: "PAGE",
+      label: "Page / View",
+      title: matchedCapability?.name || featureName,
+      subtitle: matchedCapability?.route || "/dashboard",
+      status: matchedCapability?.status || "PLANNED",
+      recordId: matchedCapability?.id,
+    },
+    {
+      id: "node-task",
+      type: "TASK",
+      label: "Work Package",
+      title: task.title,
+      subtitle: task.code || "TSK-001",
+      status: task.status,
+      recordId: task.id,
+    },
+    {
+      id: "node-api",
+      type: "API",
+      label: "API Contract",
+      title: apiContracts[0] ? `${apiContracts[0].method} ${apiContracts[0].path}` : "Backend Endpoints",
+      subtitle: apiContracts[0]?.purpose || "Data Gateway",
+      status: apiContracts[0]?.status || "PLANNED",
+      recordId: apiContracts[0]?.id,
+    },
+    {
+      id: "node-db",
+      type: "DATABASE",
+      label: "Database Entity",
+      title: databaseEntities[0]?.name || "Data Model",
+      subtitle: databaseEntities[0]?.tableName || "Tables & Relations",
+      status: databaseEntities[0]?.status || "PLANNED",
+      recordId: databaseEntities[0]?.id,
+    },
+    {
+      id: "node-test",
+      type: "TEST",
+      label: "Test Spec",
+      title: testSpecifications[0]?.name || "Verification Criteria",
+      subtitle: testSpecifications[0]?.testType || "E2E / Integration",
+      status: testSpecifications[0]?.status || "PENDING",
+      recordId: testSpecifications[0]?.id,
+    },
+    {
+      id: "node-evidence",
+      type: "EVIDENCE",
+      label: "Evidence",
+      title: task.evidenceRecords.length > 0 ? `${task.evidenceRecords.length} Proof Records` : "Awaiting Commit / PR",
+      subtitle: task.evidenceRecords[0]?.type || "Audit Trail",
+      status: task.evidenceRecords.length > 0 ? "VERIFIED" : "PENDING",
+      recordId: task.evidenceRecords[0]?.id,
+    },
+  ];
+
+  // Work Package Definition
+  const workPackage = {
+    title: task.title,
+    build: task.expectedResult || task.description || `Build and integrate ${featureName}`,
+    inputs: {
+      requirements: requirementRequest?.title || task.sourceRequirementTitle || "Approved client specification",
+      designTokens: ["Neutral Dark Palette", "Inter Typography", "Fluid Responsive Grid", "Micro-Interactions"],
+      apis: apiContracts.map((a) => `${a.method} ${a.path}`),
+      databases: databaseEntities.map((d) => `${d.name} (${d.tableName})`),
+      dependencies: upstream.map((u) => `${u.code || "TSK"}: ${u.title}`),
+    },
+    output: task.expectedResult || `Fully verified and tested ${featureName} deliverable.`,
+    doneWhen: task.acceptanceCriteria.length > 0
+      ? task.acceptanceCriteria.map((a) => a.criterion)
+      : deliverableCriteria.length > 0
+      ? deliverableCriteria
+      : ["Implementation matches specification", "Tests pass", "Evidence record linked"],
+    proof: task.evidenceRecords.map((e) => ({
+      id: e.id,
+      type: e.type,
+      title: e.title,
+      url: e.url,
+      verifiedBy: e.verifiedBy,
+      verifiedAt: e.verifiedAt,
+    })),
+  };
+
+  const productUnderstanding: TaskProductUnderstanding = {
+    projectName: task.project.name,
+    projectDescription: task.project.description,
+    featureName,
+    featureDescription,
+    layer: (task.workstream as any) || "FRONTEND",
+    actions: parsedComponents.map((c) => c.replace(/([A-Z])/g, " $1").trim()),
+    components: parsedComponents,
+    apiContracts,
+    databaseEntities,
+    backendServices,
+    testSpecifications,
+    lineage,
+    workPackage,
+  };
 
   return {
     client: {
@@ -346,6 +647,7 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
       id: task.project.id,
       code: task.project.code,
       name: task.project.name,
+      description: task.project.description,
       stage: task.project.stage,
       health: task.project.health,
       progress: task.project.progress,
@@ -453,6 +755,152 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
       verifiedAt: e.verifiedAt,
       createdAt: e.createdAt,
     })),
+    productUnderstanding,
+  };
+}
+
+/* ── Project Product Map Engine ───────────────────────────────── */
+export type ProductMapNode = {
+  id: string;
+  name: string;
+  route?: string;
+  type: string;
+  purpose: string;
+  status: string;
+  taskCount: number;
+  apiCount: number;
+  entityCount: number;
+  components: string[];
+  tasks: Array<{ id: string; code: string | null; title: string; status: string; priority: string }>;
+  apis: Array<{ id: string; method: string; path: string; purpose: string; status: string }>;
+  entities: Array<{ id: string; name: string; tableName: string; purpose: string; fieldsCount: number }>;
+  tests: Array<{ id: string; name: string; testType: string; status: string }>;
+  deliverableTitle?: string;
+};
+
+export type ProjectProductMap = {
+  project: {
+    id: string;
+    code: string | null;
+    name: string;
+    description: string | null;
+    stage: string;
+    health: string;
+    progress: number;
+  };
+  navigation: string[];
+  pages: ProductMapNode[];
+};
+
+export async function getProjectProductMap(projectId: string): Promise<ProjectProductMap | null> {
+  const project = await db.clientProject.findUnique({
+    where: { id: projectId },
+    include: {
+      deliverables: {
+        include: {
+          tasks: true,
+        },
+      },
+      tasks: true,
+    },
+  });
+
+  if (!project) return null;
+
+  const blueprint = await db.engineeringBlueprint.findFirst({
+    where: { projectId },
+    orderBy: { version: "desc" },
+    include: {
+      frontendCapabilities: { orderBy: { order: "asc" } },
+      backendApis: { orderBy: { order: "asc" } },
+      databaseEntities: { orderBy: { order: "asc" } },
+      testSpecifications: { orderBy: { order: "asc" } },
+    },
+  });
+
+  const pages: ProductMapNode[] = [];
+
+  if (blueprint && blueprint.frontendCapabilities.length > 0) {
+    for (const cap of blueprint.frontendCapabilities) {
+      let components: string[] = [];
+      try {
+        const parsed = JSON.parse(cap.components || "[]");
+        if (Array.isArray(parsed)) components = parsed;
+      } catch {}
+
+      const linkedTasks = project.tasks.filter(
+        (t) => t.deliverableId === cap.deliverableId || t.title.toLowerCase().includes(cap.name.toLowerCase())
+      );
+
+      const linkedApis = blueprint.backendApis.filter(
+        (a) => a.deliverableId === cap.deliverableId || (cap.apiDependencies && cap.apiDependencies.includes(a.path))
+      );
+
+      const linkedEntities = blueprint.databaseEntities.filter(
+        (e) => e.deliverableId === cap.deliverableId || e.purpose.toLowerCase().includes(cap.name.toLowerCase())
+      );
+
+      const linkedTests = blueprint.testSpecifications.filter(
+        (ts) => ts.deliverableId === cap.deliverableId
+      );
+
+      pages.push({
+        id: cap.id,
+        name: cap.name,
+        route: cap.route || `/${cap.name.toLowerCase().replace(/\s+/g, "-")}`,
+        type: cap.type,
+        purpose: cap.description || `Delivers ${cap.name} user experience`,
+        status: cap.status,
+        taskCount: linkedTasks.length,
+        apiCount: linkedApis.length,
+        entityCount: linkedEntities.length,
+        components,
+        tasks: linkedTasks.map((t) => ({ id: t.id, code: t.code, title: t.title, status: t.status, priority: t.priority })),
+        apis: linkedApis.map((a) => ({ id: a.id, method: a.method, path: a.path, purpose: a.purpose, status: a.status })),
+        entities: linkedEntities.map((e) => {
+          let fCount = 0;
+          try { fCount = JSON.parse(e.fields || "[]").length; } catch {}
+          return { id: e.id, name: e.name, tableName: e.tableName, purpose: e.purpose, fieldsCount: fCount };
+        }),
+        tests: linkedTests.map((t) => ({ id: t.id, name: t.name, testType: t.testType, status: t.status })),
+      });
+    }
+  } else if (project.deliverables.length > 0) {
+    // Fallback directly to real deliverables if blueprint not generated yet
+    for (const deliv of project.deliverables) {
+      pages.push({
+        id: deliv.id,
+        name: deliv.title,
+        route: `/${deliv.title.toLowerCase().replace(/\s+/g, "-")}`,
+        type: deliv.category || "PAGE",
+        purpose: deliv.description || `Deliverable for ${project.name}`,
+        status: deliv.status,
+        taskCount: deliv.tasks.length,
+        apiCount: 0,
+        entityCount: 0,
+        components: ["Data Grid", "Action Toolbar", "Detail Drawer"],
+        tasks: deliv.tasks.map((t) => ({ id: t.id, code: t.code, title: t.title, status: t.status, priority: t.priority })),
+        apis: [],
+        entities: [],
+        tests: [],
+      });
+    }
+  }
+
+  const navigation = pages.map((p) => p.name);
+
+  return {
+    project: {
+      id: project.id,
+      code: project.code,
+      name: project.name,
+      description: project.description,
+      stage: project.stage,
+      health: project.health,
+      progress: project.progress,
+    },
+    navigation,
+    pages,
   };
 }
 

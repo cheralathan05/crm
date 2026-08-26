@@ -60,6 +60,7 @@ import { TaskExecutionWorkspace } from "./task-execution-workspace";
 import { TaskCommandPalette } from "./task-command-palette";
 import { WorkBreakdownBuilder } from "./work-breakdown-builder";
 import { QuickTaskCreate } from "./quick-task-create";
+import { ProductMapModal } from "./product-map-modal";
 
 export type ExecutionOSView =
   | "list"
@@ -96,6 +97,7 @@ export function TasksCommandCenter({
 
   // Drawers & Modals
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [showProductMapModal, setShowProductMapModal] = useState(false);
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [showBreakdownBuilder, setShowBreakdownBuilder] = useState(false);
   const [showQuickCreate, setShowQuickCreate] = useState(initialNew);
@@ -313,6 +315,18 @@ export function TasksCommandCenter({
                   My Work
                 </button>
               </div>
+
+              {/* SEE PRODUCT Map Trigger */}
+              {selectedProjectId && (
+                <button
+                  type="button"
+                  onClick={() => setShowProductMapModal(true)}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--bos-surface)] hover:bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] text-[var(--bos-text-primary)] text-[12px] font-semibold transition-all cursor-pointer shadow-xs"
+                >
+                  <LayoutGrid className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+                  <span>See Product</span>
+                </button>
+              )}
 
               {/* Create Task Button */}
               <button
@@ -794,6 +808,18 @@ export function TasksCommandCenter({
             loadData();
           }}
           preselectedProjectId={selectedProjectId}
+        />
+      )}
+
+      {/* ── 09. PRODUCT MAP MODAL (SEE PRODUCT MODE) ───────────────── */}
+      {showProductMapModal && selectedProjectId && (
+        <ProductMapModal
+          projectId={selectedProjectId}
+          onClose={() => setShowProductMapModal(false)}
+          onSelectTask={(newTaskId) => {
+            setShowProductMapModal(false);
+            setActiveTaskId(newTaskId);
+          }}
         />
       )}
     </div>
