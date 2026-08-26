@@ -14,7 +14,7 @@ export async function POST(req: Request) {
     }
 
     const body = await req.json();
-    const { projectId, capabilityId, taskId, existingHash } = body;
+    const { projectId, capabilityId, taskId, existingHash, forceRefresh } = body;
 
     if (!projectId && !taskId) {
       return NextResponse.json({ ok: false, message: "projectId or taskId is required." }, { status: 400 });
@@ -183,7 +183,7 @@ export async function POST(req: Request) {
       promptVersion: blueprint?.promptVersion || "2.1.0",
     };
 
-    const preview = await generateProductPreview(context, existingHash);
+    const preview = await generateProductPreview(context, existingHash, !!forceRefresh);
 
     return NextResponse.json({ ok: true, preview, context });
   } catch (err: any) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   AlertTriangle,
   ArrowRight,
@@ -10,6 +10,7 @@ import {
   ExternalLink,
   Eye,
   Globe,
+  ImageIcon,
   Layers,
   LayoutGrid,
   Loader2,
@@ -20,6 +21,7 @@ import {
   Shield,
   Sparkles,
   Table,
+  ZoomIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { TaskProductUnderstanding } from "@/lib/tasks";
@@ -38,9 +40,12 @@ export function ProductPreviewHero({
   onOpenProductMap,
 }: ProductPreviewHeroProps) {
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"PREVIEW" | "CONTRACT" | "SCHEMA">("PREVIEW");
+  const [activeTab, setActiveTab] = useState<"AI_IMAGE" | "CANVAS" | "CONTRACT" | "SCHEMA">("AI_IMAGE");
   const [previewOutdated, setPreviewOutdated] = useState(false);
   const [activeFieldFilter, setActiveFieldFilter] = useState("");
+  const [aiImageUrl, setAiImageUrl] = useState<string | null>(null);
+  const [aiModel, setAiModel] = useState<string>("Cloudflare Flux-1-Schnell");
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   if (!understanding) return null;
 
@@ -57,15 +62,63 @@ export function ProductPreviewHero({
     workPackage,
   } = understanding;
 
+  // Load preview data from /api/preview on mount
+  useEffect(() => {
+    let isMounted = true;
+    async function loadAiPreview() {
+      try {
+        setIsRefreshing(true);
+        const res = await fetch("/api/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ taskId, projectId }),
+        });
+        const json = await res.json();
+        if (isMounted && json.ok && json.preview) {
+          if (json.preview.visualData?.imageUrl) {
+            setAiImageUrl(json.preview.visualData.imageUrl);
+          }
+          if (json.preview.model) {
+            setAiModel(json.preview.model);
+          }
+          if (json.preview.status === "OUTDATED") {
+            setPreviewOutdated(true);
+          }
+        }
+      } catch {
+        // Fallback to interactive canvas
+      } finally {
+        if (isMounted) setIsRefreshing(false);
+      }
+    }
+
+    if (taskId || projectId) {
+      loadAiPreview();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [taskId, projectId]);
+
   const handleRefreshPreview = async () => {
     try {
       setIsRefreshing(true);
-      await fetch("/api/preview", {
+      const res = await fetch("/api/preview", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ taskId, projectId }),
+        body: JSON.stringify({ taskId, projectId, forceRefresh: true }),
       });
-      setPreviewOutdated(false);
+      const json = await res.json();
+      if (json.ok && json.preview) {
+        if (json.preview.visualData?.imageUrl) {
+          setAiImageUrl(json.preview.visualData.imageUrl);
+        }
+        if (json.preview.model) {
+          setAiModel(json.preview.model);
+        }
+        setPreviewOutdated(false);
+      }
     } catch {
       // Keep state resilient
     } finally {
@@ -81,7 +134,7 @@ export function ProductPreviewHero({
     <div className="space-y-4">
       {/* ── Top Bar with Status & "See Product" Action ──────────────── */}
       <div className="flex flex-wrap items-center justify-between gap-3 pb-1 border-b border-[var(--bos-border)]">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <span className="text-[11px] font-mono font-bold tracking-wider uppercase text-[var(--bos-accent)] flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5" />
             PRODUCT PREVIEW
@@ -89,12 +142,67 @@ export function ProductPreviewHero({
           <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border bg-emerald-500/10 border-emerald-500/30 text-emerald-500 font-semibold">
             {previewOutdated ? "OUTDATED" : "CURRENT ARCHITECTURE"}
           </span>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full border bg-[var(--bos-accent)]/10 border-[var(--bos-accent)]/30 text-[var(--bos-accent)] font-semibold">
+            {aiModel}
+          </span>
           <span className="text-[11px] font-mono text-[var(--bos-text-muted)]">
             Layer: <span className="text-[var(--bos-text-primary)] font-bold">{layer}</span>
           </span>
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Tab Switcher */}
+          <div className="flex items-center bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-lg p-0.5 text-[11px] font-mono">
+            <button
+              onClick={() => setActiveTab("AI_IMAGE")}
+              className={cn(
+                "px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer",
+                activeTab === "AI_IMAGE"
+                  ? "bg-[var(--bos-accent)] text-white font-bold"
+                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
+              )}
+            >
+              <ImageIcon className="w-3 h-3" />
+              AI Image
+            </button>
+            <button
+              onClick={() => setActiveTab("CANVAS")}
+              className={cn(
+                "px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer",
+                activeTab === "CANVAS"
+                  ? "bg-[var(--bos-accent)] text-white font-bold"
+                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
+              )}
+            >
+              <Globe className="w-3 h-3" />
+              Component View
+            </button>
+            <button
+              onClick={() => setActiveTab("CONTRACT")}
+              className={cn(
+                "px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer",
+                activeTab === "CONTRACT"
+                  ? "bg-[var(--bos-accent)] text-white font-bold"
+                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
+              )}
+            >
+              <Server className="w-3 h-3" />
+              API
+            </button>
+            <button
+              onClick={() => setActiveTab("SCHEMA")}
+              className={cn(
+                "px-2.5 py-1 rounded-md transition-all flex items-center gap-1 cursor-pointer",
+                activeTab === "SCHEMA"
+                  ? "bg-[var(--bos-accent)] text-white font-bold"
+                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
+              )}
+            >
+              <Database className="w-3 h-3" />
+              DB
+            </button>
+          </div>
+
           {onOpenProductMap && (
             <button
               onClick={onOpenProductMap}
@@ -109,7 +217,7 @@ export function ProductPreviewHero({
             onClick={handleRefreshPreview}
             disabled={isRefreshing}
             className="p-1.5 bg-[var(--bos-surface)] hover:bg-[var(--bos-surface-hover)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] rounded-lg text-xs font-mono transition-all cursor-pointer"
-            title="Re-verify against current requirement hash"
+            title="Generate fresh AI preview from current requirement hash"
           >
             <RefreshCw className={cn("w-3.5 h-3.5", isRefreshing && "animate-spin text-[var(--bos-accent)]")} />
           </button>
@@ -132,11 +240,106 @@ export function ProductPreviewHero({
         </div>
       )}
 
-      {/* ── Type-Tailored Hero Visual Representation ─────────────────── */}
-      {layer === "FRONTEND" || (layer as string) === "DESIGN" ? (
-        /* ══════════════════════════════════════════════════════════════
-           FRONTEND HERO: REAL PRODUCT BROWSER CANVAS
-           ══════════════════════════════════════════════════════════════ */
+      {/* ══════════════════════════════════════════════════════════════
+         TAB 1: AI GENERATED PRODUCT PREVIEW (HERO IMAGE)
+         ══════════════════════════════════════════════════════════════ */}
+      {activeTab === "AI_IMAGE" && (
+        <div className="relative rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface)] overflow-hidden shadow-2xl">
+          {/* Simulated Browser Top Bar */}
+          <div className="px-4 py-2.5 bg-[var(--bos-bg)] border-b border-[var(--bos-border)] flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-rose-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-amber-500/80" />
+                <div className="w-2.5 h-2.5 rounded-full bg-emerald-500/80" />
+              </div>
+              <div className="ml-3 px-3 py-0.5 rounded-md bg-[var(--bos-surface)] border border-[var(--bos-border)] text-[11px] font-mono text-[var(--bos-text-secondary)] flex items-center gap-1.5">
+                <Globe className="w-3 h-3 text-[var(--bos-accent)]" />
+                https://app.{projectName.toLowerCase().replace(/[^a-z0-9]/g, "")}.com/{featureName.toLowerCase().replace(/\s+/g, "-")}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-[var(--bos-text-muted)]">
+                {aiImageUrl ? "Generated via Cloudflare Flux AI" : "Rendering Preview..."}
+              </span>
+              {aiImageUrl && (
+                <button
+                  onClick={() => setIsFullscreen(true)}
+                  className="p-1 rounded bg-[var(--bos-surface)] hover:bg-[var(--bos-surface-hover)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)]"
+                  title="Expand Fullscreen"
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* AI Image Canvas Surface */}
+          <div className="p-4 md:p-6 bg-gradient-to-b from-black/40 to-black/80 flex flex-col items-center justify-center min-h-[380px]">
+            {isRefreshing && !aiImageUrl ? (
+              <div className="flex flex-col items-center justify-center gap-3 py-16 text-center">
+                <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)]" />
+                <div className="space-y-1">
+                  <p className="text-xs font-mono font-bold text-[var(--bos-text-primary)]">
+                    Generating Realistic Product UI Mockup...
+                  </p>
+                  <p className="text-[11px] text-[var(--bos-text-muted)] font-mono">
+                    Calling Cloudflare Workers AI with live project context & schema
+                  </p>
+                </div>
+              </div>
+            ) : aiImageUrl ? (
+              <div className="w-full space-y-3">
+                <div className="relative group rounded-xl overflow-hidden border border-[var(--bos-border)] bg-black/60 shadow-xl max-h-[560px] flex items-center justify-center">
+                  <img
+                    src={aiImageUrl}
+                    alt={`${projectName} - ${featureName}`}
+                    className="w-full h-auto object-contain max-h-[540px] transition-transform duration-300 group-hover:scale-[1.01]"
+                  />
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity flex gap-2">
+                    <button
+                      onClick={() => setIsFullscreen(true)}
+                      className="px-2.5 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 text-white text-xs font-mono flex items-center gap-1.5 cursor-pointer shadow-lg"
+                    >
+                      <ZoomIn className="w-3.5 h-3.5" />
+                      View High-Res
+                    </button>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between text-[11px] font-mono text-[var(--bos-text-muted)] px-1">
+                  <span>
+                    Product: <strong className="text-[var(--bos-text-primary)]">{projectName}</strong> &rsaquo; {featureName}
+                  </span>
+                  <span>
+                    Bound to Table: <strong className="text-[var(--bos-accent)]">{primaryEntity?.tableName || "entity_store"}</strong>
+                  </span>
+                </div>
+              </div>
+            ) : (
+              /* Fallback if AI image generation fails or is offline */
+              <div className="w-full text-center py-12 space-y-3">
+                <ImageIcon className="w-10 h-10 text-[var(--bos-text-muted)] mx-auto opacity-50" />
+                <p className="text-xs font-mono font-bold text-[var(--bos-text-secondary)]">
+                  Visual representation ready for live rendering
+                </p>
+                <button
+                  onClick={handleRefreshPreview}
+                  className="px-4 py-2 bg-[var(--bos-accent)] text-white text-xs font-mono font-bold rounded-xl shadow-md hover:opacity-90 transition-all cursor-pointer"
+                >
+                  Generate AI Preview
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+         TAB 2: INTERACTIVE COMPONENT CANVAS
+         ══════════════════════════════════════════════════════════════ */}
+      {activeTab === "CANVAS" && (
         <div className="relative rounded-2xl border border-[var(--bos-border)] bg-gradient-to-b from-[var(--bos-surface-elevated)] to-[var(--bos-surface)] overflow-hidden shadow-2xl">
           {/* Simulated Browser Bar */}
           <div className="px-4 py-2.5 bg-[var(--bos-surface)] border-b border-[var(--bos-border)] flex items-center justify-between">
@@ -290,10 +493,12 @@ export function ProductPreviewHero({
             </div>
           </div>
         </div>
-      ) : layer === "BACKEND" || layer === "API" ? (
-        /* ══════════════════════════════════════════════════════════════
-           BACKEND / API HERO: REAL CONTRACT & ENDPOINT SPECIFICATION
-           ══════════════════════════════════════════════════════════════ */
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+         TAB 3: API CONTRACT
+         ══════════════════════════════════════════════════════════════ */}
+      {activeTab === "CONTRACT" && (
         <div className="rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface)] overflow-hidden shadow-2xl p-6 space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-[var(--bos-border)]">
             <div>
@@ -383,10 +588,12 @@ export function ProductPreviewHero({
             </span>
           </div>
         </div>
-      ) : (
-        /* ══════════════════════════════════════════════════════════════
-           DATABASE HERO: REAL ERD & DATA MODEL VISUALIZATION
-           ══════════════════════════════════════════════════════════════ */
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+         TAB 4: DATABASE ERD SCHEMA
+         ══════════════════════════════════════════════════════════════ */}
+      {activeTab === "SCHEMA" && (
         <div className="rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface)] overflow-hidden shadow-2xl p-6 space-y-6">
           <div className="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-[var(--bos-border)]">
             <div>
@@ -447,6 +654,22 @@ export function ProductPreviewHero({
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Fullscreen Lightbox Modal ───────────────────────────────── */}
+      {isFullscreen && aiImageUrl && (
+        <div
+          onClick={() => setIsFullscreen(false)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-6 cursor-zoom-out"
+        >
+          <div className="max-w-6xl max-h-[90vh] overflow-auto rounded-2xl border border-white/20 shadow-2xl">
+            <img
+              src={aiImageUrl}
+              alt={`${projectName} - ${featureName}`}
+              className="w-full h-auto object-contain rounded-2xl"
+            />
           </div>
         </div>
       )}

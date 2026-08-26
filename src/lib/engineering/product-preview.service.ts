@@ -6,6 +6,9 @@ import { db } from "@/lib/db";
    Clean abstraction for generating, hashing, and versioning
    real product previews from actual project, requirement,
    API, and database models.
+   
+   Powered by Cloudflare Workers AI (@cf/black-forest-labs/flux-1-schnell)
+   with deterministic fallback & source-hash caching.
    ZERO MOCK DATA — ONLY REAL CONNECTED RECORDS & AUTHENTIC EMPTY STATES.
 ──────────────────────────────────────────────────────────────── */
 
@@ -73,9 +76,13 @@ export type GeneratedProductPreview = {
     fieldsShown: Array<{ name: string; type: string; label: string }>;
     connectedApis: Array<{ method: string; path: string; purpose: string }>;
     connectedEntities: Array<{ name: string; tableName: string; columnCount: number }>;
+    imageUrl?: string;
     svgOrHtmlPreview?: string;
   };
 };
+
+// Global in-memory cache for generated previews by hash to prevent redundant AI calls
+const PREVIEW_CACHE = new Map<string, GeneratedProductPreview>();
 
 /** Compute deterministic source hash from project requirement + data state */
 export function computePreviewSourceHash(context: ProductPreviewContext): string {
@@ -96,16 +103,73 @@ export function computePreviewSourceHash(context: ProductPreviewContext): string
 }
 
 /**
+ * Call Cloudflare Workers AI to generate a realistic product UI image.
+ */
+async function generateCloudflareProductImage(
+  prompt: string
+): Promise<{ imageUrl?: string; modelUsed: string }> {
+  const token = process.env.CLOUDFLARE_API_TOKEN || "cfut_aZoRtkMYGjoeTo8U3BFDQSTrGghYqzC5oSBFl3go3b208fc1";
+  const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || "ca39db7daa60461e79aea309645382a3";
+
+  if (!token || !accountId) {
+    return { modelUsed: "deterministic-vector-canvas" };
+  }
+
+  const model = "@cf/black-forest-labs/flux-1-schnell";
+
+  try {
+    const res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${model}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          prompt,
+          steps: 4,
+        }),
+      }
+    );
+
+    if (res.ok) {
+      const data = await res.json().catch(() => null);
+      if (data?.result?.image) {
+        const base64 = data.result.image;
+        const imageUrl = base64.startsWith("data:") ? base64 : `data:image/jpeg;base64,${base64}`;
+        return { imageUrl, modelUsed: "Cloudflare Flux-1-Schnell" };
+      }
+    } else {
+      console.warn("Cloudflare Workers AI image error:", res.status, await res.text().catch(() => ""));
+    }
+  } catch (err: any) {
+    console.warn("Cloudflare AI request failed:", err.message);
+  }
+
+  return { modelUsed: "deterministic-vector-canvas" };
+}
+
+/**
  * Generate a high-fidelity visual product preview structure
  * derived strictly from real project context.
  */
 export async function generateProductPreview(
   context: ProductPreviewContext,
-  existingHash?: string | null
+  existingHash?: string | null,
+  forceRefresh = false
 ): Promise<GeneratedProductPreview> {
   const currentHash = computePreviewSourceHash(context);
-  const promptVersion = context.promptVersion || "2.1.0";
-  const model = "business-os-preview-engine-v2";
+  const promptVersion = context.promptVersion || "2.2.0";
+
+  // Check memory cache
+  if (!forceRefresh && PREVIEW_CACHE.has(currentHash)) {
+    const cached = PREVIEW_CACHE.get(currentHash)!;
+    return {
+      ...cached,
+      status: (!existingHash || existingHash === currentHash) ? "CURRENT" : "OUTDATED",
+    };
+  }
 
   const isCurrent = !existingHash || existingHash === currentHash;
 
@@ -174,7 +238,12 @@ export async function generateProductPreview(
     columnCount: Array.isArray(e.fields) ? e.fields.length : 0,
   }));
 
-  return {
+  // Build high-context prompt for Cloudflare Workers AI
+  const prompt = `Ultra high quality Figma software UI screenshot of a real web application page: "${context.pageName}" for product "${context.projectName}". Modern dark mode SaaS interface, top navigation with items (${navItems.slice(0, 4).join(", ")}), clean data table layout showing empty state notification "${emptyStateNotice}", primary action buttons (${context.actions.slice(0, 3).join(", ")}), crisp typography, sleek dark zinc color palette, sharp borders, zero blur, professional enterprise software design mockup.`;
+
+  const { imageUrl, modelUsed } = await generateCloudflareProductImage(prompt);
+
+  const previewResult: GeneratedProductPreview = {
     previewId: `prv_${currentHash}`,
     projectId: context.projectId,
     pageName: context.pageName,
@@ -183,7 +252,7 @@ export async function generateProductPreview(
     sourceHash: existingHash || currentHash,
     currentHash,
     generatedAt: new Date().toISOString(),
-    model,
+    model: modelUsed,
     promptVersion,
     visualData: {
       heroTitle: context.pageName,
@@ -195,6 +264,11 @@ export async function generateProductPreview(
       fieldsShown,
       connectedApis,
       connectedEntities,
+      imageUrl,
     },
   };
+
+  PREVIEW_CACHE.set(currentHash, previewResult);
+
+  return previewResult;
 }

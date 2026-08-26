@@ -10,17 +10,20 @@ import {
   Database,
   ExternalLink,
   Globe,
+  ImageIcon,
   Layers,
   LayoutGrid,
   ListTodo,
   Loader2,
   Maximize2,
+  RefreshCw,
   Server,
   ShieldCheck,
   Sparkles,
   Table,
   TestTube2,
   X,
+  ZoomIn,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ProjectProductMap, ProductMapNode } from "@/lib/tasks";
@@ -39,6 +42,9 @@ export function ProductMapModal({
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<ProjectProductMap | null>(null);
   const [selectedPage, setSelectedPage] = useState<ProductMapNode | null>(null);
+  const [pageAiImage, setPageAiImage] = useState<string | null>(null);
+  const [loadingImage, setLoadingImage] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
     async function loadProductMap() {
@@ -62,6 +68,41 @@ export function ProductMapModal({
       loadProductMap();
     }
   }, [projectId]);
+
+  // Load AI image for selected page
+  useEffect(() => {
+    let isMounted = true;
+    if (!selectedPage || !projectId) return;
+
+    async function loadPagePreview() {
+      try {
+        setLoadingImage(true);
+        setPageAiImage(null);
+        const res = await fetch("/api/preview", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            projectId,
+            capabilityId: selectedPage.id,
+          }),
+        });
+        const json = await res.json();
+        if (isMounted && json.ok && json.preview?.visualData?.imageUrl) {
+          setPageAiImage(json.preview.visualData.imageUrl);
+        }
+      } catch {
+        // Fallback gracefully
+      } finally {
+        if (isMounted) setLoadingImage(false);
+      }
+    }
+
+    loadPagePreview();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [selectedPage, projectId]);
 
   if (loading && !data) {
     return (
@@ -163,44 +204,83 @@ export function ProductMapModal({
                 </p>
               </div>
 
-              {/* Large Product Preview Canvas */}
+              {/* Large Product Preview Canvas (AI Generated Image + Empty State Fallback) */}
               <div className="rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface)] overflow-hidden shadow-xl">
-                <div className="px-4 py-2 bg-[var(--bos-bg)] border-b border-[var(--bos-border)] flex items-center justify-between text-xs font-mono text-[var(--bos-text-muted)]">
+                <div className="px-4 py-2.5 bg-[var(--bos-bg)] border-b border-[var(--bos-border)] flex items-center justify-between text-xs font-mono text-[var(--bos-text-muted)]">
                   <div className="flex items-center gap-2">
                     <Globe className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
                     <span>{selectedPage.route}</span>
                   </div>
-                  <span>Status: {selectedPage.status}</span>
+                  <div className="flex items-center gap-2">
+                    <span>Status: {selectedPage.status}</span>
+                    {pageAiImage && (
+                      <button
+                        onClick={() => setIsFullscreen(true)}
+                        className="p-1 rounded hover:bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] cursor-pointer"
+                        title="View Fullscreen"
+                      >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
                 </div>
 
-                <div className="p-8 space-y-6">
-                  <div className="flex items-center justify-between border-b border-[var(--bos-border)] pb-4">
-                    <div>
-                      <h3 className="text-lg font-bold text-[var(--bos-text-primary)]">{selectedPage.name}</h3>
-                      <p className="text-xs text-[var(--bos-text-secondary)]">{selectedPage.purpose}</p>
+                <div className="p-6 space-y-6 bg-gradient-to-b from-black/20 to-black/60">
+                  {loadingImage && !pageAiImage ? (
+                    <div className="flex flex-col items-center justify-center py-16 gap-3">
+                      <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)]" />
+                      <p className="text-xs font-mono text-[var(--bos-text-muted)]">
+                        Rendering product visual for {selectedPage.name}...
+                      </p>
                     </div>
-                    <div className="flex gap-2">
-                      {selectedPage.components.slice(0, 3).map((comp, idx) => (
+                  ) : pageAiImage ? (
+                    <div className="relative group rounded-xl overflow-hidden border border-[var(--bos-border)] bg-black/60 shadow-xl max-h-[500px] flex items-center justify-center">
+                      <img
+                        src={pageAiImage}
+                        alt={selectedPage.name}
+                        className="w-full h-auto object-contain max-h-[480px] transition-transform duration-300 group-hover:scale-[1.01]"
+                      />
+                      <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button
-                          key={idx}
-                          className="px-3 py-1.5 rounded-lg bg-[var(--bos-surface-elevated)] border border-[var(--bos-border)] text-xs font-mono font-medium text-[var(--bos-text-primary)]"
+                          onClick={() => setIsFullscreen(true)}
+                          className="px-2.5 py-1.5 rounded-lg bg-black/80 backdrop-blur-md border border-white/20 text-white text-xs font-mono flex items-center gap-1.5 cursor-pointer shadow-lg"
                         >
-                          {comp}
+                          <ZoomIn className="w-3.5 h-3.5" />
+                          View High-Res
                         </button>
-                      ))}
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    <div>
+                      <div className="flex items-center justify-between border-b border-[var(--bos-border)] pb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-[var(--bos-text-primary)]">{selectedPage.name}</h3>
+                          <p className="text-xs text-[var(--bos-text-secondary)]">{selectedPage.purpose}</p>
+                        </div>
+                        <div className="flex gap-2">
+                          {selectedPage.components.slice(0, 3).map((comp, idx) => (
+                            <button
+                              key={idx}
+                              className="px-3 py-1.5 rounded-lg bg-[var(--bos-surface-elevated)] border border-[var(--bos-border)] text-xs font-mono font-medium text-[var(--bos-text-primary)]"
+                            >
+                              {comp}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
 
-                  {/* Authentic Empty State Table */}
-                  <div className="p-12 text-center rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-2">
-                    <Table className="w-8 h-8 text-[var(--bos-text-muted)] mx-auto opacity-40" />
-                    <p className="text-xs font-mono font-bold text-[var(--bos-text-secondary)]">
-                      No records created yet in {selectedPage.name}
-                    </p>
-                    <p className="text-[11px] text-[var(--bos-text-muted)] font-mono">
-                      Bound to {selectedPage.apiCount} APIs and {selectedPage.entityCount} database entities.
-                    </p>
-                  </div>
+                      {/* Authentic Empty State Table */}
+                      <div className="p-12 text-center rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] space-y-2 mt-4">
+                        <Table className="w-8 h-8 text-[var(--bos-text-muted)] mx-auto opacity-40" />
+                        <p className="text-xs font-mono font-bold text-[var(--bos-text-secondary)]">
+                          No records created yet in {selectedPage.name}
+                        </p>
+                        <p className="text-[11px] text-[var(--bos-text-muted)] font-mono">
+                          Bound to {selectedPage.apiCount} APIs and {selectedPage.entityCount} database entities.
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -312,6 +392,22 @@ export function ProductMapModal({
           )}
         </div>
       </div>
+
+      {/* ── Fullscreen Modal ────────────────────────────────────────── */}
+      {isFullscreen && pageAiImage && (
+        <div
+          onClick={() => setIsFullscreen(false)}
+          className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-6 cursor-zoom-out"
+        >
+          <div className="max-w-6xl max-h-[90vh] overflow-auto rounded-2xl border border-white/20 shadow-2xl">
+            <img
+              src={pageAiImage}
+              alt={selectedPage?.name || "Product Preview"}
+              className="w-full h-auto object-contain rounded-2xl"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
