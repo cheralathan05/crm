@@ -390,37 +390,60 @@ export async function getEmployeeWorkData(employeeId: string, workspaceId: strin
       ],
     },
     include: {
-      project: { select: { id: true, name: true, code: true } },
+      project: { select: { id: true, name: true, code: true, stage: true, health: true } },
       client: { select: { id: true, companyName: true } },
-      deliverable: { select: { id: true, title: true, status: true } },
+      deliverable: { select: { id: true, title: true, status: true, category: true, acceptanceCriteria: true } },
+      subtasks: { orderBy: { order: "asc" } },
+      acceptanceCriteria: { orderBy: { order: "asc" } },
+      dependencies: {
+        include: {
+          dependsOnTask: { select: { id: true, code: true, title: true, status: true, assigneeName: true } },
+        },
+      },
+      dependentOnMe: {
+        include: {
+          task: { select: { id: true, code: true, title: true, status: true } },
+        },
+      },
     },
     orderBy: [{ priority: "desc" }, { dueAt: "asc" }, { createdAt: "desc" }],
-    take: 50,
+    take: 100,
   });
 
   const now = new Date();
   const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+  const endOf3Days = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
 
   const dueTodayTasks: typeof tasks = [];
   const inProgressTasks: typeof tasks = [];
+  const dueSoonTasks: typeof tasks = [];
   const blockedTasks: typeof tasks = [];
   const inReviewTasks: typeof tasks = [];
   const upcomingTasks: typeof tasks = [];
+  const completedTasks: typeof tasks = [];
 
   for (const t of tasks) {
-    const isDueTodayOrOverdue = t.dueAt && t.dueAt <= endOfToday && t.status !== "DONE" && t.status !== "COMPLETED";
+    const isDone = t.status === "DONE" || t.status === "COMPLETED" || t.status === "CLIENT_APPROVED";
+    const isDueTodayOrOverdue = t.dueAt && t.dueAt <= endOfToday && !isDone;
+    const isDueSoon = t.dueAt && t.dueAt > endOfToday && t.dueAt <= endOf3Days && !isDone;
 
-    if (t.status === "BLOCKED") {
+    if (isDone) {
+      completedTasks.push(t);
+    } else if (t.status === "BLOCKED") {
       blockedTasks.push(t);
     } else if (isDueTodayOrOverdue) {
       dueTodayTasks.push(t);
     } else if (t.status === "IN_PROGRESS") {
       inProgressTasks.push(t);
-    } else if (t.status === "IN_REVIEW" || t.status === "CLIENT_REVIEW" || t.status === "READY_FOR_CLIENT") {
+    } else if (t.status === "IN_REVIEW" || t.status === "CLIENT_REVIEW" || t.status === "READY_FOR_CLIENT" || t.status === "CHANGES_REQUESTED") {
       inReviewTasks.push(t);
-    } else if (t.status !== "DONE" && t.status !== "COMPLETED" && t.status !== "CANCELLED") {
+    } else {
       upcomingTasks.push(t);
+    }
+
+    if (isDueSoon) {
+      dueSoonTasks.push(t);
     }
   }
 
@@ -469,19 +492,24 @@ export async function getEmployeeWorkData(employeeId: string, workspaceId: strin
 
   return {
     metrics: {
-      totalAssignedTasks: tasks.filter((t) => t.status !== "DONE" && t.status !== "COMPLETED").length,
-      dueTodayCount: dueTodayTasks.length,
+      totalAssignedTasks: tasks.filter((t) => t.status !== "DONE" && t.status !== "COMPLETED" && t.status !== "CANCELLED").length,
+      todayCount: dueTodayTasks.length,
       inProgressCount: inProgressTasks.length,
+      dueSoonCount: dueSoonTasks.length,
       blockedCount: blockedTasks.length,
       inReviewCount: inReviewTasks.length,
+      completedCount: completedTasks.length,
       projectsCount: employee.projectAllocations.length,
     },
     sections: {
+      all: tasks,
       dueToday: dueTodayTasks,
       inProgress: inProgressTasks,
+      dueSoon: dueSoonTasks,
       blocked: blockedTasks,
       inReview: inReviewTasks,
       upcoming: upcomingTasks,
+      completed: completedTasks,
     },
     projects: employee.projectAllocations.map((a) => ({
       id: a.project.id,

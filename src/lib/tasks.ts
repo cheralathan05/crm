@@ -160,6 +160,35 @@ export type WorkDNA = {
     actorName: string | null;
     createdAt: Date;
   }>;
+  comments: Array<{
+    id: string;
+    authorId: string | null;
+    authorName: string;
+    authorRole: string | null;
+    content: string;
+    isClientVisible: boolean;
+    createdAt: Date;
+  }>;
+  attachments: Array<{
+    id: string;
+    name: string;
+    url: string;
+    size: number;
+    category: string;
+    uploadedByName: string | null;
+    createdAt: Date;
+  }>;
+  evidenceRecords: Array<{
+    id: string;
+    type: string;
+    title: string;
+    url: string | null;
+    description: string | null;
+    metadata: string | null;
+    verifiedBy: string | null;
+    verifiedAt: Date;
+    createdAt: Date;
+  }>;
 };
 
 export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
@@ -198,6 +227,7 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
       activities: { orderBy: { createdAt: "desc" }, take: 25 },
       comments: { orderBy: { createdAt: "desc" } },
       attachments: { orderBy: { createdAt: "desc" } },
+      evidenceRecords: { orderBy: { createdAt: "desc" } },
     },
   });
 
@@ -393,6 +423,35 @@ export async function getTaskWorkDNA(taskId: string): Promise<WorkDNA | null> {
       detail: a.detail,
       actorName: a.actorName,
       createdAt: a.createdAt,
+    })),
+    comments: task.comments.map((c) => ({
+      id: c.id,
+      authorId: c.authorId,
+      authorName: c.authorName,
+      authorRole: c.authorRole,
+      content: c.content,
+      isClientVisible: c.isClientVisible,
+      createdAt: c.createdAt,
+    })),
+    attachments: task.attachments.map((a) => ({
+      id: a.id,
+      name: a.name,
+      url: a.url,
+      size: a.size,
+      category: a.category,
+      uploadedByName: a.uploadedByName,
+      createdAt: a.createdAt,
+    })),
+    evidenceRecords: task.evidenceRecords.map((e) => ({
+      id: e.id,
+      type: e.type,
+      title: e.title,
+      url: e.url,
+      description: e.description,
+      metadata: e.metadata,
+      verifiedBy: e.verifiedBy,
+      verifiedAt: e.verifiedAt,
+      createdAt: e.createdAt,
     })),
   };
 }

@@ -595,111 +595,103 @@ export function TasksCommandCenter({
                     No tasks match the active filter.
                   </div>
                 ) : (
-                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                     {filteredTasks.map((t) => {
                       const isBlocked = t.status === "BLOCKED";
-                      const isDone = t.status === "DONE" || t.status === "COMPLETED";
-                      const fromSource = t.deliverable?.title || t.sourceDeliverableTitle || (t.sourceRequirementId ? `Req ${t.sourceRequirementId}` : "Project Scope");
-                      const owner = t.assigneeName || "Unassigned";
+                      const isDone = t.status === "DONE" || t.status === "COMPLETED" || t.status === "CLIENT_APPROVED";
+                      const isInProgress = t.status === "IN_PROGRESS";
+                      const isInReview = t.status === "IN_REVIEW" || t.status === "CLIENT_REVIEW" || t.status === "READY_FOR_CLIENT" || t.status === "CHANGES_REQUESTED";
+
+                      // Due text
+                      const dueText = t.dueAt
+                        ? new Date(t.dueAt).toDateString() === new Date().toDateString()
+                          ? "Due today"
+                          : new Date(t.dueAt) < new Date()
+                          ? `Overdue (${new Date(t.dueAt).toLocaleDateString("en-GB")})`
+                          : `Due ${new Date(t.dueAt).toLocaleDateString("en-GB")}`
+                        : "No deadline";
 
                       // Next action text
-                      let nextActionLabel = "Open Task →";
-                      if (t.status === "BLOCKED") nextActionLabel = "View Blocker →";
-                      else if (!t.assigneeName) nextActionLabel = "Assign employee →";
-                      else if (t.status === "TODO" || t.status === "READY" || t.status === "BACKLOG") nextActionLabel = "Start Task →";
-                      else if (t.status === "IN_PROGRESS") nextActionLabel = "Submit for Review →";
-                      else if (t.status === "IN_REVIEW") nextActionLabel = "Verify & Complete →";
+                      let nextActionLabel = "Start Task →";
+                      if (isInProgress) nextActionLabel = "Submit for Review →";
+                      else if (isInReview) nextActionLabel = "Review & Verify →";
+                      else if (isBlocked) nextActionLabel = "Check Blocker →";
+                      else if (isDone) nextActionLabel = "View Completed Work →";
+
+                      // Plain description
+                      const plainDesc = t.description && t.description.trim().length > 0 && t.description.trim() !== t.title
+                        ? t.description
+                        : t.deliverable?.title
+                        ? `Execute and deliver ${t.title} for ${t.deliverable.title}.`
+                        : `Complete the required work for ${t.title}.`;
 
                       return (
                         <div
                           key={t.id}
                           onClick={() => setActiveTaskId(t.id)}
                           className={cn(
-                            "p-5 rounded-2xl bg-[var(--bos-surface)] border transition-all space-y-3 cursor-pointer group shadow-2xs hover:shadow-md",
+                            "p-5 rounded-2xl bg-[var(--bos-surface)] border transition-all space-y-3.5 cursor-pointer group shadow-xs hover:shadow-md",
                             isBlocked
-                              ? "border-amber-500/40 bg-amber-500/5 hover:border-amber-500"
+                              ? "border-rose-500/40 bg-rose-500/5 hover:border-rose-500"
                               : isDone
                               ? "border-[var(--bos-border)] hover:border-emerald-500/50"
-                              : "border-[var(--bos-border)] hover:border-[var(--bos-accent)]/50"
+                              : "border-[var(--bos-border)] hover:border-[var(--bos-accent)]"
                           )}
                         >
-                          {/* Top Tag line: Code + Status Badge */}
+                          {/* Priority & Status Badges */}
                           <div className="flex items-center justify-between gap-2">
-                            <span className="font-mono text-[11px] font-bold text-[var(--bos-accent)] bg-[var(--bos-bg)] px-2 py-0.5 rounded border border-[var(--bos-border)]">
-                              {t.code || "TSK-000"}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-[11px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--bos-surface-subtle)] border border-[var(--bos-border)] text-[var(--bos-accent)]">
+                                {t.priority || "MEDIUM"} PRIORITY
+                              </span>
+                              <span
+                                className={cn(
+                                  "font-mono text-[10.5px] uppercase font-bold px-2 py-0.5 rounded border",
+                                  isDone
+                                    ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20"
+                                    : isInProgress
+                                    ? "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20"
+                                    : isInReview
+                                    ? "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20"
+                                    : isBlocked
+                                    ? "bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20"
+                                    : "bg-[var(--bos-surface-subtle)] text-[var(--bos-text-secondary)] border-[var(--bos-border)]"
+                                )}
+                              >
+                                {t.status.replace(/_/g, " ")}
+                              </span>
+                            </div>
 
-                            <span
-                              className={cn(
-                                "font-mono text-[10px] uppercase font-bold px-2 py-0.5 rounded border",
-                                isDone
-                                  ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20"
-                                  : t.status === "IN_PROGRESS"
-                                  ? "bg-sky-500/10 text-sky-600 border-sky-500/20"
-                                  : isBlocked
-                                  ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
-                                  : "bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] border-[var(--bos-border)]"
-                              )}
-                            >
-                              {t.status === "IN_PROGRESS" ? "In Progress" : t.status === "TODO" ? "To Do" : t.status}
+                            <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">
+                              {t.code || "TSK"}
                             </span>
                           </div>
 
-                          {/* Task Title (WHAT) */}
-                          <h3 className="text-[14.5px] font-bold text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors leading-snug line-clamp-2">
-                            {t.title}
-                          </h3>
-
-                          {/* Metadata Grid: PROJECT, FROM, OWNER, PRIORITY, DUE */}
-                          <div className="space-y-1.5 pt-2 border-t border-[var(--bos-border)]/70 text-[11.5px] font-mono">
-                            <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
-                              <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">PROJECT</span>
-                              <span className="text-[var(--bos-text-primary)] truncate max-w-[200px] font-medium">
-                                {t.project?.name || activeProject?.name || "Client Project"}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
-                              <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">FROM</span>
-                              <span className="text-[var(--bos-text-primary)] truncate max-w-[200px]">
-                                {fromSource}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
-                              <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">OWNER</span>
-                              <span className={cn(
-                                "font-semibold",
-                                t.assigneeName ? "text-[var(--bos-text-primary)]" : "text-amber-600"
-                              )}>
-                                {owner}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
-                              <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">PRIORITY</span>
-                              <span className={cn(
-                                "font-semibold",
-                                t.priority === "URGENT" || t.priority === "HIGH" ? "text-rose-600" : "text-[var(--bos-text-secondary)]"
-                              )}>
-                                {t.priority || "Medium"}
-                              </span>
-                            </div>
-
-                            <div className="flex items-center justify-between text-[var(--bos-text-secondary)]">
-                              <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">DUE</span>
-                              <span className="text-[var(--bos-text-primary)] font-medium">
-                                {t.dueAt ? new Date(t.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "Not specified"}
-                              </span>
-                            </div>
+                          {/* Task Title & Project */}
+                          <div className="space-y-1">
+                            <h3 className="text-[15.5px] font-bold text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors leading-snug line-clamp-2">
+                              {t.title}
+                            </h3>
+                            <p className="text-[12.5px] font-medium text-[var(--bos-text-secondary)] truncate">
+                              {t.project?.name || activeProject?.name || "Client Project"}
+                            </p>
                           </div>
 
-                          {/* NEXT ACTION FOOTER */}
-                          <div className="pt-2 border-t border-[var(--bos-border)] flex items-center justify-between text-[11.5px] font-mono">
-                            <span className="text-[var(--bos-text-tertiary)] uppercase text-[10px]">NEXT ACTION</span>
-                            <span className="font-bold text-[var(--bos-accent)] group-hover:underline flex items-center gap-1">
+                          {/* Plain-Language Instruction */}
+                          <p className="text-[13px] leading-relaxed text-[var(--bos-text-primary)] line-clamp-2">
+                            {plainDesc}
+                          </p>
+
+                          {/* Footer: Due date & NEXT Action */}
+                          <div className="pt-2.5 border-t border-[var(--bos-border)] flex items-center justify-between gap-2 text-[12px]">
+                            <div className="text-[var(--bos-text-secondary)] truncate">
+                              <span>{dueText} · {t.assigneeName || "Unassigned"}</span>
+                            </div>
+
+                            <div className="inline-flex items-center gap-1 font-semibold text-[var(--bos-accent)] shrink-0 group-hover:translate-x-0.5 transition-transform">
+                              <span className="font-mono text-[10.5px] text-[var(--bos-text-secondary)] uppercase">NEXT</span>
                               <span>{nextActionLabel}</span>
-                            </span>
+                            </div>
                           </div>
                         </div>
                       );
@@ -765,6 +757,8 @@ export function TasksCommandCenter({
           taskId={activeTaskId}
           onClose={() => setActiveTaskId(null)}
           onTaskUpdated={() => loadData()}
+          onNavigateTask={(newId) => setActiveTaskId(newId)}
+          isAdmin={true}
         />
       )}
 
