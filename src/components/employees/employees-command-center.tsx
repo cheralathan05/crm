@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import {
   Users,
   Plus,
@@ -23,7 +24,7 @@ import { EmployeeCommandTable } from "./employee-command-table";
 import { EmployeeWorkspaceDrawer } from "./employee-workspace-drawer";
 import { EmployeeOnboardingWizard } from "./employee-onboarding-wizard";
 import { InvitationCenterModal } from "./invitation-center-modal";
-import { SmartAssignmentModal } from "./smart-assignment-modal";
+// SmartAssignmentModal replaced by /employees/assign-work page flow
 import { OffboardingModal } from "./offboarding-modal";
 import { RoleOSModal } from "./role-os-modal";
 import { TeamOSModal } from "./team-os-modal";
@@ -32,6 +33,7 @@ import { WorkforceSettingsModal } from "./workforce-settings-modal";
 import { CopilotWorkforceModal } from "./copilot-workforce-modal";
 
 export function EmployeesCommandCenter() {
+  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -65,7 +67,8 @@ export function EmployeesCommandCenter() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInvitations, setShowInvitations] = useState(false);
-  const [showSmartAssignment, setShowSmartAssignment] = useState(false);
+  // Navigate to full-page assignment flow instead of modal
+  const openAssignWork = () => router.push("/employees/assign-work");
   const [offboardingEmployee, setOffboardingEmployee] = useState<any | null>(null);
   const [showCreateRole, setShowCreateRole] = useState(false);
   const [showCreateTeam, setShowCreateTeam] = useState(false);
@@ -139,7 +142,7 @@ export function EmployeesCommandCenter() {
           health={health}
           onSelectEmployee={(empId) => setSelectedEmployeeId(empId)}
           onOpenInvitations={() => setShowInvitations(true)}
-          onOpenTasks={() => setShowSmartAssignment(true)}
+          onOpenTasks={() => openAssignWork()}
         />
 
         {/* Loading State */}
@@ -231,7 +234,7 @@ export function EmployeesCommandCenter() {
               sortBy={sortBy}
               onSortChange={(s) => setSortBy(s)}
               onSelectEmployee={(emp) => setSelectedEmployeeId(emp.id)}
-              onAssignTask={(emp) => setShowSmartAssignment(true)}
+              onAssignTask={(emp) => openAssignWork()}
               onAssignProject={(emp) => setSelectedEmployeeId(emp.id)}
               onResendInvite={(emp) => setShowInvitations(true)}
               onOffboard={(emp) => setOffboardingEmployee(emp)}
@@ -250,7 +253,7 @@ export function EmployeesCommandCenter() {
           onUpdated={() => loadData()}
           onOpenAssignTask={() => {
             setSelectedEmployeeId(null);
-            setShowSmartAssignment(true);
+            openAssignWork();
           }}
           onOpenOffboard={(emp) => {
             setSelectedEmployeeId(null);
@@ -280,13 +283,7 @@ export function EmployeesCommandCenter() {
         />
       )}
 
-      {/* ── 06. SMART ASSIGNMENT MODAL (AI-ASSISTED) ──────────────── */}
-      {showSmartAssignment && (
-        <SmartAssignmentModal
-          onClose={() => setShowSmartAssignment(false)}
-          onAssigned={() => loadData()}
-        />
-      )}
+      {/* ── 06. WORKSTREAM ASSIGNMENT — now a full-page flow at /employees/assign-work ── */}
 
       {/* ── 07. OFFBOARDING MODAL ─────────────────────────────────── */}
       {offboardingEmployee && (
