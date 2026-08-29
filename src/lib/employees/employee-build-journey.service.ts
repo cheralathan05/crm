@@ -201,7 +201,6 @@ export async function getPreSubmissionData(buildId: string): Promise<PreSubmissi
   const prs = proofs.filter((p) => p.type === "PR").length;
   const tests = proofs.filter((p) => p.type === "TEST").length;
 
-  const latestSubmission = build.submissions[0] || null;
   const currentVersion = latestSubmission ? latestSubmission.version + (latestSubmission.status === "CHANGES_REQUESTED" ? 1 : 0) : 1;
 
   return {
