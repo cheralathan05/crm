@@ -119,6 +119,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       ok: true,
       brief,
+      data: brief,
       availableProjects: assignedProjects.length > 0
         ? assignedProjects.map((a) => a.project)
         : allWorkspaceProjects,

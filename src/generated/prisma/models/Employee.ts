@@ -458,6 +458,7 @@ export type EmployeeWhereInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionListRelationFilter
   inboxItems?: Prisma.EmployeeInboxItemListRelationFilter
   checkpoints?: Prisma.BuildCheckpointListRelationFilter
+  productBuilds?: Prisma.ProductBuildListRelationFilter
 }
 
 export type EmployeeOrderByWithRelationInput = {
@@ -512,6 +513,7 @@ export type EmployeeOrderByWithRelationInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionOrderByRelationAggregateInput
   inboxItems?: Prisma.EmployeeInboxItemOrderByRelationAggregateInput
   checkpoints?: Prisma.BuildCheckpointOrderByRelationAggregateInput
+  productBuilds?: Prisma.ProductBuildOrderByRelationAggregateInput
 }
 
 export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
@@ -571,6 +573,7 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   authoredRecognitions?: Prisma.ContributionRecognitionListRelationFilter
   inboxItems?: Prisma.EmployeeInboxItemListRelationFilter
   checkpoints?: Prisma.BuildCheckpointListRelationFilter
+  productBuilds?: Prisma.ProductBuildListRelationFilter
 }, "id" | "userId" | "workspaceId_email" | "workspaceId_employeeCode">
 
 export type EmployeeOrderByWithAggregationInput = {
@@ -701,6 +704,7 @@ export type EmployeeCreateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateInput = {
@@ -751,6 +755,7 @@ export type EmployeeUncheckedCreateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUpdateInput = {
@@ -801,6 +806,7 @@ export type EmployeeUpdateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateInput = {
@@ -851,6 +857,7 @@ export type EmployeeUncheckedUpdateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyInput = {
@@ -1463,6 +1470,20 @@ export type EmployeeUpdateOneRequiredWithoutCheckpointsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutCheckpointsInput, Prisma.EmployeeUpdateWithoutCheckpointsInput>, Prisma.EmployeeUncheckedUpdateWithoutCheckpointsInput>
 }
 
+export type EmployeeCreateNestedOneWithoutProductBuildsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutProductBuildsInput, Prisma.EmployeeUncheckedCreateWithoutProductBuildsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutProductBuildsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutProductBuildsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutProductBuildsInput, Prisma.EmployeeUncheckedCreateWithoutProductBuildsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutProductBuildsInput
+  upsert?: Prisma.EmployeeUpsertWithoutProductBuildsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutProductBuildsInput, Prisma.EmployeeUpdateWithoutProductBuildsInput>, Prisma.EmployeeUncheckedUpdateWithoutProductBuildsInput>
+}
+
 export type EmployeeCreateWithoutUserInput = {
   id?: string
   employeeCode: string
@@ -1510,6 +1531,7 @@ export type EmployeeCreateWithoutUserInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutUserInput = {
@@ -1559,6 +1581,7 @@ export type EmployeeUncheckedCreateWithoutUserInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutUserInput = {
@@ -1624,6 +1647,7 @@ export type EmployeeUpdateWithoutUserInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutUserInput = {
@@ -1673,6 +1697,7 @@ export type EmployeeUncheckedUpdateWithoutUserInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutWorkspaceInput = {
@@ -1722,6 +1747,7 @@ export type EmployeeCreateWithoutWorkspaceInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutWorkspaceInput = {
@@ -1771,6 +1797,7 @@ export type EmployeeUncheckedCreateWithoutWorkspaceInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutWorkspaceInput = {
@@ -1884,6 +1911,7 @@ export type EmployeeCreateWithoutRoleInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutRoleInput = {
@@ -1933,6 +1961,7 @@ export type EmployeeUncheckedCreateWithoutRoleInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutRoleInput = {
@@ -2007,6 +2036,7 @@ export type EmployeeCreateWithoutLedTeamsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutLedTeamsInput = {
@@ -2056,6 +2086,7 @@ export type EmployeeUncheckedCreateWithoutLedTeamsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutLedTeamsInput = {
@@ -2110,6 +2141,7 @@ export type EmployeeCreateWithoutTeamInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutTeamInput = {
@@ -2159,6 +2191,7 @@ export type EmployeeUncheckedCreateWithoutTeamInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutTeamInput = {
@@ -2228,6 +2261,7 @@ export type EmployeeUpdateWithoutLedTeamsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutLedTeamsInput = {
@@ -2277,6 +2311,7 @@ export type EmployeeUncheckedUpdateWithoutLedTeamsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUpsertWithWhereUniqueWithoutTeamInput = {
@@ -2342,6 +2377,7 @@ export type EmployeeCreateWithoutInvitationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutInvitationsInput = {
@@ -2391,6 +2427,7 @@ export type EmployeeUncheckedCreateWithoutInvitationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutInvitationsInput = {
@@ -2456,6 +2493,7 @@ export type EmployeeUpdateWithoutInvitationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutInvitationsInput = {
@@ -2505,6 +2543,7 @@ export type EmployeeUncheckedUpdateWithoutInvitationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutAuditEventsInput = {
@@ -2554,6 +2593,7 @@ export type EmployeeCreateWithoutAuditEventsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutAuditEventsInput = {
@@ -2603,6 +2643,7 @@ export type EmployeeUncheckedCreateWithoutAuditEventsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutAuditEventsInput = {
@@ -2668,6 +2709,7 @@ export type EmployeeUpdateWithoutAuditEventsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutAuditEventsInput = {
@@ -2717,6 +2759,7 @@ export type EmployeeUncheckedUpdateWithoutAuditEventsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutProjectAllocationsInput = {
@@ -2766,6 +2809,7 @@ export type EmployeeCreateWithoutProjectAllocationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutProjectAllocationsInput = {
@@ -2815,6 +2859,7 @@ export type EmployeeUncheckedCreateWithoutProjectAllocationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutProjectAllocationsInput = {
@@ -2880,6 +2925,7 @@ export type EmployeeUpdateWithoutProjectAllocationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutProjectAllocationsInput = {
@@ -2929,6 +2975,7 @@ export type EmployeeUncheckedUpdateWithoutProjectAllocationsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutOnboardingStateInput = {
@@ -2978,6 +3025,7 @@ export type EmployeeCreateWithoutOnboardingStateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutOnboardingStateInput = {
@@ -3027,6 +3075,7 @@ export type EmployeeUncheckedCreateWithoutOnboardingStateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutOnboardingStateInput = {
@@ -3092,6 +3141,7 @@ export type EmployeeUpdateWithoutOnboardingStateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutOnboardingStateInput = {
@@ -3141,6 +3191,7 @@ export type EmployeeUncheckedUpdateWithoutOnboardingStateInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutPolicyAcknowledgementsInput = {
@@ -3190,6 +3241,7 @@ export type EmployeeCreateWithoutPolicyAcknowledgementsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutPolicyAcknowledgementsInput = {
@@ -3239,6 +3291,7 @@ export type EmployeeUncheckedCreateWithoutPolicyAcknowledgementsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutPolicyAcknowledgementsInput = {
@@ -3304,6 +3357,7 @@ export type EmployeeUpdateWithoutPolicyAcknowledgementsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutPolicyAcknowledgementsInput = {
@@ -3353,6 +3407,7 @@ export type EmployeeUncheckedUpdateWithoutPolicyAcknowledgementsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutToolAccessesInput = {
@@ -3402,6 +3457,7 @@ export type EmployeeCreateWithoutToolAccessesInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutToolAccessesInput = {
@@ -3451,6 +3507,7 @@ export type EmployeeUncheckedCreateWithoutToolAccessesInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutToolAccessesInput = {
@@ -3516,6 +3573,7 @@ export type EmployeeUpdateWithoutToolAccessesInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutToolAccessesInput = {
@@ -3565,6 +3623,7 @@ export type EmployeeUncheckedUpdateWithoutToolAccessesInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutProjectBriefsInput = {
@@ -3614,6 +3673,7 @@ export type EmployeeCreateWithoutProjectBriefsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutProjectBriefsInput = {
@@ -3663,6 +3723,7 @@ export type EmployeeUncheckedCreateWithoutProjectBriefsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutProjectBriefsInput = {
@@ -3728,6 +3789,7 @@ export type EmployeeUpdateWithoutProjectBriefsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutProjectBriefsInput = {
@@ -3777,6 +3839,7 @@ export type EmployeeUncheckedUpdateWithoutProjectBriefsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutBuildSessionsInput = {
@@ -3826,6 +3889,7 @@ export type EmployeeCreateWithoutBuildSessionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutBuildSessionsInput = {
@@ -3875,6 +3939,7 @@ export type EmployeeUncheckedCreateWithoutBuildSessionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutBuildSessionsInput = {
@@ -3940,6 +4005,7 @@ export type EmployeeUpdateWithoutBuildSessionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutBuildSessionsInput = {
@@ -3989,6 +4055,7 @@ export type EmployeeUncheckedUpdateWithoutBuildSessionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutContributionsInput = {
@@ -4038,6 +4105,7 @@ export type EmployeeCreateWithoutContributionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutContributionsInput = {
@@ -4087,6 +4155,7 @@ export type EmployeeUncheckedCreateWithoutContributionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutContributionsInput = {
@@ -4152,6 +4221,7 @@ export type EmployeeUpdateWithoutContributionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutContributionsInput = {
@@ -4201,6 +4271,7 @@ export type EmployeeUncheckedUpdateWithoutContributionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutReceivedRecognitionsInput = {
@@ -4250,6 +4321,7 @@ export type EmployeeCreateWithoutReceivedRecognitionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutReceivedRecognitionsInput = {
@@ -4299,6 +4371,7 @@ export type EmployeeUncheckedCreateWithoutReceivedRecognitionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutReceivedRecognitionsInput = {
@@ -4353,6 +4426,7 @@ export type EmployeeCreateWithoutAuthoredRecognitionsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput = {
@@ -4402,6 +4476,7 @@ export type EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutAuthoredRecognitionsInput = {
@@ -4467,6 +4542,7 @@ export type EmployeeUpdateWithoutReceivedRecognitionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutReceivedRecognitionsInput = {
@@ -4516,6 +4592,7 @@ export type EmployeeUncheckedUpdateWithoutReceivedRecognitionsInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUpsertWithoutAuthoredRecognitionsInput = {
@@ -4576,6 +4653,7 @@ export type EmployeeUpdateWithoutAuthoredRecognitionsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutAuthoredRecognitionsInput = {
@@ -4625,6 +4703,7 @@ export type EmployeeUncheckedUpdateWithoutAuthoredRecognitionsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutInboxItemsInput = {
@@ -4674,6 +4753,7 @@ export type EmployeeCreateWithoutInboxItemsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutInboxItemsInput = {
@@ -4723,6 +4803,7 @@ export type EmployeeUncheckedCreateWithoutInboxItemsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutInboxItemsInput = {
@@ -4788,6 +4869,7 @@ export type EmployeeUpdateWithoutInboxItemsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutInboxItemsInput = {
@@ -4837,6 +4919,7 @@ export type EmployeeUncheckedUpdateWithoutInboxItemsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutCheckpointsInput = {
@@ -4886,6 +4969,7 @@ export type EmployeeCreateWithoutCheckpointsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
   authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutCheckpointsInput = {
@@ -4935,6 +5019,7 @@ export type EmployeeUncheckedCreateWithoutCheckpointsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutCheckpointsInput = {
@@ -5000,6 +5085,7 @@ export type EmployeeUpdateWithoutCheckpointsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutCheckpointsInput = {
@@ -5049,6 +5135,223 @@ export type EmployeeUncheckedUpdateWithoutCheckpointsInput = {
   receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutProductBuildsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutProductBuildsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutProductBuildsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutProductBuildsInput, Prisma.EmployeeUncheckedCreateWithoutProductBuildsInput>
+}
+
+export type EmployeeUpsertWithoutProductBuildsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutProductBuildsInput, Prisma.EmployeeUncheckedUpdateWithoutProductBuildsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutProductBuildsInput, Prisma.EmployeeUncheckedCreateWithoutProductBuildsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutProductBuildsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutProductBuildsInput, Prisma.EmployeeUncheckedUpdateWithoutProductBuildsInput>
+}
+
+export type EmployeeUpdateWithoutProductBuildsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutProductBuildsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyWorkspaceInput = {
@@ -5133,6 +5436,7 @@ export type EmployeeUpdateWithoutWorkspaceInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutWorkspaceInput = {
@@ -5182,6 +5486,7 @@ export type EmployeeUncheckedUpdateWithoutWorkspaceInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -5301,6 +5606,7 @@ export type EmployeeUpdateWithoutRoleInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutRoleInput = {
@@ -5350,6 +5656,7 @@ export type EmployeeUncheckedUpdateWithoutRoleInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutRoleInput = {
@@ -5469,6 +5776,7 @@ export type EmployeeUpdateWithoutTeamInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutTeamInput = {
@@ -5518,6 +5826,7 @@ export type EmployeeUncheckedUpdateWithoutTeamInput = {
   authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
   inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutTeamInput = {
@@ -5574,6 +5883,7 @@ export type EmployeeCountOutputType = {
   authoredRecognitions: number
   inboxItems: number
   checkpoints: number
+  productBuilds: number
 }
 
 export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5590,6 +5900,7 @@ export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   authoredRecognitions?: boolean | EmployeeCountOutputTypeCountAuthoredRecognitionsArgs
   inboxItems?: boolean | EmployeeCountOutputTypeCountInboxItemsArgs
   checkpoints?: boolean | EmployeeCountOutputTypeCountCheckpointsArgs
+  productBuilds?: boolean | EmployeeCountOutputTypeCountProductBuildsArgs
 }
 
 /**
@@ -5693,6 +6004,13 @@ export type EmployeeCountOutputTypeCountCheckpointsArgs<ExtArgs extends runtime.
   where?: Prisma.BuildCheckpointWhereInput
 }
 
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountProductBuildsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ProductBuildWhereInput
+}
+
 
 export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -5746,6 +6064,7 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   authoredRecognitions?: boolean | Prisma.Employee$authoredRecognitionsArgs<ExtArgs>
   inboxItems?: boolean | Prisma.Employee$inboxItemsArgs<ExtArgs>
   checkpoints?: boolean | Prisma.Employee$checkpointsArgs<ExtArgs>
+  productBuilds?: boolean | Prisma.Employee$productBuildsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employee"]>
 
@@ -5885,6 +6204,7 @@ export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   authoredRecognitions?: boolean | Prisma.Employee$authoredRecognitionsArgs<ExtArgs>
   inboxItems?: boolean | Prisma.Employee$inboxItemsArgs<ExtArgs>
   checkpoints?: boolean | Prisma.Employee$checkpointsArgs<ExtArgs>
+  productBuilds?: boolean | Prisma.Employee$productBuildsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EmployeeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -5921,6 +6241,7 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     authoredRecognitions: Prisma.$ContributionRecognitionPayload<ExtArgs>[]
     inboxItems: Prisma.$EmployeeInboxItemPayload<ExtArgs>[]
     checkpoints: Prisma.$BuildCheckpointPayload<ExtArgs>[]
+    productBuilds: Prisma.$ProductBuildPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -6368,6 +6689,7 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
   authoredRecognitions<T extends Prisma.Employee$authoredRecognitionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$authoredRecognitionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContributionRecognitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   inboxItems<T extends Prisma.Employee$inboxItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$inboxItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeInboxItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   checkpoints<T extends Prisma.Employee$checkpointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$checkpointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildCheckpointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  productBuilds<T extends Prisma.Employee$productBuildsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$productBuildsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductBuildPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7214,6 +7536,30 @@ export type Employee$checkpointsArgs<ExtArgs extends runtime.Types.Extensions.In
   take?: number
   skip?: number
   distinct?: Prisma.BuildCheckpointScalarFieldEnum | Prisma.BuildCheckpointScalarFieldEnum[]
+}
+
+/**
+ * Employee.productBuilds
+ */
+export type Employee$productBuildsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ProductBuild
+   */
+  select?: Prisma.ProductBuildSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ProductBuild
+   */
+  omit?: Prisma.ProductBuildOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ProductBuildInclude<ExtArgs> | null
+  where?: Prisma.ProductBuildWhereInput
+  orderBy?: Prisma.ProductBuildOrderByWithRelationInput | Prisma.ProductBuildOrderByWithRelationInput[]
+  cursor?: Prisma.ProductBuildWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ProductBuildScalarFieldEnum | Prisma.ProductBuildScalarFieldEnum[]
 }
 
 /**

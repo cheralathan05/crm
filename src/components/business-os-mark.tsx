@@ -2,16 +2,26 @@
 
 import { cn } from "@/lib/utils";
 
-type Size = "sm" | "md" | "lg" | "xl";
+export type Size = "sm" | "md" | "lg" | "xl" | number;
 
-const sizeMap: Record<Size, { outer: number; inner: number }> = {
+const sizeMap: Record<string, { outer: number; inner: number }> = {
   sm: { outer: 16, inner: 10 },
   md: { outer: 24, inner: 16 },
   lg: { outer: 32, inner: 22 },
   xl: { outer: 48, inner: 34 },
 };
 
-interface BusinessOSMarkProps {
+function getDimensions(size: Size): { outer: number; inner: number } {
+  if (typeof size === "number") {
+    return { outer: size, inner: Math.round(size * 0.65) };
+  }
+  if (typeof size === "string" && sizeMap[size]) {
+    return sizeMap[size];
+  }
+  return sizeMap.md;
+}
+
+export interface BusinessOSMarkProps {
   size?: Size;
   className?: string;
   animated?: boolean;
@@ -31,7 +41,7 @@ export function BusinessOSMark({
   className,
   animated = false,
 }: BusinessOSMarkProps) {
-  const dims = sizeMap[size];
+  const dims = getDimensions(size);
 
   return (
     <svg
@@ -40,7 +50,7 @@ export function BusinessOSMark({
       viewBox="0 0 24 24"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
-      className={cn("text-current", animated && "animate-pulse", className)}
+      className={cn("text-current shrink-0", animated && "animate-pulse", className)}
       aria-label="Business OS"
       role="img"
     >
@@ -93,6 +103,7 @@ export function BusinessOSLogo({
             size === "md" && "text-sm",
             size === "lg" && "text-base",
             size === "xl" && "text-lg",
+            typeof size === "number" && (size <= 18 ? "text-xs" : size <= 28 ? "text-sm" : "text-base")
           )}
         >
           BUSINESS
@@ -108,7 +119,7 @@ export function BusinessOSLogo({
   );
 }
 
-interface BusinessOSLogoProps {
+export interface BusinessOSLogoProps {
   size?: Size;
   className?: string;
   showTagline?: boolean;

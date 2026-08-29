@@ -1,12 +1,12 @@
 "use client";
 
 import { signOut } from "next-auth/react";
-import { EmployeeProjectHome } from "@/components/employee/employee-project-home";
+import { EmployeeOSShell } from "@/components/employee/os/employee-os-shell";
 
 export default function EmployeeWorkPage() {
   const handleLogout = async () => {
     await signOut({ callbackUrl: "/auth/employee/login" });
   };
 
-  return <EmployeeProjectHome onLogout={handleLogout} />;
+  return <EmployeeOSShell onLogout={handleLogout} />;
 }

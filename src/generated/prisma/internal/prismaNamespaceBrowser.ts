@@ -132,7 +132,11 @@ export const ModelName = {
   ProjectDecision: 'ProjectDecision',
   ContributionRecognition: 'ContributionRecognition',
   EmployeeInboxItem: 'EmployeeInboxItem',
-  BuildCheckpoint: 'BuildCheckpoint'
+  BuildCheckpoint: 'BuildCheckpoint',
+  ProductBuild: 'ProductBuild',
+  BuildProof: 'BuildProof',
+  BuildReview: 'BuildReview',
+  BuildHandoff: 'BuildHandoff'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1714,6 +1718,77 @@ export const BuildCheckpointScalarFieldEnum = {
 } as const
 
 export type BuildCheckpointScalarFieldEnum = (typeof BuildCheckpointScalarFieldEnum)[keyof typeof BuildCheckpointScalarFieldEnum]
+
+
+export const ProductBuildScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  featureName: 'featureName',
+  workstream: 'workstream',
+  responsibility: 'responsibility',
+  status: 'status',
+  currentStep: 'currentStep',
+  checklistState: 'checklistState',
+  blockedReason: 'blockedReason',
+  blockedDependency: 'blockedDependency',
+  blockedOwnerRole: 'blockedOwnerRole',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductBuildScalarFieldEnum = (typeof ProductBuildScalarFieldEnum)[keyof typeof ProductBuildScalarFieldEnum]
+
+
+export const BuildProofScalarFieldEnum = {
+  id: 'id',
+  buildId: 'buildId',
+  type: 'type',
+  milestone: 'milestone',
+  title: 'title',
+  evidenceUrl: 'evidenceUrl',
+  evidenceCode: 'evidenceCode',
+  testOutcome: 'testOutcome',
+  whatChanged: 'whatChanged',
+  version: 'version',
+  isConfirmed: 'isConfirmed',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildProofScalarFieldEnum = (typeof BuildProofScalarFieldEnum)[keyof typeof BuildProofScalarFieldEnum]
+
+
+export const BuildReviewScalarFieldEnum = {
+  id: 'id',
+  buildId: 'buildId',
+  reviewerId: 'reviewerId',
+  reviewerName: 'reviewerName',
+  status: 'status',
+  aiObservations: 'aiObservations',
+  comments: 'comments',
+  revisionNotes: 'revisionNotes',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildReviewScalarFieldEnum = (typeof BuildReviewScalarFieldEnum)[keyof typeof BuildReviewScalarFieldEnum]
+
+
+export const BuildHandoffScalarFieldEnum = {
+  id: 'id',
+  buildId: 'buildId',
+  fromWorkstream: 'fromWorkstream',
+  toWorkstream: 'toWorkstream',
+  whatWasBuilt: 'whatWasBuilt',
+  whatWasVerified: 'whatWasVerified',
+  whatRemains: 'whatRemains',
+  knownIssues: 'knownIssues',
+  nextOwner: 'nextOwner',
+  isAccepted: 'isAccepted',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildHandoffScalarFieldEnum = (typeof BuildHandoffScalarFieldEnum)[keyof typeof BuildHandoffScalarFieldEnum]
 
 
 export const SortOrder = {

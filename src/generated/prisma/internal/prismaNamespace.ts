@@ -478,7 +478,11 @@ export const ModelName = {
   ProjectDecision: 'ProjectDecision',
   ContributionRecognition: 'ContributionRecognition',
   EmployeeInboxItem: 'EmployeeInboxItem',
-  BuildCheckpoint: 'BuildCheckpoint'
+  BuildCheckpoint: 'BuildCheckpoint',
+  ProductBuild: 'ProductBuild',
+  BuildProof: 'BuildProof',
+  BuildReview: 'BuildReview',
+  BuildHandoff: 'BuildHandoff'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -494,7 +498,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "client" | "contact" | "clientActivity" | "clientRequirement" | "clientProposal" | "proposalVersion" | "proposalDelivery" | "proposalView" | "proposalApproval" | "proposalChangeRequest" | "proposalChangeRequestItem" | "proposalRejection" | "clientProject" | "projectMilestone" | "projectDeliverable" | "projectMember" | "projectChangeRequest" | "projectActivity" | "clientTask" | "subTask" | "taskAcceptanceCriterion" | "taskDependency" | "taskComment" | "taskAttachment" | "taskReview" | "taskActivity" | "taskTimeEntry" | "clientPayment" | "clientDocument" | "clientMessage" | "clientNote" | "clientAuditEvent" | "requirementRequest" | "requirementAnswer" | "requirementFeature" | "requirementAttachment" | "requirementQuestion" | "requirementUpdateProposal" | "requirementConflict" | "questionDelivery" | "requirementComment" | "requirementRevision" | "requirementEvent" | "clientCopilotMessage" | "clientCustomFieldDef" | "onboarding" | "workspaceProfile" | "businessProfile" | "workspacePreferences" | "notificationPreferences" | "workspaceSetup" | "verificationToken" | "engineeringBlueprint" | "frontendCapability" | "backendApi" | "backendService" | "databaseEntity" | "integrationRequirement" | "securityRequirement" | "testSpecification" | "engineeringDependency" | "clarificationItem" | "architectureDrift" | "evidenceRecord" | "employee" | "organizationRole" | "organizationTeam" | "employeeInvitation" | "employeeAuditEvent" | "projectStaffAllocation" | "employeeOnboardingState" | "employeePolicyAcknowledgement" | "employeeToolAccess" | "employeeProjectBrief" | "employeeBuildSession" | "employeeContribution" | "projectDecision" | "contributionRecognition" | "employeeInboxItem" | "buildCheckpoint"
+    modelProps: "user" | "workspace" | "client" | "contact" | "clientActivity" | "clientRequirement" | "clientProposal" | "proposalVersion" | "proposalDelivery" | "proposalView" | "proposalApproval" | "proposalChangeRequest" | "proposalChangeRequestItem" | "proposalRejection" | "clientProject" | "projectMilestone" | "projectDeliverable" | "projectMember" | "projectChangeRequest" | "projectActivity" | "clientTask" | "subTask" | "taskAcceptanceCriterion" | "taskDependency" | "taskComment" | "taskAttachment" | "taskReview" | "taskActivity" | "taskTimeEntry" | "clientPayment" | "clientDocument" | "clientMessage" | "clientNote" | "clientAuditEvent" | "requirementRequest" | "requirementAnswer" | "requirementFeature" | "requirementAttachment" | "requirementQuestion" | "requirementUpdateProposal" | "requirementConflict" | "questionDelivery" | "requirementComment" | "requirementRevision" | "requirementEvent" | "clientCopilotMessage" | "clientCustomFieldDef" | "onboarding" | "workspaceProfile" | "businessProfile" | "workspacePreferences" | "notificationPreferences" | "workspaceSetup" | "verificationToken" | "engineeringBlueprint" | "frontendCapability" | "backendApi" | "backendService" | "databaseEntity" | "integrationRequirement" | "securityRequirement" | "testSpecification" | "engineeringDependency" | "clarificationItem" | "architectureDrift" | "evidenceRecord" | "employee" | "organizationRole" | "organizationTeam" | "employeeInvitation" | "employeeAuditEvent" | "projectStaffAllocation" | "employeeOnboardingState" | "employeePolicyAcknowledgement" | "employeeToolAccess" | "employeeProjectBrief" | "employeeBuildSession" | "employeeContribution" | "projectDecision" | "contributionRecognition" | "employeeInboxItem" | "buildCheckpoint" | "productBuild" | "buildProof" | "buildReview" | "buildHandoff"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -6566,6 +6570,302 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    ProductBuild: {
+      payload: Prisma.$ProductBuildPayload<ExtArgs>
+      fields: Prisma.ProductBuildFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.ProductBuildFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.ProductBuildFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>
+        }
+        findFirst: {
+          args: Prisma.ProductBuildFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.ProductBuildFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>
+        }
+        findMany: {
+          args: Prisma.ProductBuildFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>[]
+        }
+        create: {
+          args: Prisma.ProductBuildCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>
+        }
+        createMany: {
+          args: Prisma.ProductBuildCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.ProductBuildCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>[]
+        }
+        delete: {
+          args: Prisma.ProductBuildDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>
+        }
+        update: {
+          args: Prisma.ProductBuildUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>
+        }
+        deleteMany: {
+          args: Prisma.ProductBuildDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.ProductBuildUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.ProductBuildUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>[]
+        }
+        upsert: {
+          args: Prisma.ProductBuildUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$ProductBuildPayload>
+        }
+        aggregate: {
+          args: Prisma.ProductBuildAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateProductBuild>
+        }
+        groupBy: {
+          args: Prisma.ProductBuildGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductBuildGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.ProductBuildCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.ProductBuildCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildProof: {
+      payload: Prisma.$BuildProofPayload<ExtArgs>
+      fields: Prisma.BuildProofFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildProofFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildProofFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildProofFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildProofFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>
+        }
+        findMany: {
+          args: Prisma.BuildProofFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>[]
+        }
+        create: {
+          args: Prisma.BuildProofCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>
+        }
+        createMany: {
+          args: Prisma.BuildProofCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildProofCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildProofDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>
+        }
+        update: {
+          args: Prisma.BuildProofUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildProofDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildProofUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildProofUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildProofUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildProofPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildProofAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildProof>
+        }
+        groupBy: {
+          args: Prisma.BuildProofGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildProofGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildProofCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildProofCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildReview: {
+      payload: Prisma.$BuildReviewPayload<ExtArgs>
+      fields: Prisma.BuildReviewFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildReviewFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildReviewFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildReviewFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildReviewFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>
+        }
+        findMany: {
+          args: Prisma.BuildReviewFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>[]
+        }
+        create: {
+          args: Prisma.BuildReviewCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>
+        }
+        createMany: {
+          args: Prisma.BuildReviewCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildReviewCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildReviewDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>
+        }
+        update: {
+          args: Prisma.BuildReviewUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildReviewDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildReviewUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildReviewUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildReviewUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildReviewAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildReview>
+        }
+        groupBy: {
+          args: Prisma.BuildReviewGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildReviewGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildReviewCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildReviewCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildHandoff: {
+      payload: Prisma.$BuildHandoffPayload<ExtArgs>
+      fields: Prisma.BuildHandoffFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildHandoffFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildHandoffFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildHandoffFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildHandoffFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>
+        }
+        findMany: {
+          args: Prisma.BuildHandoffFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>[]
+        }
+        create: {
+          args: Prisma.BuildHandoffCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>
+        }
+        createMany: {
+          args: Prisma.BuildHandoffCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildHandoffCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildHandoffDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>
+        }
+        update: {
+          args: Prisma.BuildHandoffUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildHandoffDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildHandoffUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildHandoffUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildHandoffUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildHandoffPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildHandoffAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildHandoff>
+        }
+        groupBy: {
+          args: Prisma.BuildHandoffGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildHandoffGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildHandoffCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildHandoffCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -8170,6 +8470,77 @@ export const BuildCheckpointScalarFieldEnum = {
 export type BuildCheckpointScalarFieldEnum = (typeof BuildCheckpointScalarFieldEnum)[keyof typeof BuildCheckpointScalarFieldEnum]
 
 
+export const ProductBuildScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  featureName: 'featureName',
+  workstream: 'workstream',
+  responsibility: 'responsibility',
+  status: 'status',
+  currentStep: 'currentStep',
+  checklistState: 'checklistState',
+  blockedReason: 'blockedReason',
+  blockedDependency: 'blockedDependency',
+  blockedOwnerRole: 'blockedOwnerRole',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProductBuildScalarFieldEnum = (typeof ProductBuildScalarFieldEnum)[keyof typeof ProductBuildScalarFieldEnum]
+
+
+export const BuildProofScalarFieldEnum = {
+  id: 'id',
+  buildId: 'buildId',
+  type: 'type',
+  milestone: 'milestone',
+  title: 'title',
+  evidenceUrl: 'evidenceUrl',
+  evidenceCode: 'evidenceCode',
+  testOutcome: 'testOutcome',
+  whatChanged: 'whatChanged',
+  version: 'version',
+  isConfirmed: 'isConfirmed',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildProofScalarFieldEnum = (typeof BuildProofScalarFieldEnum)[keyof typeof BuildProofScalarFieldEnum]
+
+
+export const BuildReviewScalarFieldEnum = {
+  id: 'id',
+  buildId: 'buildId',
+  reviewerId: 'reviewerId',
+  reviewerName: 'reviewerName',
+  status: 'status',
+  aiObservations: 'aiObservations',
+  comments: 'comments',
+  revisionNotes: 'revisionNotes',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildReviewScalarFieldEnum = (typeof BuildReviewScalarFieldEnum)[keyof typeof BuildReviewScalarFieldEnum]
+
+
+export const BuildHandoffScalarFieldEnum = {
+  id: 'id',
+  buildId: 'buildId',
+  fromWorkstream: 'fromWorkstream',
+  toWorkstream: 'toWorkstream',
+  whatWasBuilt: 'whatWasBuilt',
+  whatWasVerified: 'whatWasVerified',
+  whatRemains: 'whatRemains',
+  knownIssues: 'knownIssues',
+  nextOwner: 'nextOwner',
+  isAccepted: 'isAccepted',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildHandoffScalarFieldEnum = (typeof BuildHandoffScalarFieldEnum)[keyof typeof BuildHandoffScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -8690,6 +9061,10 @@ export type GlobalOmitConfig = {
   contributionRecognition?: Prisma.ContributionRecognitionOmit
   employeeInboxItem?: Prisma.EmployeeInboxItemOmit
   buildCheckpoint?: Prisma.BuildCheckpointOmit
+  productBuild?: Prisma.ProductBuildOmit
+  buildProof?: Prisma.BuildProofOmit
+  buildReview?: Prisma.BuildReviewOmit
+  buildHandoff?: Prisma.BuildHandoffOmit
 }
 
 /* Types for Logging */

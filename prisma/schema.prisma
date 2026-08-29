@@ -628,6 +628,7 @@ model ClientProject {
   decisions            ProjectDecision[]
   recognitions         ContributionRecognition[]
   checkpoints          BuildCheckpoint[]
+  productBuilds        ProductBuild[]
 
   @@index([clientId])
   @@index([proposalId])
@@ -1900,6 +1901,7 @@ model Employee {
   authoredRecognitions      ContributionRecognition[] @relation("RecognitionAuthor")
   inboxItems                EmployeeInboxItem[]
   checkpoints               BuildCheckpoint[]
+  productBuilds             ProductBuild[]
 
   @@unique([workspaceId, email])
   @@unique([workspaceId, employeeCode])
@@ -2254,5 +2256,95 @@ model BuildCheckpoint {
 
   @@index([employeeId, isConfirmed])
   @@index([projectId])
+}
+
+/**
+ * ProductBuild: Tracks end-to-end product construction for an assigned feature.
+ * PRODUCT -> PRODUCT AREA -> FEATURE -> RESPONSIBILITY -> BUILD -> PROOF -> REVIEW -> DELIVERY
+ */
+model ProductBuild {
+  id                String        @id @default(cuid())
+  project           ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId         String
+  employee          Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId        String
+  featureName       String
+  workstream        String        // FRONTEND | BACKEND | DATABASE | QA
+  responsibility    String        // "Product Listing UI", etc.
+  status            String        @default("BUILDING") // NOT_READY | READY | BUILDING | BLOCKED | READY_FOR_REVIEW | IN_REVIEW | CHANGES_REQUESTED | VERIFIED | HANDED_OFF | DELIVERED
+  currentStep       String        @default("BUILD_UI") // UNDERSTAND | BUILD_UI | CONNECT_DATA | HANDLE_STATES | TEST | PROVE | REVIEW
+  checklistState    String        @default("{}") // JSON checklist
+  blockedReason     String?
+  blockedDependency String?
+  blockedOwnerRole  String?
+  proofs            BuildProof[]
+  reviews           BuildReview[]
+  handoffs          BuildHandoff[]
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@unique([projectId, employeeId, featureName])
+  @@index([projectId, workstream])
+  @@index([employeeId, status])
+}
+
+/**
+ * Proof of Work captured for a ProductBuild.
+ */
+model BuildProof {
+  id           String       @id @default(cuid())
+  build        ProductBuild @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  buildId      String
+  type         String       // SCREENSHOT | CODE | PR | TEST | BUILD_RESULT | DOCUMENT
+  milestone    String       // e.g. "UI Created", "API Connected", "Tests Passed"
+  title        String
+  evidenceUrl  String?
+  evidenceCode String?
+  testOutcome  String?
+  whatChanged  String
+  version      Int          @default(1)
+  isConfirmed  Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+
+  @@index([buildId, version])
+}
+
+/**
+ * Verification & Review record for a ProductBuild.
+ */
+model BuildReview {
+  id             String       @id @default(cuid())
+  build          ProductBuild @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  buildId        String
+  reviewerId     String?
+  reviewerName   String?
+  status         String       @default("PENDING") // PENDING | APPROVED | CHANGES_REQUESTED
+  aiObservations String?      // JSON object from Ollama: { status: "SUPPORTED", observations: [] }
+  comments       String?
+  revisionNotes  String?
+  reviewedAt     DateTime?
+  createdAt      DateTime     @default(now())
+
+  @@index([buildId, status])
+}
+
+/**
+ * Handoff record across workstreams (e.g. Frontend -> QA).
+ */
+model BuildHandoff {
+  id              String       @id @default(cuid())
+  build           ProductBuild @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  buildId         String
+  fromWorkstream  String       // FRONTEND
+  toWorkstream    String       // QA
+  whatWasBuilt    String
+  whatWasVerified String
+  whatRemains     String?
+  knownIssues     String?
+  nextOwner       String?
+  isAccepted      Boolean      @default(false)
+  createdAt       DateTime     @default(now())
+
+  @@index([buildId, toWorkstream])
 }
 

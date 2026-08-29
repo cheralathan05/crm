@@ -447,3 +447,28 @@ export type EmployeeInboxItem = Prisma.EmployeeInboxItemModel
  *  * Smart Progress Checkpoints confirmed by employees.
  */
 export type BuildCheckpoint = Prisma.BuildCheckpointModel
+/**
+ * Model ProductBuild
+ * *
+ *  * ProductBuild: Tracks end-to-end product construction for an assigned feature.
+ *  * PRODUCT -> PRODUCT AREA -> FEATURE -> RESPONSIBILITY -> BUILD -> PROOF -> REVIEW -> DELIVERY
+ */
+export type ProductBuild = Prisma.ProductBuildModel
+/**
+ * Model BuildProof
+ * *
+ *  * Proof of Work captured for a ProductBuild.
+ */
+export type BuildProof = Prisma.BuildProofModel
+/**
+ * Model BuildReview
+ * *
+ *  * Verification & Review record for a ProductBuild.
+ */
+export type BuildReview = Prisma.BuildReviewModel
+/**
+ * Model BuildHandoff
+ * *
+ *  * Handoff record across workstreams (e.g. Frontend -> QA).
+ */
+export type BuildHandoff = Prisma.BuildHandoffModel
