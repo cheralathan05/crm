@@ -81,21 +81,22 @@ export async function getPreSubmissionData(buildId: string): Promise<PreSubmissi
         where: { isConfirmed: true },
         orderBy: { createdAt: "desc" },
       },
-      submissions: {
-        orderBy: { version: "desc" },
-        take: 1,
-        include: {
-          verificationJob: true,
-          verificationReport: true,
-          reviewDecisions: { orderBy: { reviewedAt: "desc" } },
-        },
-      },
     },
   });
 
   if (!build) {
     throw new Error("Build record not found.");
   }
+
+  const latestSubmission = await db.buildSubmission.findFirst({
+    where: { buildId },
+    orderBy: { version: "desc" },
+    include: {
+      verificationJob: true,
+      verificationReport: true,
+      reviewDecisions: { orderBy: { reviewedAt: "desc" } },
+    },
+  });
 
   const { project, employee, proofs } = build;
   const blueprint = project.blueprints[0];
@@ -683,22 +684,22 @@ export async function getSubmissionJourneyStatus(buildId: string) {
       employee: {
         include: { role: true },
       },
-      submissions: {
-        orderBy: { version: "desc" },
-        include: {
-          verificationJob: true,
-          verificationReport: true,
-          reviewDecisions: { orderBy: { reviewedAt: "desc" } },
-          proofs: true,
-          auditEvents: { orderBy: { timestamp: "asc" } },
-        },
-      },
     },
   });
 
   if (!build) return null;
 
-  const currentSubmission = build.submissions[0] || null;
+  const currentSubmission = await db.buildSubmission.findFirst({
+    where: { buildId },
+    orderBy: { version: "desc" },
+    include: {
+      verificationJob: true,
+      verificationReport: true,
+      reviewDecisions: { orderBy: { reviewedAt: "desc" } },
+      proofs: true,
+      auditEvents: { orderBy: { timestamp: "asc" } },
+    },
+  });
 
   if (!currentSubmission) {
     return {
