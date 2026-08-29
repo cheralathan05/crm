@@ -125,7 +125,14 @@ export const ModelName = {
   ProjectStaffAllocation: 'ProjectStaffAllocation',
   EmployeeOnboardingState: 'EmployeeOnboardingState',
   EmployeePolicyAcknowledgement: 'EmployeePolicyAcknowledgement',
-  EmployeeToolAccess: 'EmployeeToolAccess'
+  EmployeeToolAccess: 'EmployeeToolAccess',
+  EmployeeProjectBrief: 'EmployeeProjectBrief',
+  EmployeeBuildSession: 'EmployeeBuildSession',
+  EmployeeContribution: 'EmployeeContribution',
+  ProjectDecision: 'ProjectDecision',
+  ContributionRecognition: 'ContributionRecognition',
+  EmployeeInboxItem: 'EmployeeInboxItem',
+  BuildCheckpoint: 'BuildCheckpoint'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1572,6 +1579,141 @@ export const EmployeeToolAccessScalarFieldEnum = {
 } as const
 
 export type EmployeeToolAccessScalarFieldEnum = (typeof EmployeeToolAccessScalarFieldEnum)[keyof typeof EmployeeToolAccessScalarFieldEnum]
+
+
+export const EmployeeProjectBriefScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  workstream: 'workstream',
+  projectRole: 'projectRole',
+  responsibility: 'responsibility',
+  summaryWhat: 'summaryWhat',
+  summaryWho: 'summaryWho',
+  summaryEnables: 'summaryEnables',
+  roleOwnership: 'roleOwnership',
+  userJourneys: 'userJourneys',
+  pageSpecs: 'pageSpecs',
+  architectureConnections: 'architectureConnections',
+  firstAction: 'firstAction',
+  acceptanceCriteria: 'acceptanceCriteria',
+  status: 'status',
+  sourceHash: 'sourceHash',
+  sourceRequirementVersion: 'sourceRequirementVersion',
+  sourceProposalVersion: 'sourceProposalVersion',
+  sourceBlueprintVersion: 'sourceBlueprintVersion',
+  model: 'model',
+  promptVersion: 'promptVersion',
+  generatedAt: 'generatedAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeProjectBriefScalarFieldEnum = (typeof EmployeeProjectBriefScalarFieldEnum)[keyof typeof EmployeeProjectBriefScalarFieldEnum]
+
+
+export const EmployeeBuildSessionScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  projectId: 'projectId',
+  taskId: 'taskId',
+  capabilityName: 'capabilityName',
+  startedAt: 'startedAt',
+  endedAt: 'endedAt',
+  durationMinutes: 'durationMinutes',
+  whatChanged: 'whatChanged',
+  whatCompleted: 'whatCompleted',
+  whatRemains: 'whatRemains',
+  blockers: 'blockers',
+  evidenceUrl: 'evidenceUrl',
+  evidenceNote: 'evidenceNote',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeBuildSessionScalarFieldEnum = (typeof EmployeeBuildSessionScalarFieldEnum)[keyof typeof EmployeeBuildSessionScalarFieldEnum]
+
+
+export const EmployeeContributionScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  projectId: 'projectId',
+  type: 'type',
+  title: 'title',
+  detail: 'detail',
+  impactText: 'impactText',
+  evidenceRef: 'evidenceRef',
+  occurredAt: 'occurredAt'
+} as const
+
+export type EmployeeContributionScalarFieldEnum = (typeof EmployeeContributionScalarFieldEnum)[keyof typeof EmployeeContributionScalarFieldEnum]
+
+
+export const ProjectDecisionScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  title: 'title',
+  decision: 'decision',
+  reason: 'reason',
+  decisionOwner: 'decisionOwner',
+  approver: 'approver',
+  relatedRequirement: 'relatedRequirement',
+  relatedFeature: 'relatedFeature',
+  impact: 'impact',
+  decidedAt: 'decidedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectDecisionScalarFieldEnum = (typeof ProjectDecisionScalarFieldEnum)[keyof typeof ProjectDecisionScalarFieldEnum]
+
+
+export const ContributionRecognitionScalarFieldEnum = {
+  id: 'id',
+  projectId: 'projectId',
+  recipientId: 'recipientId',
+  authorId: 'authorId',
+  authorName: 'authorName',
+  featureName: 'featureName',
+  workContext: 'workContext',
+  message: 'message',
+  createdAt: 'createdAt'
+} as const
+
+export type ContributionRecognitionScalarFieldEnum = (typeof ContributionRecognitionScalarFieldEnum)[keyof typeof ContributionRecognitionScalarFieldEnum]
+
+
+export const EmployeeInboxItemScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  category: 'category',
+  title: 'title',
+  whatChanged: 'whatChanged',
+  whyItMatters: 'whyItMatters',
+  whatToDo: 'whatToDo',
+  actionUrl: 'actionUrl',
+  isRead: 'isRead',
+  isResolved: 'isResolved',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeInboxItemScalarFieldEnum = (typeof EmployeeInboxItemScalarFieldEnum)[keyof typeof EmployeeInboxItemScalarFieldEnum]
+
+
+export const BuildCheckpointScalarFieldEnum = {
+  id: 'id',
+  employeeId: 'employeeId',
+  projectId: 'projectId',
+  taskId: 'taskId',
+  type: 'type',
+  title: 'title',
+  description: 'description',
+  isConfirmed: 'isConfirmed',
+  confirmedAt: 'confirmedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildCheckpointScalarFieldEnum = (typeof BuildCheckpointScalarFieldEnum)[keyof typeof BuildCheckpointScalarFieldEnum]
 
 
 export const SortOrder = {

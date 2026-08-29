@@ -1,4 +1,5 @@
 import { db } from "@/lib/db";
+import { getOrGenerateEmployeeProjectBrief } from "./employee-project-brief.service";
 
 /* ════════════════════════════════════════════════════════════════════
    WORKSTREAM ASSIGNMENT SERVICE
@@ -926,6 +927,13 @@ export async function executeWorkstreamAssignment(
       actorName,
     },
   });
+
+  // 6. Automatically generate role-tailored Employee Project Brief
+  try {
+    await getOrGenerateEmployeeProjectBrief(projectId, employeeId, true);
+  } catch (briefErr) {
+    console.error("[executeWorkstreamAssignment] Error generating brief:", briefErr);
+  }
 
   return {
     success: true,

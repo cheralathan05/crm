@@ -403,3 +403,47 @@ export type EmployeePolicyAcknowledgement = Prisma.EmployeePolicyAcknowledgement
  * * Employee Tool Access Lifecycle & Permissions.
  */
 export type EmployeeToolAccess = Prisma.EmployeeToolAccessModel
+/**
+ * Model EmployeeProjectBrief
+ * *
+ *  * First-class Employee Project Brief: The Product Control Center truth.
+ *  * Bridges approved project requirements, blueprints, role responsibilities,
+ *  * and dependency graph into a verifiable understanding document.
+ */
+export type EmployeeProjectBrief = Prisma.EmployeeProjectBriefModel
+/**
+ * Model EmployeeBuildSession
+ * *
+ *  * Real-time Employee Build Sessions — tracks structured build activity without invasive surveillance.
+ */
+export type EmployeeBuildSession = Prisma.EmployeeBuildSessionModel
+/**
+ * Model EmployeeContribution
+ * *
+ *  * Meaningful Employee Contributions — real product milestones achieved by the employee.
+ */
+export type EmployeeContribution = Prisma.EmployeeContributionModel
+/**
+ * Model ProjectDecision
+ * *
+ *  * Searchable Project Decisions — eliminates repeated questions and records rationale.
+ */
+export type ProjectDecision = Prisma.ProjectDecisionModel
+/**
+ * Model ContributionRecognition
+ * *
+ *  * Context-attached Team Recognitions.
+ */
+export type ContributionRecognition = Prisma.ContributionRecognitionModel
+/**
+ * Model EmployeeInboxItem
+ * *
+ *  * High-signal Employee Inbox Items.
+ */
+export type EmployeeInboxItem = Prisma.EmployeeInboxItemModel
+/**
+ * Model BuildCheckpoint
+ * *
+ *  * Smart Progress Checkpoints confirmed by employees.
+ */
+export type BuildCheckpoint = Prisma.BuildCheckpointModel

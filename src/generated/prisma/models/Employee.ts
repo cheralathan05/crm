@@ -451,6 +451,13 @@ export type EmployeeWhereInput = {
   onboardingState?: Prisma.XOR<Prisma.EmployeeOnboardingStateNullableScalarRelationFilter, Prisma.EmployeeOnboardingStateWhereInput> | null
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementListRelationFilter
   toolAccesses?: Prisma.EmployeeToolAccessListRelationFilter
+  projectBriefs?: Prisma.EmployeeProjectBriefListRelationFilter
+  buildSessions?: Prisma.EmployeeBuildSessionListRelationFilter
+  contributions?: Prisma.EmployeeContributionListRelationFilter
+  receivedRecognitions?: Prisma.ContributionRecognitionListRelationFilter
+  authoredRecognitions?: Prisma.ContributionRecognitionListRelationFilter
+  inboxItems?: Prisma.EmployeeInboxItemListRelationFilter
+  checkpoints?: Prisma.BuildCheckpointListRelationFilter
 }
 
 export type EmployeeOrderByWithRelationInput = {
@@ -498,6 +505,13 @@ export type EmployeeOrderByWithRelationInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateOrderByWithRelationInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementOrderByRelationAggregateInput
   toolAccesses?: Prisma.EmployeeToolAccessOrderByRelationAggregateInput
+  projectBriefs?: Prisma.EmployeeProjectBriefOrderByRelationAggregateInput
+  buildSessions?: Prisma.EmployeeBuildSessionOrderByRelationAggregateInput
+  contributions?: Prisma.EmployeeContributionOrderByRelationAggregateInput
+  receivedRecognitions?: Prisma.ContributionRecognitionOrderByRelationAggregateInput
+  authoredRecognitions?: Prisma.ContributionRecognitionOrderByRelationAggregateInput
+  inboxItems?: Prisma.EmployeeInboxItemOrderByRelationAggregateInput
+  checkpoints?: Prisma.BuildCheckpointOrderByRelationAggregateInput
 }
 
 export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
@@ -550,6 +564,13 @@ export type EmployeeWhereUniqueInput = Prisma.AtLeast<{
   onboardingState?: Prisma.XOR<Prisma.EmployeeOnboardingStateNullableScalarRelationFilter, Prisma.EmployeeOnboardingStateWhereInput> | null
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementListRelationFilter
   toolAccesses?: Prisma.EmployeeToolAccessListRelationFilter
+  projectBriefs?: Prisma.EmployeeProjectBriefListRelationFilter
+  buildSessions?: Prisma.EmployeeBuildSessionListRelationFilter
+  contributions?: Prisma.EmployeeContributionListRelationFilter
+  receivedRecognitions?: Prisma.ContributionRecognitionListRelationFilter
+  authoredRecognitions?: Prisma.ContributionRecognitionListRelationFilter
+  inboxItems?: Prisma.EmployeeInboxItemListRelationFilter
+  checkpoints?: Prisma.BuildCheckpointListRelationFilter
 }, "id" | "userId" | "workspaceId_email" | "workspaceId_employeeCode">
 
 export type EmployeeOrderByWithAggregationInput = {
@@ -673,6 +694,13 @@ export type EmployeeCreateInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateInput = {
@@ -716,6 +744,13 @@ export type EmployeeUncheckedCreateInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUpdateInput = {
@@ -759,6 +794,13 @@ export type EmployeeUpdateInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateInput = {
@@ -802,6 +844,13 @@ export type EmployeeUncheckedUpdateInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyInput = {
@@ -1314,6 +1363,106 @@ export type EmployeeUpdateOneRequiredWithoutToolAccessesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutToolAccessesInput, Prisma.EmployeeUpdateWithoutToolAccessesInput>, Prisma.EmployeeUncheckedUpdateWithoutToolAccessesInput>
 }
 
+export type EmployeeCreateNestedOneWithoutProjectBriefsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutProjectBriefsInput, Prisma.EmployeeUncheckedCreateWithoutProjectBriefsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutProjectBriefsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutProjectBriefsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutProjectBriefsInput, Prisma.EmployeeUncheckedCreateWithoutProjectBriefsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutProjectBriefsInput
+  upsert?: Prisma.EmployeeUpsertWithoutProjectBriefsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutProjectBriefsInput, Prisma.EmployeeUpdateWithoutProjectBriefsInput>, Prisma.EmployeeUncheckedUpdateWithoutProjectBriefsInput>
+}
+
+export type EmployeeCreateNestedOneWithoutBuildSessionsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutBuildSessionsInput, Prisma.EmployeeUncheckedCreateWithoutBuildSessionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutBuildSessionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutBuildSessionsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutBuildSessionsInput, Prisma.EmployeeUncheckedCreateWithoutBuildSessionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutBuildSessionsInput
+  upsert?: Prisma.EmployeeUpsertWithoutBuildSessionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutBuildSessionsInput, Prisma.EmployeeUpdateWithoutBuildSessionsInput>, Prisma.EmployeeUncheckedUpdateWithoutBuildSessionsInput>
+}
+
+export type EmployeeCreateNestedOneWithoutContributionsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutContributionsInput, Prisma.EmployeeUncheckedCreateWithoutContributionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutContributionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutContributionsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutContributionsInput, Prisma.EmployeeUncheckedCreateWithoutContributionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutContributionsInput
+  upsert?: Prisma.EmployeeUpsertWithoutContributionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutContributionsInput, Prisma.EmployeeUpdateWithoutContributionsInput>, Prisma.EmployeeUncheckedUpdateWithoutContributionsInput>
+}
+
+export type EmployeeCreateNestedOneWithoutReceivedRecognitionsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutReceivedRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutReceivedRecognitionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutReceivedRecognitionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeCreateNestedOneWithoutAuthoredRecognitionsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutAuthoredRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutAuthoredRecognitionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutReceivedRecognitionsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutReceivedRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutReceivedRecognitionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutReceivedRecognitionsInput
+  upsert?: Prisma.EmployeeUpsertWithoutReceivedRecognitionsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutReceivedRecognitionsInput, Prisma.EmployeeUpdateWithoutReceivedRecognitionsInput>, Prisma.EmployeeUncheckedUpdateWithoutReceivedRecognitionsInput>
+}
+
+export type EmployeeUpdateOneWithoutAuthoredRecognitionsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutAuthoredRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutAuthoredRecognitionsInput
+  upsert?: Prisma.EmployeeUpsertWithoutAuthoredRecognitionsInput
+  disconnect?: Prisma.EmployeeWhereInput | boolean
+  delete?: Prisma.EmployeeWhereInput | boolean
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutAuthoredRecognitionsInput, Prisma.EmployeeUpdateWithoutAuthoredRecognitionsInput>, Prisma.EmployeeUncheckedUpdateWithoutAuthoredRecognitionsInput>
+}
+
+export type EmployeeCreateNestedOneWithoutInboxItemsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutInboxItemsInput, Prisma.EmployeeUncheckedCreateWithoutInboxItemsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutInboxItemsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutInboxItemsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutInboxItemsInput, Prisma.EmployeeUncheckedCreateWithoutInboxItemsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutInboxItemsInput
+  upsert?: Prisma.EmployeeUpsertWithoutInboxItemsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutInboxItemsInput, Prisma.EmployeeUpdateWithoutInboxItemsInput>, Prisma.EmployeeUncheckedUpdateWithoutInboxItemsInput>
+}
+
+export type EmployeeCreateNestedOneWithoutCheckpointsInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutCheckpointsInput, Prisma.EmployeeUncheckedCreateWithoutCheckpointsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutCheckpointsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+}
+
+export type EmployeeUpdateOneRequiredWithoutCheckpointsNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeCreateWithoutCheckpointsInput, Prisma.EmployeeUncheckedCreateWithoutCheckpointsInput>
+  connectOrCreate?: Prisma.EmployeeCreateOrConnectWithoutCheckpointsInput
+  upsert?: Prisma.EmployeeUpsertWithoutCheckpointsInput
+  connect?: Prisma.EmployeeWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.EmployeeUpdateToOneWithWhereWithoutCheckpointsInput, Prisma.EmployeeUpdateWithoutCheckpointsInput>, Prisma.EmployeeUncheckedUpdateWithoutCheckpointsInput>
+}
+
 export type EmployeeCreateWithoutUserInput = {
   id?: string
   employeeCode: string
@@ -1354,6 +1503,13 @@ export type EmployeeCreateWithoutUserInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutUserInput = {
@@ -1396,6 +1552,13 @@ export type EmployeeUncheckedCreateWithoutUserInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutUserInput = {
@@ -1454,6 +1617,13 @@ export type EmployeeUpdateWithoutUserInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutUserInput = {
@@ -1496,6 +1666,13 @@ export type EmployeeUncheckedUpdateWithoutUserInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutWorkspaceInput = {
@@ -1538,6 +1715,13 @@ export type EmployeeCreateWithoutWorkspaceInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutWorkspaceInput = {
@@ -1580,6 +1764,13 @@ export type EmployeeUncheckedCreateWithoutWorkspaceInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutWorkspaceInput = {
@@ -1686,6 +1877,13 @@ export type EmployeeCreateWithoutRoleInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutRoleInput = {
@@ -1728,6 +1926,13 @@ export type EmployeeUncheckedCreateWithoutRoleInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutRoleInput = {
@@ -1795,6 +2000,13 @@ export type EmployeeCreateWithoutLedTeamsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutLedTeamsInput = {
@@ -1837,6 +2049,13 @@ export type EmployeeUncheckedCreateWithoutLedTeamsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutLedTeamsInput = {
@@ -1884,6 +2103,13 @@ export type EmployeeCreateWithoutTeamInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutTeamInput = {
@@ -1926,6 +2152,13 @@ export type EmployeeUncheckedCreateWithoutTeamInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutTeamInput = {
@@ -1988,6 +2221,13 @@ export type EmployeeUpdateWithoutLedTeamsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutLedTeamsInput = {
@@ -2030,6 +2270,13 @@ export type EmployeeUncheckedUpdateWithoutLedTeamsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUpsertWithWhereUniqueWithoutTeamInput = {
@@ -2088,6 +2335,13 @@ export type EmployeeCreateWithoutInvitationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutInvitationsInput = {
@@ -2130,6 +2384,13 @@ export type EmployeeUncheckedCreateWithoutInvitationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutInvitationsInput = {
@@ -2188,6 +2449,13 @@ export type EmployeeUpdateWithoutInvitationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutInvitationsInput = {
@@ -2230,6 +2498,13 @@ export type EmployeeUncheckedUpdateWithoutInvitationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutAuditEventsInput = {
@@ -2272,6 +2547,13 @@ export type EmployeeCreateWithoutAuditEventsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutAuditEventsInput = {
@@ -2314,6 +2596,13 @@ export type EmployeeUncheckedCreateWithoutAuditEventsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutAuditEventsInput = {
@@ -2372,6 +2661,13 @@ export type EmployeeUpdateWithoutAuditEventsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutAuditEventsInput = {
@@ -2414,6 +2710,13 @@ export type EmployeeUncheckedUpdateWithoutAuditEventsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutProjectAllocationsInput = {
@@ -2456,6 +2759,13 @@ export type EmployeeCreateWithoutProjectAllocationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutProjectAllocationsInput = {
@@ -2498,6 +2808,13 @@ export type EmployeeUncheckedCreateWithoutProjectAllocationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutProjectAllocationsInput = {
@@ -2556,6 +2873,13 @@ export type EmployeeUpdateWithoutProjectAllocationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutProjectAllocationsInput = {
@@ -2598,6 +2922,13 @@ export type EmployeeUncheckedUpdateWithoutProjectAllocationsInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutOnboardingStateInput = {
@@ -2640,6 +2971,13 @@ export type EmployeeCreateWithoutOnboardingStateInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutOnboardingStateInput = {
@@ -2682,6 +3020,13 @@ export type EmployeeUncheckedCreateWithoutOnboardingStateInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutOnboardingStateInput = {
@@ -2740,6 +3085,13 @@ export type EmployeeUpdateWithoutOnboardingStateInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutOnboardingStateInput = {
@@ -2782,6 +3134,13 @@ export type EmployeeUncheckedUpdateWithoutOnboardingStateInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutPolicyAcknowledgementsInput = {
@@ -2824,6 +3183,13 @@ export type EmployeeCreateWithoutPolicyAcknowledgementsInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutPolicyAcknowledgementsInput = {
@@ -2866,6 +3232,13 @@ export type EmployeeUncheckedCreateWithoutPolicyAcknowledgementsInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutPolicyAcknowledgementsInput = {
@@ -2924,6 +3297,13 @@ export type EmployeeUpdateWithoutPolicyAcknowledgementsInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutPolicyAcknowledgementsInput = {
@@ -2966,6 +3346,13 @@ export type EmployeeUncheckedUpdateWithoutPolicyAcknowledgementsInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateWithoutToolAccessesInput = {
@@ -3008,6 +3395,13 @@ export type EmployeeCreateWithoutToolAccessesInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
   onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeUncheckedCreateWithoutToolAccessesInput = {
@@ -3050,6 +3444,13 @@ export type EmployeeUncheckedCreateWithoutToolAccessesInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
 }
 
 export type EmployeeCreateOrConnectWithoutToolAccessesInput = {
@@ -3108,6 +3509,13 @@ export type EmployeeUpdateWithoutToolAccessesInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutToolAccessesInput = {
@@ -3150,6 +3558,1497 @@ export type EmployeeUncheckedUpdateWithoutToolAccessesInput = {
   projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutProjectBriefsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutProjectBriefsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutProjectBriefsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutProjectBriefsInput, Prisma.EmployeeUncheckedCreateWithoutProjectBriefsInput>
+}
+
+export type EmployeeUpsertWithoutProjectBriefsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutProjectBriefsInput, Prisma.EmployeeUncheckedUpdateWithoutProjectBriefsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutProjectBriefsInput, Prisma.EmployeeUncheckedCreateWithoutProjectBriefsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutProjectBriefsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutProjectBriefsInput, Prisma.EmployeeUncheckedUpdateWithoutProjectBriefsInput>
+}
+
+export type EmployeeUpdateWithoutProjectBriefsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutProjectBriefsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutBuildSessionsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutBuildSessionsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutBuildSessionsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutBuildSessionsInput, Prisma.EmployeeUncheckedCreateWithoutBuildSessionsInput>
+}
+
+export type EmployeeUpsertWithoutBuildSessionsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutBuildSessionsInput, Prisma.EmployeeUncheckedUpdateWithoutBuildSessionsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutBuildSessionsInput, Prisma.EmployeeUncheckedCreateWithoutBuildSessionsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutBuildSessionsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutBuildSessionsInput, Prisma.EmployeeUncheckedUpdateWithoutBuildSessionsInput>
+}
+
+export type EmployeeUpdateWithoutBuildSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutBuildSessionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutContributionsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutContributionsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutContributionsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutContributionsInput, Prisma.EmployeeUncheckedCreateWithoutContributionsInput>
+}
+
+export type EmployeeUpsertWithoutContributionsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutContributionsInput, Prisma.EmployeeUncheckedUpdateWithoutContributionsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutContributionsInput, Prisma.EmployeeUncheckedCreateWithoutContributionsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutContributionsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutContributionsInput, Prisma.EmployeeUncheckedUpdateWithoutContributionsInput>
+}
+
+export type EmployeeUpdateWithoutContributionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutContributionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutReceivedRecognitionsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutReceivedRecognitionsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutReceivedRecognitionsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutReceivedRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutReceivedRecognitionsInput>
+}
+
+export type EmployeeCreateWithoutAuthoredRecognitionsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutAuthoredRecognitionsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutAuthoredRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput>
+}
+
+export type EmployeeUpsertWithoutReceivedRecognitionsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutReceivedRecognitionsInput, Prisma.EmployeeUncheckedUpdateWithoutReceivedRecognitionsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutReceivedRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutReceivedRecognitionsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutReceivedRecognitionsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutReceivedRecognitionsInput, Prisma.EmployeeUncheckedUpdateWithoutReceivedRecognitionsInput>
+}
+
+export type EmployeeUpdateWithoutReceivedRecognitionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutReceivedRecognitionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUpsertWithoutAuthoredRecognitionsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutAuthoredRecognitionsInput, Prisma.EmployeeUncheckedUpdateWithoutAuthoredRecognitionsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutAuthoredRecognitionsInput, Prisma.EmployeeUncheckedCreateWithoutAuthoredRecognitionsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutAuthoredRecognitionsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutAuthoredRecognitionsInput, Prisma.EmployeeUncheckedUpdateWithoutAuthoredRecognitionsInput>
+}
+
+export type EmployeeUpdateWithoutAuthoredRecognitionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutAuthoredRecognitionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutInboxItemsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutInboxItemsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutInboxItemsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutInboxItemsInput, Prisma.EmployeeUncheckedCreateWithoutInboxItemsInput>
+}
+
+export type EmployeeUpsertWithoutInboxItemsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutInboxItemsInput, Prisma.EmployeeUncheckedUpdateWithoutInboxItemsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutInboxItemsInput, Prisma.EmployeeUncheckedCreateWithoutInboxItemsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutInboxItemsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutInboxItemsInput, Prisma.EmployeeUncheckedUpdateWithoutInboxItemsInput>
+}
+
+export type EmployeeUpdateWithoutInboxItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutInboxItemsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeCreateWithoutCheckpointsInput = {
+  id?: string
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutEmployeesInput
+  user?: Prisma.UserCreateNestedOneWithoutEmployeeInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutEmployeesInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutMembersInput
+  ledTeams?: Prisma.OrganizationTeamCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeUncheckedCreateWithoutCheckpointsInput = {
+  id?: string
+  workspaceId: string
+  userId?: string | null
+  employeeCode: string
+  fullName: string
+  preferredName?: string | null
+  email: string
+  phone?: string | null
+  avatar?: string | null
+  status?: string
+  roleId?: string | null
+  teamId?: string | null
+  department?: string
+  timezone?: string
+  location?: string | null
+  employmentType?: string
+  primaryResponsibility?: string | null
+  secondaryResponsibilities?: string
+  accountabilities?: string
+  deliverableOwnership?: string
+  approvalResponsibility?: string
+  escalationResponsibility?: string
+  capabilities?: string
+  customPermissions?: string
+  capacityTargetHours?: number
+  joinedAt?: Date | string
+  activatedAt?: Date | string | null
+  lastActiveAt?: Date | string | null
+  offboardedAt?: Date | string | null
+  offboardedReason?: string | null
+  offboardedNotes?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutTeamLeadInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutEmployeeInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutEmployeeInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutEmployeeInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedCreateNestedOneWithoutEmployeeInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedCreateNestedManyWithoutEmployeeInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedCreateNestedManyWithoutEmployeeInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutEmployeeInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutEmployeeInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutEmployeeInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutRecipientInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutAuthorInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedCreateNestedManyWithoutEmployeeInput
+}
+
+export type EmployeeCreateOrConnectWithoutCheckpointsInput = {
+  where: Prisma.EmployeeWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutCheckpointsInput, Prisma.EmployeeUncheckedCreateWithoutCheckpointsInput>
+}
+
+export type EmployeeUpsertWithoutCheckpointsInput = {
+  update: Prisma.XOR<Prisma.EmployeeUpdateWithoutCheckpointsInput, Prisma.EmployeeUncheckedUpdateWithoutCheckpointsInput>
+  create: Prisma.XOR<Prisma.EmployeeCreateWithoutCheckpointsInput, Prisma.EmployeeUncheckedCreateWithoutCheckpointsInput>
+  where?: Prisma.EmployeeWhereInput
+}
+
+export type EmployeeUpdateToOneWithWhereWithoutCheckpointsInput = {
+  where?: Prisma.EmployeeWhereInput
+  data: Prisma.XOR<Prisma.EmployeeUpdateWithoutCheckpointsInput, Prisma.EmployeeUncheckedUpdateWithoutCheckpointsInput>
+}
+
+export type EmployeeUpdateWithoutCheckpointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutEmployeesNestedInput
+  user?: Prisma.UserUpdateOneWithoutEmployeeNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutEmployeesNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutMembersNestedInput
+  ledTeams?: Prisma.OrganizationTeamUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+}
+
+export type EmployeeUncheckedUpdateWithoutCheckpointsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  userId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeCode?: Prisma.StringFieldUpdateOperationsInput | string
+  fullName?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  phone?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  avatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  department?: Prisma.StringFieldUpdateOperationsInput | string
+  timezone?: Prisma.StringFieldUpdateOperationsInput | string
+  location?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employmentType?: Prisma.StringFieldUpdateOperationsInput | string
+  primaryResponsibility?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  secondaryResponsibilities?: Prisma.StringFieldUpdateOperationsInput | string
+  accountabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  deliverableOwnership?: Prisma.StringFieldUpdateOperationsInput | string
+  approvalResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  escalationResponsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  capabilities?: Prisma.StringFieldUpdateOperationsInput | string
+  customPermissions?: Prisma.StringFieldUpdateOperationsInput | string
+  capacityTargetHours?: Prisma.FloatFieldUpdateOperationsInput | number
+  joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  activatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastActiveAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  offboardedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  offboardedNotes?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  ledTeams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutTeamLeadNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutEmployeeNestedInput
+  auditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput
+  onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
+  policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
+  toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeCreateManyWorkspaceInput = {
@@ -3227,6 +5126,13 @@ export type EmployeeUpdateWithoutWorkspaceInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutWorkspaceInput = {
@@ -3269,6 +5175,13 @@ export type EmployeeUncheckedUpdateWithoutWorkspaceInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -3381,6 +5294,13 @@ export type EmployeeUpdateWithoutRoleInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutRoleInput = {
@@ -3423,6 +5343,13 @@ export type EmployeeUncheckedUpdateWithoutRoleInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutRoleInput = {
@@ -3535,6 +5462,13 @@ export type EmployeeUpdateWithoutTeamInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateWithoutTeamInput = {
@@ -3577,6 +5511,13 @@ export type EmployeeUncheckedUpdateWithoutTeamInput = {
   onboardingState?: Prisma.EmployeeOnboardingStateUncheckedUpdateOneWithoutEmployeeNestedInput
   policyAcknowledgements?: Prisma.EmployeePolicyAcknowledgementUncheckedUpdateManyWithoutEmployeeNestedInput
   toolAccesses?: Prisma.EmployeeToolAccessUncheckedUpdateManyWithoutEmployeeNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutEmployeeNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutEmployeeNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutEmployeeNestedInput
+  receivedRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutRecipientNestedInput
+  authoredRecognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutAuthorNestedInput
+  inboxItems?: Prisma.EmployeeInboxItemUncheckedUpdateManyWithoutEmployeeNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutEmployeeNestedInput
 }
 
 export type EmployeeUncheckedUpdateManyWithoutTeamInput = {
@@ -3626,6 +5567,13 @@ export type EmployeeCountOutputType = {
   projectAllocations: number
   policyAcknowledgements: number
   toolAccesses: number
+  projectBriefs: number
+  buildSessions: number
+  contributions: number
+  receivedRecognitions: number
+  authoredRecognitions: number
+  inboxItems: number
+  checkpoints: number
 }
 
 export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3635,6 +5583,13 @@ export type EmployeeCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensio
   projectAllocations?: boolean | EmployeeCountOutputTypeCountProjectAllocationsArgs
   policyAcknowledgements?: boolean | EmployeeCountOutputTypeCountPolicyAcknowledgementsArgs
   toolAccesses?: boolean | EmployeeCountOutputTypeCountToolAccessesArgs
+  projectBriefs?: boolean | EmployeeCountOutputTypeCountProjectBriefsArgs
+  buildSessions?: boolean | EmployeeCountOutputTypeCountBuildSessionsArgs
+  contributions?: boolean | EmployeeCountOutputTypeCountContributionsArgs
+  receivedRecognitions?: boolean | EmployeeCountOutputTypeCountReceivedRecognitionsArgs
+  authoredRecognitions?: boolean | EmployeeCountOutputTypeCountAuthoredRecognitionsArgs
+  inboxItems?: boolean | EmployeeCountOutputTypeCountInboxItemsArgs
+  checkpoints?: boolean | EmployeeCountOutputTypeCountCheckpointsArgs
 }
 
 /**
@@ -3689,6 +5644,55 @@ export type EmployeeCountOutputTypeCountToolAccessesArgs<ExtArgs extends runtime
   where?: Prisma.EmployeeToolAccessWhereInput
 }
 
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountProjectBriefsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeProjectBriefWhereInput
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountBuildSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeBuildSessionWhereInput
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountContributionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeContributionWhereInput
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountReceivedRecognitionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ContributionRecognitionWhereInput
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountAuthoredRecognitionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ContributionRecognitionWhereInput
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountInboxItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeInboxItemWhereInput
+}
+
+/**
+ * EmployeeCountOutputType without action
+ */
+export type EmployeeCountOutputTypeCountCheckpointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BuildCheckpointWhereInput
+}
+
 
 export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3735,6 +5739,13 @@ export type EmployeeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs
   onboardingState?: boolean | Prisma.Employee$onboardingStateArgs<ExtArgs>
   policyAcknowledgements?: boolean | Prisma.Employee$policyAcknowledgementsArgs<ExtArgs>
   toolAccesses?: boolean | Prisma.Employee$toolAccessesArgs<ExtArgs>
+  projectBriefs?: boolean | Prisma.Employee$projectBriefsArgs<ExtArgs>
+  buildSessions?: boolean | Prisma.Employee$buildSessionsArgs<ExtArgs>
+  contributions?: boolean | Prisma.Employee$contributionsArgs<ExtArgs>
+  receivedRecognitions?: boolean | Prisma.Employee$receivedRecognitionsArgs<ExtArgs>
+  authoredRecognitions?: boolean | Prisma.Employee$authoredRecognitionsArgs<ExtArgs>
+  inboxItems?: boolean | Prisma.Employee$inboxItemsArgs<ExtArgs>
+  checkpoints?: boolean | Prisma.Employee$checkpointsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["employee"]>
 
@@ -3867,6 +5878,13 @@ export type EmployeeInclude<ExtArgs extends runtime.Types.Extensions.InternalArg
   onboardingState?: boolean | Prisma.Employee$onboardingStateArgs<ExtArgs>
   policyAcknowledgements?: boolean | Prisma.Employee$policyAcknowledgementsArgs<ExtArgs>
   toolAccesses?: boolean | Prisma.Employee$toolAccessesArgs<ExtArgs>
+  projectBriefs?: boolean | Prisma.Employee$projectBriefsArgs<ExtArgs>
+  buildSessions?: boolean | Prisma.Employee$buildSessionsArgs<ExtArgs>
+  contributions?: boolean | Prisma.Employee$contributionsArgs<ExtArgs>
+  receivedRecognitions?: boolean | Prisma.Employee$receivedRecognitionsArgs<ExtArgs>
+  authoredRecognitions?: boolean | Prisma.Employee$authoredRecognitionsArgs<ExtArgs>
+  inboxItems?: boolean | Prisma.Employee$inboxItemsArgs<ExtArgs>
+  checkpoints?: boolean | Prisma.Employee$checkpointsArgs<ExtArgs>
   _count?: boolean | Prisma.EmployeeCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type EmployeeIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3896,6 +5914,13 @@ export type $EmployeePayload<ExtArgs extends runtime.Types.Extensions.InternalAr
     onboardingState: Prisma.$EmployeeOnboardingStatePayload<ExtArgs> | null
     policyAcknowledgements: Prisma.$EmployeePolicyAcknowledgementPayload<ExtArgs>[]
     toolAccesses: Prisma.$EmployeeToolAccessPayload<ExtArgs>[]
+    projectBriefs: Prisma.$EmployeeProjectBriefPayload<ExtArgs>[]
+    buildSessions: Prisma.$EmployeeBuildSessionPayload<ExtArgs>[]
+    contributions: Prisma.$EmployeeContributionPayload<ExtArgs>[]
+    receivedRecognitions: Prisma.$ContributionRecognitionPayload<ExtArgs>[]
+    authoredRecognitions: Prisma.$ContributionRecognitionPayload<ExtArgs>[]
+    inboxItems: Prisma.$EmployeeInboxItemPayload<ExtArgs>[]
+    checkpoints: Prisma.$BuildCheckpointPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -4336,6 +6361,13 @@ export interface Prisma__EmployeeClient<T, Null = never, ExtArgs extends runtime
   onboardingState<T extends Prisma.Employee$onboardingStateArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$onboardingStateArgs<ExtArgs>>): Prisma.Prisma__EmployeeOnboardingStateClient<runtime.Types.Result.GetResult<Prisma.$EmployeeOnboardingStatePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   policyAcknowledgements<T extends Prisma.Employee$policyAcknowledgementsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$policyAcknowledgementsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeePolicyAcknowledgementPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   toolAccesses<T extends Prisma.Employee$toolAccessesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$toolAccessesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeToolAccessPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  projectBriefs<T extends Prisma.Employee$projectBriefsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$projectBriefsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectBriefPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  buildSessions<T extends Prisma.Employee$buildSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$buildSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeBuildSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  contributions<T extends Prisma.Employee$contributionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$contributionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeContributionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  receivedRecognitions<T extends Prisma.Employee$receivedRecognitionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$receivedRecognitionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContributionRecognitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  authoredRecognitions<T extends Prisma.Employee$authoredRecognitionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$authoredRecognitionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ContributionRecognitionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  inboxItems<T extends Prisma.Employee$inboxItemsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$inboxItemsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeInboxItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  checkpoints<T extends Prisma.Employee$checkpointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Employee$checkpointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildCheckpointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5014,6 +7046,174 @@ export type Employee$toolAccessesArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeToolAccessScalarFieldEnum | Prisma.EmployeeToolAccessScalarFieldEnum[]
+}
+
+/**
+ * Employee.projectBriefs
+ */
+export type Employee$projectBriefsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeProjectBrief
+   */
+  select?: Prisma.EmployeeProjectBriefSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeProjectBrief
+   */
+  omit?: Prisma.EmployeeProjectBriefOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeProjectBriefInclude<ExtArgs> | null
+  where?: Prisma.EmployeeProjectBriefWhereInput
+  orderBy?: Prisma.EmployeeProjectBriefOrderByWithRelationInput | Prisma.EmployeeProjectBriefOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeProjectBriefWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeProjectBriefScalarFieldEnum | Prisma.EmployeeProjectBriefScalarFieldEnum[]
+}
+
+/**
+ * Employee.buildSessions
+ */
+export type Employee$buildSessionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeBuildSession
+   */
+  select?: Prisma.EmployeeBuildSessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeBuildSession
+   */
+  omit?: Prisma.EmployeeBuildSessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeBuildSessionInclude<ExtArgs> | null
+  where?: Prisma.EmployeeBuildSessionWhereInput
+  orderBy?: Prisma.EmployeeBuildSessionOrderByWithRelationInput | Prisma.EmployeeBuildSessionOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeBuildSessionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeBuildSessionScalarFieldEnum | Prisma.EmployeeBuildSessionScalarFieldEnum[]
+}
+
+/**
+ * Employee.contributions
+ */
+export type Employee$contributionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeContribution
+   */
+  select?: Prisma.EmployeeContributionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeContribution
+   */
+  omit?: Prisma.EmployeeContributionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeContributionInclude<ExtArgs> | null
+  where?: Prisma.EmployeeContributionWhereInput
+  orderBy?: Prisma.EmployeeContributionOrderByWithRelationInput | Prisma.EmployeeContributionOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeContributionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeContributionScalarFieldEnum | Prisma.EmployeeContributionScalarFieldEnum[]
+}
+
+/**
+ * Employee.receivedRecognitions
+ */
+export type Employee$receivedRecognitionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ContributionRecognition
+   */
+  select?: Prisma.ContributionRecognitionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ContributionRecognition
+   */
+  omit?: Prisma.ContributionRecognitionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ContributionRecognitionInclude<ExtArgs> | null
+  where?: Prisma.ContributionRecognitionWhereInput
+  orderBy?: Prisma.ContributionRecognitionOrderByWithRelationInput | Prisma.ContributionRecognitionOrderByWithRelationInput[]
+  cursor?: Prisma.ContributionRecognitionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ContributionRecognitionScalarFieldEnum | Prisma.ContributionRecognitionScalarFieldEnum[]
+}
+
+/**
+ * Employee.authoredRecognitions
+ */
+export type Employee$authoredRecognitionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ContributionRecognition
+   */
+  select?: Prisma.ContributionRecognitionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ContributionRecognition
+   */
+  omit?: Prisma.ContributionRecognitionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ContributionRecognitionInclude<ExtArgs> | null
+  where?: Prisma.ContributionRecognitionWhereInput
+  orderBy?: Prisma.ContributionRecognitionOrderByWithRelationInput | Prisma.ContributionRecognitionOrderByWithRelationInput[]
+  cursor?: Prisma.ContributionRecognitionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ContributionRecognitionScalarFieldEnum | Prisma.ContributionRecognitionScalarFieldEnum[]
+}
+
+/**
+ * Employee.inboxItems
+ */
+export type Employee$inboxItemsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeInboxItem
+   */
+  select?: Prisma.EmployeeInboxItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeInboxItem
+   */
+  omit?: Prisma.EmployeeInboxItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeInboxItemInclude<ExtArgs> | null
+  where?: Prisma.EmployeeInboxItemWhereInput
+  orderBy?: Prisma.EmployeeInboxItemOrderByWithRelationInput | Prisma.EmployeeInboxItemOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeInboxItemWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeInboxItemScalarFieldEnum | Prisma.EmployeeInboxItemScalarFieldEnum[]
+}
+
+/**
+ * Employee.checkpoints
+ */
+export type Employee$checkpointsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BuildCheckpoint
+   */
+  select?: Prisma.BuildCheckpointSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BuildCheckpoint
+   */
+  omit?: Prisma.BuildCheckpointOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BuildCheckpointInclude<ExtArgs> | null
+  where?: Prisma.BuildCheckpointWhereInput
+  orderBy?: Prisma.BuildCheckpointOrderByWithRelationInput | Prisma.BuildCheckpointOrderByWithRelationInput[]
+  cursor?: Prisma.BuildCheckpointWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BuildCheckpointScalarFieldEnum | Prisma.BuildCheckpointScalarFieldEnum[]
 }
 
 /**

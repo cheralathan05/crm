@@ -622,6 +622,12 @@ model ClientProject {
   clarifications       ClarificationItem[]
   drifts               ArchitectureDrift[]
   staffAllocations     ProjectStaffAllocation[]
+  projectBriefs        EmployeeProjectBrief[]
+  buildSessions        EmployeeBuildSession[]
+  contributions        EmployeeContribution[]
+  decisions            ProjectDecision[]
+  recognitions         ContributionRecognition[]
+  checkpoints          BuildCheckpoint[]
 
   @@index([clientId])
   @@index([proposalId])
@@ -799,6 +805,8 @@ model ClientTask {
   activities              TaskActivity[]
   timeEntries             TaskTimeEntry[]
   evidenceRecords         EvidenceRecord[]
+  buildSessions           EmployeeBuildSession[]
+  checkpoints             BuildCheckpoint[]
 
   @@index([clientId, status])
   @@index([projectId])
@@ -1885,6 +1893,13 @@ model Employee {
   onboardingState           EmployeeOnboardingState?
   policyAcknowledgements    EmployeePolicyAcknowledgement[]
   toolAccesses              EmployeeToolAccess[]
+  projectBriefs             EmployeeProjectBrief[]
+  buildSessions             EmployeeBuildSession[]
+  contributions             EmployeeContribution[]
+  receivedRecognitions      ContributionRecognition[] @relation("RecognitionRecipient")
+  authoredRecognitions      ContributionRecognition[] @relation("RecognitionAuthor")
+  inboxItems                EmployeeInboxItem[]
+  checkpoints               BuildCheckpoint[]
 
   @@unique([workspaceId, email])
   @@unique([workspaceId, employeeCode])
@@ -2066,5 +2081,178 @@ model EmployeeToolAccess {
 
   @@unique([employeeId, toolKey])
   @@index([employeeId, status])
+}
+
+/**
+ * First-class Employee Project Brief: The Product Control Center truth.
+ * Bridges approved project requirements, blueprints, role responsibilities,
+ * and dependency graph into a verifiable understanding document.
+ */
+model EmployeeProjectBrief {
+  id                        String        @id @default(cuid())
+  project                   ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId                 String
+  employee                  Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId                String
+  workstream                String        // FRONTEND | BACKEND | DATABASE | QA | INTEGRATION
+  projectRole               String        // e.g. "Frontend Developer"
+  responsibility            String        // e.g. "Frontend Development & UI Components"
+  summaryWhat               String        // "What are we building?" (3-5 short sentences)
+  summaryWho                String        // "Who uses it?"
+  summaryEnables            String        // "What does it do / enable?"
+  roleOwnership             String        // JSON object: { title, youOwn: [], responsibleFor: [], workIncludes: [], consumes: [], dependsOn: [] }
+  userJourneys              String        @default("[]") // JSON array: [{ featureName, purpose, steps: [] }]
+  pageSpecs                 String        @default("[]") // JSON array: [{ name, route, purpose, mainSections: [], primaryAction, dataShown: [], relevantStates: [] }]
+  architectureConnections   String        @default("[]") // JSON array: [{ feature, page, frontend, api, backend, database }]
+  firstAction               String        @default("{}") // JSON object: { title, why, afterThat, then, taskId, blockedReason }
+  acceptanceCriteria        String        @default("[]") // JSON array: [{ id, criterion, status, deliverableTitle }]
+  status                    String        @default("GENERATED") // GENERATING | GENERATED | OUTDATED | ERROR
+  sourceHash                String        // Hash of project + requirement + blueprint + assignment state
+  sourceRequirementVersion  Int           @default(1)
+  sourceProposalVersion     Int           @default(1)
+  sourceBlueprintVersion    Int           @default(1)
+  model                     String        @default("llama3")
+  promptVersion             String        @default("1.0.0")
+  generatedAt               DateTime      @default(now())
+  updatedAt                 DateTime      @updatedAt
+
+  @@unique([projectId, employeeId, workstream])
+  @@index([projectId])
+  @@index([employeeId])
+  @@index([sourceHash])
+}
+
+/**
+ * Real-time Employee Build Sessions — tracks structured build activity without invasive surveillance.
+ */
+model EmployeeBuildSession {
+  id              String        @id @default(cuid())
+  employee        Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId      String
+  project         ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId       String
+  task            ClientTask?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId          String?
+  capabilityName  String?
+  startedAt       DateTime      @default(now())
+  endedAt         DateTime?
+  durationMinutes Int           @default(0)
+  whatChanged     String?
+  whatCompleted   String?
+  whatRemains     String?
+  blockers        String?
+  evidenceUrl     String?
+  evidenceNote    String?
+  status          String        @default("ACTIVE") // ACTIVE | COMPLETED | PAUSED | DISCARDED
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([employeeId, status])
+  @@index([projectId, createdAt])
+}
+
+/**
+ * Meaningful Employee Contributions — real product milestones achieved by the employee.
+ */
+model EmployeeContribution {
+  id          String        @id @default(cuid())
+  employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  project     ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  type        String        // PAGE_BUILT | API_CONNECTED | BUG_VERIFIED | DEPENDENCY_UNBLOCKED | REVIEW_APPROVED | DELIVERABLE_SHIPPED | CHECKPOINT_CONFIRMED
+  title       String
+  detail      String
+  impactText  String
+  evidenceRef String?
+  occurredAt  DateTime      @default(now())
+
+  @@index([employeeId, occurredAt])
+  @@index([projectId])
+}
+
+/**
+ * Searchable Project Decisions — eliminates repeated questions and records rationale.
+ */
+model ProjectDecision {
+  id                 String        @id @default(cuid())
+  project            ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId          String
+  title              String
+  decision           String
+  reason             String
+  decisionOwner      String
+  approver           String?
+  relatedRequirement String?
+  relatedFeature     String?
+  impact             String?
+  decidedAt          DateTime      @default(now())
+  createdAt          DateTime      @default(now())
+
+  @@index([projectId, decidedAt])
+}
+
+/**
+ * Context-attached Team Recognitions.
+ */
+model ContributionRecognition {
+  id           String        @id @default(cuid())
+  project      ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId    String
+  recipient    Employee      @relation("RecognitionRecipient", fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId  String
+  author       Employee?     @relation("RecognitionAuthor", fields: [authorId], references: [id], onDelete: SetNull)
+  authorId     String?
+  authorName   String
+  featureName  String?
+  workContext  String?
+  message      String
+  createdAt    DateTime      @default(now())
+
+  @@index([recipientId, createdAt])
+  @@index([projectId])
+}
+
+/**
+ * High-signal Employee Inbox Items.
+ */
+model EmployeeInboxItem {
+  id          String    @id @default(cuid())
+  employee    Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  category    String    // NEEDS_ACTION | WAITING | INFORMATION
+  title       String
+  whatChanged String
+  whyItMatters String
+  whatToDo    String
+  actionUrl   String?
+  isRead      Boolean   @default(false)
+  isResolved  Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([employeeId, isResolved, createdAt])
+}
+
+/**
+ * Smart Progress Checkpoints confirmed by employees.
+ */
+model BuildCheckpoint {
+  id          String        @id @default(cuid())
+  employee    Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId  String
+  project     ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+  task        ClientTask?   @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId      String?
+  type        String        // DESIGN_COMPLETED | API_CONNECTED | FEATURE_IMPLEMENTED | TEST_COMPLETED | REVIEW_REQUESTED
+  title       String
+  description String?
+  isConfirmed Boolean       @default(false)
+  confirmedAt DateTime?
+  createdAt   DateTime      @default(now())
+
+  @@index([employeeId, isConfirmed])
+  @@index([projectId])
 }
 
