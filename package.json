@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
     "lint": "eslint"
   },
@@ -23,8 +23,6 @@
     "nodemailer": "^8.0.11",
     "pdf-lib": "^1.17.1",
     "pdfmake": "^0.3.11",
-    "react": "19.2.8",
-    "react-dom": "19.2.8",
     "resend": "^6.19.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
