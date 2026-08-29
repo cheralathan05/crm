@@ -38,6 +38,7 @@ import { TraceabilityDrawer } from "./traceability-drawer";
 import { WorkPlanModal } from "./work-plan-modal";
 import { EvidenceModal } from "./evidence-modal";
 import { AIAssistantModal } from "./ai-assistant-modal";
+import { AdminBuildReviewModal } from "./admin-build-review-modal";
 
 export type EngineeringHubProps = {
   projectId: string;
@@ -48,6 +49,7 @@ export type EngineeringHubProps = {
 
 export type EngineeringTab =
   | "overview"
+  | "reviews"
   | "map"
   | "frontend"
   | "backend"
@@ -81,6 +83,8 @@ export function EngineeringHub({
   const [showWorkPlanModal, setShowWorkPlanModal] = useState(false);
   const [showAssistantModal, setShowAssistantModal] = useState(false);
   const [evidenceTarget, setEvidenceTarget] = useState<any | null>(null);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [selectedReview, setSelectedReview] = useState<any | null>(null);
 
   useEffect(() => {
     if (initialTab) {
@@ -92,12 +96,14 @@ export function EngineeringHub({
     setLoading(true);
     setError(null);
     try {
-      const [resBp, resPrj] = await Promise.all([
+      const [resBp, resPrj, resRev] = await Promise.all([
         fetch(`/api/projects/${projectId}/blueprint`),
         fetch(`/api/projects/${projectId}`),
+        fetch(`/api/projects/${projectId}/reviews`),
       ]);
       const dataBp = await resBp.json();
       const dataPrj = await resPrj.json();
+      const dataRev = await resRev.json();
 
       if (dataBp.ok) {
         setBlueprint(dataBp.blueprint);
@@ -109,6 +115,10 @@ export function EngineeringHub({
 
       if (dataPrj.ok && dataPrj.project) {
         setProjectData(dataPrj.project);
+      }
+
+      if (dataRev.ok && dataRev.data) {
+        setReviews(dataRev.data);
       }
     } catch (err: any) {
       setError(err.message || "Network error loading engineering data.");
@@ -239,6 +249,7 @@ export function EngineeringHub({
       <div className="flex items-center gap-1 border-b border-[var(--bos-border-subtle)] overflow-x-auto pb-1">
         {[
           { id: "overview", label: "Blueprint Spec", icon: Layers },
+          { id: "reviews", label: `Build Reviews (${reviews.length})`, icon: Sparkles },
           { id: "map", label: "Capability Map", icon: GitBranch },
           { id: "frontend", label: `Frontend (${blueprint?.frontendCapabilities?.length || 0})`, icon: Globe },
           { id: "backend", label: `Backend (${blueprint?.backendServices?.length || 0})`, icon: Server },
@@ -291,6 +302,108 @@ export function EngineeringHub({
               onGenerate={handleGenerateBlueprint}
               onSelectNode={(node) => setSelectedNode(node)}
             />
+          )}
+
+          {/* TAB 1B: BUILD REVIEWS & VERIFICATION */}
+          {tab === "reviews" && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <div className="p-5 rounded-3xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <h4 className="text-base font-bold text-[var(--bos-text-primary)]">
+                    Employee Build Submissions &amp; AI Verification Center
+                  </h4>
+                  <p className="text-xs text-[var(--bos-text-secondary)]">
+                    Inspect submitted evidence, Ollama verification findings, and make human approval decisions.
+                  </p>
+                </div>
+                <div className="font-mono text-xs text-purple-400 font-bold px-3 py-1.5 rounded-xl bg-purple-500/10 border border-purple-500/20">
+                  {reviews.filter((r) => r.status === "REVIEW_REQUIRED" || r.status === "SUBMITTED" || r.status === "ANALYZING").length} Awaiting Review
+                </div>
+              </div>
+
+              {reviews.length === 0 ? (
+                <div className="p-12 text-center bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-3xl space-y-3">
+                  <Sparkles className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto" />
+                  <h5 className="font-bold text-sm text-[var(--bos-text-primary)]">
+                    No Build Submissions Yet
+                  </h5>
+                  <p className="text-xs text-[var(--bos-text-secondary)] max-w-md mx-auto">
+                    When employees capture proof and submit their assigned features for verification, their structured dossiers will appear here for review.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {reviews.map((rev) => {
+                    const isPending = rev.status === "REVIEW_REQUIRED" || rev.status === "SUBMITTED" || rev.status === "ANALYZING";
+                    const rep = rev.verificationReport;
+                    return (
+                      <div
+                        key={rev.id}
+                        className={cn(
+                          "p-5 rounded-3xl bg-[var(--bos-surface-panel)] border transition-all space-y-4 shadow-sm",
+                          isPending
+                            ? "border-purple-500/40 hover:border-purple-500"
+                            : "border-[var(--bos-border-subtle)]"
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-mono text-[10px] font-bold uppercase text-[var(--bos-accent)]">
+                            {rev.submissionCode} • v{rev.version}
+                          </span>
+                          <span
+                            className={cn(
+                              "px-2.5 py-0.5 rounded-full font-mono text-[10px] font-bold uppercase border",
+                              rev.status === "APPROVED"
+                                ? "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                                : rev.status === "CHANGES_REQUESTED"
+                                ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
+                                : rev.status === "REJECTED"
+                                ? "bg-rose-500/10 text-rose-400 border-rose-500/20"
+                                : "bg-purple-500/10 text-purple-400 border-purple-500/20"
+                            )}
+                          >
+                            {rev.status}
+                          </span>
+                        </div>
+
+                        <div>
+                          <h4 className="font-bold text-base text-[var(--bos-text-primary)]">
+                            {rev.featureName}
+                          </h4>
+                          <p className="text-xs text-[var(--bos-text-secondary)] mt-0.5">
+                            Employee: <span className="font-medium text-[var(--bos-text-primary)]">{rev.employee.name}</span> ({rev.employee.role})
+                          </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 p-3 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border-subtle)] text-[11px] font-mono">
+                          <div>
+                            <span className="text-[9px] text-[var(--bos-text-tertiary)] uppercase block">AI VERIFICATION</span>
+                            <span className="text-purple-400 font-bold">{rep?.requirementCoverage || "Review Required"}</span>
+                          </div>
+                          <div>
+                            <span className="text-[9px] text-[var(--bos-text-tertiary)] uppercase block">EVIDENCE ATTACHED</span>
+                            <span className="text-emerald-400 font-bold">{rev.evidenceCounts?.total || 0} proof items</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-[var(--bos-border-subtle)] flex items-center justify-between">
+                          <span className="font-mono text-[10px] text-[var(--bos-text-tertiary)]">
+                            Submitted: {new Date(rev.submittedAt).toLocaleDateString()}
+                          </span>
+                          <button
+                            onClick={() => setSelectedReview(rev)}
+                            className="px-4 py-1.5 rounded-xl bg-[var(--bos-accent)] text-white text-xs font-mono font-bold uppercase hover:bg-[var(--bos-accent-hover)] transition-all cursor-pointer flex items-center gap-1.5 shadow-xs"
+                          >
+                            <span>Inspect &amp; Review</span>
+                            <ChevronRight className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           )}
 
           {/* TAB 2: SYSTEM CAPABILITY MAP */}
@@ -515,6 +628,19 @@ export function EngineeringHub({
         projectName={projectName}
         isOpen={showAssistantModal}
         onClose={() => setShowAssistantModal(false)}
+      />
+
+      {/* Admin Build Review Center Modal */}
+      <AdminBuildReviewModal
+        isOpen={!!selectedReview}
+        review={selectedReview}
+        projectId={projectId}
+        onClose={() => setSelectedReview(null)}
+        onDecisionSubmitted={() => {
+          setNotice("Review decision recorded and project synchronized.");
+          loadBlueprintData();
+          onWorkCommitted?.();
+        }}
       />
     </div>
   );

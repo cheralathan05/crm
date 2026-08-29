@@ -23,17 +23,19 @@ import { EmployeeProductHomeView } from "./employee-product-home";
 import { VisualProductMapView } from "./visual-product-map-view";
 import { FeaturePageView } from "./feature-page-view";
 import { BuildWorkspaceView } from "./build-workspace-view";
+import { BuildJourneySignatureView } from "./build-journey-signature-view";
 import { EmployeeOSResponsibilityView } from "@/components/employee/os/employee-os-responsibility-view";
 
 // Modals
 import { ProofCaptureModal } from "./proof-capture-modal";
+import { PreSubmissionModal } from "./pre-submission-modal";
 import { AIBuildReviewModal } from "./ai-build-review-modal";
 import { HandoffModal } from "./handoff-modal";
 import { BlockerModal } from "./blocker-modal";
 import { EmployeeOSCommandPalette } from "@/components/employee/os/employee-os-command-palette";
 import { EmployeeOSAICoachDrawer } from "@/components/employee/os/employee-os-ai-coach-drawer";
 
-type ActiveTab = "HOME" | "MAP" | "FEATURE" | "BUILD" | "RESPONSIBILITY";
+type ActiveTab = "HOME" | "MAP" | "FEATURE" | "BUILD" | "RESPONSIBILITY" | "JOURNEY";
 
 interface WorkspaceShellProps {
   onLogout: () => void;
@@ -56,6 +58,7 @@ export function EmployeeProductWorkspaceShell({
 
   // Modals
   const [isProofModalOpen, setIsProofModalOpen] = useState(false);
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const [isAIReviewModalOpen, setIsAIReviewModalOpen] = useState(false);
   const [isHandoffModalOpen, setIsHandoffModalOpen] = useState(false);
   const [isBlockerModalOpen, setIsBlockerModalOpen] = useState(false);
@@ -154,6 +157,7 @@ export function EmployeeProductWorkspaceShell({
             { key: "HOME", label: "Home", icon: Home },
             { key: "MAP", label: "Product Map", icon: FolderKanban },
             { key: "BUILD", label: "Build Workspace", icon: Play },
+            { key: "JOURNEY", label: "Build Journey", icon: Sparkles },
             { key: "RESPONSIBILITY", label: "Responsibility", icon: FileCode },
           ].map((item) => {
             const Icon = item.icon;
@@ -210,6 +214,7 @@ export function EmployeeProductWorkspaceShell({
           { key: "HOME", label: "Home" },
           { key: "MAP", label: "Product Map" },
           { key: "BUILD", label: "Build Workspace" },
+          { key: "JOURNEY", label: "Build Journey" },
           { key: "RESPONSIBILITY", label: "Responsibility" },
         ].map((item) => (
           <button
@@ -282,6 +287,15 @@ export function EmployeeProductWorkspaceShell({
                 onOpenBlockerModal={() => setIsBlockerModalOpen(true)}
                 onOpenAIReviewModal={() => setIsAIReviewModalOpen(true)}
                 onOpenHandoffModal={() => setIsHandoffModalOpen(true)}
+                onOpenSubmitModal={() => setIsSubmitModalOpen(true)}
+                onOpenSignatureView={() => setActiveTab("JOURNEY")}
+              />
+            )}
+
+            {activeTab === "JOURNEY" && (
+              <BuildJourneySignatureView
+                buildId={homeData?.currentBuild?.id}
+                onReturnToBuild={() => setActiveTab("BUILD")}
               />
             )}
 
@@ -311,6 +325,16 @@ export function EmployeeProductWorkspaceShell({
             buildId={homeData.currentBuild.id}
             featureName={homeData.currentBuild.featureName}
             onProofCaptured={() => fetchWorkspace(selectedProjectId || undefined)}
+          />
+
+          <PreSubmissionModal
+            isOpen={isSubmitModalOpen}
+            onClose={() => setIsSubmitModalOpen(false)}
+            buildId={homeData.currentBuild.id}
+            onSubmitted={(subData) => {
+              fetchWorkspace(selectedProjectId || undefined);
+              setActiveTab("JOURNEY");
+            }}
           />
 
           <AIBuildReviewModal

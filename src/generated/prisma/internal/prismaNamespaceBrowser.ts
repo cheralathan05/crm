@@ -136,7 +136,12 @@ export const ModelName = {
   ProductBuild: 'ProductBuild',
   BuildProof: 'BuildProof',
   BuildReview: 'BuildReview',
-  BuildHandoff: 'BuildHandoff'
+  BuildHandoff: 'BuildHandoff',
+  BuildSubmission: 'BuildSubmission',
+  BuildVerificationJob: 'BuildVerificationJob',
+  BuildVerificationReport: 'BuildVerificationReport',
+  BuildReviewDecision: 'BuildReviewDecision',
+  BuildJourneyAuditEvent: 'BuildJourneyAuditEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1743,6 +1748,7 @@ export type ProductBuildScalarFieldEnum = (typeof ProductBuildScalarFieldEnum)[k
 export const BuildProofScalarFieldEnum = {
   id: 'id',
   buildId: 'buildId',
+  submissionId: 'submissionId',
   type: 'type',
   milestone: 'milestone',
   title: 'title',
@@ -1789,6 +1795,106 @@ export const BuildHandoffScalarFieldEnum = {
 } as const
 
 export type BuildHandoffScalarFieldEnum = (typeof BuildHandoffScalarFieldEnum)[keyof typeof BuildHandoffScalarFieldEnum]
+
+
+export const BuildSubmissionScalarFieldEnum = {
+  id: 'id',
+  submissionCode: 'submissionCode',
+  buildId: 'buildId',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  featureId: 'featureId',
+  featureName: 'featureName',
+  workstream: 'workstream',
+  responsibility: 'responsibility',
+  requirementId: 'requirementId',
+  requirementText: 'requirementText',
+  whatYouBuilt: 'whatYouBuilt',
+  acceptanceCriteria: 'acceptanceCriteria',
+  evidenceIds: 'evidenceIds',
+  version: 'version',
+  status: 'status',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BuildSubmissionScalarFieldEnum = (typeof BuildSubmissionScalarFieldEnum)[keyof typeof BuildSubmissionScalarFieldEnum]
+
+
+export const BuildVerificationJobScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  status: 'status',
+  modelName: 'modelName',
+  modelVersion: 'modelVersion',
+  promptVersion: 'promptVersion',
+  inputContextVersion: 'inputContextVersion',
+  errorMessage: 'errorMessage',
+  verificationStartedAt: 'verificationStartedAt',
+  verificationCompletedAt: 'verificationCompletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BuildVerificationJobScalarFieldEnum = (typeof BuildVerificationJobScalarFieldEnum)[keyof typeof BuildVerificationJobScalarFieldEnum]
+
+
+export const BuildVerificationReportScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  verificationStatus: 'verificationStatus',
+  requirementCoverage: 'requirementCoverage',
+  criteriaResults: 'criteriaResults',
+  evidenceResults: 'evidenceResults',
+  supportedFindings: 'supportedFindings',
+  notVerifiedFindings: 'notVerifiedFindings',
+  potentialGaps: 'potentialGaps',
+  missingEvidence: 'missingEvidence',
+  dependencyStatus: 'dependencyStatus',
+  aiSummary: 'aiSummary',
+  aiRecommendation: 'aiRecommendation',
+  model: 'model',
+  promptVersion: 'promptVersion',
+  verifiedAt: 'verifiedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildVerificationReportScalarFieldEnum = (typeof BuildVerificationReportScalarFieldEnum)[keyof typeof BuildVerificationReportScalarFieldEnum]
+
+
+export const BuildReviewDecisionScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  decision: 'decision',
+  reviewerId: 'reviewerId',
+  reviewerName: 'reviewerName',
+  comment: 'comment',
+  issue: 'issue',
+  requiredChange: 'requiredChange',
+  affectedCriterion: 'affectedCriterion',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildReviewDecisionScalarFieldEnum = (typeof BuildReviewDecisionScalarFieldEnum)[keyof typeof BuildReviewDecisionScalarFieldEnum]
+
+
+export const BuildJourneyAuditEventScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  projectId: 'projectId',
+  featureName: 'featureName',
+  actor: 'actor',
+  actorRole: 'actorRole',
+  eventType: 'eventType',
+  version: 'version',
+  detail: 'detail',
+  metadata: 'metadata',
+  timestamp: 'timestamp'
+} as const
+
+export type BuildJourneyAuditEventScalarFieldEnum = (typeof BuildJourneyAuditEventScalarFieldEnum)[keyof typeof BuildJourneyAuditEventScalarFieldEnum]
 
 
 export const SortOrder = {

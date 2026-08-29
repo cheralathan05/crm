@@ -38,6 +38,7 @@ export type BuildProofSumAggregateOutputType = {
 export type BuildProofMinAggregateOutputType = {
   id: string | null
   buildId: string | null
+  submissionId: string | null
   type: string | null
   milestone: string | null
   title: string | null
@@ -53,6 +54,7 @@ export type BuildProofMinAggregateOutputType = {
 export type BuildProofMaxAggregateOutputType = {
   id: string | null
   buildId: string | null
+  submissionId: string | null
   type: string | null
   milestone: string | null
   title: string | null
@@ -68,6 +70,7 @@ export type BuildProofMaxAggregateOutputType = {
 export type BuildProofCountAggregateOutputType = {
   id: number
   buildId: number
+  submissionId: number
   type: number
   milestone: number
   title: number
@@ -93,6 +96,7 @@ export type BuildProofSumAggregateInputType = {
 export type BuildProofMinAggregateInputType = {
   id?: true
   buildId?: true
+  submissionId?: true
   type?: true
   milestone?: true
   title?: true
@@ -108,6 +112,7 @@ export type BuildProofMinAggregateInputType = {
 export type BuildProofMaxAggregateInputType = {
   id?: true
   buildId?: true
+  submissionId?: true
   type?: true
   milestone?: true
   title?: true
@@ -123,6 +128,7 @@ export type BuildProofMaxAggregateInputType = {
 export type BuildProofCountAggregateInputType = {
   id?: true
   buildId?: true
+  submissionId?: true
   type?: true
   milestone?: true
   title?: true
@@ -225,6 +231,7 @@ export type BuildProofGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type BuildProofGroupByOutputType = {
   id: string
   buildId: string
+  submissionId: string | null
   type: string
   milestone: string
   title: string
@@ -263,6 +270,7 @@ export type BuildProofWhereInput = {
   NOT?: Prisma.BuildProofWhereInput | Prisma.BuildProofWhereInput[]
   id?: Prisma.StringFilter<"BuildProof"> | string
   buildId?: Prisma.StringFilter<"BuildProof"> | string
+  submissionId?: Prisma.StringNullableFilter<"BuildProof"> | string | null
   type?: Prisma.StringFilter<"BuildProof"> | string
   milestone?: Prisma.StringFilter<"BuildProof"> | string
   title?: Prisma.StringFilter<"BuildProof"> | string
@@ -274,11 +282,13 @@ export type BuildProofWhereInput = {
   isConfirmed?: Prisma.BoolFilter<"BuildProof"> | boolean
   createdAt?: Prisma.DateTimeFilter<"BuildProof"> | Date | string
   build?: Prisma.XOR<Prisma.ProductBuildScalarRelationFilter, Prisma.ProductBuildWhereInput>
+  submission?: Prisma.XOR<Prisma.BuildSubmissionNullableScalarRelationFilter, Prisma.BuildSubmissionWhereInput> | null
 }
 
 export type BuildProofOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   buildId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   milestone?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -290,6 +300,7 @@ export type BuildProofOrderByWithRelationInput = {
   isConfirmed?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   build?: Prisma.ProductBuildOrderByWithRelationInput
+  submission?: Prisma.BuildSubmissionOrderByWithRelationInput
 }
 
 export type BuildProofWhereUniqueInput = Prisma.AtLeast<{
@@ -298,6 +309,7 @@ export type BuildProofWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.BuildProofWhereInput[]
   NOT?: Prisma.BuildProofWhereInput | Prisma.BuildProofWhereInput[]
   buildId?: Prisma.StringFilter<"BuildProof"> | string
+  submissionId?: Prisma.StringNullableFilter<"BuildProof"> | string | null
   type?: Prisma.StringFilter<"BuildProof"> | string
   milestone?: Prisma.StringFilter<"BuildProof"> | string
   title?: Prisma.StringFilter<"BuildProof"> | string
@@ -309,11 +321,13 @@ export type BuildProofWhereUniqueInput = Prisma.AtLeast<{
   isConfirmed?: Prisma.BoolFilter<"BuildProof"> | boolean
   createdAt?: Prisma.DateTimeFilter<"BuildProof"> | Date | string
   build?: Prisma.XOR<Prisma.ProductBuildScalarRelationFilter, Prisma.ProductBuildWhereInput>
+  submission?: Prisma.XOR<Prisma.BuildSubmissionNullableScalarRelationFilter, Prisma.BuildSubmissionWhereInput> | null
 }, "id">
 
 export type BuildProofOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   buildId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrderInput | Prisma.SortOrder
   type?: Prisma.SortOrder
   milestone?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -337,6 +351,7 @@ export type BuildProofScalarWhereWithAggregatesInput = {
   NOT?: Prisma.BuildProofScalarWhereWithAggregatesInput | Prisma.BuildProofScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"BuildProof"> | string
   buildId?: Prisma.StringWithAggregatesFilter<"BuildProof"> | string
+  submissionId?: Prisma.StringNullableWithAggregatesFilter<"BuildProof"> | string | null
   type?: Prisma.StringWithAggregatesFilter<"BuildProof"> | string
   milestone?: Prisma.StringWithAggregatesFilter<"BuildProof"> | string
   title?: Prisma.StringWithAggregatesFilter<"BuildProof"> | string
@@ -362,11 +377,13 @@ export type BuildProofCreateInput = {
   isConfirmed?: boolean
   createdAt?: Date | string
   build: Prisma.ProductBuildCreateNestedOneWithoutProofsInput
+  submission?: Prisma.BuildSubmissionCreateNestedOneWithoutProofsInput
 }
 
 export type BuildProofUncheckedCreateInput = {
   id?: string
   buildId: string
+  submissionId?: string | null
   type: string
   milestone: string
   title: string
@@ -392,11 +409,13 @@ export type BuildProofUpdateInput = {
   isConfirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   build?: Prisma.ProductBuildUpdateOneRequiredWithoutProofsNestedInput
+  submission?: Prisma.BuildSubmissionUpdateOneWithoutProofsNestedInput
 }
 
 export type BuildProofUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   buildId?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   milestone?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -412,6 +431,7 @@ export type BuildProofUncheckedUpdateInput = {
 export type BuildProofCreateManyInput = {
   id?: string
   buildId: string
+  submissionId?: string | null
   type: string
   milestone: string
   title: string
@@ -441,6 +461,7 @@ export type BuildProofUpdateManyMutationInput = {
 export type BuildProofUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   buildId?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   milestone?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -466,6 +487,7 @@ export type BuildProofOrderByRelationAggregateInput = {
 export type BuildProofCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   buildId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   milestone?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -485,6 +507,7 @@ export type BuildProofAvgOrderByAggregateInput = {
 export type BuildProofMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   buildId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   milestone?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -500,6 +523,7 @@ export type BuildProofMaxOrderByAggregateInput = {
 export type BuildProofMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   buildId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrder
   type?: Prisma.SortOrder
   milestone?: Prisma.SortOrder
   title?: Prisma.SortOrder
@@ -558,6 +582,48 @@ export type BuildProofUncheckedUpdateManyWithoutBuildNestedInput = {
   deleteMany?: Prisma.BuildProofScalarWhereInput | Prisma.BuildProofScalarWhereInput[]
 }
 
+export type BuildProofCreateNestedManyWithoutSubmissionInput = {
+  create?: Prisma.XOR<Prisma.BuildProofCreateWithoutSubmissionInput, Prisma.BuildProofUncheckedCreateWithoutSubmissionInput> | Prisma.BuildProofCreateWithoutSubmissionInput[] | Prisma.BuildProofUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.BuildProofCreateOrConnectWithoutSubmissionInput | Prisma.BuildProofCreateOrConnectWithoutSubmissionInput[]
+  createMany?: Prisma.BuildProofCreateManySubmissionInputEnvelope
+  connect?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+}
+
+export type BuildProofUncheckedCreateNestedManyWithoutSubmissionInput = {
+  create?: Prisma.XOR<Prisma.BuildProofCreateWithoutSubmissionInput, Prisma.BuildProofUncheckedCreateWithoutSubmissionInput> | Prisma.BuildProofCreateWithoutSubmissionInput[] | Prisma.BuildProofUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.BuildProofCreateOrConnectWithoutSubmissionInput | Prisma.BuildProofCreateOrConnectWithoutSubmissionInput[]
+  createMany?: Prisma.BuildProofCreateManySubmissionInputEnvelope
+  connect?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+}
+
+export type BuildProofUpdateManyWithoutSubmissionNestedInput = {
+  create?: Prisma.XOR<Prisma.BuildProofCreateWithoutSubmissionInput, Prisma.BuildProofUncheckedCreateWithoutSubmissionInput> | Prisma.BuildProofCreateWithoutSubmissionInput[] | Prisma.BuildProofUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.BuildProofCreateOrConnectWithoutSubmissionInput | Prisma.BuildProofCreateOrConnectWithoutSubmissionInput[]
+  upsert?: Prisma.BuildProofUpsertWithWhereUniqueWithoutSubmissionInput | Prisma.BuildProofUpsertWithWhereUniqueWithoutSubmissionInput[]
+  createMany?: Prisma.BuildProofCreateManySubmissionInputEnvelope
+  set?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  disconnect?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  delete?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  connect?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  update?: Prisma.BuildProofUpdateWithWhereUniqueWithoutSubmissionInput | Prisma.BuildProofUpdateWithWhereUniqueWithoutSubmissionInput[]
+  updateMany?: Prisma.BuildProofUpdateManyWithWhereWithoutSubmissionInput | Prisma.BuildProofUpdateManyWithWhereWithoutSubmissionInput[]
+  deleteMany?: Prisma.BuildProofScalarWhereInput | Prisma.BuildProofScalarWhereInput[]
+}
+
+export type BuildProofUncheckedUpdateManyWithoutSubmissionNestedInput = {
+  create?: Prisma.XOR<Prisma.BuildProofCreateWithoutSubmissionInput, Prisma.BuildProofUncheckedCreateWithoutSubmissionInput> | Prisma.BuildProofCreateWithoutSubmissionInput[] | Prisma.BuildProofUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.BuildProofCreateOrConnectWithoutSubmissionInput | Prisma.BuildProofCreateOrConnectWithoutSubmissionInput[]
+  upsert?: Prisma.BuildProofUpsertWithWhereUniqueWithoutSubmissionInput | Prisma.BuildProofUpsertWithWhereUniqueWithoutSubmissionInput[]
+  createMany?: Prisma.BuildProofCreateManySubmissionInputEnvelope
+  set?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  disconnect?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  delete?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  connect?: Prisma.BuildProofWhereUniqueInput | Prisma.BuildProofWhereUniqueInput[]
+  update?: Prisma.BuildProofUpdateWithWhereUniqueWithoutSubmissionInput | Prisma.BuildProofUpdateWithWhereUniqueWithoutSubmissionInput[]
+  updateMany?: Prisma.BuildProofUpdateManyWithWhereWithoutSubmissionInput | Prisma.BuildProofUpdateManyWithWhereWithoutSubmissionInput[]
+  deleteMany?: Prisma.BuildProofScalarWhereInput | Prisma.BuildProofScalarWhereInput[]
+}
+
 export type BuildProofCreateWithoutBuildInput = {
   id?: string
   type: string
@@ -570,10 +636,12 @@ export type BuildProofCreateWithoutBuildInput = {
   version?: number
   isConfirmed?: boolean
   createdAt?: Date | string
+  submission?: Prisma.BuildSubmissionCreateNestedOneWithoutProofsInput
 }
 
 export type BuildProofUncheckedCreateWithoutBuildInput = {
   id?: string
+  submissionId?: string | null
   type: string
   milestone: string
   title: string
@@ -617,6 +685,7 @@ export type BuildProofScalarWhereInput = {
   NOT?: Prisma.BuildProofScalarWhereInput | Prisma.BuildProofScalarWhereInput[]
   id?: Prisma.StringFilter<"BuildProof"> | string
   buildId?: Prisma.StringFilter<"BuildProof"> | string
+  submissionId?: Prisma.StringNullableFilter<"BuildProof"> | string | null
   type?: Prisma.StringFilter<"BuildProof"> | string
   milestone?: Prisma.StringFilter<"BuildProof"> | string
   title?: Prisma.StringFilter<"BuildProof"> | string
@@ -629,8 +698,64 @@ export type BuildProofScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"BuildProof"> | Date | string
 }
 
+export type BuildProofCreateWithoutSubmissionInput = {
+  id?: string
+  type: string
+  milestone: string
+  title: string
+  evidenceUrl?: string | null
+  evidenceCode?: string | null
+  testOutcome?: string | null
+  whatChanged: string
+  version?: number
+  isConfirmed?: boolean
+  createdAt?: Date | string
+  build: Prisma.ProductBuildCreateNestedOneWithoutProofsInput
+}
+
+export type BuildProofUncheckedCreateWithoutSubmissionInput = {
+  id?: string
+  buildId: string
+  type: string
+  milestone: string
+  title: string
+  evidenceUrl?: string | null
+  evidenceCode?: string | null
+  testOutcome?: string | null
+  whatChanged: string
+  version?: number
+  isConfirmed?: boolean
+  createdAt?: Date | string
+}
+
+export type BuildProofCreateOrConnectWithoutSubmissionInput = {
+  where: Prisma.BuildProofWhereUniqueInput
+  create: Prisma.XOR<Prisma.BuildProofCreateWithoutSubmissionInput, Prisma.BuildProofUncheckedCreateWithoutSubmissionInput>
+}
+
+export type BuildProofCreateManySubmissionInputEnvelope = {
+  data: Prisma.BuildProofCreateManySubmissionInput | Prisma.BuildProofCreateManySubmissionInput[]
+}
+
+export type BuildProofUpsertWithWhereUniqueWithoutSubmissionInput = {
+  where: Prisma.BuildProofWhereUniqueInput
+  update: Prisma.XOR<Prisma.BuildProofUpdateWithoutSubmissionInput, Prisma.BuildProofUncheckedUpdateWithoutSubmissionInput>
+  create: Prisma.XOR<Prisma.BuildProofCreateWithoutSubmissionInput, Prisma.BuildProofUncheckedCreateWithoutSubmissionInput>
+}
+
+export type BuildProofUpdateWithWhereUniqueWithoutSubmissionInput = {
+  where: Prisma.BuildProofWhereUniqueInput
+  data: Prisma.XOR<Prisma.BuildProofUpdateWithoutSubmissionInput, Prisma.BuildProofUncheckedUpdateWithoutSubmissionInput>
+}
+
+export type BuildProofUpdateManyWithWhereWithoutSubmissionInput = {
+  where: Prisma.BuildProofScalarWhereInput
+  data: Prisma.XOR<Prisma.BuildProofUpdateManyMutationInput, Prisma.BuildProofUncheckedUpdateManyWithoutSubmissionInput>
+}
+
 export type BuildProofCreateManyBuildInput = {
   id?: string
+  submissionId?: string | null
   type: string
   milestone: string
   title: string
@@ -655,10 +780,12 @@ export type BuildProofUpdateWithoutBuildInput = {
   version?: Prisma.IntFieldUpdateOperationsInput | number
   isConfirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submission?: Prisma.BuildSubmissionUpdateOneWithoutProofsNestedInput
 }
 
 export type BuildProofUncheckedUpdateWithoutBuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   type?: Prisma.StringFieldUpdateOperationsInput | string
   milestone?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -673,6 +800,67 @@ export type BuildProofUncheckedUpdateWithoutBuildInput = {
 
 export type BuildProofUncheckedUpdateManyWithoutBuildInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  milestone?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  evidenceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  evidenceCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  testOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatChanged?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isConfirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BuildProofCreateManySubmissionInput = {
+  id?: string
+  buildId: string
+  type: string
+  milestone: string
+  title: string
+  evidenceUrl?: string | null
+  evidenceCode?: string | null
+  testOutcome?: string | null
+  whatChanged: string
+  version?: number
+  isConfirmed?: boolean
+  createdAt?: Date | string
+}
+
+export type BuildProofUpdateWithoutSubmissionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  milestone?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  evidenceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  evidenceCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  testOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatChanged?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isConfirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  build?: Prisma.ProductBuildUpdateOneRequiredWithoutProofsNestedInput
+}
+
+export type BuildProofUncheckedUpdateWithoutSubmissionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  buildId?: Prisma.StringFieldUpdateOperationsInput | string
+  type?: Prisma.StringFieldUpdateOperationsInput | string
+  milestone?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  evidenceUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  evidenceCode?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  testOutcome?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  whatChanged?: Prisma.StringFieldUpdateOperationsInput | string
+  version?: Prisma.IntFieldUpdateOperationsInput | number
+  isConfirmed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type BuildProofUncheckedUpdateManyWithoutSubmissionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  buildId?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.StringFieldUpdateOperationsInput | string
   milestone?: Prisma.StringFieldUpdateOperationsInput | string
   title?: Prisma.StringFieldUpdateOperationsInput | string
@@ -690,6 +878,7 @@ export type BuildProofUncheckedUpdateManyWithoutBuildInput = {
 export type BuildProofSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   buildId?: boolean
+  submissionId?: boolean
   type?: boolean
   milestone?: boolean
   title?: boolean
@@ -701,11 +890,13 @@ export type BuildProofSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   isConfirmed?: boolean
   createdAt?: boolean
   build?: boolean | Prisma.ProductBuildDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.BuildProof$submissionArgs<ExtArgs>
 }, ExtArgs["result"]["buildProof"]>
 
 export type BuildProofSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   buildId?: boolean
+  submissionId?: boolean
   type?: boolean
   milestone?: boolean
   title?: boolean
@@ -717,11 +908,13 @@ export type BuildProofSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   isConfirmed?: boolean
   createdAt?: boolean
   build?: boolean | Prisma.ProductBuildDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.BuildProof$submissionArgs<ExtArgs>
 }, ExtArgs["result"]["buildProof"]>
 
 export type BuildProofSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   buildId?: boolean
+  submissionId?: boolean
   type?: boolean
   milestone?: boolean
   title?: boolean
@@ -733,11 +926,13 @@ export type BuildProofSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   isConfirmed?: boolean
   createdAt?: boolean
   build?: boolean | Prisma.ProductBuildDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.BuildProof$submissionArgs<ExtArgs>
 }, ExtArgs["result"]["buildProof"]>
 
 export type BuildProofSelectScalar = {
   id?: boolean
   buildId?: boolean
+  submissionId?: boolean
   type?: boolean
   milestone?: boolean
   title?: boolean
@@ -750,25 +945,30 @@ export type BuildProofSelectScalar = {
   createdAt?: boolean
 }
 
-export type BuildProofOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "buildId" | "type" | "milestone" | "title" | "evidenceUrl" | "evidenceCode" | "testOutcome" | "whatChanged" | "version" | "isConfirmed" | "createdAt", ExtArgs["result"]["buildProof"]>
+export type BuildProofOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "buildId" | "submissionId" | "type" | "milestone" | "title" | "evidenceUrl" | "evidenceCode" | "testOutcome" | "whatChanged" | "version" | "isConfirmed" | "createdAt", ExtArgs["result"]["buildProof"]>
 export type BuildProofInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   build?: boolean | Prisma.ProductBuildDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.BuildProof$submissionArgs<ExtArgs>
 }
 export type BuildProofIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   build?: boolean | Prisma.ProductBuildDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.BuildProof$submissionArgs<ExtArgs>
 }
 export type BuildProofIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   build?: boolean | Prisma.ProductBuildDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.BuildProof$submissionArgs<ExtArgs>
 }
 
 export type $BuildProofPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "BuildProof"
   objects: {
     build: Prisma.$ProductBuildPayload<ExtArgs>
+    submission: Prisma.$BuildSubmissionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     buildId: string
+    submissionId: string | null
     type: string
     milestone: string
     title: string
@@ -1174,6 +1374,7 @@ readonly fields: BuildProofFieldRefs;
 export interface Prisma__BuildProofClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   build<T extends Prisma.ProductBuildDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductBuildDefaultArgs<ExtArgs>>): Prisma.Prisma__ProductBuildClient<runtime.Types.Result.GetResult<Prisma.$ProductBuildPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  submission<T extends Prisma.BuildProof$submissionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.BuildProof$submissionArgs<ExtArgs>>): Prisma.Prisma__BuildSubmissionClient<runtime.Types.Result.GetResult<Prisma.$BuildSubmissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1205,6 +1406,7 @@ export interface Prisma__BuildProofClient<T, Null = never, ExtArgs extends runti
 export interface BuildProofFieldRefs {
   readonly id: Prisma.FieldRef<"BuildProof", 'String'>
   readonly buildId: Prisma.FieldRef<"BuildProof", 'String'>
+  readonly submissionId: Prisma.FieldRef<"BuildProof", 'String'>
   readonly type: Prisma.FieldRef<"BuildProof", 'String'>
   readonly milestone: Prisma.FieldRef<"BuildProof", 'String'>
   readonly title: Prisma.FieldRef<"BuildProof", 'String'>
@@ -1611,6 +1813,25 @@ export type BuildProofDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many BuildProofs to delete.
    */
   limit?: number
+}
+
+/**
+ * BuildProof.submission
+ */
+export type BuildProof$submissionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BuildSubmission
+   */
+  select?: Prisma.BuildSubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BuildSubmission
+   */
+  omit?: Prisma.BuildSubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BuildSubmissionInclude<ExtArgs> | null
+  where?: Prisma.BuildSubmissionWhereInput
 }
 
 /**

@@ -496,3 +496,33 @@ export type BuildReview = Prisma.BuildReviewModel
  *  * Handoff record across workstreams (e.g. Frontend -> QA).
  */
 export type BuildHandoff = Prisma.BuildHandoffModel
+/**
+ * Model BuildSubmission
+ * *
+ *  * Immutable Build Submission — Freezes submitted evidence and initiates AI verification.
+ */
+export type BuildSubmission = Prisma.BuildSubmissionModel
+/**
+ * Model BuildVerificationJob
+ * *
+ *  * Real AI Verification Execution Job for Ollama.
+ */
+export type BuildVerificationJob = Prisma.BuildVerificationJobModel
+/**
+ * Model BuildVerificationReport
+ * *
+ *  * Permanent Traceable AI Verification Report.
+ */
+export type BuildVerificationReport = Prisma.BuildVerificationReportModel
+/**
+ * Model BuildReviewDecision
+ * *
+ *  * Human Review Decision made by Project Admin / Reviewer.
+ */
+export type BuildReviewDecision = Prisma.BuildReviewDecisionModel
+/**
+ * Model BuildJourneyAuditEvent
+ * *
+ *  * Complete Audit Trail for Build Journey Events.
+ */
+export type BuildJourneyAuditEvent = Prisma.BuildJourneyAuditEventModel

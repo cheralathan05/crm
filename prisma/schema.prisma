@@ -629,6 +629,8 @@ model ClientProject {
   recognitions         ContributionRecognition[]
   checkpoints          BuildCheckpoint[]
   productBuilds        ProductBuild[]
+  buildSubmissions     BuildSubmission[]
+  buildAuditEvents     BuildJourneyAuditEvent[]
 
   @@index([clientId])
   @@index([proposalId])
@@ -1902,6 +1904,7 @@ model Employee {
   inboxItems                EmployeeInboxItem[]
   checkpoints               BuildCheckpoint[]
   productBuilds             ProductBuild[]
+  buildSubmissions          BuildSubmission[]
 
   @@unique([workspaceId, email])
   @@unique([workspaceId, employeeCode])
@@ -2280,6 +2283,7 @@ model ProductBuild {
   proofs            BuildProof[]
   reviews           BuildReview[]
   handoffs          BuildHandoff[]
+  submissions       BuildSubmission[]
   createdAt         DateTime      @default(now())
   updatedAt         DateTime      @updatedAt
 
@@ -2292,21 +2296,24 @@ model ProductBuild {
  * Proof of Work captured for a ProductBuild.
  */
 model BuildProof {
-  id           String       @id @default(cuid())
-  build        ProductBuild @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  id           String           @id @default(cuid())
+  build        ProductBuild     @relation(fields: [buildId], references: [id], onDelete: Cascade)
   buildId      String
-  type         String       // SCREENSHOT | CODE | PR | TEST | BUILD_RESULT | DOCUMENT
-  milestone    String       // e.g. "UI Created", "API Connected", "Tests Passed"
+  submission   BuildSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  submissionId String?
+  type         String           // SCREENSHOT | CODE | PR | TEST | BUILD_RESULT | DOCUMENT
+  milestone    String           // e.g. "UI Created", "API Connected", "Tests Passed"
   title        String
   evidenceUrl  String?
   evidenceCode String?
   testOutcome  String?
   whatChanged  String
-  version      Int          @default(1)
-  isConfirmed  Boolean      @default(true)
-  createdAt    DateTime     @default(now())
+  version      Int              @default(1)
+  isConfirmed  Boolean          @default(true)
+  createdAt    DateTime         @default(now())
 
   @@index([buildId, version])
+  @@index([submissionId])
 }
 
 /**
@@ -2346,5 +2353,130 @@ model BuildHandoff {
   createdAt       DateTime     @default(now())
 
   @@index([buildId, toWorkstream])
+}
+
+/**
+ * Immutable Build Submission — Freezes submitted evidence and initiates AI verification.
+ */
+model BuildSubmission {
+  id                 String                  @id @default(cuid())
+  submissionCode     String                  @unique // e.g. SUB-000123
+  build              ProductBuild            @relation(fields: [buildId], references: [id], onDelete: Cascade)
+  buildId            String
+  project            ClientProject           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId          String
+  employee           Employee                @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId         String
+  featureId          String?
+  featureName        String
+  workstream         String
+  responsibility     String
+  requirementId      String?
+  requirementText    String
+  whatYouBuilt       String
+  acceptanceCriteria String                  @default("[]") // JSON string array of criteria objects
+  evidenceIds        String                  @default("[]") // JSON string array of evidence IDs
+  version            Int                     @default(1)
+  status             String                  @default("SUBMITTED") // DRAFT | SUBMITTED | QUEUED | ANALYZING | AI_REVIEWED | REVIEW_REQUIRED | CHANGES_REQUESTED | RESUBMITTED | APPROVED | REJECTED | FAILED
+  submittedAt        DateTime                @default(now())
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+
+  proofs             BuildProof[]
+  verificationJob    BuildVerificationJob?
+  verificationReport BuildVerificationReport?
+  reviewDecisions    BuildReviewDecision[]
+  auditEvents        BuildJourneyAuditEvent[]
+
+  @@index([projectId, status])
+  @@index([employeeId])
+  @@index([buildId, version])
+}
+
+/**
+ * Real AI Verification Execution Job for Ollama.
+ */
+model BuildVerificationJob {
+  id                      String          @id @default(cuid())
+  submission              BuildSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId            String          @unique
+  status                  String          @default("QUEUED") // QUEUED | ANALYZING | COMPLETED | FAILED
+  modelName               String          @default("llama3")
+  modelVersion            String?
+  promptVersion           String          @default("verification-v3")
+  inputContextVersion     String          @default("1.0")
+  errorMessage            String?
+  verificationStartedAt   DateTime?
+  verificationCompletedAt DateTime?
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
+
+  @@index([status])
+}
+
+/**
+ * Permanent Traceable AI Verification Report.
+ */
+model BuildVerificationReport {
+  id                  String          @id @default(cuid())
+  submission          BuildSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId        String          @unique
+  verificationStatus  String          @default("REVIEW_REQUIRED") // REVIEW_REQUIRED | AI_REVIEWED | FAILED
+  requirementCoverage String          // e.g. "5 / 6 VERIFIED"
+  criteriaResults     String          @default("[]") // JSON: [{ id, criterion, status: "SUPPORTED"|"NOT_VERIFIED"|"POTENTIAL_GAP"|"UNCLEAR", evidence: string[], reason: string }]
+  evidenceResults     String          @default("[]") // JSON: [{ type, count, items: [] }]
+  supportedFindings   String          @default("[]") // JSON string array
+  notVerifiedFindings String          @default("[]") // JSON string array
+  potentialGaps       String          @default("[]") // JSON string array
+  missingEvidence     String          @default("[]") // JSON string array
+  dependencyStatus    String          @default("{}") // JSON: { api: "READY", database: "READY", design: "APPROVED" }
+  aiSummary           String
+  aiRecommendation    String          @default("READY FOR HUMAN REVIEW")
+  model               String          @default("llama3")
+  promptVersion       String          @default("verification-v3")
+  verifiedAt          DateTime        @default(now())
+  createdAt           DateTime        @default(now())
+}
+
+/**
+ * Human Review Decision made by Project Admin / Reviewer.
+ */
+model BuildReviewDecision {
+  id                String          @id @default(cuid())
+  submission        BuildSubmission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  submissionId      String
+  decision          String          // APPROVED | CHANGES_REQUESTED | REJECTED
+  reviewerId        String?
+  reviewerName      String?
+  comment           String?
+  issue             String?
+  requiredChange    String?
+  affectedCriterion String?
+  reviewedAt        DateTime        @default(now())
+  createdAt         DateTime        @default(now())
+
+  @@index([submissionId])
+}
+
+/**
+ * Complete Audit Trail for Build Journey Events.
+ */
+model BuildJourneyAuditEvent {
+  id           String           @id @default(cuid())
+  submission   BuildSubmission? @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  submissionId String?
+  project      ClientProject    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId    String
+  featureName  String
+  actor        String
+  actorRole    String?
+  eventType    String           // BUILD_STARTED | MILESTONE_COMPLETED | PROOF_CAPTURED | SELF_CHECK | SUBMITTED | AI_VERIFICATION_STARTED | AI_VERIFICATION_COMPLETED | ADMIN_NOTIFIED | ADMIN_REVIEWED | CHANGES_REQUESTED | REVISION_STARTED | REJECTED | APPROVED | VERIFIED | HANDOFF | DELIVERY
+  version      Int              @default(1)
+  detail       String?
+  metadata     String?          @default("{}")
+  timestamp    DateTime         @default(now())
+
+  @@index([projectId, timestamp])
+  @@index([submissionId])
 }
 

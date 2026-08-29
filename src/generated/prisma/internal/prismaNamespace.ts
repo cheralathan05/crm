@@ -482,7 +482,12 @@ export const ModelName = {
   ProductBuild: 'ProductBuild',
   BuildProof: 'BuildProof',
   BuildReview: 'BuildReview',
-  BuildHandoff: 'BuildHandoff'
+  BuildHandoff: 'BuildHandoff',
+  BuildSubmission: 'BuildSubmission',
+  BuildVerificationJob: 'BuildVerificationJob',
+  BuildVerificationReport: 'BuildVerificationReport',
+  BuildReviewDecision: 'BuildReviewDecision',
+  BuildJourneyAuditEvent: 'BuildJourneyAuditEvent'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -498,7 +503,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "client" | "contact" | "clientActivity" | "clientRequirement" | "clientProposal" | "proposalVersion" | "proposalDelivery" | "proposalView" | "proposalApproval" | "proposalChangeRequest" | "proposalChangeRequestItem" | "proposalRejection" | "clientProject" | "projectMilestone" | "projectDeliverable" | "projectMember" | "projectChangeRequest" | "projectActivity" | "clientTask" | "subTask" | "taskAcceptanceCriterion" | "taskDependency" | "taskComment" | "taskAttachment" | "taskReview" | "taskActivity" | "taskTimeEntry" | "clientPayment" | "clientDocument" | "clientMessage" | "clientNote" | "clientAuditEvent" | "requirementRequest" | "requirementAnswer" | "requirementFeature" | "requirementAttachment" | "requirementQuestion" | "requirementUpdateProposal" | "requirementConflict" | "questionDelivery" | "requirementComment" | "requirementRevision" | "requirementEvent" | "clientCopilotMessage" | "clientCustomFieldDef" | "onboarding" | "workspaceProfile" | "businessProfile" | "workspacePreferences" | "notificationPreferences" | "workspaceSetup" | "verificationToken" | "engineeringBlueprint" | "frontendCapability" | "backendApi" | "backendService" | "databaseEntity" | "integrationRequirement" | "securityRequirement" | "testSpecification" | "engineeringDependency" | "clarificationItem" | "architectureDrift" | "evidenceRecord" | "employee" | "organizationRole" | "organizationTeam" | "employeeInvitation" | "employeeAuditEvent" | "projectStaffAllocation" | "employeeOnboardingState" | "employeePolicyAcknowledgement" | "employeeToolAccess" | "employeeProjectBrief" | "employeeBuildSession" | "employeeContribution" | "projectDecision" | "contributionRecognition" | "employeeInboxItem" | "buildCheckpoint" | "productBuild" | "buildProof" | "buildReview" | "buildHandoff"
+    modelProps: "user" | "workspace" | "client" | "contact" | "clientActivity" | "clientRequirement" | "clientProposal" | "proposalVersion" | "proposalDelivery" | "proposalView" | "proposalApproval" | "proposalChangeRequest" | "proposalChangeRequestItem" | "proposalRejection" | "clientProject" | "projectMilestone" | "projectDeliverable" | "projectMember" | "projectChangeRequest" | "projectActivity" | "clientTask" | "subTask" | "taskAcceptanceCriterion" | "taskDependency" | "taskComment" | "taskAttachment" | "taskReview" | "taskActivity" | "taskTimeEntry" | "clientPayment" | "clientDocument" | "clientMessage" | "clientNote" | "clientAuditEvent" | "requirementRequest" | "requirementAnswer" | "requirementFeature" | "requirementAttachment" | "requirementQuestion" | "requirementUpdateProposal" | "requirementConflict" | "questionDelivery" | "requirementComment" | "requirementRevision" | "requirementEvent" | "clientCopilotMessage" | "clientCustomFieldDef" | "onboarding" | "workspaceProfile" | "businessProfile" | "workspacePreferences" | "notificationPreferences" | "workspaceSetup" | "verificationToken" | "engineeringBlueprint" | "frontendCapability" | "backendApi" | "backendService" | "databaseEntity" | "integrationRequirement" | "securityRequirement" | "testSpecification" | "engineeringDependency" | "clarificationItem" | "architectureDrift" | "evidenceRecord" | "employee" | "organizationRole" | "organizationTeam" | "employeeInvitation" | "employeeAuditEvent" | "projectStaffAllocation" | "employeeOnboardingState" | "employeePolicyAcknowledgement" | "employeeToolAccess" | "employeeProjectBrief" | "employeeBuildSession" | "employeeContribution" | "projectDecision" | "contributionRecognition" | "employeeInboxItem" | "buildCheckpoint" | "productBuild" | "buildProof" | "buildReview" | "buildHandoff" | "buildSubmission" | "buildVerificationJob" | "buildVerificationReport" | "buildReviewDecision" | "buildJourneyAuditEvent"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -6866,6 +6871,376 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    BuildSubmission: {
+      payload: Prisma.$BuildSubmissionPayload<ExtArgs>
+      fields: Prisma.BuildSubmissionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildSubmissionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildSubmissionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildSubmissionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildSubmissionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>
+        }
+        findMany: {
+          args: Prisma.BuildSubmissionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>[]
+        }
+        create: {
+          args: Prisma.BuildSubmissionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>
+        }
+        createMany: {
+          args: Prisma.BuildSubmissionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildSubmissionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildSubmissionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>
+        }
+        update: {
+          args: Prisma.BuildSubmissionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildSubmissionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildSubmissionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildSubmissionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildSubmissionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildSubmissionPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildSubmissionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildSubmission>
+        }
+        groupBy: {
+          args: Prisma.BuildSubmissionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildSubmissionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildSubmissionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildSubmissionCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildVerificationJob: {
+      payload: Prisma.$BuildVerificationJobPayload<ExtArgs>
+      fields: Prisma.BuildVerificationJobFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildVerificationJobFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildVerificationJobFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildVerificationJobFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildVerificationJobFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>
+        }
+        findMany: {
+          args: Prisma.BuildVerificationJobFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>[]
+        }
+        create: {
+          args: Prisma.BuildVerificationJobCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>
+        }
+        createMany: {
+          args: Prisma.BuildVerificationJobCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildVerificationJobCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildVerificationJobDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>
+        }
+        update: {
+          args: Prisma.BuildVerificationJobUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildVerificationJobDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildVerificationJobUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildVerificationJobUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildVerificationJobUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationJobPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildVerificationJobAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildVerificationJob>
+        }
+        groupBy: {
+          args: Prisma.BuildVerificationJobGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildVerificationJobGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildVerificationJobCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildVerificationJobCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildVerificationReport: {
+      payload: Prisma.$BuildVerificationReportPayload<ExtArgs>
+      fields: Prisma.BuildVerificationReportFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildVerificationReportFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildVerificationReportFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildVerificationReportFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildVerificationReportFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>
+        }
+        findMany: {
+          args: Prisma.BuildVerificationReportFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>[]
+        }
+        create: {
+          args: Prisma.BuildVerificationReportCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>
+        }
+        createMany: {
+          args: Prisma.BuildVerificationReportCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildVerificationReportCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildVerificationReportDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>
+        }
+        update: {
+          args: Prisma.BuildVerificationReportUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildVerificationReportDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildVerificationReportUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildVerificationReportUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildVerificationReportUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildVerificationReportPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildVerificationReportAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildVerificationReport>
+        }
+        groupBy: {
+          args: Prisma.BuildVerificationReportGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildVerificationReportGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildVerificationReportCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildVerificationReportCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildReviewDecision: {
+      payload: Prisma.$BuildReviewDecisionPayload<ExtArgs>
+      fields: Prisma.BuildReviewDecisionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildReviewDecisionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildReviewDecisionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildReviewDecisionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildReviewDecisionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>
+        }
+        findMany: {
+          args: Prisma.BuildReviewDecisionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>[]
+        }
+        create: {
+          args: Prisma.BuildReviewDecisionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>
+        }
+        createMany: {
+          args: Prisma.BuildReviewDecisionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildReviewDecisionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildReviewDecisionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>
+        }
+        update: {
+          args: Prisma.BuildReviewDecisionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildReviewDecisionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildReviewDecisionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildReviewDecisionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildReviewDecisionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildReviewDecisionPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildReviewDecisionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildReviewDecision>
+        }
+        groupBy: {
+          args: Prisma.BuildReviewDecisionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildReviewDecisionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildReviewDecisionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildReviewDecisionCountAggregateOutputType> | number
+        }
+      }
+    }
+    BuildJourneyAuditEvent: {
+      payload: Prisma.$BuildJourneyAuditEventPayload<ExtArgs>
+      fields: Prisma.BuildJourneyAuditEventFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.BuildJourneyAuditEventFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.BuildJourneyAuditEventFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>
+        }
+        findFirst: {
+          args: Prisma.BuildJourneyAuditEventFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.BuildJourneyAuditEventFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>
+        }
+        findMany: {
+          args: Prisma.BuildJourneyAuditEventFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>[]
+        }
+        create: {
+          args: Prisma.BuildJourneyAuditEventCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>
+        }
+        createMany: {
+          args: Prisma.BuildJourneyAuditEventCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.BuildJourneyAuditEventCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>[]
+        }
+        delete: {
+          args: Prisma.BuildJourneyAuditEventDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>
+        }
+        update: {
+          args: Prisma.BuildJourneyAuditEventUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>
+        }
+        deleteMany: {
+          args: Prisma.BuildJourneyAuditEventDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.BuildJourneyAuditEventUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.BuildJourneyAuditEventUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>[]
+        }
+        upsert: {
+          args: Prisma.BuildJourneyAuditEventUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$BuildJourneyAuditEventPayload>
+        }
+        aggregate: {
+          args: Prisma.BuildJourneyAuditEventAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateBuildJourneyAuditEvent>
+        }
+        groupBy: {
+          args: Prisma.BuildJourneyAuditEventGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildJourneyAuditEventGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.BuildJourneyAuditEventCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.BuildJourneyAuditEventCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -8493,6 +8868,7 @@ export type ProductBuildScalarFieldEnum = (typeof ProductBuildScalarFieldEnum)[k
 export const BuildProofScalarFieldEnum = {
   id: 'id',
   buildId: 'buildId',
+  submissionId: 'submissionId',
   type: 'type',
   milestone: 'milestone',
   title: 'title',
@@ -8539,6 +8915,106 @@ export const BuildHandoffScalarFieldEnum = {
 } as const
 
 export type BuildHandoffScalarFieldEnum = (typeof BuildHandoffScalarFieldEnum)[keyof typeof BuildHandoffScalarFieldEnum]
+
+
+export const BuildSubmissionScalarFieldEnum = {
+  id: 'id',
+  submissionCode: 'submissionCode',
+  buildId: 'buildId',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  featureId: 'featureId',
+  featureName: 'featureName',
+  workstream: 'workstream',
+  responsibility: 'responsibility',
+  requirementId: 'requirementId',
+  requirementText: 'requirementText',
+  whatYouBuilt: 'whatYouBuilt',
+  acceptanceCriteria: 'acceptanceCriteria',
+  evidenceIds: 'evidenceIds',
+  version: 'version',
+  status: 'status',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BuildSubmissionScalarFieldEnum = (typeof BuildSubmissionScalarFieldEnum)[keyof typeof BuildSubmissionScalarFieldEnum]
+
+
+export const BuildVerificationJobScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  status: 'status',
+  modelName: 'modelName',
+  modelVersion: 'modelVersion',
+  promptVersion: 'promptVersion',
+  inputContextVersion: 'inputContextVersion',
+  errorMessage: 'errorMessage',
+  verificationStartedAt: 'verificationStartedAt',
+  verificationCompletedAt: 'verificationCompletedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BuildVerificationJobScalarFieldEnum = (typeof BuildVerificationJobScalarFieldEnum)[keyof typeof BuildVerificationJobScalarFieldEnum]
+
+
+export const BuildVerificationReportScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  verificationStatus: 'verificationStatus',
+  requirementCoverage: 'requirementCoverage',
+  criteriaResults: 'criteriaResults',
+  evidenceResults: 'evidenceResults',
+  supportedFindings: 'supportedFindings',
+  notVerifiedFindings: 'notVerifiedFindings',
+  potentialGaps: 'potentialGaps',
+  missingEvidence: 'missingEvidence',
+  dependencyStatus: 'dependencyStatus',
+  aiSummary: 'aiSummary',
+  aiRecommendation: 'aiRecommendation',
+  model: 'model',
+  promptVersion: 'promptVersion',
+  verifiedAt: 'verifiedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildVerificationReportScalarFieldEnum = (typeof BuildVerificationReportScalarFieldEnum)[keyof typeof BuildVerificationReportScalarFieldEnum]
+
+
+export const BuildReviewDecisionScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  decision: 'decision',
+  reviewerId: 'reviewerId',
+  reviewerName: 'reviewerName',
+  comment: 'comment',
+  issue: 'issue',
+  requiredChange: 'requiredChange',
+  affectedCriterion: 'affectedCriterion',
+  reviewedAt: 'reviewedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type BuildReviewDecisionScalarFieldEnum = (typeof BuildReviewDecisionScalarFieldEnum)[keyof typeof BuildReviewDecisionScalarFieldEnum]
+
+
+export const BuildJourneyAuditEventScalarFieldEnum = {
+  id: 'id',
+  submissionId: 'submissionId',
+  projectId: 'projectId',
+  featureName: 'featureName',
+  actor: 'actor',
+  actorRole: 'actorRole',
+  eventType: 'eventType',
+  version: 'version',
+  detail: 'detail',
+  metadata: 'metadata',
+  timestamp: 'timestamp'
+} as const
+
+export type BuildJourneyAuditEventScalarFieldEnum = (typeof BuildJourneyAuditEventScalarFieldEnum)[keyof typeof BuildJourneyAuditEventScalarFieldEnum]
 
 
 export const SortOrder = {
@@ -9065,6 +9541,11 @@ export type GlobalOmitConfig = {
   buildProof?: Prisma.BuildProofOmit
   buildReview?: Prisma.BuildReviewOmit
   buildHandoff?: Prisma.BuildHandoffOmit
+  buildSubmission?: Prisma.BuildSubmissionOmit
+  buildVerificationJob?: Prisma.BuildVerificationJobOmit
+  buildVerificationReport?: Prisma.BuildVerificationReportOmit
+  buildReviewDecision?: Prisma.BuildReviewDecisionOmit
+  buildJourneyAuditEvent?: Prisma.BuildJourneyAuditEventOmit
 }
 
 /* Types for Logging */

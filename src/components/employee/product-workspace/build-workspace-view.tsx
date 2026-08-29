@@ -26,6 +26,8 @@ interface BuildWorkspaceProps {
   onOpenBlockerModal: () => void;
   onOpenAIReviewModal: () => void;
   onOpenHandoffModal: () => void;
+  onOpenSubmitModal?: () => void;
+  onOpenSignatureView?: () => void;
 }
 
 export function BuildWorkspaceView({
@@ -34,6 +36,8 @@ export function BuildWorkspaceView({
   onOpenBlockerModal,
   onOpenAIReviewModal,
   onOpenHandoffModal,
+  onOpenSubmitModal,
+  onOpenSignatureView,
 }: BuildWorkspaceProps) {
   const [currentStepIndex, setCurrentStepIndex] = useState(1); // 1 = Build UI
 
@@ -69,7 +73,27 @@ export function BuildWorkspaceView({
         </div>
 
         <div className="flex items-center gap-2 font-mono text-xs">
-          <span className="px-3 py-1 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">
+          {onOpenSignatureView && (
+            <button
+              onClick={onOpenSignatureView}
+              className="px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-colors flex items-center gap-1.5 cursor-pointer font-bold"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Build Journey</span>
+            </button>
+          )}
+
+          {onOpenSubmitModal && (
+            <button
+              onClick={onOpenSubmitModal}
+              className="px-4 py-1.5 rounded-xl bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)] transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-xs"
+            >
+              <Play className="w-3.5 h-3.5 fill-current" />
+              <span>Submit for Verification</span>
+            </button>
+          )}
+
+          <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">
             STATUS: {currentBuild.status}
           </span>
           <button
@@ -114,14 +138,24 @@ export function BuildWorkspaceView({
             })}
           </div>
 
-          <div className="pt-3 border-t border-[var(--bos-border)]">
+          <div className="pt-3 border-t border-[var(--bos-border)] space-y-2">
             <button
               onClick={onOpenProofModal}
-              className="w-full py-2.5 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-mono font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs"
+              className="w-full py-2.5 bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-subtle)] text-[var(--bos-text-primary)] border border-[var(--bos-border)] text-xs font-mono font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
-              <Camera className="w-3.5 h-3.5" />
+              <Camera className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
               <span>Capture Proof</span>
             </button>
+
+            {onOpenSubmitModal && (
+              <button
+                onClick={onOpenSubmitModal}
+                className="w-full py-2.5 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-mono font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+              >
+                <Play className="w-3.5 h-3.5 fill-current" />
+                <span>Submit for Verification</span>
+              </button>
+            )}
           </div>
         </div>
 

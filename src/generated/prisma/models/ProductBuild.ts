@@ -261,6 +261,7 @@ export type ProductBuildWhereInput = {
   proofs?: Prisma.BuildProofListRelationFilter
   reviews?: Prisma.BuildReviewListRelationFilter
   handoffs?: Prisma.BuildHandoffListRelationFilter
+  submissions?: Prisma.BuildSubmissionListRelationFilter
 }
 
 export type ProductBuildOrderByWithRelationInput = {
@@ -283,6 +284,7 @@ export type ProductBuildOrderByWithRelationInput = {
   proofs?: Prisma.BuildProofOrderByRelationAggregateInput
   reviews?: Prisma.BuildReviewOrderByRelationAggregateInput
   handoffs?: Prisma.BuildHandoffOrderByRelationAggregateInput
+  submissions?: Prisma.BuildSubmissionOrderByRelationAggregateInput
 }
 
 export type ProductBuildWhereUniqueInput = Prisma.AtLeast<{
@@ -309,6 +311,7 @@ export type ProductBuildWhereUniqueInput = Prisma.AtLeast<{
   proofs?: Prisma.BuildProofListRelationFilter
   reviews?: Prisma.BuildReviewListRelationFilter
   handoffs?: Prisma.BuildHandoffListRelationFilter
+  submissions?: Prisma.BuildSubmissionListRelationFilter
 }, "id" | "projectId_employeeId_featureName">
 
 export type ProductBuildOrderByWithAggregationInput = {
@@ -369,6 +372,7 @@ export type ProductBuildCreateInput = {
   proofs?: Prisma.BuildProofCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUncheckedCreateInput = {
@@ -389,6 +393,7 @@ export type ProductBuildUncheckedCreateInput = {
   proofs?: Prisma.BuildProofUncheckedCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewUncheckedCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffUncheckedCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUpdateInput = {
@@ -409,6 +414,7 @@ export type ProductBuildUpdateInput = {
   proofs?: Prisma.BuildProofUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateInput = {
@@ -429,6 +435,7 @@ export type ProductBuildUncheckedUpdateInput = {
   proofs?: Prisma.BuildProofUncheckedUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUncheckedUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUncheckedUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildCreateManyInput = {
@@ -678,6 +685,20 @@ export type ProductBuildUpdateOneRequiredWithoutHandoffsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ProductBuildUpdateToOneWithWhereWithoutHandoffsInput, Prisma.ProductBuildUpdateWithoutHandoffsInput>, Prisma.ProductBuildUncheckedUpdateWithoutHandoffsInput>
 }
 
+export type ProductBuildCreateNestedOneWithoutSubmissionsInput = {
+  create?: Prisma.XOR<Prisma.ProductBuildCreateWithoutSubmissionsInput, Prisma.ProductBuildUncheckedCreateWithoutSubmissionsInput>
+  connectOrCreate?: Prisma.ProductBuildCreateOrConnectWithoutSubmissionsInput
+  connect?: Prisma.ProductBuildWhereUniqueInput
+}
+
+export type ProductBuildUpdateOneRequiredWithoutSubmissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ProductBuildCreateWithoutSubmissionsInput, Prisma.ProductBuildUncheckedCreateWithoutSubmissionsInput>
+  connectOrCreate?: Prisma.ProductBuildCreateOrConnectWithoutSubmissionsInput
+  upsert?: Prisma.ProductBuildUpsertWithoutSubmissionsInput
+  connect?: Prisma.ProductBuildWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ProductBuildUpdateToOneWithWhereWithoutSubmissionsInput, Prisma.ProductBuildUpdateWithoutSubmissionsInput>, Prisma.ProductBuildUncheckedUpdateWithoutSubmissionsInput>
+}
+
 export type ProductBuildCreateWithoutProjectInput = {
   id?: string
   featureName: string
@@ -695,6 +716,7 @@ export type ProductBuildCreateWithoutProjectInput = {
   proofs?: Prisma.BuildProofCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUncheckedCreateWithoutProjectInput = {
@@ -714,6 +736,7 @@ export type ProductBuildUncheckedCreateWithoutProjectInput = {
   proofs?: Prisma.BuildProofUncheckedCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewUncheckedCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffUncheckedCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildCreateOrConnectWithoutProjectInput = {
@@ -778,6 +801,7 @@ export type ProductBuildCreateWithoutEmployeeInput = {
   proofs?: Prisma.BuildProofCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUncheckedCreateWithoutEmployeeInput = {
@@ -797,6 +821,7 @@ export type ProductBuildUncheckedCreateWithoutEmployeeInput = {
   proofs?: Prisma.BuildProofUncheckedCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewUncheckedCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffUncheckedCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildCreateOrConnectWithoutEmployeeInput = {
@@ -841,6 +866,7 @@ export type ProductBuildCreateWithoutProofsInput = {
   employee: Prisma.EmployeeCreateNestedOneWithoutProductBuildsInput
   reviews?: Prisma.BuildReviewCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUncheckedCreateWithoutProofsInput = {
@@ -860,6 +886,7 @@ export type ProductBuildUncheckedCreateWithoutProofsInput = {
   updatedAt?: Date | string
   reviews?: Prisma.BuildReviewUncheckedCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffUncheckedCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildCreateOrConnectWithoutProofsInput = {
@@ -895,6 +922,7 @@ export type ProductBuildUpdateWithoutProofsInput = {
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutProductBuildsNestedInput
   reviews?: Prisma.BuildReviewUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateWithoutProofsInput = {
@@ -914,6 +942,7 @@ export type ProductBuildUncheckedUpdateWithoutProofsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reviews?: Prisma.BuildReviewUncheckedUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUncheckedUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildCreateWithoutReviewsInput = {
@@ -933,6 +962,7 @@ export type ProductBuildCreateWithoutReviewsInput = {
   employee: Prisma.EmployeeCreateNestedOneWithoutProductBuildsInput
   proofs?: Prisma.BuildProofCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUncheckedCreateWithoutReviewsInput = {
@@ -952,6 +982,7 @@ export type ProductBuildUncheckedCreateWithoutReviewsInput = {
   updatedAt?: Date | string
   proofs?: Prisma.BuildProofUncheckedCreateNestedManyWithoutBuildInput
   handoffs?: Prisma.BuildHandoffUncheckedCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildCreateOrConnectWithoutReviewsInput = {
@@ -987,6 +1018,7 @@ export type ProductBuildUpdateWithoutReviewsInput = {
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutProductBuildsNestedInput
   proofs?: Prisma.BuildProofUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateWithoutReviewsInput = {
@@ -1006,6 +1038,7 @@ export type ProductBuildUncheckedUpdateWithoutReviewsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   proofs?: Prisma.BuildProofUncheckedUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUncheckedUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildCreateWithoutHandoffsInput = {
@@ -1025,6 +1058,7 @@ export type ProductBuildCreateWithoutHandoffsInput = {
   employee: Prisma.EmployeeCreateNestedOneWithoutProductBuildsInput
   proofs?: Prisma.BuildProofCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildUncheckedCreateWithoutHandoffsInput = {
@@ -1044,6 +1078,7 @@ export type ProductBuildUncheckedCreateWithoutHandoffsInput = {
   updatedAt?: Date | string
   proofs?: Prisma.BuildProofUncheckedCreateNestedManyWithoutBuildInput
   reviews?: Prisma.BuildReviewUncheckedCreateNestedManyWithoutBuildInput
+  submissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutBuildInput
 }
 
 export type ProductBuildCreateOrConnectWithoutHandoffsInput = {
@@ -1079,6 +1114,7 @@ export type ProductBuildUpdateWithoutHandoffsInput = {
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutProductBuildsNestedInput
   proofs?: Prisma.BuildProofUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateWithoutHandoffsInput = {
@@ -1098,6 +1134,103 @@ export type ProductBuildUncheckedUpdateWithoutHandoffsInput = {
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   proofs?: Prisma.BuildProofUncheckedUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUncheckedUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutBuildNestedInput
+}
+
+export type ProductBuildCreateWithoutSubmissionsInput = {
+  id?: string
+  featureName: string
+  workstream: string
+  responsibility: string
+  status?: string
+  currentStep?: string
+  checklistState?: string
+  blockedReason?: string | null
+  blockedDependency?: string | null
+  blockedOwnerRole?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project: Prisma.ClientProjectCreateNestedOneWithoutProductBuildsInput
+  employee: Prisma.EmployeeCreateNestedOneWithoutProductBuildsInput
+  proofs?: Prisma.BuildProofCreateNestedManyWithoutBuildInput
+  reviews?: Prisma.BuildReviewCreateNestedManyWithoutBuildInput
+  handoffs?: Prisma.BuildHandoffCreateNestedManyWithoutBuildInput
+}
+
+export type ProductBuildUncheckedCreateWithoutSubmissionsInput = {
+  id?: string
+  projectId: string
+  employeeId: string
+  featureName: string
+  workstream: string
+  responsibility: string
+  status?: string
+  currentStep?: string
+  checklistState?: string
+  blockedReason?: string | null
+  blockedDependency?: string | null
+  blockedOwnerRole?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  proofs?: Prisma.BuildProofUncheckedCreateNestedManyWithoutBuildInput
+  reviews?: Prisma.BuildReviewUncheckedCreateNestedManyWithoutBuildInput
+  handoffs?: Prisma.BuildHandoffUncheckedCreateNestedManyWithoutBuildInput
+}
+
+export type ProductBuildCreateOrConnectWithoutSubmissionsInput = {
+  where: Prisma.ProductBuildWhereUniqueInput
+  create: Prisma.XOR<Prisma.ProductBuildCreateWithoutSubmissionsInput, Prisma.ProductBuildUncheckedCreateWithoutSubmissionsInput>
+}
+
+export type ProductBuildUpsertWithoutSubmissionsInput = {
+  update: Prisma.XOR<Prisma.ProductBuildUpdateWithoutSubmissionsInput, Prisma.ProductBuildUncheckedUpdateWithoutSubmissionsInput>
+  create: Prisma.XOR<Prisma.ProductBuildCreateWithoutSubmissionsInput, Prisma.ProductBuildUncheckedCreateWithoutSubmissionsInput>
+  where?: Prisma.ProductBuildWhereInput
+}
+
+export type ProductBuildUpdateToOneWithWhereWithoutSubmissionsInput = {
+  where?: Prisma.ProductBuildWhereInput
+  data: Prisma.XOR<Prisma.ProductBuildUpdateWithoutSubmissionsInput, Prisma.ProductBuildUncheckedUpdateWithoutSubmissionsInput>
+}
+
+export type ProductBuildUpdateWithoutSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  featureName?: Prisma.StringFieldUpdateOperationsInput | string
+  workstream?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentStep?: Prisma.StringFieldUpdateOperationsInput | string
+  checklistState?: Prisma.StringFieldUpdateOperationsInput | string
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedDependency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedOwnerRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ClientProjectUpdateOneRequiredWithoutProductBuildsNestedInput
+  employee?: Prisma.EmployeeUpdateOneRequiredWithoutProductBuildsNestedInput
+  proofs?: Prisma.BuildProofUpdateManyWithoutBuildNestedInput
+  reviews?: Prisma.BuildReviewUpdateManyWithoutBuildNestedInput
+  handoffs?: Prisma.BuildHandoffUpdateManyWithoutBuildNestedInput
+}
+
+export type ProductBuildUncheckedUpdateWithoutSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  featureName?: Prisma.StringFieldUpdateOperationsInput | string
+  workstream?: Prisma.StringFieldUpdateOperationsInput | string
+  responsibility?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  currentStep?: Prisma.StringFieldUpdateOperationsInput | string
+  checklistState?: Prisma.StringFieldUpdateOperationsInput | string
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedDependency?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedOwnerRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  proofs?: Prisma.BuildProofUncheckedUpdateManyWithoutBuildNestedInput
+  reviews?: Prisma.BuildReviewUncheckedUpdateManyWithoutBuildNestedInput
+  handoffs?: Prisma.BuildHandoffUncheckedUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildCreateManyProjectInput = {
@@ -1133,6 +1266,7 @@ export type ProductBuildUpdateWithoutProjectInput = {
   proofs?: Prisma.BuildProofUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateWithoutProjectInput = {
@@ -1152,6 +1286,7 @@ export type ProductBuildUncheckedUpdateWithoutProjectInput = {
   proofs?: Prisma.BuildProofUncheckedUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUncheckedUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUncheckedUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateManyWithoutProjectInput = {
@@ -1203,6 +1338,7 @@ export type ProductBuildUpdateWithoutEmployeeInput = {
   proofs?: Prisma.BuildProofUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateWithoutEmployeeInput = {
@@ -1222,6 +1358,7 @@ export type ProductBuildUncheckedUpdateWithoutEmployeeInput = {
   proofs?: Prisma.BuildProofUncheckedUpdateManyWithoutBuildNestedInput
   reviews?: Prisma.BuildReviewUncheckedUpdateManyWithoutBuildNestedInput
   handoffs?: Prisma.BuildHandoffUncheckedUpdateManyWithoutBuildNestedInput
+  submissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutBuildNestedInput
 }
 
 export type ProductBuildUncheckedUpdateManyWithoutEmployeeInput = {
@@ -1249,12 +1386,14 @@ export type ProductBuildCountOutputType = {
   proofs: number
   reviews: number
   handoffs: number
+  submissions: number
 }
 
 export type ProductBuildCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   proofs?: boolean | ProductBuildCountOutputTypeCountProofsArgs
   reviews?: boolean | ProductBuildCountOutputTypeCountReviewsArgs
   handoffs?: boolean | ProductBuildCountOutputTypeCountHandoffsArgs
+  submissions?: boolean | ProductBuildCountOutputTypeCountSubmissionsArgs
 }
 
 /**
@@ -1288,6 +1427,13 @@ export type ProductBuildCountOutputTypeCountHandoffsArgs<ExtArgs extends runtime
   where?: Prisma.BuildHandoffWhereInput
 }
 
+/**
+ * ProductBuildCountOutputType without action
+ */
+export type ProductBuildCountOutputTypeCountSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.BuildSubmissionWhereInput
+}
+
 
 export type ProductBuildSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1309,6 +1455,7 @@ export type ProductBuildSelect<ExtArgs extends runtime.Types.Extensions.Internal
   proofs?: boolean | Prisma.ProductBuild$proofsArgs<ExtArgs>
   reviews?: boolean | Prisma.ProductBuild$reviewsArgs<ExtArgs>
   handoffs?: boolean | Prisma.ProductBuild$handoffsArgs<ExtArgs>
+  submissions?: boolean | Prisma.ProductBuild$submissionsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductBuildCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["productBuild"]>
 
@@ -1374,6 +1521,7 @@ export type ProductBuildInclude<ExtArgs extends runtime.Types.Extensions.Interna
   proofs?: boolean | Prisma.ProductBuild$proofsArgs<ExtArgs>
   reviews?: boolean | Prisma.ProductBuild$reviewsArgs<ExtArgs>
   handoffs?: boolean | Prisma.ProductBuild$handoffsArgs<ExtArgs>
+  submissions?: boolean | Prisma.ProductBuild$submissionsArgs<ExtArgs>
   _count?: boolean | Prisma.ProductBuildCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ProductBuildIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1393,6 +1541,7 @@ export type $ProductBuildPayload<ExtArgs extends runtime.Types.Extensions.Intern
     proofs: Prisma.$BuildProofPayload<ExtArgs>[]
     reviews: Prisma.$BuildReviewPayload<ExtArgs>[]
     handoffs: Prisma.$BuildHandoffPayload<ExtArgs>[]
+    submissions: Prisma.$BuildSubmissionPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1808,6 +1957,7 @@ export interface Prisma__ProductBuildClient<T, Null = never, ExtArgs extends run
   proofs<T extends Prisma.ProductBuild$proofsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductBuild$proofsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildProofPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.ProductBuild$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductBuild$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   handoffs<T extends Prisma.ProductBuild$handoffsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductBuild$handoffsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildHandoffPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  submissions<T extends Prisma.ProductBuild$submissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ProductBuild$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2319,6 +2469,30 @@ export type ProductBuild$handoffsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.BuildHandoffScalarFieldEnum | Prisma.BuildHandoffScalarFieldEnum[]
+}
+
+/**
+ * ProductBuild.submissions
+ */
+export type ProductBuild$submissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the BuildSubmission
+   */
+  select?: Prisma.BuildSubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the BuildSubmission
+   */
+  omit?: Prisma.BuildSubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.BuildSubmissionInclude<ExtArgs> | null
+  where?: Prisma.BuildSubmissionWhereInput
+  orderBy?: Prisma.BuildSubmissionOrderByWithRelationInput | Prisma.BuildSubmissionOrderByWithRelationInput[]
+  cursor?: Prisma.BuildSubmissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.BuildSubmissionScalarFieldEnum | Prisma.BuildSubmissionScalarFieldEnum[]
 }
 
 /**
