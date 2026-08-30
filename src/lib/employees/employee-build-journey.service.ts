@@ -108,7 +108,7 @@ export async function getPreSubmissionData(buildId: string): Promise<PreSubmissi
 
   const requirementText =
     matchingCap?.description ||
-    matchingCap?.purpose ||
+    (matchingCap as any)?.purpose ||
     `Fulfill requirement specifications for ${build.featureName} ensuring complete data flow, error handling, and responsiveness.`;
 
   // Determine what the employee built based on real proofs and build session notes
@@ -899,7 +899,7 @@ export async function executeAdminDecision(params: {
 
     // D. Update matching deliverable & task
     const matchingDeliverable = project.deliverables.find(
-      (d) => d.title.toLowerCase().includes(build.featureName.toLowerCase()) || d.deliverableType === "FRONTEND"
+      (d) => d.title.toLowerCase().includes(build.featureName.toLowerCase()) || d.category === "ENGINEERING" || (d as any).deliverableType === "FRONTEND"
     );
     if (matchingDeliverable) {
       await db.projectDeliverable.update({
@@ -931,7 +931,51 @@ export async function executeAdminDecision(params: {
       },
     });
 
-    // F. Notify Employee
+    // F. Recalculate Project Progress & Auto-Initialize Next Product Area
+    try {
+      const allCapabilities = blueprint?.frontendCapabilities || [];
+      const totalCaps = allCapabilities.length;
+      const completedCaps = allCapabilities.filter((c) => c.status === "COMPLETED" || c.name === build.featureName).length;
+      const progressPercent = totalCaps > 0 ? Math.round((completedCaps / totalCaps) * 100) : 100;
+
+      await db.clientProject.update({
+        where: { id: project.id },
+        data: {
+          progress: Math.min(100, progressPercent),
+          updatedAt: new Date(),
+        },
+      });
+
+      // Find next uncompleted capability for this workstream
+      const nextCap = allCapabilities.find(
+        (c) => c.status !== "COMPLETED" && c.name !== build.featureName
+      );
+
+      if (nextCap) {
+        // Initialize next ProductBuild so it's ready when employee returns to home
+        const nextBuild = await db.productBuild.findFirst({
+          where: { projectId: project.id, employeeId: employee.id, featureName: nextCap.name },
+        });
+
+        if (!nextBuild) {
+          await db.productBuild.create({
+            data: {
+              projectId: project.id,
+              employeeId: employee.id,
+              featureName: nextCap.name,
+              workstream: build.workstream,
+              responsibility: `${nextCap.name} Interface & Logic`,
+              status: "BUILDING",
+              currentStep: "BUILD_UI",
+            },
+          });
+        }
+      }
+    } catch (progErr) {
+      console.error("[executeAdminDecision] Error updating progress & next build:", progErr);
+    }
+
+    // G. Notify Employee
     await db.employeeInboxItem.create({
       data: {
         employeeId: employee.id,
@@ -944,7 +988,7 @@ export async function executeAdminDecision(params: {
       },
     });
 
-    // G. Audit Events: ADMIN_REVIEWED & APPROVED & VERIFIED
+    // H. Audit Events: ADMIN_REVIEWED & APPROVED & VERIFIED
     await db.buildJourneyAuditEvent.create({
       data: {
         submissionId,
