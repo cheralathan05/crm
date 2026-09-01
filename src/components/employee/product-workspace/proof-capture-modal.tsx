@@ -151,7 +151,10 @@ export function ProofCaptureModal({
 
   const handleSubmit = async () => {
     const title = `${featureName} • ${current.milestone}`;
-    const whatChangedText = current.whatChanged.trim() || `Verified ${current.milestone} for ${featureName}.`;
+    const whatChangedText =
+      current.whatChanged.trim() ||
+      config.whatChangedPlaceholder ||
+      `Verified ${current.milestone} for ${featureName}.`;
 
     setSubmitting(true);
     setError(null);
@@ -413,7 +416,7 @@ export function ProofCaptureModal({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={submitting || !current.milestone.trim() || !current.whatChanged.trim()}
+            disabled={submitting || !current.milestone.trim()}
             className="px-6 py-2.5 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] disabled:opacity-50 text-white font-mono text-xs font-bold uppercase rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-1.5"
           >
             {submitting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
