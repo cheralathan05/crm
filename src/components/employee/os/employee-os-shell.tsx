@@ -367,10 +367,11 @@ export function EmployeeOSShell({ onLogout, previewEmployeeId }: EmployeeOSShell
 
       {selectedFeature && (
         <FeatureDetailDrawer
-          isOpen={!!selectedFeature}
-          onClose={() => setSelectedFeature(null)}
           feature={selectedFeature}
+          onClose={() => setSelectedFeature(null)}
+          projectName={briefData?.projectName || homeData?.project?.name || "Project"}
           workstream={homeData?.employee?.workstream || briefData?.workstream || "FRONTEND"}
+          projectRole={homeData?.employee?.role || briefData?.projectRole || "Engineer"}
         />
       )}
 
@@ -379,8 +380,9 @@ export function EmployeeOSShell({ onLogout, previewEmployeeId }: EmployeeOSShell
           isOpen={isBuildModalOpen}
           onClose={() => setIsBuildModalOpen(false)}
           projectId={briefData?.projectId || homeData?.project?.id || ""}
+          projectName={briefData?.projectName || homeData?.project?.name || "Project"}
           workstream={briefData?.workstream || homeData?.employee?.workstream || "FRONTEND"}
-          roleTitle={briefData?.projectRole || homeData?.employee?.role || "Engineer"}
+          projectRole={briefData?.projectRole || homeData?.employee?.role || "Engineer"}
         />
       )}
     </div>

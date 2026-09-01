@@ -111,11 +111,19 @@ export async function getPreSubmissionData(buildId: string): Promise<PreSubmissi
     (matchingCap as any)?.purpose ||
     `Fulfill requirement specifications for ${build.featureName} ensuring complete data flow, error handling, and responsiveness.`;
 
-  // Determine what the employee built based on real proofs and build session notes
+  // Deduplicate and format what the employee built based on real unique proofs
+  const uniqueChanges = Array.from(
+    new Set(
+      proofs
+        .map((p) => p.whatChanged?.trim())
+        .filter((c): c is string => Boolean(c && c.length > 0))
+    )
+  );
+
   const whatYouBuilt =
-    proofs.length > 0
-      ? proofs.map((p) => p.whatChanged).join(" • ")
-      : `Constructed ${build.featureName} layout, responsive components, and data binding.`;
+    uniqueChanges.length > 0
+      ? uniqueChanges.join(" • ")
+      : `Constructed verified ${build.featureName} interface, responsive components, and connected API contracts.`;
 
   // Real acceptance criteria from blueprint or deliverable
   const rawCriteria = [
@@ -319,6 +327,25 @@ export async function submitBuildForVerification(params: {
       updatedAt: new Date(),
     },
   });
+
+  // Sync matching ClientTask status to IN_REVIEW
+  try {
+    await db.clientTask.updateMany({
+      where: {
+        projectId: precheck.projectId,
+        OR: [
+          { title: { contains: build.featureName } },
+          { description: { contains: build.featureName } },
+        ],
+        status: { in: ["TODO", "IN_PROGRESS", "BACKLOG"] },
+      },
+      data: {
+        status: "IN_REVIEW",
+      },
+    });
+  } catch (taskErr) {
+    console.warn("[submitBuildForVerification] Could not sync clientTask:", taskErr);
+  }
 
   // 4. Create initial Audit Event: SUBMITTED
   await db.buildJourneyAuditEvent.create({
@@ -646,12 +673,18 @@ Evaluate each criterion against the submitted evidence. Output strictly valid JS
   });
 
   // Create real EmployeeInboxItem for Admin / Project Owner
-  const ownerEmployee = await db.employee.findFirst({
-    where: {
-      workspaceId: employee.workspaceId,
-      status: "ACTIVE",
-    },
-  });
+  const ownerEmployee =
+    (await db.employee.findFirst({
+      where: {
+        workspaceId: employee.workspaceId,
+        status: "ACTIVE",
+      },
+    })) ||
+    (await db.employee.findFirst({
+      where: {
+        status: { in: ["ACTIVE", "INVITED"] },
+      },
+    }));
 
   if (ownerEmployee) {
     await db.employeeInboxItem.create({
@@ -1031,6 +1064,25 @@ export async function executeAdminDecision(params: {
       },
     });
 
+    // Sync matching ClientTask
+    try {
+      await db.clientTask.updateMany({
+        where: {
+          projectId: project.id,
+          OR: [
+            { title: { contains: build.featureName } },
+            { description: { contains: build.featureName } },
+          ],
+          status: "IN_REVIEW",
+        },
+        data: {
+          status: "CHANGES_REQUESTED",
+        },
+      });
+    } catch (taskErr) {
+      console.warn("[executeAdminDecision] Could not sync clientTask to CHANGES_REQUESTED:", taskErr);
+    }
+
     // C. Notify Employee
     await db.employeeInboxItem.create({
       data: {
@@ -1085,6 +1137,25 @@ export async function executeAdminDecision(params: {
         updatedAt: new Date(),
       },
     });
+
+    // Sync matching ClientTask
+    try {
+      await db.clientTask.updateMany({
+        where: {
+          projectId: project.id,
+          OR: [
+            { title: { contains: build.featureName } },
+            { description: { contains: build.featureName } },
+          ],
+          status: "IN_REVIEW",
+        },
+        data: {
+          status: "BLOCKED",
+        },
+      });
+    } catch (taskErr) {
+      console.warn("[executeAdminDecision] Could not sync clientTask to BLOCKED:", taskErr);
+    }
 
     // B. Notify Employee
     await db.employeeInboxItem.create({

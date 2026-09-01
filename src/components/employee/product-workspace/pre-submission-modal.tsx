@@ -362,17 +362,17 @@ export function PreSubmissionModal({
           <button
             disabled={submitting || loading || !data}
             onClick={handleSubmit}
-            className="px-6 py-3 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-bold uppercase rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-2 disabled:opacity-50"
+            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase rounded-xl transition-all shadow-lg hover:shadow-emerald-600/30 cursor-pointer flex items-center gap-2 disabled:opacity-50"
           >
             {submitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Freezing Submission & Starting AI...</span>
+                <span>Sending Details to Admin...</span>
               </>
             ) : (
               <>
                 <Send className="w-4 h-4" />
-                <span>Submit for Verification</span>
+                <span>Send to Admin for Checking</span>
               </>
             )}
           </button>

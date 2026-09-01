@@ -517,9 +517,47 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
     currentFocus: {
       id: currentBuildRecord?.id || "build-active",
       productAreaName: activeProductArea?.name || "Core Experience",
+      featureName: activeProductArea?.name || "Core Experience",
       workstream,
       status: currentBuildRecord?.status || "BUILDING",
       currentStep: currentBuildRecord?.currentStep || "BUILD_UI",
+      why: requirementText,
+      expectedResult: requirementText,
+      whatYouAreBuilding: `${activeProductArea?.name || "Feature"} user interface, data binding, and responsive presentation.`,
+      userExperience: `Users seamlessly navigate and interact with ${activeProductArea?.name || "this capability"} with instantaneous state feedback and zero data loss.`,
+      visualSpec: {
+        designAvailable: true,
+        specRoute: activeProductArea?.route || "/app",
+        conceptAvailable: false,
+      },
+      connectedTo: {
+        api: primaryApi ? `${primaryApi.method} ${primaryApi.path}` : "Product API Contract",
+        backend: "Enterprise Domain Services",
+        database: "Relational Persistence Layer",
+      },
+      doneWhen: acceptanceCriteria,
+      proofCount: currentBuildRecord?.proofs?.length || 0,
+      proofs: currentBuildRecord?.proofs || [],
+      isBlocked: currentBuildRecord?.status === "BLOCKED",
+      blockedReason: currentBuildRecord?.blockedReason,
+      reviewFeedback: latestDecision
+        ? {
+            reviewerName: latestDecision.reviewerName,
+            comment: latestDecision.comment,
+            issue: latestDecision.issue,
+            requiredChange: latestDecision.requiredChange,
+          }
+        : null,
+    },
+    currentBuild: {
+      id: currentBuildRecord?.id || "build-active",
+      featureName: activeProductArea?.name || "Core Experience",
+      productAreaName: activeProductArea?.name || "Core Experience",
+      workstream,
+      responsibility: `${activeProductArea?.name || "Feature"} Interface & Logic`,
+      status: currentBuildRecord?.status || "BUILDING",
+      currentStep: currentBuildRecord?.currentStep || "BUILD_UI",
+      expectedResult: requirementText,
       why: requirementText,
       whatYouAreBuilding: `${activeProductArea?.name || "Feature"} user interface, data binding, and responsive presentation.`,
       userExperience: `Users seamlessly navigate and interact with ${activeProductArea?.name || "this capability"} with instantaneous state feedback and zero data loss.`,
@@ -534,7 +572,10 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
         database: "Relational Persistence Layer",
       },
       doneWhen: acceptanceCriteria,
+      proofCount: currentBuildRecord?.proofs?.length || 0,
       proofs: currentBuildRecord?.proofs || [],
+      isBlocked: currentBuildRecord?.status === "BLOCKED",
+      blockedReason: currentBuildRecord?.blockedReason,
       reviewFeedback: latestDecision
         ? {
             reviewerName: latestDecision.reviewerName,
@@ -543,6 +584,22 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
             requiredChange: latestDecision.requiredChange,
           }
         : null,
+    },
+    yourArea: {
+      workstream,
+      responsibility: `${workstream} Architecture & UI Implementation`,
+      assignedFeatures: productAreas.map((a) => a.name),
+    },
+    nextAction: {
+      title: currentBuildRecord?.currentStep === "BUILD_UI" ? `Build ${activeProductArea?.name || "Feature"} UI` : `Connect API Contract`,
+      actionText: "CONTINUE BUILD",
+      step: currentBuildRecord?.currentStep || "BUILD_UI",
+    },
+    dependency: requiresDependencies[0] || {
+      name: "Product API Contract",
+      ownerRole: "Backend Developer",
+      ownerName: "Backend Squad",
+      status: "READY",
     },
     nextWork: nextProductArea
       ? {

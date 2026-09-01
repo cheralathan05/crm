@@ -21,6 +21,7 @@ import {
   Code2,
   Lock,
   Cloud,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CapabilityMap } from "./capability-map";

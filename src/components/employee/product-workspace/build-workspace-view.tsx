@@ -17,6 +17,12 @@ import {
   Server,
   Layers,
   ChevronRight,
+  CheckSquare,
+  Square,
+  FileText,
+  GitPullRequest,
+  Check,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -39,286 +45,302 @@ export function BuildWorkspaceView({
   onOpenSubmitModal,
   onOpenSignatureView,
 }: BuildWorkspaceProps) {
-  const [currentStepIndex, setCurrentStepIndex] = useState(1); // 1 = Build UI
+  const [checklist, setChecklist] = useState<Record<string, boolean>>(() => {
+    try {
+      if (homeData?.currentFocus?.checklistState) {
+        return typeof homeData.currentFocus.checklistState === "string"
+          ? JSON.parse(homeData.currentFocus.checklistState)
+          : homeData.currentFocus.checklistState;
+      }
+    } catch {}
+    return {};
+  });
 
   if (!homeData) return null;
 
-  const { project, yourArea, currentBuild, dependency } = homeData;
-
-  const buildSteps = [
-    { id: "step-understand", label: "1. Understand Requirement", key: "UNDERSTAND" },
-    { id: "step-ui", label: "2. Build UI Interface", key: "BUILD_UI" },
-    { id: "step-data", label: "3. Connect API & Data", key: "CONNECT_DATA" },
-    { id: "step-states", label: "4. Handle States (Loading/Error)", key: "HANDLE_STATES" },
-    { id: "step-responsive", label: "5. Responsive Layout", key: "RESPONSIVE" },
-    { id: "step-test", label: "6. Test & Verify", key: "TEST" },
-    { id: "step-prove", label: "7. Prove This Build", key: "PROVE" },
-    { id: "step-review", label: "8. Peer & AI Review", key: "REVIEW" },
+  const { employee, project, currentFocus, dependency } = homeData;
+  const criteria = currentFocus?.doneWhen || [
+    { id: "AC-01", criterion: "Interface renders layout and conforms to design tokens" },
+    { id: "AC-02", criterion: "Connected API endpoints load without runtime errors" },
+    { id: "AC-03", criterion: "Loading, empty, and error fallback states handled" },
+    { id: "AC-04", criterion: "Responsive mobile and desktop views verified" },
   ];
 
+  const proofs = currentFocus?.proofs || [];
+
+  const toggleCriterion = (id: string) => {
+    setChecklist((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
   return (
-    <div className="space-y-6 max-w-7xl mx-auto animate-in fade-in duration-150 font-sans">
+    <div className="space-y-6 max-w-6xl mx-auto animate-in fade-in duration-150 font-sans pb-16">
       {/* ── TOP LIVE CONTEXT BAR ────────────────────────────────────── */}
-      <div className="p-4 sm:p-5 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] flex flex-wrap items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] flex flex-wrap items-center justify-between gap-4 shadow-md">
         <div className="flex items-center gap-3">
-          <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+          <span className="w-3 h-3 rounded-full bg-emerald-400 animate-ping" />
           <div>
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
-              CURRENTLY BUILDING
-            </span>
-            <h2 className="text-base sm:text-lg font-bold text-[var(--bos-text-primary)]">
-              {currentBuild.featureName}
-            </h2>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--bos-accent)]">
+                FOCUSED BUILD MODE
+              </span>
+              <span className="font-mono text-xs text-[var(--bos-text-tertiary)]">•</span>
+              <span className="font-mono text-xs text-[var(--bos-text-secondary)]">{employee?.role} ({employee?.workstream})</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-[var(--bos-text-primary)]">
+              {currentFocus?.productAreaName}
+            </h1>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 font-mono text-xs">
+        <div className="flex flex-wrap items-center gap-2 font-mono text-xs">
           {onOpenSignatureView && (
             <button
               onClick={onOpenSignatureView}
-              className="px-3 py-1.5 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-colors flex items-center gap-1.5 cursor-pointer font-bold"
+              className="px-3.5 py-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-colors flex items-center gap-1.5 cursor-pointer font-bold"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Build Journey</span>
+              <span>Review Journey</span>
             </button>
           )}
 
           {onOpenSubmitModal && (
             <button
               onClick={onOpenSubmitModal}
-              className="px-4 py-1.5 rounded-xl bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)] transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-xs"
+              className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white transition-all flex items-center gap-1.5 cursor-pointer font-bold shadow-md hover:shadow-emerald-600/30 font-mono text-xs uppercase"
             >
               <Play className="w-3.5 h-3.5 fill-current" />
-              <span>Submit for Verification</span>
+              <span>Send to Admin for Checking</span>
             </button>
           )}
 
-          <span className="px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">
-            STATUS: {currentBuild.status}
+          <span className="px-3 py-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold uppercase">
+            {currentFocus?.status || "BUILDING"}
           </span>
+
           <button
             onClick={onOpenBlockerModal}
-            className="px-3 py-1.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors flex items-center gap-1.5 cursor-pointer"
+            className="px-3.5 py-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20 hover:bg-rose-500/20 transition-colors flex items-center gap-1.5 cursor-pointer"
           >
             <ShieldAlert className="w-3.5 h-3.5" />
-            <span>Report Blocker</span>
+            <span>Blocker</span>
           </button>
         </div>
       </div>
 
-      {/* ── 3-COLUMN BUILD ENVIRONMENT ──────────────────────────────── */}
+      {/* ── 2-COLUMN STRUCTURED BUILD ENVIRONMENT ────────────────────── */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* ── LEFT COLUMN: BUILD STEPS (Col 3) ───────────────────────── */}
-        <div className="lg:col-span-3 p-5 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-3">
-          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--bos-text-secondary)] block">
-            BUILD STEPS
-          </span>
-          <div className="space-y-1.5 text-xs font-mono">
-            {buildSteps.map((step, idx) => {
-              const isCurrent = idx === currentStepIndex;
-              const isPast = idx < currentStepIndex;
-              return (
-                <button
-                  key={step.id}
-                  onClick={() => setCurrentStepIndex(idx)}
-                  className={cn(
-                    "w-full p-2.5 rounded-xl flex items-center justify-between text-left transition-all cursor-pointer",
-                    isCurrent
-                      ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
-                      : isPast
-                      ? "bg-[var(--bos-surface-panel)] text-emerald-400 hover:bg-[var(--bos-surface-subtle)]"
-                      : "text-[var(--bos-text-secondary)] hover:bg-[var(--bos-surface-subtle)] hover:text-[var(--bos-text-primary)]"
-                  )}
-                >
-                  <span>{step.label}</span>
-                  {isPast && <CheckCircle2 className="w-3.5 h-3.5" />}
-                  {isCurrent && <ChevronRight className="w-3.5 h-3.5" />}
-                </button>
-              );
-            })}
+        
+        {/* ── LEFT COLUMN: WORK SPECIFICATIONS & PROOFS (Col 7) ──────── */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* WHY & WHAT YOU ARE BUILDING */}
+          <div className="p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-4 shadow-sm">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 block">
+              1. PURPOSE & REQUIREMENT (WHY)
+            </span>
+            <p className="text-xs sm:text-sm text-[var(--bos-text-secondary)] leading-relaxed">
+              {currentFocus?.why}
+            </p>
+
+            <div className="pt-2 border-t border-[var(--bos-border)] space-y-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-blue-400 block">
+                2. WHAT YOU ARE BUILDING (SCOPE)
+              </span>
+              <p className="text-xs sm:text-sm text-[var(--bos-text-primary)] leading-relaxed">
+                {currentFocus?.whatYouAreBuilding}
+              </p>
+            </div>
+
+            <div className="pt-2 border-t border-[var(--bos-border)] space-y-2">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block">
+                3. EXPECTED USER EXPERIENCE (BEHAVIOR)
+              </span>
+              <p className="text-xs sm:text-sm text-[var(--bos-text-secondary)] leading-relaxed">
+                {currentFocus?.userExperience}
+              </p>
+            </div>
           </div>
 
-          <div className="pt-3 border-t border-[var(--bos-border)] space-y-2">
-            <button
-              onClick={onOpenProofModal}
-              className="w-full py-2.5 bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-subtle)] text-[var(--bos-text-primary)] border border-[var(--bos-border)] text-xs font-mono font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <Camera className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
-              <span>Capture Proof</span>
-            </button>
+          {/* VISUAL / DESIGN SPEC */}
+          <div className="p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-3 shadow-sm">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-amber-400 block">
+              4. WHAT IT SHOULD LOOK LIKE
+            </span>
+            
+            <div className="p-4 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-[var(--bos-text-primary)]">
+                  Approved Design Specification
+                </span>
+                <span className="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[10px] font-bold">
+                  Design Tokens Active
+                </span>
+              </div>
+              <p className="text-xs text-[var(--bos-text-secondary)]">
+                Specification Route: <span className="font-mono text-purple-400">{currentFocus?.visualSpec?.specRoute || "/app"}</span>
+              </p>
+              <p className="text-[11px] text-[var(--bos-text-tertiary)]">
+                Complies with enterprise design hierarchy, typography tokens, responsive containers, and color accessibility requirements.
+              </p>
+            </div>
+          </div>
 
+          {/* CAPTURED PROOF SECTION */}
+          <div className="p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-4 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[var(--bos-accent)] block">
+                  VERIFICATION PROOF
+                </span>
+                <h3 className="text-base font-bold text-[var(--bos-text-primary)]">
+                  EVIDENCE OF WORK ({proofs.length})
+                </h3>
+              </div>
+              <button
+                onClick={onOpenProofModal}
+                className="px-4 py-2 rounded-xl bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-subtle)] text-[var(--bos-text-primary)] border border-[var(--bos-border)] text-xs font-mono font-bold uppercase flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <Camera className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+                <span>+ Capture Proof</span>
+              </button>
+            </div>
+
+            {proofs.length === 0 ? (
+              <div className="p-6 rounded-2xl border border-dashed border-[var(--bos-border)] text-center space-y-2">
+                <FileText className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto" />
+                <p className="text-xs text-[var(--bos-text-secondary)] font-mono">
+                  No proof submitted yet.
+                </p>
+                <p className="text-[11px] text-[var(--bos-text-tertiary)]">
+                  Attach screenshots, pull requests, commit hashes, or test logs to prove completion.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {proofs.map((proof: any, idx: number) => (
+                  <div
+                    key={proof.id || idx}
+                    className="p-3.5 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] flex items-start justify-between gap-3 text-xs"
+                  >
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2 py-0.5 rounded bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] font-mono text-[9px] font-bold uppercase">
+                          {proof.type}
+                        </span>
+                        <span className="font-bold text-[var(--bos-text-primary)]">
+                          {proof.title}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[var(--bos-text-secondary)]">
+                        {proof.whatChanged}
+                      </p>
+                    </div>
+                    <span className="text-[10px] font-mono text-emerald-400 font-bold shrink-0 pt-0.5">
+                      ✓ Attached
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── RIGHT COLUMN: CHECKLIST & CONNECTIVITY (Col 5) ──────────── */}
+        <div className="lg:col-span-5 space-y-6">
+          
+          {/* DONE WHEN: ACCEPTANCE CRITERIA CHECKLIST */}
+          <div className="p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-4 shadow-sm">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block">
+              5. DONE WHEN (ACCEPTANCE CRITERIA)
+            </span>
+            <p className="text-xs text-[var(--bos-text-secondary)]">
+              Check off criteria as you build. Must be satisfied before submitting proof for Admin review.
+            </p>
+
+            <div className="space-y-2.5 pt-1">
+              {criteria.map((item: any) => {
+                const checked = !!checklist[item.id];
+                return (
+                  <div
+                    key={item.id}
+                    onClick={() => toggleCriterion(item.id)}
+                    className={cn(
+                      "p-3.5 rounded-2xl border transition-all cursor-pointer flex items-start gap-3 text-xs",
+                      checked
+                        ? "bg-emerald-500/5 border-emerald-500/30 text-[var(--bos-text-primary)]"
+                        : "bg-[var(--bos-surface-panel)] border-[var(--bos-border)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-hover)]"
+                    )}
+                  >
+                    <div className="pt-0.5">
+                      {checked ? (
+                        <CheckSquare className="w-4 h-4 text-emerald-400" />
+                      ) : (
+                        <Square className="w-4 h-4 text-[var(--bos-text-tertiary)]" />
+                      )}
+                    </div>
+                    <div className="space-y-0.5">
+                      <span className="font-mono text-[10px] text-emerald-400 font-bold block">
+                        {item.id}
+                      </span>
+                      <p className="leading-relaxed">{item.criterion}</p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* CONNECTED ARCHITECTURE */}
+          <div className="p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-4 shadow-sm">
+            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-purple-400 block">
+              6. CONNECTED ARCHITECTURE
+            </span>
+
+            <div className="space-y-3 font-mono text-xs">
+              <div className="p-3.5 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)]">
+                  <span>API CONTRACT</span>
+                  <span className="text-emerald-400 font-bold">READY</span>
+                </div>
+                <p className="font-bold text-[var(--bos-text-primary)]">{currentFocus?.connectedTo?.api}</p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)]">
+                  <span>BACKEND SERVICE</span>
+                  <span className="text-emerald-400 font-bold">ACTIVE</span>
+                </div>
+                <p className="font-bold text-[var(--bos-text-primary)]">{currentFocus?.connectedTo?.backend}</p>
+              </div>
+
+              <div className="p-3.5 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1">
+                <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)]">
+                  <span>DATABASE LAYER</span>
+                  <span className="text-emerald-400 font-bold">MIGRATED</span>
+                </div>
+                <p className="font-bold text-[var(--bos-text-primary)]">{currentFocus?.connectedTo?.database}</p>
+              </div>
+            </div>
+          </div>
+
+          {/* SUBMISSION READY CALLOUT */}
+          <div className="p-6 rounded-3xl border-2 border-[var(--bos-accent)]/50 bg-[var(--bos-accent)]/10 space-y-3">
+            <div className="flex items-center gap-2 text-xs font-bold font-mono text-[var(--bos-accent)]">
+              <Sparkles className="w-4 h-4" />
+              <span>READY FOR REVIEW?</span>
+            </div>
+            <p className="text-xs text-[var(--bos-text-secondary)] leading-relaxed">
+              When finished, submit for Admin Review. Ollama will analyze evidence coverage, and your submission will be presented to the Administrator for approval.
+            </p>
             {onOpenSubmitModal && (
               <button
                 onClick={onOpenSubmitModal}
-                className="w-full py-2.5 bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-mono font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-md"
+                className="w-full py-3.5 bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-mono font-bold uppercase rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:shadow-emerald-600/30"
               >
                 <Play className="w-3.5 h-3.5 fill-current" />
-                <span>Submit for Verification</span>
+                <span>Send to Admin for Checking</span>
               </button>
             )}
-          </div>
-        </div>
-
-        {/* ── CENTER COLUMN: WORK CONTEXT (Col 6) ────────────────────── */}
-        <div className="lg:col-span-6 space-y-6">
-          <div className="p-6 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-[var(--bos-border)]">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-emerald-400">
-                ACTIVE STEP: {buildSteps[currentStepIndex]?.label}
-              </span>
-              <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">
-                Step {currentStepIndex + 1} of {buildSteps.length}
-              </span>
-            </div>
-
-            {currentStepIndex === 0 && (
-              <div className="space-y-3 text-xs">
-                <h3 className="font-bold text-sm text-[var(--bos-text-primary)]">
-                  Step 1: Understand Requirement
-                </h3>
-                <p className="text-[var(--bos-text-secondary)] leading-relaxed">
-                  Review the core requirement specifications and verify that you understand all expected behavior, user inputs, and output states.
-                </p>
-                <div className="p-3.5 rounded-xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1">
-                  <span className="font-mono text-[10px] text-emerald-400 uppercase font-bold">CORE OBJECTIVE</span>
-                  <p className="text-[var(--bos-text-primary)]">{currentBuild.expectedResult}</p>
-                </div>
-              </div>
-            )}
-
-            {currentStepIndex === 1 && (
-              <div className="space-y-3 text-xs">
-                <h3 className="font-bold text-sm text-[var(--bos-text-primary)]">
-                  Step 2: Build UI Components
-                </h3>
-                <p className="text-[var(--bos-text-secondary)] leading-relaxed">
-                  Implement the layout, typographic hierarchy, responsive containers, and client action triggers for {currentBuild.featureName}.
-                </p>
-                <div className="p-3.5 rounded-xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1 font-mono text-[11px]">
-                  <span className="text-[10px] text-blue-400 uppercase font-bold">COMPONENT SPEC</span>
-                  <p className="text-[var(--bos-text-primary)]">Include view header, dynamic list/grid, primary submission action, and state wrappers.</p>
-                </div>
-              </div>
-            )}
-
-            {currentStepIndex === 2 && (
-              <div className="space-y-3 text-xs">
-                <h3 className="font-bold text-sm text-[var(--bos-text-primary)]">
-                  Step 3: Connect API & Data
-                </h3>
-                <p className="text-[var(--bos-text-secondary)] leading-relaxed">
-                  Bind the approved API endpoint to the interface. Handle response serialization and query parameters.
-                </p>
-                <div className="p-3.5 rounded-xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1 font-mono text-[11px]">
-                  <span className="text-[10px] text-purple-400 uppercase font-bold">API CONTRACT</span>
-                  <p className="text-purple-400 font-bold">{dependency.name}</p>
-                  <p className="text-[var(--bos-text-secondary)]">Status: {dependency.status} (Owner: {dependency.ownerRole})</p>
-                </div>
-              </div>
-            )}
-
-            {currentStepIndex >= 3 && (
-              <div className="space-y-3 text-xs">
-                <h3 className="font-bold text-sm text-[var(--bos-text-primary)]">
-                  {buildSteps[currentStepIndex]?.label}
-                </h3>
-                <p className="text-[var(--bos-text-secondary)] leading-relaxed">
-                  Ensure all states (loading, error, empty) and responsive breakpoints function smoothly before capturing proof.
-                </p>
-              </div>
-            )}
-
-            {/* Step Navigation Actions */}
-            <div className="pt-4 border-t border-[var(--bos-border)] flex items-center justify-between">
-              <button
-                disabled={currentStepIndex === 0}
-                onClick={() => setCurrentStepIndex((prev) => Math.max(0, prev - 1))}
-                className="px-4 py-2 rounded-xl bg-[var(--bos-surface-panel)] text-xs font-mono text-[var(--bos-text-secondary)] disabled:opacity-30 cursor-pointer"
-              >
-                &larr; Previous Step
-              </button>
-              <button
-                onClick={() => setCurrentStepIndex((prev) => Math.min(buildSteps.length - 1, prev + 1))}
-                className="px-5 py-2 bg-[var(--bos-accent)] text-white text-xs font-mono font-bold uppercase rounded-xl transition-all cursor-pointer flex items-center gap-1.5"
-              >
-                <span>{currentStepIndex === buildSteps.length - 1 ? "Finish & Review" : "Next Step"}</span>
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          </div>
-
-          {/* Action Bar */}
-          <div className="p-4 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
-            <button
-              onClick={onOpenAIReviewModal}
-              className="px-4 py-2 rounded-xl bg-purple-500/10 text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>AI Build Review</span>
-            </button>
-
-            <button
-              onClick={onOpenHandoffModal}
-              className="px-4 py-2 rounded-xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 hover:bg-cyan-500/20 transition-all flex items-center gap-1.5 cursor-pointer"
-            >
-              <Share2 className="w-3.5 h-3.5" />
-              <span>Handoff to QA</span>
-            </button>
-          </div>
-        </div>
-
-        {/* ── RIGHT COLUMN: PROJECT CONTEXT (Col 3) ──────────────────── */}
-        <div className="lg:col-span-3 space-y-4 text-xs font-sans">
-          {/* REQUIREMENT */}
-          <div className="p-5 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-2">
-            <span className="font-mono text-[10px] font-bold text-emerald-400 uppercase block">
-              REQUIREMENT
-            </span>
-            <p className="text-xs text-[var(--bos-text-primary)] leading-relaxed">
-              {currentBuild.expectedResult}
-            </p>
-          </div>
-
-          {/* DESIGN */}
-          <div className="p-5 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-2">
-            <span className="font-mono text-[10px] font-bold text-blue-400 uppercase block">
-              APPROVED DESIGN
-            </span>
-            <p className="text-xs text-[var(--bos-text-secondary)]">
-              Follows standard design system tokens and architectural specs.
-            </p>
-          </div>
-
-          {/* DEPENDENCIES */}
-          <div className="p-5 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-2">
-            <span className="font-mono text-[10px] font-bold text-purple-400 uppercase block">
-              DEPENDENCIES
-            </span>
-            <div className="p-2.5 rounded-xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-1">
-              <span className="font-mono font-bold text-purple-400 block">{dependency.name}</span>
-              <span className="text-[10px] font-mono text-emerald-400 font-bold">✓ {dependency.status}</span>
-            </div>
-          </div>
-
-          {/* ACCEPTANCE CRITERIA */}
-          <div className="p-5 rounded-3xl border border-[var(--bos-border)] bg-[var(--bos-surface)] space-y-2">
-            <span className="font-mono text-[10px] font-bold text-amber-400 uppercase block">
-              ACCEPTANCE CRITERIA
-            </span>
-            <ul className="space-y-1.5 text-xs text-[var(--bos-text-primary)]">
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Interface renders data</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Responsive on mobile</span>
-              </li>
-              <li className="flex items-center gap-1.5">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Loading & error states</span>
-              </li>
-            </ul>
           </div>
         </div>
       </div>

@@ -47,12 +47,11 @@ async function verifyProductWorkspace() {
   console.log("\n[01. TESTING EMPLOYEE PRODUCT HOME]...");
   const homeData = await getEmployeeProductHome(project.id, employee.id);
   console.log(`   Greeting: GOOD MORNING, ${homeData.employee.name.toUpperCase()} (${homeData.employee.role})`);
-  console.log(`   Project: ${homeData.project.name} (${homeData.project.phase})`);
-  console.log(`   Your Area: ${homeData.yourArea.workstream} — "${homeData.yourArea.responsibility}"`);
-  console.log(`   Current Build: ${homeData.currentBuild.featureName} (Status: ${homeData.currentBuild.status})`);
-  console.log(`   Next Action: ${homeData.nextAction.title} [${homeData.nextAction.actionText}]`);
-  console.log(`   Dependency: ${homeData.dependency.name} — Status: ${homeData.dependency.status} (Owner: ${homeData.dependency.ownerRole})`);
-  console.log(`   Recent Change: "${homeData.recentChange.title}"`);
+  console.log(`   Project: ${homeData.project.name} (${homeData.project.stage})`);
+  console.log(`   Your Responsibility: ${homeData.yourResponsibility.workstream} — "${homeData.yourResponsibility.title}"`);
+  console.log(`   Current Focus: ${homeData.currentFocus.productAreaName} (Status: ${homeData.currentFocus.status})`);
+  console.log(`   Next Work: ${homeData.nextWork.name} [${homeData.nextWork.reason}]`);
+  console.log(`   Recent Change: "${homeData.myChanges[0]?.title || "Initial Specification"}"`);
 
   // 4. Test Visual Product Map
   console.log("\n[02. TESTING VISUAL PRODUCT MAP]...");
@@ -67,7 +66,7 @@ async function verifyProductWorkspace() {
 
   // 5. Test Feature Detail
   console.log("\n[03. TESTING FEATURE PAGE SPECIFICATION]...");
-  const featSpec = await getFeatureDetail(project.id, employee.id, homeData.currentBuild.featureName);
+  const featSpec = await getFeatureDetail(project.id, employee.id, homeData.currentFocus.productAreaName);
   console.log(`   Feature: ${featSpec.featureName}`);
   console.log(`   What: ${featSpec.what}`);
   console.log(`   Why: ${featSpec.why}`);
@@ -77,20 +76,20 @@ async function verifyProductWorkspace() {
   // 6. Test Capture Proof
   console.log("\n[04. TESTING PROOF SYSTEM]...");
   const proof = await captureBuildProofRecord({
-    buildId: homeData.currentBuild.id,
+    buildId: homeData.currentFocus.id,
     type: "PR",
     milestone: "UI Components Implemented",
-    title: `${homeData.currentBuild.featureName} UI Implementation`,
+    title: `${homeData.currentFocus.productAreaName} UI Implementation`,
     evidenceUrl: "https://github.com/org/repo/pull/101",
-    whatChanged: `Constructed verified responsive layout for ${homeData.currentBuild.featureName}.`,
+    whatChanged: `Constructed verified responsive layout for ${homeData.currentFocus.productAreaName}.`,
   });
   console.log(`   Captured Proof v${proof.version}: "${proof.title}" Milestone: ${proof.milestone}`);
 
   // 7. Test AI Review
   console.log("\n[05. TESTING AI BUILD REVIEW (OLLAMA)]...");
   const review = await aiReviewBuildWithOllama({
-    buildId: homeData.currentBuild.id,
-    requirementText: homeData.currentBuild.expectedResult,
+    buildId: homeData.currentFocus.id,
+    requirementText: homeData.currentFocus.why,
     acceptanceCriteria: ["Responsive UI layout", "Verified data contract"],
     proofDescription: proof.whatChanged,
   });
@@ -100,7 +99,7 @@ async function verifyProductWorkspace() {
   // 8. Test Blocker Report
   console.log("\n[06. TESTING BLOCKER REPORT]...");
   const blockedBuild = await reportBlocker({
-    buildId: homeData.currentBuild.id,
+    buildId: homeData.currentFocus.id,
     blockedReason: "Waiting for schema migration deployment.",
     blockedDependency: "Database Migration",
     blockedOwnerRole: "Database Engineer",
@@ -110,10 +109,10 @@ async function verifyProductWorkspace() {
   // 9. Test Handoff
   console.log("\n[07. TESTING AUTOMATED HANDOFF]...");
   const handoff = await executeHandoff({
-    buildId: homeData.currentBuild.id,
+    buildId: homeData.currentFocus.id,
     fromWorkstream: "FRONTEND",
     toWorkstream: "QA",
-    whatWasBuilt: `${homeData.currentBuild.featureName} components`,
+    whatWasBuilt: `${homeData.currentFocus.productAreaName} components`,
     whatWasVerified: "Component unit tests and visual states",
   });
   console.log(`   Handoff Created: ${handoff.fromWorkstream} -> ${handoff.toWorkstream} (${handoff.whatWasBuilt})`);

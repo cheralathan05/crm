@@ -322,15 +322,15 @@ export function EmployeeProductWorkspaceShell({
           <ProofCaptureModal
             isOpen={isProofModalOpen}
             onClose={() => setIsProofModalOpen(false)}
-            buildId={homeData.currentBuild.id}
-            featureName={homeData.currentBuild.featureName}
+            buildId={homeData.currentFocus?.id || homeData.currentBuild?.id || ""}
+            featureName={homeData.currentFocus?.productAreaName || homeData.currentBuild?.featureName || "Product Area"}
             onProofCaptured={() => fetchWorkspace(selectedProjectId || undefined)}
           />
 
           <PreSubmissionModal
             isOpen={isSubmitModalOpen}
             onClose={() => setIsSubmitModalOpen(false)}
-            buildId={homeData.currentBuild.id}
+            buildId={homeData.currentFocus?.id || homeData.currentBuild?.id || ""}
             onSubmitted={(subData) => {
               fetchWorkspace(selectedProjectId || undefined);
               setActiveTab("JOURNEY");
@@ -340,24 +340,24 @@ export function EmployeeProductWorkspaceShell({
           <AIBuildReviewModal
             isOpen={isAIReviewModalOpen}
             onClose={() => setIsAIReviewModalOpen(false)}
-            buildId={homeData.currentBuild.id}
-            featureName={homeData.currentBuild.featureName}
-            expectedResult={homeData.currentBuild.expectedResult}
+            buildId={homeData.currentFocus?.id || homeData.currentBuild?.id || ""}
+            featureName={homeData.currentFocus?.productAreaName || homeData.currentBuild?.featureName || "Product Area"}
+            expectedResult={homeData.currentFocus?.why || homeData.currentBuild?.expectedResult || ""}
           />
 
           <HandoffModal
             isOpen={isHandoffModalOpen}
             onClose={() => setIsHandoffModalOpen(false)}
-            buildId={homeData.currentBuild.id}
-            featureName={homeData.currentBuild.featureName}
+            buildId={homeData.currentFocus?.id || homeData.currentBuild?.id || ""}
+            featureName={homeData.currentFocus?.productAreaName || homeData.currentBuild?.featureName || "Product Area"}
             onHandoffExecuted={() => fetchWorkspace(selectedProjectId || undefined)}
           />
 
           <BlockerModal
             isOpen={isBlockerModalOpen}
             onClose={() => setIsBlockerModalOpen(false)}
-            buildId={homeData.currentBuild.id}
-            featureName={homeData.currentBuild.featureName}
+            buildId={homeData.currentFocus?.id || homeData.currentBuild?.id || ""}
+            featureName={homeData.currentFocus?.productAreaName || homeData.currentBuild?.featureName || "Product Area"}
             onBlockerReported={() => fetchWorkspace(selectedProjectId || undefined)}
           />
 

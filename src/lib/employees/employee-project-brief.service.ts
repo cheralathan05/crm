@@ -222,8 +222,8 @@ export async function gatherProjectFacts(projectId: string, employeeId: string) 
       tasks: {
         include: {
           acceptanceCriteria: true,
-          dependencies: { include: { dependsOnTask: { select: { id: true, code: true, title: true, status: true } } } },
-          dependentOnMe: { include: { task: { select: { id: true, code: true, title: true, status: true } } } },
+          dependencies: { include: { dependsOnTask: { select: { id: true, code: true, title: true, status: true, teamRole: true, layer: true, assigneeName: true } } } },
+          dependentOnMe: { include: { task: { select: { id: true, code: true, title: true, status: true, teamRole: true, layer: true, assigneeName: true } } } },
         },
         orderBy: [{ priority: "asc" }, { order: "asc" }],
       },
