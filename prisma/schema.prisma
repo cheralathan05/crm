@@ -250,6 +250,8 @@ model User {
   workspace      Workspace?
   onboarding     Onboarding?
   employee       Employee?
+  workConversationParticipants WorkConversationParticipant[]
+  sentWorkMessages WorkMessage[] @relation("UserSentWorkMessages")
 }
 
 model Workspace {
@@ -275,6 +277,7 @@ model Workspace {
   teams         OrganizationTeam[]
   invitations   EmployeeInvitation[]
   employeeAuditEvents EmployeeAuditEvent[]
+  workConversations WorkConversation[]
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
@@ -631,6 +634,7 @@ model ClientProject {
   productBuilds        ProductBuild[]
   buildSubmissions     BuildSubmission[]
   buildAuditEvents     BuildJourneyAuditEvent[]
+  workConversations    WorkConversation[]
 
   @@index([clientId])
   @@index([proposalId])
@@ -794,6 +798,7 @@ model ClientTask {
   workId                  String?             // e.g. FE-001, BE-001, DB-001, QA-001
   testSpecificationId     String?
   testSpecification       TestSpecification?  @relation(fields: [testSpecificationId], references: [id], onDelete: SetNull)
+  workConversations       WorkConversation[]
 
   createdAt               DateTime            @default(now())
   updatedAt               DateTime            @default(now()) @updatedAt
@@ -1905,6 +1910,8 @@ model Employee {
   checkpoints               BuildCheckpoint[]
   productBuilds             ProductBuild[]
   buildSubmissions          BuildSubmission[]
+  workConversationParticipants WorkConversationParticipant[]
+  sentWorkMessages          WorkMessage[] @relation("EmployeeSentWorkMessages")
 
   @@unique([workspaceId, email])
   @@unique([workspaceId, employeeCode])
@@ -2478,5 +2485,79 @@ model BuildJourneyAuditEvent {
 
   @@index([projectId, timestamp])
   @@index([submissionId])
+}
+
+/**
+ * Real Work Communication & Messages System.
+ * Connects Employee <-> Employee, Employee <-> Admin, Project Rooms, Dependencies, Blockers, and Handoffs.
+ */
+model WorkConversation {
+  id                    String                         @id @default(cuid())
+  workspace             Workspace                      @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  workspaceId           String
+  type                  String                         // DIRECT | PROJECT | WORK_ITEM | TEAM
+  title                 String
+  project               ClientProject?                 @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  projectId             String?
+  task                  ClientTask?                    @relation(fields: [taskId], references: [id], onDelete: SetNull)
+  taskId                String?
+  workstream            String?                        // FRONTEND | BACKEND | DATABASE | QA
+  dependencyWorkstream  String?                        // BACKEND | DATABASE | QA
+  dependencyLabel       String?                        // e.g. "Product API", "Order Schema"
+  isBlocker             Boolean                        @default(false)
+  blockerStatus         String?                        // ACTIVE | RESOLVED
+  blockerReason         String?
+  isHandoff             Boolean                        @default(false)
+  handoffStatus         String?                        // PENDING | ACCEPTED
+  lastMessageAt         DateTime                       @default(now())
+  lastMessagePreview    String?
+  participants          WorkConversationParticipant[]
+  messages              WorkMessage[]
+  createdAt             DateTime                       @default(now())
+  updatedAt             DateTime                       @updatedAt
+
+  @@index([workspaceId, lastMessageAt])
+  @@index([projectId, type])
+  @@index([taskId])
+}
+
+model WorkConversationParticipant {
+  id              String           @id @default(cuid())
+  conversation    WorkConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId  String
+  employee        Employee?        @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId      String?
+  user            User?            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String?
+  role            String           @default("MEMBER") // ADMIN | EMPLOYEE | LEAD
+  lastReadAt      DateTime         @default(now())
+  unreadCount     Int              @default(0)
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([conversationId, employeeId])
+  @@unique([conversationId, userId])
+  @@index([employeeId, unreadCount])
+  @@index([userId, unreadCount])
+}
+
+model WorkMessage {
+  id                String           @id @default(cuid())
+  conversation      WorkConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId    String
+  senderEmployee    Employee?        @relation("EmployeeSentWorkMessages", fields: [senderEmployeeId], references: [id], onDelete: SetNull)
+  senderEmployeeId  String?
+  senderUser        User?            @relation("UserSentWorkMessages", fields: [senderUserId], references: [id], onDelete: SetNull)
+  senderUserId      String?
+  senderName        String
+  senderRole        String?
+  senderAvatar      String?
+  content           String
+  messageType       String           @default("TEXT") // TEXT | BLOCKER | HANDOFF | WORK_LINK | SYSTEM
+  metadata          String           @default("{}") // JSON { workItemUrl, dependencyId, proofId, blockerReason, handoffData, criteria }
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([conversationId, createdAt])
 }
 

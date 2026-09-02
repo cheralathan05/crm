@@ -201,6 +201,7 @@ export type WorkspaceWhereInput = {
   teams?: Prisma.OrganizationTeamListRelationFilter
   invitations?: Prisma.EmployeeInvitationListRelationFilter
   employeeAuditEvents?: Prisma.EmployeeAuditEventListRelationFilter
+  workConversations?: Prisma.WorkConversationListRelationFilter
 }
 
 export type WorkspaceOrderByWithRelationInput = {
@@ -228,6 +229,7 @@ export type WorkspaceOrderByWithRelationInput = {
   teams?: Prisma.OrganizationTeamOrderByRelationAggregateInput
   invitations?: Prisma.EmployeeInvitationOrderByRelationAggregateInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventOrderByRelationAggregateInput
+  workConversations?: Prisma.WorkConversationOrderByRelationAggregateInput
 }
 
 export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
@@ -258,6 +260,7 @@ export type WorkspaceWhereUniqueInput = Prisma.AtLeast<{
   teams?: Prisma.OrganizationTeamListRelationFilter
   invitations?: Prisma.EmployeeInvitationListRelationFilter
   employeeAuditEvents?: Prisma.EmployeeAuditEventListRelationFilter
+  workConversations?: Prisma.WorkConversationListRelationFilter
 }, "id" | "ownerId">
 
 export type WorkspaceOrderByWithAggregationInput = {
@@ -306,6 +309,7 @@ export type WorkspaceCreateInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateInput = {
@@ -332,6 +336,7 @@ export type WorkspaceUncheckedCreateInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUpdateInput = {
@@ -358,6 +363,7 @@ export type WorkspaceUpdateInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateInput = {
@@ -384,6 +390,7 @@ export type WorkspaceUncheckedUpdateInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateManyInput = {
@@ -727,6 +734,20 @@ export type WorkspaceUpdateOneRequiredWithoutEmployeeAuditEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutEmployeeAuditEventsInput, Prisma.WorkspaceUpdateWithoutEmployeeAuditEventsInput>, Prisma.WorkspaceUncheckedUpdateWithoutEmployeeAuditEventsInput>
 }
 
+export type WorkspaceCreateNestedOneWithoutWorkConversationsInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutWorkConversationsInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutWorkConversationsInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+}
+
+export type WorkspaceUpdateOneRequiredWithoutWorkConversationsNestedInput = {
+  create?: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutWorkConversationsInput>
+  connectOrCreate?: Prisma.WorkspaceCreateOrConnectWithoutWorkConversationsInput
+  upsert?: Prisma.WorkspaceUpsertWithoutWorkConversationsInput
+  connect?: Prisma.WorkspaceWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.WorkspaceUpdateToOneWithWhereWithoutWorkConversationsInput, Prisma.WorkspaceUpdateWithoutWorkConversationsInput>, Prisma.WorkspaceUncheckedUpdateWithoutWorkConversationsInput>
+}
+
 export type WorkspaceCreateWithoutOwnerInput = {
   id?: string
   companyName: string
@@ -750,6 +771,7 @@ export type WorkspaceCreateWithoutOwnerInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutOwnerInput = {
@@ -775,6 +797,7 @@ export type WorkspaceUncheckedCreateWithoutOwnerInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutOwnerInput = {
@@ -816,6 +839,7 @@ export type WorkspaceUpdateWithoutOwnerInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutOwnerInput = {
@@ -841,6 +865,7 @@ export type WorkspaceUncheckedUpdateWithoutOwnerInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutClientsInput = {
@@ -866,6 +891,7 @@ export type WorkspaceCreateWithoutClientsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutClientsInput = {
@@ -891,6 +917,7 @@ export type WorkspaceUncheckedCreateWithoutClientsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutClientsInput = {
@@ -932,6 +959,7 @@ export type WorkspaceUpdateWithoutClientsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutClientsInput = {
@@ -957,6 +985,7 @@ export type WorkspaceUncheckedUpdateWithoutClientsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutRequirementRequestsInput = {
@@ -982,6 +1011,7 @@ export type WorkspaceCreateWithoutRequirementRequestsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutRequirementRequestsInput = {
@@ -1007,6 +1037,7 @@ export type WorkspaceUncheckedCreateWithoutRequirementRequestsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutRequirementRequestsInput = {
@@ -1048,6 +1079,7 @@ export type WorkspaceUpdateWithoutRequirementRequestsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutRequirementRequestsInput = {
@@ -1073,6 +1105,7 @@ export type WorkspaceUncheckedUpdateWithoutRequirementRequestsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutRequirementQuestionsInput = {
@@ -1098,6 +1131,7 @@ export type WorkspaceCreateWithoutRequirementQuestionsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutRequirementQuestionsInput = {
@@ -1123,6 +1157,7 @@ export type WorkspaceUncheckedCreateWithoutRequirementQuestionsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutRequirementQuestionsInput = {
@@ -1164,6 +1199,7 @@ export type WorkspaceUpdateWithoutRequirementQuestionsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutRequirementQuestionsInput = {
@@ -1189,6 +1225,7 @@ export type WorkspaceUncheckedUpdateWithoutRequirementQuestionsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutUpdateProposalsInput = {
@@ -1214,6 +1251,7 @@ export type WorkspaceCreateWithoutUpdateProposalsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutUpdateProposalsInput = {
@@ -1239,6 +1277,7 @@ export type WorkspaceUncheckedCreateWithoutUpdateProposalsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutUpdateProposalsInput = {
@@ -1280,6 +1319,7 @@ export type WorkspaceUpdateWithoutUpdateProposalsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutUpdateProposalsInput = {
@@ -1305,6 +1345,7 @@ export type WorkspaceUncheckedUpdateWithoutUpdateProposalsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutConflictsInput = {
@@ -1330,6 +1371,7 @@ export type WorkspaceCreateWithoutConflictsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutConflictsInput = {
@@ -1355,6 +1397,7 @@ export type WorkspaceUncheckedCreateWithoutConflictsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutConflictsInput = {
@@ -1396,6 +1439,7 @@ export type WorkspaceUpdateWithoutConflictsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutConflictsInput = {
@@ -1421,6 +1465,7 @@ export type WorkspaceUncheckedUpdateWithoutConflictsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutQuestionDeliveriesInput = {
@@ -1446,6 +1491,7 @@ export type WorkspaceCreateWithoutQuestionDeliveriesInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutQuestionDeliveriesInput = {
@@ -1471,6 +1517,7 @@ export type WorkspaceUncheckedCreateWithoutQuestionDeliveriesInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutQuestionDeliveriesInput = {
@@ -1512,6 +1559,7 @@ export type WorkspaceUpdateWithoutQuestionDeliveriesInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutQuestionDeliveriesInput = {
@@ -1537,6 +1585,7 @@ export type WorkspaceUncheckedUpdateWithoutQuestionDeliveriesInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutCopilotMessagesInput = {
@@ -1562,6 +1611,7 @@ export type WorkspaceCreateWithoutCopilotMessagesInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutCopilotMessagesInput = {
@@ -1587,6 +1637,7 @@ export type WorkspaceUncheckedCreateWithoutCopilotMessagesInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutCopilotMessagesInput = {
@@ -1628,6 +1679,7 @@ export type WorkspaceUpdateWithoutCopilotMessagesInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutCopilotMessagesInput = {
@@ -1653,6 +1705,7 @@ export type WorkspaceUncheckedUpdateWithoutCopilotMessagesInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutCustomFieldDefsInput = {
@@ -1678,6 +1731,7 @@ export type WorkspaceCreateWithoutCustomFieldDefsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutCustomFieldDefsInput = {
@@ -1703,6 +1757,7 @@ export type WorkspaceUncheckedCreateWithoutCustomFieldDefsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutCustomFieldDefsInput = {
@@ -1744,6 +1799,7 @@ export type WorkspaceUpdateWithoutCustomFieldDefsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutCustomFieldDefsInput = {
@@ -1769,6 +1825,7 @@ export type WorkspaceUncheckedUpdateWithoutCustomFieldDefsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutProfileInput = {
@@ -1794,6 +1851,7 @@ export type WorkspaceCreateWithoutProfileInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutProfileInput = {
@@ -1819,6 +1877,7 @@ export type WorkspaceUncheckedCreateWithoutProfileInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutProfileInput = {
@@ -1860,6 +1919,7 @@ export type WorkspaceUpdateWithoutProfileInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutProfileInput = {
@@ -1885,6 +1945,7 @@ export type WorkspaceUncheckedUpdateWithoutProfileInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutBusinessInput = {
@@ -1910,6 +1971,7 @@ export type WorkspaceCreateWithoutBusinessInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutBusinessInput = {
@@ -1935,6 +1997,7 @@ export type WorkspaceUncheckedCreateWithoutBusinessInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutBusinessInput = {
@@ -1976,6 +2039,7 @@ export type WorkspaceUpdateWithoutBusinessInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutBusinessInput = {
@@ -2001,6 +2065,7 @@ export type WorkspaceUncheckedUpdateWithoutBusinessInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutPreferencesInput = {
@@ -2026,6 +2091,7 @@ export type WorkspaceCreateWithoutPreferencesInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutPreferencesInput = {
@@ -2051,6 +2117,7 @@ export type WorkspaceUncheckedCreateWithoutPreferencesInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutPreferencesInput = {
@@ -2092,6 +2159,7 @@ export type WorkspaceUpdateWithoutPreferencesInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutPreferencesInput = {
@@ -2117,6 +2185,7 @@ export type WorkspaceUncheckedUpdateWithoutPreferencesInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutNotificationsInput = {
@@ -2142,6 +2211,7 @@ export type WorkspaceCreateWithoutNotificationsInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
@@ -2167,6 +2237,7 @@ export type WorkspaceUncheckedCreateWithoutNotificationsInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutNotificationsInput = {
@@ -2208,6 +2279,7 @@ export type WorkspaceUpdateWithoutNotificationsInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
@@ -2233,6 +2305,7 @@ export type WorkspaceUncheckedUpdateWithoutNotificationsInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutSetupInput = {
@@ -2258,6 +2331,7 @@ export type WorkspaceCreateWithoutSetupInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutSetupInput = {
@@ -2283,6 +2357,7 @@ export type WorkspaceUncheckedCreateWithoutSetupInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutSetupInput = {
@@ -2324,6 +2399,7 @@ export type WorkspaceUpdateWithoutSetupInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutSetupInput = {
@@ -2349,6 +2425,7 @@ export type WorkspaceUncheckedUpdateWithoutSetupInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutEmployeesInput = {
@@ -2374,6 +2451,7 @@ export type WorkspaceCreateWithoutEmployeesInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutEmployeesInput = {
@@ -2399,6 +2477,7 @@ export type WorkspaceUncheckedCreateWithoutEmployeesInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutEmployeesInput = {
@@ -2440,6 +2519,7 @@ export type WorkspaceUpdateWithoutEmployeesInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutEmployeesInput = {
@@ -2465,6 +2545,7 @@ export type WorkspaceUncheckedUpdateWithoutEmployeesInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutRolesInput = {
@@ -2490,6 +2571,7 @@ export type WorkspaceCreateWithoutRolesInput = {
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutRolesInput = {
@@ -2515,6 +2597,7 @@ export type WorkspaceUncheckedCreateWithoutRolesInput = {
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutRolesInput = {
@@ -2556,6 +2639,7 @@ export type WorkspaceUpdateWithoutRolesInput = {
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutRolesInput = {
@@ -2581,6 +2665,7 @@ export type WorkspaceUncheckedUpdateWithoutRolesInput = {
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutTeamsInput = {
@@ -2606,6 +2691,7 @@ export type WorkspaceCreateWithoutTeamsInput = {
   roles?: Prisma.OrganizationRoleCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutTeamsInput = {
@@ -2631,6 +2717,7 @@ export type WorkspaceUncheckedCreateWithoutTeamsInput = {
   roles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutTeamsInput = {
@@ -2672,6 +2759,7 @@ export type WorkspaceUpdateWithoutTeamsInput = {
   roles?: Prisma.OrganizationRoleUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutTeamsInput = {
@@ -2697,6 +2785,7 @@ export type WorkspaceUncheckedUpdateWithoutTeamsInput = {
   roles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutInvitationsInput = {
@@ -2722,6 +2811,7 @@ export type WorkspaceCreateWithoutInvitationsInput = {
   roles?: Prisma.OrganizationRoleCreateNestedManyWithoutWorkspaceInput
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutInvitationsInput = {
@@ -2747,6 +2837,7 @@ export type WorkspaceUncheckedCreateWithoutInvitationsInput = {
   roles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutWorkspaceInput
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutInvitationsInput = {
@@ -2788,6 +2879,7 @@ export type WorkspaceUpdateWithoutInvitationsInput = {
   roles?: Prisma.OrganizationRoleUpdateManyWithoutWorkspaceNestedInput
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutInvitationsInput = {
@@ -2813,6 +2905,7 @@ export type WorkspaceUncheckedUpdateWithoutInvitationsInput = {
   roles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutWorkspaceNestedInput
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceCreateWithoutEmployeeAuditEventsInput = {
@@ -2838,6 +2931,7 @@ export type WorkspaceCreateWithoutEmployeeAuditEventsInput = {
   roles?: Prisma.OrganizationRoleCreateNestedManyWithoutWorkspaceInput
   teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceUncheckedCreateWithoutEmployeeAuditEventsInput = {
@@ -2863,6 +2957,7 @@ export type WorkspaceUncheckedCreateWithoutEmployeeAuditEventsInput = {
   roles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutWorkspaceInput
   teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
   invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutWorkspaceInput
 }
 
 export type WorkspaceCreateOrConnectWithoutEmployeeAuditEventsInput = {
@@ -2904,6 +2999,7 @@ export type WorkspaceUpdateWithoutEmployeeAuditEventsInput = {
   roles?: Prisma.OrganizationRoleUpdateManyWithoutWorkspaceNestedInput
   teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutWorkspaceNestedInput
 }
 
 export type WorkspaceUncheckedUpdateWithoutEmployeeAuditEventsInput = {
@@ -2929,6 +3025,127 @@ export type WorkspaceUncheckedUpdateWithoutEmployeeAuditEventsInput = {
   roles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutWorkspaceNestedInput
   teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
   invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceCreateWithoutWorkConversationsInput = {
+  id?: string
+  companyName: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  owner: Prisma.UserCreateNestedOneWithoutWorkspaceInput
+  profile?: Prisma.WorkspaceProfileCreateNestedOneWithoutWorkspaceInput
+  business?: Prisma.BusinessProfileCreateNestedOneWithoutWorkspaceInput
+  preferences?: Prisma.WorkspacePreferencesCreateNestedOneWithoutWorkspaceInput
+  notifications?: Prisma.NotificationPreferencesCreateNestedOneWithoutWorkspaceInput
+  setup?: Prisma.WorkspaceSetupCreateNestedOneWithoutWorkspaceInput
+  clients?: Prisma.ClientCreateNestedManyWithoutWorkspaceInput
+  customFieldDefs?: Prisma.ClientCustomFieldDefCreateNestedManyWithoutWorkspaceInput
+  requirementRequests?: Prisma.RequirementRequestCreateNestedManyWithoutWorkspaceInput
+  requirementQuestions?: Prisma.RequirementQuestionCreateNestedManyWithoutWorkspaceInput
+  questionDeliveries?: Prisma.QuestionDeliveryCreateNestedManyWithoutWorkspaceInput
+  updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutWorkspaceInput
+  conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutWorkspaceInput
+  copilotMessages?: Prisma.ClientCopilotMessageCreateNestedManyWithoutWorkspaceInput
+  employees?: Prisma.EmployeeCreateNestedManyWithoutWorkspaceInput
+  roles?: Prisma.OrganizationRoleCreateNestedManyWithoutWorkspaceInput
+  teams?: Prisma.OrganizationTeamCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutWorkspaceInput
+  employeeAuditEvents?: Prisma.EmployeeAuditEventCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceUncheckedCreateWithoutWorkConversationsInput = {
+  id?: string
+  companyName: string
+  ownerId: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  profile?: Prisma.WorkspaceProfileUncheckedCreateNestedOneWithoutWorkspaceInput
+  business?: Prisma.BusinessProfileUncheckedCreateNestedOneWithoutWorkspaceInput
+  preferences?: Prisma.WorkspacePreferencesUncheckedCreateNestedOneWithoutWorkspaceInput
+  notifications?: Prisma.NotificationPreferencesUncheckedCreateNestedOneWithoutWorkspaceInput
+  setup?: Prisma.WorkspaceSetupUncheckedCreateNestedOneWithoutWorkspaceInput
+  clients?: Prisma.ClientUncheckedCreateNestedManyWithoutWorkspaceInput
+  customFieldDefs?: Prisma.ClientCustomFieldDefUncheckedCreateNestedManyWithoutWorkspaceInput
+  requirementRequests?: Prisma.RequirementRequestUncheckedCreateNestedManyWithoutWorkspaceInput
+  requirementQuestions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutWorkspaceInput
+  questionDeliveries?: Prisma.QuestionDeliveryUncheckedCreateNestedManyWithoutWorkspaceInput
+  updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutWorkspaceInput
+  conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutWorkspaceInput
+  copilotMessages?: Prisma.ClientCopilotMessageUncheckedCreateNestedManyWithoutWorkspaceInput
+  employees?: Prisma.EmployeeUncheckedCreateNestedManyWithoutWorkspaceInput
+  roles?: Prisma.OrganizationRoleUncheckedCreateNestedManyWithoutWorkspaceInput
+  teams?: Prisma.OrganizationTeamUncheckedCreateNestedManyWithoutWorkspaceInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutWorkspaceInput
+  employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedCreateNestedManyWithoutWorkspaceInput
+}
+
+export type WorkspaceCreateOrConnectWithoutWorkConversationsInput = {
+  where: Prisma.WorkspaceWhereUniqueInput
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutWorkConversationsInput>
+}
+
+export type WorkspaceUpsertWithoutWorkConversationsInput = {
+  update: Prisma.XOR<Prisma.WorkspaceUpdateWithoutWorkConversationsInput, Prisma.WorkspaceUncheckedUpdateWithoutWorkConversationsInput>
+  create: Prisma.XOR<Prisma.WorkspaceCreateWithoutWorkConversationsInput, Prisma.WorkspaceUncheckedCreateWithoutWorkConversationsInput>
+  where?: Prisma.WorkspaceWhereInput
+}
+
+export type WorkspaceUpdateToOneWithWhereWithoutWorkConversationsInput = {
+  where?: Prisma.WorkspaceWhereInput
+  data: Prisma.XOR<Prisma.WorkspaceUpdateWithoutWorkConversationsInput, Prisma.WorkspaceUncheckedUpdateWithoutWorkConversationsInput>
+}
+
+export type WorkspaceUpdateWithoutWorkConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  owner?: Prisma.UserUpdateOneRequiredWithoutWorkspaceNestedInput
+  profile?: Prisma.WorkspaceProfileUpdateOneWithoutWorkspaceNestedInput
+  business?: Prisma.BusinessProfileUpdateOneWithoutWorkspaceNestedInput
+  preferences?: Prisma.WorkspacePreferencesUpdateOneWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationPreferencesUpdateOneWithoutWorkspaceNestedInput
+  setup?: Prisma.WorkspaceSetupUpdateOneWithoutWorkspaceNestedInput
+  clients?: Prisma.ClientUpdateManyWithoutWorkspaceNestedInput
+  customFieldDefs?: Prisma.ClientCustomFieldDefUpdateManyWithoutWorkspaceNestedInput
+  requirementRequests?: Prisma.RequirementRequestUpdateManyWithoutWorkspaceNestedInput
+  requirementQuestions?: Prisma.RequirementQuestionUpdateManyWithoutWorkspaceNestedInput
+  questionDeliveries?: Prisma.QuestionDeliveryUpdateManyWithoutWorkspaceNestedInput
+  updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutWorkspaceNestedInput
+  conflicts?: Prisma.RequirementConflictUpdateManyWithoutWorkspaceNestedInput
+  copilotMessages?: Prisma.ClientCopilotMessageUpdateManyWithoutWorkspaceNestedInput
+  employees?: Prisma.EmployeeUpdateManyWithoutWorkspaceNestedInput
+  roles?: Prisma.OrganizationRoleUpdateManyWithoutWorkspaceNestedInput
+  teams?: Prisma.OrganizationTeamUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutWorkspaceNestedInput
+  employeeAuditEvents?: Prisma.EmployeeAuditEventUpdateManyWithoutWorkspaceNestedInput
+}
+
+export type WorkspaceUncheckedUpdateWithoutWorkConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  ownerId?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.WorkspaceProfileUncheckedUpdateOneWithoutWorkspaceNestedInput
+  business?: Prisma.BusinessProfileUncheckedUpdateOneWithoutWorkspaceNestedInput
+  preferences?: Prisma.WorkspacePreferencesUncheckedUpdateOneWithoutWorkspaceNestedInput
+  notifications?: Prisma.NotificationPreferencesUncheckedUpdateOneWithoutWorkspaceNestedInput
+  setup?: Prisma.WorkspaceSetupUncheckedUpdateOneWithoutWorkspaceNestedInput
+  clients?: Prisma.ClientUncheckedUpdateManyWithoutWorkspaceNestedInput
+  customFieldDefs?: Prisma.ClientCustomFieldDefUncheckedUpdateManyWithoutWorkspaceNestedInput
+  requirementRequests?: Prisma.RequirementRequestUncheckedUpdateManyWithoutWorkspaceNestedInput
+  requirementQuestions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutWorkspaceNestedInput
+  questionDeliveries?: Prisma.QuestionDeliveryUncheckedUpdateManyWithoutWorkspaceNestedInput
+  updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutWorkspaceNestedInput
+  conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutWorkspaceNestedInput
+  copilotMessages?: Prisma.ClientCopilotMessageUncheckedUpdateManyWithoutWorkspaceNestedInput
+  employees?: Prisma.EmployeeUncheckedUpdateManyWithoutWorkspaceNestedInput
+  roles?: Prisma.OrganizationRoleUncheckedUpdateManyWithoutWorkspaceNestedInput
+  teams?: Prisma.OrganizationTeamUncheckedUpdateManyWithoutWorkspaceNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput
+  employeeAuditEvents?: Prisma.EmployeeAuditEventUncheckedUpdateManyWithoutWorkspaceNestedInput
 }
 
 
@@ -2950,6 +3167,7 @@ export type WorkspaceCountOutputType = {
   teams: number
   invitations: number
   employeeAuditEvents: number
+  workConversations: number
 }
 
 export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2966,6 +3184,7 @@ export type WorkspaceCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensi
   teams?: boolean | WorkspaceCountOutputTypeCountTeamsArgs
   invitations?: boolean | WorkspaceCountOutputTypeCountInvitationsArgs
   employeeAuditEvents?: boolean | WorkspaceCountOutputTypeCountEmployeeAuditEventsArgs
+  workConversations?: boolean | WorkspaceCountOutputTypeCountWorkConversationsArgs
 }
 
 /**
@@ -3069,6 +3288,13 @@ export type WorkspaceCountOutputTypeCountEmployeeAuditEventsArgs<ExtArgs extends
   where?: Prisma.EmployeeAuditEventWhereInput
 }
 
+/**
+ * WorkspaceCountOutputType without action
+ */
+export type WorkspaceCountOutputTypeCountWorkConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkConversationWhereInput
+}
+
 
 export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -3095,6 +3321,7 @@ export type WorkspaceSelect<ExtArgs extends runtime.Types.Extensions.InternalArg
   teams?: boolean | Prisma.Workspace$teamsArgs<ExtArgs>
   invitations?: boolean | Prisma.Workspace$invitationsArgs<ExtArgs>
   employeeAuditEvents?: boolean | Prisma.Workspace$employeeAuditEventsArgs<ExtArgs>
+  workConversations?: boolean | Prisma.Workspace$workConversationsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["workspace"]>
 
@@ -3145,6 +3372,7 @@ export type WorkspaceInclude<ExtArgs extends runtime.Types.Extensions.InternalAr
   teams?: boolean | Prisma.Workspace$teamsArgs<ExtArgs>
   invitations?: boolean | Prisma.Workspace$invitationsArgs<ExtArgs>
   employeeAuditEvents?: boolean | Prisma.Workspace$employeeAuditEventsArgs<ExtArgs>
+  workConversations?: boolean | Prisma.Workspace$workConversationsArgs<ExtArgs>
   _count?: boolean | Prisma.WorkspaceCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type WorkspaceIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3176,6 +3404,7 @@ export type $WorkspacePayload<ExtArgs extends runtime.Types.Extensions.InternalA
     teams: Prisma.$OrganizationTeamPayload<ExtArgs>[]
     invitations: Prisma.$EmployeeInvitationPayload<ExtArgs>[]
     employeeAuditEvents: Prisma.$EmployeeAuditEventPayload<ExtArgs>[]
+    workConversations: Prisma.$WorkConversationPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3596,6 +3825,7 @@ export interface Prisma__WorkspaceClient<T, Null = never, ExtArgs extends runtim
   teams<T extends Prisma.Workspace$teamsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$teamsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$OrganizationTeamPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   invitations<T extends Prisma.Workspace$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   employeeAuditEvents<T extends Prisma.Workspace$employeeAuditEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$employeeAuditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeAuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  workConversations<T extends Prisma.Workspace$workConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Workspace$workConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4433,6 +4663,30 @@ export type Workspace$employeeAuditEventsArgs<ExtArgs extends runtime.Types.Exte
   take?: number
   skip?: number
   distinct?: Prisma.EmployeeAuditEventScalarFieldEnum | Prisma.EmployeeAuditEventScalarFieldEnum[]
+}
+
+/**
+ * Workspace.workConversations
+ */
+export type Workspace$workConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkConversation
+   */
+  select?: Prisma.WorkConversationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkConversation
+   */
+  omit?: Prisma.WorkConversationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkConversationInclude<ExtArgs> | null
+  where?: Prisma.WorkConversationWhereInput
+  orderBy?: Prisma.WorkConversationOrderByWithRelationInput | Prisma.WorkConversationOrderByWithRelationInput[]
+  cursor?: Prisma.WorkConversationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkConversationScalarFieldEnum | Prisma.WorkConversationScalarFieldEnum[]
 }
 
 /**

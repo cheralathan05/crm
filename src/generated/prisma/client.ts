@@ -526,3 +526,20 @@ export type BuildReviewDecision = Prisma.BuildReviewDecisionModel
  *  * Complete Audit Trail for Build Journey Events.
  */
 export type BuildJourneyAuditEvent = Prisma.BuildJourneyAuditEventModel
+/**
+ * Model WorkConversation
+ * *
+ *  * Real Work Communication & Messages System.
+ *  * Connects Employee <-> Employee, Employee <-> Admin, Project Rooms, Dependencies, Blockers, and Handoffs.
+ */
+export type WorkConversation = Prisma.WorkConversationModel
+/**
+ * Model WorkConversationParticipant
+ * 
+ */
+export type WorkConversationParticipant = Prisma.WorkConversationParticipantModel
+/**
+ * Model WorkMessage
+ * 
+ */
+export type WorkMessage = Prisma.WorkMessageModel

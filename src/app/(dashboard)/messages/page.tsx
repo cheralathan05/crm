@@ -1,10 +1,11 @@
-import { ModulePlaceholder } from "@/components/module-placeholder";
+import { WorkMessagesWorkspace } from "@/components/messages/work-messages-workspace";
 
-export default async function MessagesPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ view?: string }>;
-}) {
-  const params = await searchParams;
-  return <ModulePlaceholder href="/messages" view={params.view} />;
+export const metadata = {
+  title: "Messages & Work Communication | Business OS",
+  description: "Product-level work communication connecting employees, projects, dependencies, and blockers.",
+};
+
+export default function MessagesPage() {
+  return <WorkMessagesWorkspace />;
 }
+

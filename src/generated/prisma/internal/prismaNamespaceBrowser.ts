@@ -141,7 +141,10 @@ export const ModelName = {
   BuildVerificationJob: 'BuildVerificationJob',
   BuildVerificationReport: 'BuildVerificationReport',
   BuildReviewDecision: 'BuildReviewDecision',
-  BuildJourneyAuditEvent: 'BuildJourneyAuditEvent'
+  BuildJourneyAuditEvent: 'BuildJourneyAuditEvent',
+  WorkConversation: 'WorkConversation',
+  WorkConversationParticipant: 'WorkConversationParticipant',
+  WorkMessage: 'WorkMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1895,6 +1898,63 @@ export const BuildJourneyAuditEventScalarFieldEnum = {
 } as const
 
 export type BuildJourneyAuditEventScalarFieldEnum = (typeof BuildJourneyAuditEventScalarFieldEnum)[keyof typeof BuildJourneyAuditEventScalarFieldEnum]
+
+
+export const WorkConversationScalarFieldEnum = {
+  id: 'id',
+  workspaceId: 'workspaceId',
+  type: 'type',
+  title: 'title',
+  projectId: 'projectId',
+  taskId: 'taskId',
+  workstream: 'workstream',
+  dependencyWorkstream: 'dependencyWorkstream',
+  dependencyLabel: 'dependencyLabel',
+  isBlocker: 'isBlocker',
+  blockerStatus: 'blockerStatus',
+  blockerReason: 'blockerReason',
+  isHandoff: 'isHandoff',
+  handoffStatus: 'handoffStatus',
+  lastMessageAt: 'lastMessageAt',
+  lastMessagePreview: 'lastMessagePreview',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WorkConversationScalarFieldEnum = (typeof WorkConversationScalarFieldEnum)[keyof typeof WorkConversationScalarFieldEnum]
+
+
+export const WorkConversationParticipantScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  employeeId: 'employeeId',
+  userId: 'userId',
+  role: 'role',
+  lastReadAt: 'lastReadAt',
+  unreadCount: 'unreadCount',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WorkConversationParticipantScalarFieldEnum = (typeof WorkConversationParticipantScalarFieldEnum)[keyof typeof WorkConversationParticipantScalarFieldEnum]
+
+
+export const WorkMessageScalarFieldEnum = {
+  id: 'id',
+  conversationId: 'conversationId',
+  senderEmployeeId: 'senderEmployeeId',
+  senderUserId: 'senderUserId',
+  senderName: 'senderName',
+  senderRole: 'senderRole',
+  senderAvatar: 'senderAvatar',
+  content: 'content',
+  messageType: 'messageType',
+  metadata: 'metadata',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type WorkMessageScalarFieldEnum = (typeof WorkMessageScalarFieldEnum)[keyof typeof WorkMessageScalarFieldEnum]
 
 
 export const SortOrder = {

@@ -292,6 +292,8 @@ export type UserWhereInput = {
   workspace?: Prisma.XOR<Prisma.WorkspaceNullableScalarRelationFilter, Prisma.WorkspaceWhereInput> | null
   onboarding?: Prisma.XOR<Prisma.OnboardingNullableScalarRelationFilter, Prisma.OnboardingWhereInput> | null
   employee?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
+  workConversationParticipants?: Prisma.WorkConversationParticipantListRelationFilter
+  sentWorkMessages?: Prisma.WorkMessageListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -313,6 +315,8 @@ export type UserOrderByWithRelationInput = {
   workspace?: Prisma.WorkspaceOrderByWithRelationInput
   onboarding?: Prisma.OnboardingOrderByWithRelationInput
   employee?: Prisma.EmployeeOrderByWithRelationInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantOrderByRelationAggregateInput
+  sentWorkMessages?: Prisma.WorkMessageOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -337,6 +341,8 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   workspace?: Prisma.XOR<Prisma.WorkspaceNullableScalarRelationFilter, Prisma.WorkspaceWhereInput> | null
   onboarding?: Prisma.XOR<Prisma.OnboardingNullableScalarRelationFilter, Prisma.OnboardingWhereInput> | null
   employee?: Prisma.XOR<Prisma.EmployeeNullableScalarRelationFilter, Prisma.EmployeeWhereInput> | null
+  workConversationParticipants?: Prisma.WorkConversationParticipantListRelationFilter
+  sentWorkMessages?: Prisma.WorkMessageListRelationFilter
 }, "id" | "email" | "googleId">
 
 export type UserOrderByWithAggregationInput = {
@@ -400,6 +406,8 @@ export type UserCreateInput = {
   workspace?: Prisma.WorkspaceCreateNestedOneWithoutOwnerInput
   onboarding?: Prisma.OnboardingCreateNestedOneWithoutUserInput
   employee?: Prisma.EmployeeCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -421,6 +429,8 @@ export type UserUncheckedCreateInput = {
   workspace?: Prisma.WorkspaceUncheckedCreateNestedOneWithoutOwnerInput
   onboarding?: Prisma.OnboardingUncheckedCreateNestedOneWithoutUserInput
   employee?: Prisma.EmployeeUncheckedCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserUpdateInput = {
@@ -442,6 +452,8 @@ export type UserUpdateInput = {
   workspace?: Prisma.WorkspaceUpdateOneWithoutOwnerNestedInput
   onboarding?: Prisma.OnboardingUpdateOneWithoutUserNestedInput
   employee?: Prisma.EmployeeUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -463,6 +475,8 @@ export type UserUncheckedUpdateInput = {
   workspace?: Prisma.WorkspaceUncheckedUpdateOneWithoutOwnerNestedInput
   onboarding?: Prisma.OnboardingUncheckedUpdateOneWithoutUserNestedInput
   employee?: Prisma.EmployeeUncheckedUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -679,6 +693,38 @@ export type UserUpdateOneWithoutEmployeeNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutEmployeeInput, Prisma.UserUpdateWithoutEmployeeInput>, Prisma.UserUncheckedUpdateWithoutEmployeeInput>
 }
 
+export type UserCreateNestedOneWithoutWorkConversationParticipantsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWorkConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutWorkConversationParticipantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWorkConversationParticipantsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutWorkConversationParticipantsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutWorkConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutWorkConversationParticipantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutWorkConversationParticipantsInput
+  upsert?: Prisma.UserUpsertWithoutWorkConversationParticipantsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWorkConversationParticipantsInput, Prisma.UserUpdateWithoutWorkConversationParticipantsInput>, Prisma.UserUncheckedUpdateWithoutWorkConversationParticipantsInput>
+}
+
+export type UserCreateNestedOneWithoutSentWorkMessagesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSentWorkMessagesInput, Prisma.UserUncheckedCreateWithoutSentWorkMessagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentWorkMessagesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutSentWorkMessagesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutSentWorkMessagesInput, Prisma.UserUncheckedCreateWithoutSentWorkMessagesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutSentWorkMessagesInput
+  upsert?: Prisma.UserUpsertWithoutSentWorkMessagesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutSentWorkMessagesInput, Prisma.UserUpdateWithoutSentWorkMessagesInput>, Prisma.UserUncheckedUpdateWithoutSentWorkMessagesInput>
+}
+
 export type UserCreateWithoutWorkspaceInput = {
   id?: string
   name: string
@@ -697,6 +743,8 @@ export type UserCreateWithoutWorkspaceInput = {
   tokens?: Prisma.VerificationTokenCreateNestedManyWithoutUserInput
   onboarding?: Prisma.OnboardingCreateNestedOneWithoutUserInput
   employee?: Prisma.EmployeeCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserUncheckedCreateWithoutWorkspaceInput = {
@@ -717,6 +765,8 @@ export type UserUncheckedCreateWithoutWorkspaceInput = {
   tokens?: Prisma.VerificationTokenUncheckedCreateNestedManyWithoutUserInput
   onboarding?: Prisma.OnboardingUncheckedCreateNestedOneWithoutUserInput
   employee?: Prisma.EmployeeUncheckedCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserCreateOrConnectWithoutWorkspaceInput = {
@@ -753,6 +803,8 @@ export type UserUpdateWithoutWorkspaceInput = {
   tokens?: Prisma.VerificationTokenUpdateManyWithoutUserNestedInput
   onboarding?: Prisma.OnboardingUpdateOneWithoutUserNestedInput
   employee?: Prisma.EmployeeUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkspaceInput = {
@@ -773,6 +825,8 @@ export type UserUncheckedUpdateWithoutWorkspaceInput = {
   tokens?: Prisma.VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
   onboarding?: Prisma.OnboardingUncheckedUpdateOneWithoutUserNestedInput
   employee?: Prisma.EmployeeUncheckedUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserCreateWithoutOnboardingInput = {
@@ -793,6 +847,8 @@ export type UserCreateWithoutOnboardingInput = {
   tokens?: Prisma.VerificationTokenCreateNestedManyWithoutUserInput
   workspace?: Prisma.WorkspaceCreateNestedOneWithoutOwnerInput
   employee?: Prisma.EmployeeCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserUncheckedCreateWithoutOnboardingInput = {
@@ -813,6 +869,8 @@ export type UserUncheckedCreateWithoutOnboardingInput = {
   tokens?: Prisma.VerificationTokenUncheckedCreateNestedManyWithoutUserInput
   workspace?: Prisma.WorkspaceUncheckedCreateNestedOneWithoutOwnerInput
   employee?: Prisma.EmployeeUncheckedCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserCreateOrConnectWithoutOnboardingInput = {
@@ -849,6 +907,8 @@ export type UserUpdateWithoutOnboardingInput = {
   tokens?: Prisma.VerificationTokenUpdateManyWithoutUserNestedInput
   workspace?: Prisma.WorkspaceUpdateOneWithoutOwnerNestedInput
   employee?: Prisma.EmployeeUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutOnboardingInput = {
@@ -869,6 +929,8 @@ export type UserUncheckedUpdateWithoutOnboardingInput = {
   tokens?: Prisma.VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
   workspace?: Prisma.WorkspaceUncheckedUpdateOneWithoutOwnerNestedInput
   employee?: Prisma.EmployeeUncheckedUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserCreateWithoutTokensInput = {
@@ -889,6 +951,8 @@ export type UserCreateWithoutTokensInput = {
   workspace?: Prisma.WorkspaceCreateNestedOneWithoutOwnerInput
   onboarding?: Prisma.OnboardingCreateNestedOneWithoutUserInput
   employee?: Prisma.EmployeeCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserUncheckedCreateWithoutTokensInput = {
@@ -909,6 +973,8 @@ export type UserUncheckedCreateWithoutTokensInput = {
   workspace?: Prisma.WorkspaceUncheckedCreateNestedOneWithoutOwnerInput
   onboarding?: Prisma.OnboardingUncheckedCreateNestedOneWithoutUserInput
   employee?: Prisma.EmployeeUncheckedCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserCreateOrConnectWithoutTokensInput = {
@@ -945,6 +1011,8 @@ export type UserUpdateWithoutTokensInput = {
   workspace?: Prisma.WorkspaceUpdateOneWithoutOwnerNestedInput
   onboarding?: Prisma.OnboardingUpdateOneWithoutUserNestedInput
   employee?: Prisma.EmployeeUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTokensInput = {
@@ -965,6 +1033,8 @@ export type UserUncheckedUpdateWithoutTokensInput = {
   workspace?: Prisma.WorkspaceUncheckedUpdateOneWithoutOwnerNestedInput
   onboarding?: Prisma.OnboardingUncheckedUpdateOneWithoutUserNestedInput
   employee?: Prisma.EmployeeUncheckedUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserCreateWithoutEmployeeInput = {
@@ -985,6 +1055,8 @@ export type UserCreateWithoutEmployeeInput = {
   tokens?: Prisma.VerificationTokenCreateNestedManyWithoutUserInput
   workspace?: Prisma.WorkspaceCreateNestedOneWithoutOwnerInput
   onboarding?: Prisma.OnboardingCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserUncheckedCreateWithoutEmployeeInput = {
@@ -1005,6 +1077,8 @@ export type UserUncheckedCreateWithoutEmployeeInput = {
   tokens?: Prisma.VerificationTokenUncheckedCreateNestedManyWithoutUserInput
   workspace?: Prisma.WorkspaceUncheckedCreateNestedOneWithoutOwnerInput
   onboarding?: Prisma.OnboardingUncheckedCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedCreateNestedManyWithoutSenderUserInput
 }
 
 export type UserCreateOrConnectWithoutEmployeeInput = {
@@ -1041,6 +1115,8 @@ export type UserUpdateWithoutEmployeeInput = {
   tokens?: Prisma.VerificationTokenUpdateManyWithoutUserNestedInput
   workspace?: Prisma.WorkspaceUpdateOneWithoutOwnerNestedInput
   onboarding?: Prisma.OnboardingUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUpdateManyWithoutSenderUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutEmployeeInput = {
@@ -1061,6 +1137,216 @@ export type UserUncheckedUpdateWithoutEmployeeInput = {
   tokens?: Prisma.VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
   workspace?: Prisma.WorkspaceUncheckedUpdateOneWithoutOwnerNestedInput
   onboarding?: Prisma.OnboardingUncheckedUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedUpdateManyWithoutSenderUserNestedInput
+}
+
+export type UserCreateWithoutWorkConversationParticipantsInput = {
+  id?: string
+  name: string
+  companyName: string
+  email: string
+  passwordHash: string
+  emailVerified?: Date | string | null
+  role?: $Enums.UserRole
+  status?: $Enums.UserStatus
+  provider?: $Enums.UserProvider
+  googleId?: string | null
+  lastLoginAt?: Date | string | null
+  sessionVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tokens?: Prisma.VerificationTokenCreateNestedManyWithoutUserInput
+  workspace?: Prisma.WorkspaceCreateNestedOneWithoutOwnerInput
+  onboarding?: Prisma.OnboardingCreateNestedOneWithoutUserInput
+  employee?: Prisma.EmployeeCreateNestedOneWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageCreateNestedManyWithoutSenderUserInput
+}
+
+export type UserUncheckedCreateWithoutWorkConversationParticipantsInput = {
+  id?: string
+  name: string
+  companyName: string
+  email: string
+  passwordHash: string
+  emailVerified?: Date | string | null
+  role?: $Enums.UserRole
+  status?: $Enums.UserStatus
+  provider?: $Enums.UserProvider
+  googleId?: string | null
+  lastLoginAt?: Date | string | null
+  sessionVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tokens?: Prisma.VerificationTokenUncheckedCreateNestedManyWithoutUserInput
+  workspace?: Prisma.WorkspaceUncheckedCreateNestedOneWithoutOwnerInput
+  onboarding?: Prisma.OnboardingUncheckedCreateNestedOneWithoutUserInput
+  employee?: Prisma.EmployeeUncheckedCreateNestedOneWithoutUserInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedCreateNestedManyWithoutSenderUserInput
+}
+
+export type UserCreateOrConnectWithoutWorkConversationParticipantsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutWorkConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutWorkConversationParticipantsInput>
+}
+
+export type UserUpsertWithoutWorkConversationParticipantsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutWorkConversationParticipantsInput, Prisma.UserUncheckedUpdateWithoutWorkConversationParticipantsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutWorkConversationParticipantsInput, Prisma.UserUncheckedCreateWithoutWorkConversationParticipantsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutWorkConversationParticipantsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutWorkConversationParticipantsInput, Prisma.UserUncheckedUpdateWithoutWorkConversationParticipantsInput>
+}
+
+export type UserUpdateWithoutWorkConversationParticipantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  provider?: Prisma.EnumUserProviderFieldUpdateOperationsInput | $Enums.UserProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tokens?: Prisma.VerificationTokenUpdateManyWithoutUserNestedInput
+  workspace?: Prisma.WorkspaceUpdateOneWithoutOwnerNestedInput
+  onboarding?: Prisma.OnboardingUpdateOneWithoutUserNestedInput
+  employee?: Prisma.EmployeeUpdateOneWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUpdateManyWithoutSenderUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutWorkConversationParticipantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  provider?: Prisma.EnumUserProviderFieldUpdateOperationsInput | $Enums.UserProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tokens?: Prisma.VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
+  workspace?: Prisma.WorkspaceUncheckedUpdateOneWithoutOwnerNestedInput
+  onboarding?: Prisma.OnboardingUncheckedUpdateOneWithoutUserNestedInput
+  employee?: Prisma.EmployeeUncheckedUpdateOneWithoutUserNestedInput
+  sentWorkMessages?: Prisma.WorkMessageUncheckedUpdateManyWithoutSenderUserNestedInput
+}
+
+export type UserCreateWithoutSentWorkMessagesInput = {
+  id?: string
+  name: string
+  companyName: string
+  email: string
+  passwordHash: string
+  emailVerified?: Date | string | null
+  role?: $Enums.UserRole
+  status?: $Enums.UserStatus
+  provider?: $Enums.UserProvider
+  googleId?: string | null
+  lastLoginAt?: Date | string | null
+  sessionVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tokens?: Prisma.VerificationTokenCreateNestedManyWithoutUserInput
+  workspace?: Prisma.WorkspaceCreateNestedOneWithoutOwnerInput
+  onboarding?: Prisma.OnboardingCreateNestedOneWithoutUserInput
+  employee?: Prisma.EmployeeCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutSentWorkMessagesInput = {
+  id?: string
+  name: string
+  companyName: string
+  email: string
+  passwordHash: string
+  emailVerified?: Date | string | null
+  role?: $Enums.UserRole
+  status?: $Enums.UserStatus
+  provider?: $Enums.UserProvider
+  googleId?: string | null
+  lastLoginAt?: Date | string | null
+  sessionVersion?: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tokens?: Prisma.VerificationTokenUncheckedCreateNestedManyWithoutUserInput
+  workspace?: Prisma.WorkspaceUncheckedCreateNestedOneWithoutOwnerInput
+  onboarding?: Prisma.OnboardingUncheckedCreateNestedOneWithoutUserInput
+  employee?: Prisma.EmployeeUncheckedCreateNestedOneWithoutUserInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutSentWorkMessagesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutSentWorkMessagesInput, Prisma.UserUncheckedCreateWithoutSentWorkMessagesInput>
+}
+
+export type UserUpsertWithoutSentWorkMessagesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutSentWorkMessagesInput, Prisma.UserUncheckedUpdateWithoutSentWorkMessagesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutSentWorkMessagesInput, Prisma.UserUncheckedCreateWithoutSentWorkMessagesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutSentWorkMessagesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutSentWorkMessagesInput, Prisma.UserUncheckedUpdateWithoutSentWorkMessagesInput>
+}
+
+export type UserUpdateWithoutSentWorkMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  provider?: Prisma.EnumUserProviderFieldUpdateOperationsInput | $Enums.UserProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tokens?: Prisma.VerificationTokenUpdateManyWithoutUserNestedInput
+  workspace?: Prisma.WorkspaceUpdateOneWithoutOwnerNestedInput
+  onboarding?: Prisma.OnboardingUpdateOneWithoutUserNestedInput
+  employee?: Prisma.EmployeeUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutSentWorkMessagesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  companyName?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  emailVerified?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  status?: Prisma.EnumUserStatusFieldUpdateOperationsInput | $Enums.UserStatus
+  provider?: Prisma.EnumUserProviderFieldUpdateOperationsInput | $Enums.UserProvider
+  googleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  sessionVersion?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tokens?: Prisma.VerificationTokenUncheckedUpdateManyWithoutUserNestedInput
+  workspace?: Prisma.WorkspaceUncheckedUpdateOneWithoutOwnerNestedInput
+  onboarding?: Prisma.OnboardingUncheckedUpdateOneWithoutUserNestedInput
+  employee?: Prisma.EmployeeUncheckedUpdateOneWithoutUserNestedInput
+  workConversationParticipants?: Prisma.WorkConversationParticipantUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -1070,10 +1356,14 @@ export type UserUncheckedUpdateWithoutEmployeeInput = {
 
 export type UserCountOutputType = {
   tokens: number
+  workConversationParticipants: number
+  sentWorkMessages: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   tokens?: boolean | UserCountOutputTypeCountTokensArgs
+  workConversationParticipants?: boolean | UserCountOutputTypeCountWorkConversationParticipantsArgs
+  sentWorkMessages?: boolean | UserCountOutputTypeCountSentWorkMessagesArgs
 }
 
 /**
@@ -1091,6 +1381,20 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
  */
 export type UserCountOutputTypeCountTokensArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.VerificationTokenWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountWorkConversationParticipantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkConversationParticipantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountSentWorkMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkMessageWhereInput
 }
 
 
@@ -1113,6 +1417,8 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   workspace?: boolean | Prisma.User$workspaceArgs<ExtArgs>
   onboarding?: boolean | Prisma.User$onboardingArgs<ExtArgs>
   employee?: boolean | Prisma.User$employeeArgs<ExtArgs>
+  workConversationParticipants?: boolean | Prisma.User$workConversationParticipantsArgs<ExtArgs>
+  sentWorkMessages?: boolean | Prisma.User$sentWorkMessagesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1173,6 +1479,8 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   workspace?: boolean | Prisma.User$workspaceArgs<ExtArgs>
   onboarding?: boolean | Prisma.User$onboardingArgs<ExtArgs>
   employee?: boolean | Prisma.User$employeeArgs<ExtArgs>
+  workConversationParticipants?: boolean | Prisma.User$workConversationParticipantsArgs<ExtArgs>
+  sentWorkMessages?: boolean | Prisma.User$sentWorkMessagesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1185,6 +1493,8 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     workspace: Prisma.$WorkspacePayload<ExtArgs> | null
     onboarding: Prisma.$OnboardingPayload<ExtArgs> | null
     employee: Prisma.$EmployeePayload<ExtArgs> | null
+    workConversationParticipants: Prisma.$WorkConversationParticipantPayload<ExtArgs>[]
+    sentWorkMessages: Prisma.$WorkMessagePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1599,6 +1909,8 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   workspace<T extends Prisma.User$workspaceArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workspaceArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   onboarding<T extends Prisma.User$onboardingArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$onboardingArgs<ExtArgs>>): Prisma.Prisma__OnboardingClient<runtime.Types.Result.GetResult<Prisma.$OnboardingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   employee<T extends Prisma.User$employeeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$employeeArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  workConversationParticipants<T extends Prisma.User$workConversationParticipantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$workConversationParticipantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkConversationParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  sentWorkMessages<T extends Prisma.User$sentWorkMessagesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sentWorkMessagesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkMessagePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2111,6 +2423,54 @@ export type User$employeeArgs<ExtArgs extends runtime.Types.Extensions.InternalA
    */
   include?: Prisma.EmployeeInclude<ExtArgs> | null
   where?: Prisma.EmployeeWhereInput
+}
+
+/**
+ * User.workConversationParticipants
+ */
+export type User$workConversationParticipantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkConversationParticipant
+   */
+  select?: Prisma.WorkConversationParticipantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkConversationParticipant
+   */
+  omit?: Prisma.WorkConversationParticipantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkConversationParticipantInclude<ExtArgs> | null
+  where?: Prisma.WorkConversationParticipantWhereInput
+  orderBy?: Prisma.WorkConversationParticipantOrderByWithRelationInput | Prisma.WorkConversationParticipantOrderByWithRelationInput[]
+  cursor?: Prisma.WorkConversationParticipantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkConversationParticipantScalarFieldEnum | Prisma.WorkConversationParticipantScalarFieldEnum[]
+}
+
+/**
+ * User.sentWorkMessages
+ */
+export type User$sentWorkMessagesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkMessage
+   */
+  select?: Prisma.WorkMessageSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkMessage
+   */
+  omit?: Prisma.WorkMessageOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkMessageInclude<ExtArgs> | null
+  where?: Prisma.WorkMessageWhereInput
+  orderBy?: Prisma.WorkMessageOrderByWithRelationInput | Prisma.WorkMessageOrderByWithRelationInput[]
+  cursor?: Prisma.WorkMessageWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkMessageScalarFieldEnum | Prisma.WorkMessageScalarFieldEnum[]
 }
 
 /**

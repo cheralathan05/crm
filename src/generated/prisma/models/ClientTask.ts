@@ -486,6 +486,7 @@ export type ClientTaskWhereInput = {
   deliverable?: Prisma.XOR<Prisma.ProjectDeliverableNullableScalarRelationFilter, Prisma.ProjectDeliverableWhereInput> | null
   blueprint?: Prisma.XOR<Prisma.EngineeringBlueprintNullableScalarRelationFilter, Prisma.EngineeringBlueprintWhereInput> | null
   testSpecification?: Prisma.XOR<Prisma.TestSpecificationNullableScalarRelationFilter, Prisma.TestSpecificationWhereInput> | null
+  workConversations?: Prisma.WorkConversationListRelationFilter
   subtasks?: Prisma.SubTaskListRelationFilter
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionListRelationFilter
   dependencies?: Prisma.TaskDependencyListRelationFilter
@@ -544,6 +545,7 @@ export type ClientTaskOrderByWithRelationInput = {
   deliverable?: Prisma.ProjectDeliverableOrderByWithRelationInput
   blueprint?: Prisma.EngineeringBlueprintOrderByWithRelationInput
   testSpecification?: Prisma.TestSpecificationOrderByWithRelationInput
+  workConversations?: Prisma.WorkConversationOrderByRelationAggregateInput
   subtasks?: Prisma.SubTaskOrderByRelationAggregateInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionOrderByRelationAggregateInput
   dependencies?: Prisma.TaskDependencyOrderByRelationAggregateInput
@@ -605,6 +607,7 @@ export type ClientTaskWhereUniqueInput = Prisma.AtLeast<{
   deliverable?: Prisma.XOR<Prisma.ProjectDeliverableNullableScalarRelationFilter, Prisma.ProjectDeliverableWhereInput> | null
   blueprint?: Prisma.XOR<Prisma.EngineeringBlueprintNullableScalarRelationFilter, Prisma.EngineeringBlueprintWhereInput> | null
   testSpecification?: Prisma.XOR<Prisma.TestSpecificationNullableScalarRelationFilter, Prisma.TestSpecificationWhereInput> | null
+  workConversations?: Prisma.WorkConversationListRelationFilter
   subtasks?: Prisma.SubTaskListRelationFilter
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionListRelationFilter
   dependencies?: Prisma.TaskDependencyListRelationFilter
@@ -745,6 +748,7 @@ export type ClientTaskCreateInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -797,6 +801,7 @@ export type ClientTaskUncheckedCreateInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -849,6 +854,7 @@ export type ClientTaskUpdateInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -901,6 +907,7 @@ export type ClientTaskUncheckedUpdateInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -1619,6 +1626,22 @@ export type ClientTaskUpdateOneWithoutCheckpointsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientTaskUpdateToOneWithWhereWithoutCheckpointsInput, Prisma.ClientTaskUpdateWithoutCheckpointsInput>, Prisma.ClientTaskUncheckedUpdateWithoutCheckpointsInput>
 }
 
+export type ClientTaskCreateNestedOneWithoutWorkConversationsInput = {
+  create?: Prisma.XOR<Prisma.ClientTaskCreateWithoutWorkConversationsInput, Prisma.ClientTaskUncheckedCreateWithoutWorkConversationsInput>
+  connectOrCreate?: Prisma.ClientTaskCreateOrConnectWithoutWorkConversationsInput
+  connect?: Prisma.ClientTaskWhereUniqueInput
+}
+
+export type ClientTaskUpdateOneWithoutWorkConversationsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientTaskCreateWithoutWorkConversationsInput, Prisma.ClientTaskUncheckedCreateWithoutWorkConversationsInput>
+  connectOrCreate?: Prisma.ClientTaskCreateOrConnectWithoutWorkConversationsInput
+  upsert?: Prisma.ClientTaskUpsertWithoutWorkConversationsInput
+  disconnect?: Prisma.ClientTaskWhereInput | boolean
+  delete?: Prisma.ClientTaskWhereInput | boolean
+  connect?: Prisma.ClientTaskWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientTaskUpdateToOneWithWhereWithoutWorkConversationsInput, Prisma.ClientTaskUpdateWithoutWorkConversationsInput>, Prisma.ClientTaskUncheckedUpdateWithoutWorkConversationsInput>
+}
+
 export type ClientTaskCreateWithoutClientInput = {
   id?: string
   code?: string | null
@@ -1656,6 +1679,7 @@ export type ClientTaskCreateWithoutClientInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -1707,6 +1731,7 @@ export type ClientTaskUncheckedCreateWithoutClientInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -1826,6 +1851,7 @@ export type ClientTaskCreateWithoutProjectInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -1877,6 +1903,7 @@ export type ClientTaskUncheckedCreateWithoutProjectInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -1953,6 +1980,7 @@ export type ClientTaskCreateWithoutMilestoneInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -2004,6 +2032,7 @@ export type ClientTaskUncheckedCreateWithoutMilestoneInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -2080,6 +2109,7 @@ export type ClientTaskCreateWithoutDeliverableInput = {
   milestone?: Prisma.ProjectMilestoneCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -2131,6 +2161,7 @@ export type ClientTaskUncheckedCreateWithoutDeliverableInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -2208,6 +2239,7 @@ export type ClientTaskCreateWithoutSubtasksInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
   dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
@@ -2259,6 +2291,7 @@ export type ClientTaskUncheckedCreateWithoutSubtasksInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
@@ -2326,6 +2359,7 @@ export type ClientTaskUpdateWithoutSubtasksInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
@@ -2377,6 +2411,7 @@ export type ClientTaskUncheckedUpdateWithoutSubtasksInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
@@ -2428,6 +2463,7 @@ export type ClientTaskCreateWithoutAcceptanceCriteriaInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
   dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
@@ -2479,6 +2515,7 @@ export type ClientTaskUncheckedCreateWithoutAcceptanceCriteriaInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
@@ -2546,6 +2583,7 @@ export type ClientTaskUpdateWithoutAcceptanceCriteriaInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
@@ -2597,6 +2635,7 @@ export type ClientTaskUncheckedUpdateWithoutAcceptanceCriteriaInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
@@ -2648,6 +2687,7 @@ export type ClientTaskCreateWithoutDependenciesInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
@@ -2699,6 +2739,7 @@ export type ClientTaskUncheckedCreateWithoutDependenciesInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
@@ -2755,6 +2796,7 @@ export type ClientTaskCreateWithoutDependentOnMeInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -2806,6 +2848,7 @@ export type ClientTaskUncheckedCreateWithoutDependentOnMeInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -2873,6 +2916,7 @@ export type ClientTaskUpdateWithoutDependenciesInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
@@ -2924,6 +2968,7 @@ export type ClientTaskUncheckedUpdateWithoutDependenciesInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
@@ -2986,6 +3031,7 @@ export type ClientTaskUpdateWithoutDependentOnMeInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -3037,6 +3083,7 @@ export type ClientTaskUncheckedUpdateWithoutDependentOnMeInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -3088,6 +3135,7 @@ export type ClientTaskCreateWithoutCommentsInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -3139,6 +3187,7 @@ export type ClientTaskUncheckedCreateWithoutCommentsInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -3206,6 +3255,7 @@ export type ClientTaskUpdateWithoutCommentsInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -3257,6 +3307,7 @@ export type ClientTaskUncheckedUpdateWithoutCommentsInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -3308,6 +3359,7 @@ export type ClientTaskCreateWithoutAttachmentsInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -3359,6 +3411,7 @@ export type ClientTaskUncheckedCreateWithoutAttachmentsInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -3426,6 +3479,7 @@ export type ClientTaskUpdateWithoutAttachmentsInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -3477,6 +3531,7 @@ export type ClientTaskUncheckedUpdateWithoutAttachmentsInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -3528,6 +3583,7 @@ export type ClientTaskCreateWithoutReviewsInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -3579,6 +3635,7 @@ export type ClientTaskUncheckedCreateWithoutReviewsInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -3646,6 +3703,7 @@ export type ClientTaskUpdateWithoutReviewsInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -3697,6 +3755,7 @@ export type ClientTaskUncheckedUpdateWithoutReviewsInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -3748,6 +3807,7 @@ export type ClientTaskCreateWithoutActivitiesInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -3799,6 +3859,7 @@ export type ClientTaskUncheckedCreateWithoutActivitiesInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -3866,6 +3927,7 @@ export type ClientTaskUpdateWithoutActivitiesInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -3917,6 +3979,7 @@ export type ClientTaskUncheckedUpdateWithoutActivitiesInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -3968,6 +4031,7 @@ export type ClientTaskCreateWithoutTimeEntriesInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -4019,6 +4083,7 @@ export type ClientTaskUncheckedCreateWithoutTimeEntriesInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -4086,6 +4151,7 @@ export type ClientTaskUpdateWithoutTimeEntriesInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -4137,6 +4203,7 @@ export type ClientTaskUncheckedUpdateWithoutTimeEntriesInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -4187,6 +4254,7 @@ export type ClientTaskCreateWithoutBlueprintInput = {
   milestone?: Prisma.ProjectMilestoneCreateNestedOneWithoutTasksInput
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -4238,6 +4306,7 @@ export type ClientTaskUncheckedCreateWithoutBlueprintInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -4314,6 +4383,7 @@ export type ClientTaskCreateWithoutTestSpecificationInput = {
   milestone?: Prisma.ProjectMilestoneCreateNestedOneWithoutTasksInput
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -4365,6 +4435,7 @@ export type ClientTaskUncheckedCreateWithoutTestSpecificationInput = {
   workId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -4442,6 +4513,7 @@ export type ClientTaskCreateWithoutEvidenceRecordsInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -4493,6 +4565,7 @@ export type ClientTaskUncheckedCreateWithoutEvidenceRecordsInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -4560,6 +4633,7 @@ export type ClientTaskUpdateWithoutEvidenceRecordsInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -4611,6 +4685,7 @@ export type ClientTaskUncheckedUpdateWithoutEvidenceRecordsInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -4662,6 +4737,7 @@ export type ClientTaskCreateWithoutBuildSessionsInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -4713,6 +4789,7 @@ export type ClientTaskUncheckedCreateWithoutBuildSessionsInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -4780,6 +4857,7 @@ export type ClientTaskUpdateWithoutBuildSessionsInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -4831,6 +4909,7 @@ export type ClientTaskUncheckedUpdateWithoutBuildSessionsInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -4882,6 +4961,7 @@ export type ClientTaskCreateWithoutCheckpointsInput = {
   deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
   blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
   testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
@@ -4933,6 +5013,7 @@ export type ClientTaskUncheckedCreateWithoutCheckpointsInput = {
   testSpecificationId?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
   subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
   dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
@@ -5000,6 +5081,7 @@ export type ClientTaskUpdateWithoutCheckpointsInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -5051,6 +5133,7 @@ export type ClientTaskUncheckedUpdateWithoutCheckpointsInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -5062,6 +5145,230 @@ export type ClientTaskUncheckedUpdateWithoutCheckpointsInput = {
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutTaskNestedInput
+}
+
+export type ClientTaskCreateWithoutWorkConversationsInput = {
+  id?: string
+  code?: string | null
+  title: string
+  description?: string | null
+  expectedResult?: string | null
+  blockedReason?: string | null
+  workstream?: string | null
+  status?: $Enums.TaskStatus
+  priority?: $Enums.TaskPriority
+  clientVisibility?: $Enums.ClientVisibility
+  teamRole?: string | null
+  assigneeId?: string | null
+  assigneeName?: string | null
+  dueAt?: Date | string | null
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  estimatedHours?: number | null
+  actualHours?: number | null
+  order?: number
+  sourceType?: string | null
+  sourceRequirementId?: string | null
+  sourceRequirementTitle?: string | null
+  sourceProposalId?: string | null
+  sourceProposalReference?: string | null
+  sourceScopeItem?: string | null
+  sourceDeliverableTitle?: string | null
+  sourceSection?: string | null
+  layer?: string | null
+  workId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  client: Prisma.ClientCreateNestedOneWithoutTasksInput
+  project?: Prisma.ClientProjectCreateNestedOneWithoutTasksInput
+  milestone?: Prisma.ProjectMilestoneCreateNestedOneWithoutTasksInput
+  deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
+  blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
+  testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
+  dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
+  dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
+  comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
+  reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
+  timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
+  evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutTaskInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutTaskInput
+}
+
+export type ClientTaskUncheckedCreateWithoutWorkConversationsInput = {
+  id?: string
+  code?: string | null
+  clientId: string
+  projectId?: string | null
+  milestoneId?: string | null
+  deliverableId?: string | null
+  title: string
+  description?: string | null
+  expectedResult?: string | null
+  blockedReason?: string | null
+  workstream?: string | null
+  status?: $Enums.TaskStatus
+  priority?: $Enums.TaskPriority
+  clientVisibility?: $Enums.ClientVisibility
+  teamRole?: string | null
+  assigneeId?: string | null
+  assigneeName?: string | null
+  dueAt?: Date | string | null
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  estimatedHours?: number | null
+  actualHours?: number | null
+  order?: number
+  sourceType?: string | null
+  sourceRequirementId?: string | null
+  sourceRequirementTitle?: string | null
+  sourceProposalId?: string | null
+  sourceProposalReference?: string | null
+  sourceScopeItem?: string | null
+  sourceDeliverableTitle?: string | null
+  sourceSection?: string | null
+  blueprintId?: string | null
+  layer?: string | null
+  workId?: string | null
+  testSpecificationId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
+  dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
+  dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
+  comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
+  reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
+  timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
+  evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutTaskInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutTaskInput
+}
+
+export type ClientTaskCreateOrConnectWithoutWorkConversationsInput = {
+  where: Prisma.ClientTaskWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientTaskCreateWithoutWorkConversationsInput, Prisma.ClientTaskUncheckedCreateWithoutWorkConversationsInput>
+}
+
+export type ClientTaskUpsertWithoutWorkConversationsInput = {
+  update: Prisma.XOR<Prisma.ClientTaskUpdateWithoutWorkConversationsInput, Prisma.ClientTaskUncheckedUpdateWithoutWorkConversationsInput>
+  create: Prisma.XOR<Prisma.ClientTaskCreateWithoutWorkConversationsInput, Prisma.ClientTaskUncheckedCreateWithoutWorkConversationsInput>
+  where?: Prisma.ClientTaskWhereInput
+}
+
+export type ClientTaskUpdateToOneWithWhereWithoutWorkConversationsInput = {
+  where?: Prisma.ClientTaskWhereInput
+  data: Prisma.XOR<Prisma.ClientTaskUpdateWithoutWorkConversationsInput, Prisma.ClientTaskUncheckedUpdateWithoutWorkConversationsInput>
+}
+
+export type ClientTaskUpdateWithoutWorkConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expectedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  priority?: Prisma.EnumTaskPriorityFieldUpdateOperationsInput | $Enums.TaskPriority
+  clientVisibility?: Prisma.EnumClientVisibilityFieldUpdateOperationsInput | $Enums.ClientVisibility
+  teamRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  actualHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  sourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceScopeItem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDeliverableTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  layer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  client?: Prisma.ClientUpdateOneRequiredWithoutTasksNestedInput
+  project?: Prisma.ClientProjectUpdateOneWithoutTasksNestedInput
+  milestone?: Prisma.ProjectMilestoneUpdateOneWithoutTasksNestedInput
+  deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
+  blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
+  testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
+  dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
+  dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
+  comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
+  reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
+  timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
+  evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutTaskNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutTaskNestedInput
+}
+
+export type ClientTaskUncheckedUpdateWithoutWorkConversationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  milestoneId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliverableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expectedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  priority?: Prisma.EnumTaskPriorityFieldUpdateOperationsInput | $Enums.TaskPriority
+  clientVisibility?: Prisma.EnumClientVisibilityFieldUpdateOperationsInput | $Enums.ClientVisibility
+  teamRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  actualHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  sourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceScopeItem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDeliverableTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blueprintId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  layer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
+  dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
+  dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
+  comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
+  reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
+  timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
+  evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutTaskNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutTaskNestedInput
 }
 
 export type ClientTaskCreateManyClientInput = {
@@ -5140,6 +5447,7 @@ export type ClientTaskUpdateWithoutClientInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -5191,6 +5499,7 @@ export type ClientTaskUncheckedUpdateWithoutClientInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -5320,6 +5629,7 @@ export type ClientTaskUpdateWithoutProjectInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -5371,6 +5681,7 @@ export type ClientTaskUncheckedUpdateWithoutProjectInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -5500,6 +5811,7 @@ export type ClientTaskUpdateWithoutMilestoneInput = {
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -5551,6 +5863,7 @@ export type ClientTaskUncheckedUpdateWithoutMilestoneInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -5680,6 +5993,7 @@ export type ClientTaskUpdateWithoutDeliverableInput = {
   milestone?: Prisma.ProjectMilestoneUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -5731,6 +6045,7 @@ export type ClientTaskUncheckedUpdateWithoutDeliverableInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -5860,6 +6175,7 @@ export type ClientTaskUpdateWithoutBlueprintInput = {
   milestone?: Prisma.ProjectMilestoneUpdateOneWithoutTasksNestedInput
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -5911,6 +6227,7 @@ export type ClientTaskUncheckedUpdateWithoutBlueprintInput = {
   testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -6040,6 +6357,7 @@ export type ClientTaskUpdateWithoutTestSpecificationInput = {
   milestone?: Prisma.ProjectMilestoneUpdateOneWithoutTasksNestedInput
   deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
   blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
@@ -6091,6 +6409,7 @@ export type ClientTaskUncheckedUpdateWithoutTestSpecificationInput = {
   workId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
   subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
   acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
@@ -6150,6 +6469,7 @@ export type ClientTaskUncheckedUpdateManyWithoutTestSpecificationInput = {
  */
 
 export type ClientTaskCountOutputType = {
+  workConversations: number
   subtasks: number
   acceptanceCriteria: number
   dependencies: number
@@ -6165,6 +6485,7 @@ export type ClientTaskCountOutputType = {
 }
 
 export type ClientTaskCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  workConversations?: boolean | ClientTaskCountOutputTypeCountWorkConversationsArgs
   subtasks?: boolean | ClientTaskCountOutputTypeCountSubtasksArgs
   acceptanceCriteria?: boolean | ClientTaskCountOutputTypeCountAcceptanceCriteriaArgs
   dependencies?: boolean | ClientTaskCountOutputTypeCountDependenciesArgs
@@ -6187,6 +6508,13 @@ export type ClientTaskCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.E
    * Select specific fields to fetch from the ClientTaskCountOutputType
    */
   select?: Prisma.ClientTaskCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * ClientTaskCountOutputType without action
+ */
+export type ClientTaskCountOutputTypeCountWorkConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.WorkConversationWhereInput
 }
 
 /**
@@ -6318,6 +6646,7 @@ export type ClientTaskSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   deliverable?: boolean | Prisma.ClientTask$deliverableArgs<ExtArgs>
   blueprint?: boolean | Prisma.ClientTask$blueprintArgs<ExtArgs>
   testSpecification?: boolean | Prisma.ClientTask$testSpecificationArgs<ExtArgs>
+  workConversations?: boolean | Prisma.ClientTask$workConversationsArgs<ExtArgs>
   subtasks?: boolean | Prisma.ClientTask$subtasksArgs<ExtArgs>
   acceptanceCriteria?: boolean | Prisma.ClientTask$acceptanceCriteriaArgs<ExtArgs>
   dependencies?: boolean | Prisma.ClientTask$dependenciesArgs<ExtArgs>
@@ -6473,6 +6802,7 @@ export type ClientTaskInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   deliverable?: boolean | Prisma.ClientTask$deliverableArgs<ExtArgs>
   blueprint?: boolean | Prisma.ClientTask$blueprintArgs<ExtArgs>
   testSpecification?: boolean | Prisma.ClientTask$testSpecificationArgs<ExtArgs>
+  workConversations?: boolean | Prisma.ClientTask$workConversationsArgs<ExtArgs>
   subtasks?: boolean | Prisma.ClientTask$subtasksArgs<ExtArgs>
   acceptanceCriteria?: boolean | Prisma.ClientTask$acceptanceCriteriaArgs<ExtArgs>
   dependencies?: boolean | Prisma.ClientTask$dependenciesArgs<ExtArgs>
@@ -6513,6 +6843,7 @@ export type $ClientTaskPayload<ExtArgs extends runtime.Types.Extensions.Internal
     deliverable: Prisma.$ProjectDeliverablePayload<ExtArgs> | null
     blueprint: Prisma.$EngineeringBlueprintPayload<ExtArgs> | null
     testSpecification: Prisma.$TestSpecificationPayload<ExtArgs> | null
+    workConversations: Prisma.$WorkConversationPayload<ExtArgs>[]
     subtasks: Prisma.$SubTaskPayload<ExtArgs>[]
     acceptanceCriteria: Prisma.$TaskAcceptanceCriterionPayload<ExtArgs>[]
     dependencies: Prisma.$TaskDependencyPayload<ExtArgs>[]
@@ -6964,6 +7295,7 @@ export interface Prisma__ClientTaskClient<T, Null = never, ExtArgs extends runti
   deliverable<T extends Prisma.ClientTask$deliverableArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$deliverableArgs<ExtArgs>>): Prisma.Prisma__ProjectDeliverableClient<runtime.Types.Result.GetResult<Prisma.$ProjectDeliverablePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   blueprint<T extends Prisma.ClientTask$blueprintArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$blueprintArgs<ExtArgs>>): Prisma.Prisma__EngineeringBlueprintClient<runtime.Types.Result.GetResult<Prisma.$EngineeringBlueprintPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   testSpecification<T extends Prisma.ClientTask$testSpecificationArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$testSpecificationArgs<ExtArgs>>): Prisma.Prisma__TestSpecificationClient<runtime.Types.Result.GetResult<Prisma.$TestSpecificationPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  workConversations<T extends Prisma.ClientTask$workConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$workConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   subtasks<T extends Prisma.ClientTask$subtasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$subtasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SubTaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   acceptanceCriteria<T extends Prisma.ClientTask$acceptanceCriteriaArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$acceptanceCriteriaArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskAcceptanceCriterionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   dependencies<T extends Prisma.ClientTask$dependenciesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$dependenciesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskDependencyPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -7533,6 +7865,30 @@ export type ClientTask$testSpecificationArgs<ExtArgs extends runtime.Types.Exten
    */
   include?: Prisma.TestSpecificationInclude<ExtArgs> | null
   where?: Prisma.TestSpecificationWhereInput
+}
+
+/**
+ * ClientTask.workConversations
+ */
+export type ClientTask$workConversationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the WorkConversation
+   */
+  select?: Prisma.WorkConversationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the WorkConversation
+   */
+  omit?: Prisma.WorkConversationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.WorkConversationInclude<ExtArgs> | null
+  where?: Prisma.WorkConversationWhereInput
+  orderBy?: Prisma.WorkConversationOrderByWithRelationInput | Prisma.WorkConversationOrderByWithRelationInput[]
+  cursor?: Prisma.WorkConversationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.WorkConversationScalarFieldEnum | Prisma.WorkConversationScalarFieldEnum[]
 }
 
 /**
