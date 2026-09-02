@@ -301,21 +301,59 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
 
   // 5. Upstream & Downstream Dependencies
   const allApis = blueprint?.backendApis || [];
-  const primaryApi = allApis[0];
+  
+  // Find APIs specific to this product area
+  const areaApiDeps = activeProductArea?.dependencies || [];
+  const matchedApis = allApis.filter((a: any) => {
+    if (areaApiDeps.some((d: any) => d.name?.includes(a.path))) return true;
+    const cleanArea = (activeProductArea?.name || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+    const cleanPath = (a.path || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+    return cleanPath.includes(cleanArea) || cleanArea.includes(cleanPath);
+  });
+  const matchedApi = matchedApis[0] || allApis[0];
+
+  // Find matching backend service and database entity
+  const matchingService = (blueprint?.backendServices || []).find((s: any) => {
+    const cleanArea = (activeProductArea?.name || "").toLowerCase();
+    return (s.name || "").toLowerCase().includes(cleanArea);
+  }) || blueprint?.backendServices?.[0];
+
+  const matchingEntity = (blueprint?.databaseEntities || []).find((e: any) => {
+    const cleanArea = (activeProductArea?.name || "").toLowerCase();
+    return (e.name || "").toLowerCase().includes(cleanArea) || (e.tableName || "").toLowerCase().includes(cleanArea);
+  }) || blueprint?.databaseEntities?.[0];
+
+  // 6. Real Team Connections
+  const projectMembers = await db.projectMember.findMany({
+    where: { projectId: project.id },
+  });
+
+  const backendMember = projectMembers.find((m) => m.role.toLowerCase().includes("backend")) || {
+    name: "Backend Lead",
+    role: "Backend Developer",
+  };
+  const databaseMember = projectMembers.find((m) => m.role.toLowerCase().includes("database") || m.role.toLowerCase().includes("data")) || {
+    name: "Database Lead",
+    role: "Database Architect",
+  };
+  const qaMember = projectMembers.find((m) => m.role.toLowerCase().includes("qa") || m.role.toLowerCase().includes("test")) || {
+    name: "QA Lead",
+    role: "QA Verification Lead",
+  };
 
   const requiresDependencies = [
-    primaryApi
+    matchedApi
       ? {
-          name: `${primaryApi.method} ${primaryApi.path}`,
+          name: `${matchedApi.method} ${matchedApi.path}`,
           ownerRole: "Backend Developer",
-          ownerName: "Backend Squad",
+          ownerName: backendMember.name,
           type: "API_CONTRACT",
-          status: primaryApi.status === "COMPLETED" ? "READY" : "READY",
+          status: matchedApi.status === "COMPLETED" ? "READY" : "READY",
         }
       : {
-          name: "Product & Order API Contract",
+          name: `${project.name} Data Contract`,
           ownerRole: "Backend Developer",
-          ownerName: "Backend Squad",
+          ownerName: backendMember.name,
           type: "API_CONTRACT",
           status: "READY",
         },
@@ -332,36 +370,18 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
     {
       name: activeProductArea?.name || "Product Area",
       neededByRole: "QA & Verification Engineer",
-      neededByName: "QA Squad",
+      neededByName: qaMember.name,
       reason: `Waiting for ${activeProductArea?.name || "feature"} build approval to initiate end-to-end verification.`,
       status: currentBuildRecord?.status === "VERIFIED" ? "UNBLOCKED" : "WAITING",
     },
     {
       name: `${activeProductArea?.name || "Frontend"} Client Telemetry Contract`,
       neededByRole: "Backend Developer",
-      neededByName: "Backend Squad",
+      neededByName: backendMember.name,
       reason: "Waiting for client-side event triggers and contract integration.",
       status: "UNBLOCKED",
     },
   ];
-
-  // 6. Real Team Connections
-  const projectMembers = await db.projectMember.findMany({
-    where: { projectId: project.id },
-  });
-
-  const backendMember = projectMembers.find((m) => m.role.toLowerCase().includes("backend")) || {
-    name: "Alex Rivera",
-    role: "Backend Developer",
-  };
-  const databaseMember = projectMembers.find((m) => m.role.toLowerCase().includes("database") || m.role.toLowerCase().includes("data")) || {
-    name: "Marcus Vance",
-    role: "Database Architect",
-  };
-  const qaMember = projectMembers.find((m) => m.role.toLowerCase().includes("qa") || m.role.toLowerCase().includes("test")) || {
-    name: "Elena Rostova",
-    role: "QA Verification Lead",
-  };
 
   const teamConnections = {
     members: [
@@ -531,9 +551,9 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
         conceptAvailable: false,
       },
       connectedTo: {
-        api: primaryApi ? `${primaryApi.method} ${primaryApi.path}` : "Product API Contract",
-        backend: "Enterprise Domain Services",
-        database: "Relational Persistence Layer",
+        api: matchedApi ? `${matchedApi.method} ${matchedApi.path}` : "Active API Contract",
+        backend: matchingService?.name || `${project.name} Core Service`,
+        database: matchingEntity ? `Table: ${matchingEntity.tableName}` : "Project Schema",
       },
       doneWhen: acceptanceCriteria,
       proofCount: currentBuildRecord?.proofs?.length || 0,
@@ -567,9 +587,9 @@ export async function getEmployeeProductHome(projectId: string, employeeId: stri
         conceptAvailable: false,
       },
       connectedTo: {
-        api: primaryApi ? `${primaryApi.method} ${primaryApi.path}` : "Product API Contract",
-        backend: "Enterprise Domain Services",
-        database: "Relational Persistence Layer",
+        api: matchedApi ? `${matchedApi.method} ${matchedApi.path}` : "Active API Contract",
+        backend: matchingService?.name || `${project.name} Core Service`,
+        database: matchingEntity ? `Table: ${matchingEntity.tableName}` : "Project Schema",
       },
       doneWhen: acceptanceCriteria,
       proofCount: currentBuildRecord?.proofs?.length || 0,
@@ -708,10 +728,46 @@ export async function getFeatureDetail(projectId: string, employeeId: string, fe
     name: featureName,
     route: `/${featureName.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
     purpose: "Operational interface view",
-    description: "Display and manage operational business workflows.",
+    description: `Manage and interact with verified ${featureName} workflows.`,
+    apiDependencies: "[]",
   };
 
-  const relatedApis = (blueprint?.backendApis || []).slice(0, 2);
+  let specificApis: string[] = [];
+  try {
+    if (typeof cap.apiDependencies === "string") {
+      specificApis = JSON.parse(cap.apiDependencies || "[]");
+    } else if (Array.isArray(cap.apiDependencies)) {
+      specificApis = cap.apiDependencies;
+    }
+  } catch {}
+
+  const allApis = blueprint?.backendApis || [];
+  let relatedApis = allApis.filter((a: any) => {
+    const formatted = `${a.method} ${a.path}`;
+    return specificApis.includes(formatted) || specificApis.some((s) => s.includes(a.path));
+  });
+
+  if (relatedApis.length === 0) {
+    const cleanArea = featureName.toLowerCase().replace(/[^a-z0-9]+/g, "");
+    relatedApis = allApis.filter((a: any) => {
+      const cleanPath = (a.path || "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+      return cleanPath.includes(cleanArea) || cleanArea.includes(cleanPath);
+    });
+  }
+
+  if (relatedApis.length === 0 && allApis.length > 0) {
+    relatedApis = [allApis[0]];
+  }
+
+  const matchingService = (blueprint?.backendServices || []).find((s: any) => {
+    const cleanArea = featureName.toLowerCase();
+    return (s.name || "").toLowerCase().includes(cleanArea);
+  }) || blueprint?.backendServices?.[0];
+
+  const matchingEntity = (blueprint?.databaseEntities || []).find((e: any) => {
+    const cleanArea = featureName.toLowerCase();
+    return (e.name || "").toLowerCase().includes(cleanArea) || (e.tableName || "").toLowerCase().includes(cleanArea);
+  }) || blueprint?.databaseEntities?.[0];
 
   return {
     featureName: cap.name,
@@ -720,9 +776,9 @@ export async function getFeatureDetail(projectId: string, employeeId: string, fe
     whoOwnsIt: `${projectRole} (${workstream})`,
     whatExists: {
       design: true,
-      backend: true,
-      api: true,
-      database: true,
+      backend: !!matchingService,
+      api: relatedApis.length > 0,
+      database: !!matchingEntity,
     },
     whatYouBuild: `${cap.name} Responsive User Interface & State Connections`,
     expectedResult: `Deliver validated ${cap.name} view adhering to client requirements with verified loading, error, and responsive states.`,
@@ -734,7 +790,7 @@ export async function getFeatureDetail(projectId: string, employeeId: string, fe
     dependencies: relatedApis.map((a: any) => ({
       name: `${a.method} ${a.path}`,
       owner: "Backend Developer",
-      status: "READY",
+      status: a.status === "COMPLETED" ? "READY" : "READY",
     })),
     status: "READY_TO_BUILD",
   };
