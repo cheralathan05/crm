@@ -407,7 +407,9 @@ export function PreSubmissionModal({
               </div>
             </>
           )}
-        </div>
+        </>
+      )}
+    </div>
 
         {/* ── FOOTER ACTIONS ────────────────────────────────────────── */}
         {!submittedResult && (
