@@ -67,8 +67,35 @@ export function EmployeeWorkspaceDrawer({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "work" | "projects" | "tasks" | "deliverables" | "teams" | "permissions" | "activity" | "security" | "invitations" | "performance"
+    "overview" | "reviews" | "work" | "projects" | "tasks" | "deliverables" | "teams" | "permissions" | "activity" | "security" | "invitations" | "performance"
   >("overview");
+
+  // Build Review Decisions
+  const [decidingId, setDecidingId] = useState<string | null>(null);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+  const handleExecuteReview = async (projectId: string, submissionId: string, decision: "APPROVED" | "CHANGES_REQUESTED" | "REJECTED", comment?: string) => {
+    setDecidingId(submissionId);
+    try {
+      const res = await fetch(`/api/projects/${projectId}/reviews/${submissionId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          decision,
+          comment: comment || (decision === "APPROVED" ? "Approved by Admin via Employee Workspace." : "Changes requested by Admin."),
+        }),
+      });
+      const json = await res.json();
+      if (json.ok) {
+        await loadDetails();
+        if (onUpdated) onUpdated();
+      }
+    } catch (e) {
+      console.error("Error submitting review decision:", e);
+    } finally {
+      setDecidingId(null);
+    }
+  };
 
   // Action Dialog States
   const [showEditProfile, setShowEditProfile] = useState(false);
@@ -217,7 +244,24 @@ export function EmployeeWorkspaceDrawer({
     );
   }
 
-  const { employee, role, team, user, executionHealth, projects = [], tasks = [], deliverables = [], permissions, invitations = [], auditTrail = [] } = data;
+  const {
+    employee,
+    role,
+    team,
+    user,
+    executionHealth,
+    projects = [],
+    tasks = [],
+    deliverables = [],
+    permissions,
+    invitations = [],
+    auditTrail = [],
+    buildSubmissions = [],
+  } = data;
+
+  const pendingSubmissions = buildSubmissions.filter(
+    (s: any) => s.status === "SUBMITTED" || s.status === "READY_FOR_REVIEW" || s.status === "IN_REVIEW" || s.status === "ANALYZING" || s.status === "QUEUED"
+  );
 
   return (
     <div className="fixed inset-0 z-50 bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col overflow-hidden animate-in fade-in duration-150">
@@ -356,10 +400,16 @@ export function EmployeeWorkspaceDrawer({
         </div>
       </div>
 
-      {/* ── 11 WORKSPACE TABS NAVIGATION ───────────────────────────── */}
+      {/* ── WORKSPACE TABS NAVIGATION ───────────────────────────── */}
       <div className="bg-[var(--bos-surface)] border-b border-[var(--bos-border)] px-6 shrink-0 flex items-center gap-1 overflow-x-auto">
         {[
           { id: "overview", label: "Overview", icon: Zap },
+          {
+            id: "reviews",
+            label: `Review Requests (${buildSubmissions.length})`,
+            icon: ShieldCheck,
+            badge: pendingSubmissions.length > 0 ? `${pendingSubmissions.length} Pending` : undefined,
+          },
           { id: "work", label: `Work DNA (${tasks.length})`, icon: CheckCircle2 },
           { id: "projects", label: `Projects (${projects.length})`, icon: FolderKanban },
           { id: "tasks", label: `Tasks (${tasks.length})`, icon: CheckSquare },
@@ -378,7 +428,7 @@ export function EmployeeWorkspaceDrawer({
               key={t.id}
               onClick={() => setActiveTab(t.id as any)}
               className={cn(
-                "flex items-center gap-1.5 py-2.5 px-3 border-b-2 text-[12px] font-mono font-medium transition-all whitespace-nowrap cursor-pointer",
+                "flex items-center gap-1.5 py-2.5 px-3 border-b-2 text-[12px] font-mono font-medium transition-all whitespace-nowrap cursor-pointer relative",
                 isActive
                   ? "border-[var(--bos-accent)] text-[var(--bos-accent)] font-bold"
                   : "border-transparent text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]",
@@ -386,6 +436,11 @@ export function EmployeeWorkspaceDrawer({
             >
               <Icon className="w-3.5 h-3.5" />
               <span>{t.label}</span>
+              {t.badge && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full bg-emerald-500 text-white text-[9px] font-bold font-mono animate-pulse">
+                  {t.badge}
+                </span>
+              )}
             </button>
           );
         })}
@@ -397,6 +452,75 @@ export function EmployeeWorkspaceDrawer({
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (
           <div className="space-y-6">
+            {/* PENDING REVIEW REQUESTS ALERT BANNER */}
+            {pendingSubmissions.length > 0 && (
+              <div className="p-5 bg-emerald-500/10 border-2 border-emerald-500/30 rounded-2xl space-y-4 shadow-sm animate-in fade-in duration-150">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                    <span className="text-[11px] font-mono font-bold uppercase text-emerald-400 tracking-wider">
+                      {pendingSubmissions.length} BUILD REVIEW REQUEST{pendingSubmissions.length > 1 ? "S" : ""} DELIVERED TO ADMIN
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setActiveTab("reviews")}
+                    className="text-[11px] font-mono text-emerald-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+                  >
+                    <span>View All in Review Center</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {pendingSubmissions.map((sub: any) => (
+                    <div
+                      key={sub.id}
+                      className="p-4 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <span className="px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 font-mono text-[10px] font-bold">
+                            {sub.submissionCode} • v{sub.version}
+                          </span>
+                          <span className="font-bold text-[13px] text-[var(--bos-text-primary)]">
+                            {sub.featureName}
+                          </span>
+                          <span className="text-[11px] text-[var(--bos-text-tertiary)] font-mono">
+                            ({sub.project?.name || "Project"})
+                          </span>
+                        </div>
+                        <p className="text-[12px] text-[var(--bos-text-secondary)]">
+                          {sub.whatYouBuilt}
+                        </p>
+                        <div className="flex items-center gap-3 text-[11px] font-mono text-[var(--bos-text-tertiary)] pt-1">
+                          <span className="text-emerald-400">✓ {sub.proofs?.length || 0} proofs attached</span>
+                          <span>•</span>
+                          <span>Submitted: {new Date(sub.submittedAt).toLocaleString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 font-mono text-xs">
+                        <button
+                          disabled={decidingId === sub.id}
+                          onClick={() => handleExecuteReview(sub.project?.id, sub.id, "APPROVED")}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg transition-all flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                        >
+                          {decidingId === sub.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                          <span>Approve Build</span>
+                        </button>
+                        <button
+                          onClick={() => setActiveTab("reviews")}
+                          className="px-3.5 py-2 bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] rounded-lg transition-colors cursor-pointer"
+                        >
+                          Inspect Evidence
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
             {/* Relational Flow Graph Strip */}
             <div className="p-4 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-3">
               <span className="text-[10.5px] font-mono font-bold uppercase text-[var(--bos-accent)] tracking-wider block">
@@ -482,6 +606,172 @@ export function EmployeeWorkspaceDrawer({
           </div>
         )}
 
+        {/* TAB: BUILD REVIEWS & SUBMISSIONS */}
+        {activeTab === "reviews" && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between p-4 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl">
+              <div>
+                <h3 className="text-[14px] font-bold text-[var(--bos-text-primary)]">Build Reviews & Submissions</h3>
+                <p className="text-[11px] text-[var(--bos-text-secondary)]">
+                  Review build requests, inspect verification proofs (PRs, Screenshots, Tests), and execute admin approval decisions.
+                </p>
+              </div>
+              <span className="text-[11px] font-mono text-[var(--bos-text-secondary)]">
+                {buildSubmissions.length} Total Submissions
+              </span>
+            </div>
+
+            {buildSubmissions.length === 0 ? (
+              <div className="p-8 text-center bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl space-y-2">
+                <ShieldCheck className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto" />
+                <p className="text-xs font-mono text-[var(--bos-text-secondary)]">No build submissions recorded yet for this employee.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {buildSubmissions.map((sub: any) => {
+                  const isPending = sub.status === "SUBMITTED" || sub.status === "READY_FOR_REVIEW" || sub.status === "IN_REVIEW" || sub.status === "ANALYZING" || sub.status === "QUEUED";
+                  const isApproved = sub.status === "APPROVED";
+                  const isChanges = sub.status === "CHANGES_REQUESTED";
+
+                  return (
+                    <div
+                      key={sub.id}
+                      className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl space-y-4 shadow-xs"
+                    >
+                      <div className="flex items-start justify-between flex-wrap gap-3 pb-3 border-b border-[var(--bos-border)]">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="px-2.5 py-0.5 rounded-md bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] font-mono text-[10.5px] font-bold">
+                              {sub.submissionCode} • Version {sub.version}
+                            </span>
+                            <h4 className="text-[15px] font-bold text-[var(--bos-text-primary)]">
+                              {sub.featureName}
+                            </h4>
+                            {sub.task && (
+                              <span className="px-2 py-0.5 rounded bg-sky-500/10 text-sky-400 border border-sky-500/20 font-mono text-[10.5px] font-bold">
+                                Task: {sub.task.code || "TSK"} • {sub.task.title}
+                              </span>
+                            )}
+                          </div>
+                          <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)] block">
+                            Project: {sub.project?.name || "Project"} • Role: {sub.responsibility || "Implementation"}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "px-3 py-1 rounded-xl font-mono text-[11px] font-bold uppercase",
+                              isApproved
+                                ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20"
+                                : isChanges
+                                ? "bg-amber-500/10 text-amber-400 border border-amber-500/20"
+                                : "bg-purple-500/10 text-purple-300 border border-purple-500/30"
+                            )}
+                          >
+                            {isPending ? "AWAITING ADMIN REVIEW" : sub.status}
+                          </span>
+
+                          {isPending && (
+                            <button
+                              disabled={decidingId === sub.id}
+                              onClick={() => handleExecuteReview(sub.project?.id, sub.id, "APPROVED")}
+                              className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold uppercase rounded-xl transition-all shadow-md cursor-pointer flex items-center gap-1.5 disabled:opacity-50"
+                            >
+                              {decidingId === sub.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle2 className="w-3.5 h-3.5" />}
+                              <span>Approve</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* What was built */}
+                      <div className="p-3.5 bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] rounded-xl text-xs space-y-1">
+                        <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                          WHAT WAS BUILT:
+                        </span>
+                        <p className="text-[var(--bos-text-primary)] font-medium leading-relaxed">
+                          {sub.whatYouBuilt}
+                        </p>
+                      </div>
+
+                      {/* Attached Proofs (3 Sections) */}
+                      <div className="space-y-2">
+                        <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-secondary)] block">
+                          ATTACHED VERIFICATION PROOFS ({sub.proofs?.length || 0}):
+                        </span>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                          {sub.proofs?.map((p: any) => {
+                            const isImage = p.type === "SCREENSHOT" || p.evidenceUrl?.startsWith("data:image") || p.evidenceUrl?.includes("blob:") || p.evidenceUrl?.match(/\.(png|jpe?g|webp|gif|svg)/i);
+
+                            return (
+                              <div
+                                key={p.id}
+                                className="p-3.5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] text-xs space-y-2 flex flex-col justify-between"
+                              >
+                                <div className="space-y-1.5">
+                                  <div className="flex items-center justify-between gap-1">
+                                    <span className="font-bold text-[var(--bos-text-primary)] truncate">
+                                      {p.title}
+                                    </span>
+                                    <span className="px-1.5 py-0.5 rounded bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] font-mono text-[9px] uppercase font-bold shrink-0">
+                                      {p.type}
+                                    </span>
+                                  </div>
+                                  <p className="text-[11px] text-[var(--bos-text-secondary)] line-clamp-2">
+                                    {p.whatChanged}
+                                  </p>
+
+                                  {/* Visual Image Preview */}
+                                  {isImage && p.evidenceUrl && (
+                                    <div
+                                      onClick={() => setSelectedImage(p.evidenceUrl)}
+                                      className="rounded-lg overflow-hidden border border-[var(--bos-border)] bg-black/20 relative group cursor-pointer"
+                                      title="Click to zoom screenshot"
+                                    >
+                                      <img
+                                        src={p.evidenceUrl}
+                                        alt={p.title}
+                                        className="w-full h-32 object-cover group-hover:scale-105 transition-transform"
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-[11px] font-mono font-bold">
+                                        🔍 Click to Enlarge
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="pt-1 border-t border-[var(--bos-border)]/60 space-y-1">
+                                  {p.evidenceUrl && !isImage && (
+                                    <a
+                                      href={p.evidenceUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-[10.5px] font-mono text-purple-400 hover:underline flex items-center gap-1 truncate"
+                                    >
+                                      <ExternalLink className="w-3 h-3 shrink-0" />
+                                      <span className="truncate">{p.evidenceUrl}</span>
+                                    </a>
+                                  )}
+                                  {p.testOutcome && (
+                                    <span className="font-mono text-[10px] text-emerald-400 block">
+                                      Outcome: {p.testOutcome}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
         {/* TAB 2: WORK DNA & TASK ORIGIN */}
         {activeTab === "work" && (
           <div className="space-y-4">
@@ -511,9 +801,16 @@ export function EmployeeWorkspaceDrawer({
                       </span>
                       <h4 className="text-[13px] font-bold text-[var(--bos-text-primary)]">{task.title}</h4>
                     </div>
-                    <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] font-bold">
-                      {task.status}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      {task.submission && (
+                        <span className="text-[9.5px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">
+                          SUBMITTED (v{task.submission.version})
+                        </span>
+                      )}
+                      <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] font-bold">
+                        {task.status}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Lineage Path */}
@@ -577,7 +874,7 @@ export function EmployeeWorkspaceDrawer({
         {activeTab === "tasks" && (
           <div className="space-y-3">
             {tasks.map((task: any) => (
-              <div key={task.id} className="p-3.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl flex items-center justify-between">
+              <div key={task.id} className="p-3.5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl flex items-center justify-between flex-wrap gap-3">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] font-mono text-[var(--bos-accent)] font-bold">{task.code}</span>
@@ -585,7 +882,17 @@ export function EmployeeWorkspaceDrawer({
                   </div>
                   <span className="text-[11px] font-mono text-[var(--bos-text-secondary)]">{task.projectName} · {task.layer} · {task.estimatedHours}h est</span>
                 </div>
-                <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[var(--bos-bg)] text-[var(--bos-text-secondary)]">{task.status}</span>
+                <div className="flex items-center gap-2">
+                  {task.submission && (
+                    <button
+                      onClick={() => setActiveTab("reviews")}
+                      className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold hover:bg-emerald-500/20 transition-colors cursor-pointer"
+                    >
+                      ✓ Review Submission (v{task.submission.version})
+                    </button>
+                  )}
+                  <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded bg-[var(--bos-bg)] text-[var(--bos-text-secondary)]">{task.status}</span>
+                </div>
               </div>
             ))}
             {tasks.length === 0 && (
@@ -840,33 +1147,33 @@ export function EmployeeWorkspaceDrawer({
         </div>
       )}
 
-      {/* ── ACTION MODAL 3: MOVE TEAM ────────────────────────────── */}
-      {showMoveTeam && (
-        <div className="fixed inset-0 z-60 bg-black/70 flex items-center justify-center p-4">
-          <div className="bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between">
-              <h3 className="text-[15px] font-bold">Transfer Delivery Team</h3>
-              <button onClick={() => setShowMoveTeam(false)}><X className="w-5 h-5" /></button>
-            </div>
-
-            <div className="space-y-3 text-[12px]">
-              <label className="text-[11px] font-mono text-[var(--bos-text-secondary)]">Select Target Squad / Team</label>
-              <select
-                value={targetTeamId}
-                onChange={(e) => setTargetTeamId(e.target.value)}
-                className="w-full px-3 py-2 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg"
+      {/* ── IMAGE LIGHTBOX MODAL ─────────────────────────────────── */}
+      {selectedImage && (
+        <div
+          className="fixed inset-0 z-70 bg-black/85 flex items-center justify-center p-6 animate-in fade-in duration-150 cursor-zoom-out"
+          onClick={() => setSelectedImage(null)}
+        >
+          <div
+            className="relative max-w-5xl max-h-[90vh] bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl p-4 shadow-2xl space-y-3 cursor-default"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between pb-2 border-b border-[var(--bos-border)]">
+              <span className="font-mono text-xs font-bold uppercase text-emerald-400">
+                Screenshot Verification Proof
+              </span>
+              <button
+                onClick={() => setSelectedImage(null)}
+                className="p-1 rounded-lg hover:bg-[var(--bos-bg)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
               >
-                {teams.map((t) => (
-                  <option key={t.id} value={t.id}>{t.name} ({t.department})</option>
-                ))}
-              </select>
-
-              <div className="flex justify-end gap-2 pt-2 border-t border-[var(--bos-border)]">
-                <button type="button" onClick={() => setShowMoveTeam(false)} className="px-3 py-1.5 rounded-lg border border-[var(--bos-border)]">Cancel</button>
-                <button type="button" disabled={savingTeam} onClick={handleMoveTeam} className="px-4 py-1.5 bg-sky-600 text-white rounded-lg font-semibold">
-                  {savingTeam ? "Transferring..." : "Confirm Transfer"}
-                </button>
-              </div>
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="max-h-[75vh] overflow-auto flex items-center justify-center rounded-xl bg-black/40 p-2">
+              <img
+                src={selectedImage}
+                alt="Enlarged screenshot proof"
+                className="max-h-[72vh] w-auto object-contain rounded-lg shadow-lg"
+              />
             </div>
           </div>
         </div>

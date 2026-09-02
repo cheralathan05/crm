@@ -738,101 +738,195 @@ export async function getEmployeeWorkspaceDetails(employeeId: string) {
       : "No organization role assigned. Workspace access is limited.",
   };
 
-  return {
-    employee: {
-      id: employee.id,
-      employeeCode: employee.employeeCode,
-      fullName: employee.fullName,
-      preferredName: employee.preferredName,
-      email: employee.email,
-      phone: employee.phone,
-      avatar: employee.avatar,
-      status: employee.status,
-      department: employee.department,
-      timezone: employee.timezone,
-      location: employee.location,
-      employmentType: employee.employmentType,
-      primaryResponsibility: employee.primaryResponsibility,
-      secondaryResponsibilities,
-      accountabilities,
-      capabilities,
-      customPermissions,
-      capacityTargetHours: employee.capacityTargetHours,
-      joinedAt: employee.joinedAt,
-      activatedAt: employee.activatedAt,
-      lastActiveAt: employee.lastActiveAt,
-      offboardedAt: employee.offboardedAt,
-      offboardedReason: employee.offboardedReason,
-      offboardedNotes: employee.offboardedNotes,
-    },
-    role: employee.role,
-    team: employee.team,
-    user: employee.user ? {
-      id: employee.user.id,
-      emailVerified: employee.user.emailVerified,
-      status: employee.user.status,
-      lastLoginAt: employee.user.lastLoginAt,
-    } : null,
-    executionHealth: {
-      activeProjectsCount: employee.projectAllocations.length,
-      activeTasksCount: tasks.length - completedTasks.length,
-      completedTasksCount: completedTasks.length,
-      blockedCount: blockedTasks.length,
-      overdueCount: overdueTasks.length,
-      dueSoonCount: dueSoonTasks.length,
-      totalAssignedHours,
-      capacityTargetHours: employee.capacityTargetHours,
-      capacityPercentage,
-      completionRate: tasks.length > 0 ? Math.round((completedTasks.length / tasks.length) * 100) : 0,
-    },
-    projects: (employee.projectAllocations || []).map((a: any) => ({
-      id: a.project.id,
-      name: a.project.name,
-      code: a.project.code,
-      stage: a.project.stage,
-      clientName: a.project.client?.company || a.project.client?.name || "Enterprise Client",
-      projectRole: a.projectRole,
-      allocationPercentage: a.allocationPercentage,
-      workstream: a.workstream,
-      joinedAt: a.joinedAt,
-    })),
-    tasks: tasks.map((t) => ({
-      id: t.id,
-      code: t.code,
-      title: t.title,
-      description: t.description,
-      status: t.status,
-      priority: t.priority,
-      layer: t.layer,
-      dueAt: t.dueAt,
-      estimatedHours: t.estimatedHours,
-      actualHours: t.actualHours,
-      projectId: t.projectId,
-      projectName: t.project?.name || "General",
-      deliverableId: t.deliverableId,
-      deliverableTitle: t.deliverable?.title,
-      workstreamName: t.workstream || "ENGINEERING",
-      sourceRequirementId: t.sourceRequirementId,
-      sourceProposalId: t.sourceProposalId,
-      criteriaCount: t.acceptanceCriteria.length,
-      passedCriteriaCount: t.acceptanceCriteria.filter((c: any) => c.status === "PASSED").length,
-      evidenceCount: t.evidenceRecords.length,
-    })),
-    deliverables: deliverables.map((d) => ({
-      id: d.id,
-      title: d.title,
-      category: d.category,
-      status: d.status,
-      acceptanceCriteria: d.acceptanceCriteria,
-      projectId: d.projectId,
-      projectName: d.project.name,
-      evidenceCount: d.evidenceRecords.length,
-    })),
-    permissions: effectivePermissions,
-    invitations: employee.invitations || [],
-    auditTrail: employee.auditEvents || [],
-  };
-}
+    // Build Submissions & Review Requests sent to Admin
+    const rawSubmissions = await db.buildSubmission.findMany({
+      where: { employeeId: employee.id },
+      include: {
+        project: { select: { id: true, name: true, code: true } },
+        proofs: true,
+        reviewDecisions: { orderBy: { reviewedAt: "desc" } },
+        build: { select: { id: true, featureName: true, status: true } },
+      },
+      orderBy: { submittedAt: "desc" },
+    });
+
+    const formattedSubmissions = rawSubmissions.map((s) => {
+      const matchingTask = tasks.find(
+        (t) =>
+          t.projectId === s.projectId &&
+          (t.title.toLowerCase().includes(s.featureName.toLowerCase()) ||
+            s.featureName.toLowerCase().includes(t.title.toLowerCase()) ||
+            (t.deliverable && t.deliverable.title.toLowerCase().includes(s.featureName.toLowerCase())))
+      );
+
+      return {
+        id: s.id,
+        submissionCode: s.submissionCode,
+        version: s.version,
+        status: s.status,
+        submittedAt: s.submittedAt.toISOString(),
+        featureName: s.featureName,
+        workstream: s.workstream,
+        responsibility: s.responsibility,
+        requirementText: s.requirementText,
+        whatYouBuilt: s.whatYouBuilt,
+        project: {
+          id: s.project?.id,
+          name: s.project?.name || "Project",
+          code: s.project?.code || "PRJ",
+        },
+        task: matchingTask
+          ? {
+              id: matchingTask.id,
+              code: matchingTask.code,
+              title: matchingTask.title,
+              status: matchingTask.status,
+            }
+          : null,
+        proofs: s.proofs.map((p) => ({
+          id: p.id,
+          type: p.type,
+          milestone: p.milestone,
+          title: p.title,
+          evidenceUrl: p.evidenceUrl,
+          evidenceCode: p.evidenceCode,
+          testOutcome: p.testOutcome,
+          whatChanged: p.whatChanged,
+          createdAt: p.createdAt.toISOString(),
+        })),
+        reviewDecisions: s.reviewDecisions.map((d) => ({
+          id: d.id,
+          decision: d.decision,
+          reviewerName: d.reviewerName,
+          comment: d.comment,
+          reviewedAt: d.reviewedAt.toISOString(),
+        })),
+      };
+    });
+
+    return {
+      employee: {
+        id: employee.id,
+        employeeCode: employee.employeeCode,
+        fullName: employee.fullName,
+        preferredName: employee.preferredName,
+        email: employee.email,
+        phone: employee.phone,
+        avatar: employee.avatar,
+        status: employee.status,
+        department: employee.department,
+        timezone: employee.timezone,
+        location: employee.location,
+        employmentType: employee.employmentType,
+        primaryResponsibility: employee.primaryResponsibility,
+        secondaryResponsibilities,
+        accountabilities,
+        capabilities,
+        customPermissions,
+        capacityTargetHours: employee.capacityTargetHours,
+        joinedAt: employee.joinedAt,
+        activatedAt: employee.activatedAt,
+        lastActiveAt: employee.lastActiveAt,
+        offboardedAt: employee.offboardedAt,
+        offboardedReason: employee.offboardedReason,
+        offboardedNotes: employee.offboardedNotes,
+      },
+      role: employee.role,
+      team: employee.team,
+      user: employee.user
+        ? {
+            id: employee.user.id,
+            emailVerified: employee.user.emailVerified,
+            status: employee.user.status,
+            lastLoginAt: employee.user.lastLoginAt,
+          }
+        : null,
+      executionHealth: {
+        activeProjectsCount: employee.projectAllocations.length,
+        activeTasksCount: tasks.length - completedTasks.length,
+        completedTasksCount: completedTasks.length,
+        blockedCount: blockedTasks.length,
+        overdueCount: overdueTasks.length,
+        dueSoonCount: dueSoonTasks.length,
+        totalAssignedHours,
+        capacityTargetHours: employee.capacityTargetHours,
+        capacityPercentage,
+        completionRate:
+          tasks.length > 0
+            ? Math.round((completedTasks.length / tasks.length) * 100)
+            : 0,
+      },
+      projects: (employee.projectAllocations || []).map((a: any) => ({
+        id: a.project.id,
+        name: a.project.name,
+        code: a.project.code,
+        stage: a.project.stage,
+        clientName:
+          a.project.client?.company ||
+          a.project.client?.name ||
+          "Enterprise Client",
+        projectRole: a.projectRole,
+        allocationPercentage: a.allocationPercentage,
+        workstream: a.workstream,
+        joinedAt: a.joinedAt,
+      })),
+      tasks: tasks.map((t) => {
+        const matchingSub = formattedSubmissions.find(
+          (s) =>
+            s.task?.id === t.id ||
+            t.title.toLowerCase().includes(s.featureName.toLowerCase()) ||
+            s.featureName.toLowerCase().includes(t.title.toLowerCase())
+        );
+
+        return {
+          id: t.id,
+          code: t.code,
+          title: t.title,
+          description: t.description,
+          status: t.status,
+          priority: t.priority,
+          layer: t.layer,
+          dueAt: t.dueAt,
+          estimatedHours: t.estimatedHours,
+          actualHours: t.actualHours,
+          projectId: t.projectId,
+          projectName: t.project?.name || "General",
+          deliverableId: t.deliverableId,
+          deliverableTitle: t.deliverable?.title,
+          workstreamName: t.workstream || "ENGINEERING",
+          sourceRequirementId: t.sourceRequirementId,
+          sourceProposalId: t.sourceProposalId,
+          criteriaCount: t.acceptanceCriteria.length,
+          passedCriteriaCount: t.acceptanceCriteria.filter(
+            (c: any) => c.status === "PASSED"
+          ).length,
+          evidenceCount: t.evidenceRecords.length,
+          submission: matchingSub
+            ? {
+                id: matchingSub.id,
+                submissionCode: matchingSub.submissionCode,
+                version: matchingSub.version,
+                status: matchingSub.status,
+              }
+            : null,
+        };
+      }),
+      deliverables: deliverables.map((d) => ({
+        id: d.id,
+        title: d.title,
+        category: d.category,
+        status: d.status,
+        acceptanceCriteria: d.acceptanceCriteria,
+        projectId: d.projectId,
+        projectName: d.project.name,
+        evidenceCount: d.evidenceRecords.length,
+      })),
+      buildSubmissions: formattedSubmissions,
+      permissions: effectivePermissions,
+      invitations: employee.invitations || [],
+      auditTrail: employee.auditEvents || [],
+    };
+  }
 
 /**
  * Role Change with Capability Differential and Audit Event.

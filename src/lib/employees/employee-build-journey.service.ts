@@ -347,7 +347,7 @@ export async function submitBuildForVerification(params: {
     console.warn("[submitBuildForVerification] Could not sync clientTask:", taskErr);
   }
 
-  // 4. Create initial Audit Event: SUBMITTED
+  // 4. Create initial Audit Event: SUBMITTED DIRECTLY TO ADMIN
   await db.buildJourneyAuditEvent.create({
     data: {
       submissionId: submission.id,
@@ -357,7 +357,7 @@ export async function submitBuildForVerification(params: {
       actorRole: build.workstream,
       eventType: "SUBMITTED",
       version: nextVersion,
-      detail: `Submitted build ${submissionCode} (Version ${nextVersion}) for AI verification and Admin Review.`,
+      detail: `Submitted build ${submissionCode} (Version ${nextVersion}) directly to Admin Review Center for verification.`,
       metadata: JSON.stringify({
         evidenceCount: evidenceIds.length,
         criteriaCount: precheck.acceptanceCriteria.length,
@@ -365,29 +365,11 @@ export async function submitBuildForVerification(params: {
     },
   });
 
-  // 5. Create AI Verification Job in QUEUED state
-  const job = await db.buildVerificationJob.create({
-    data: {
-      submissionId: submission.id,
-      status: "QUEUED",
-      modelName: "llama3",
-      promptVersion: "verification-v3",
-      inputContextVersion: "1.0",
-    },
-  });
-
-  // 6. Execute Ollama Verification Asynchronously
-  runOllamaVerificationJob(submission.id).catch((err) => {
-    console.error("[runOllamaVerificationJob] background execution error:", err);
-  });
-
   return {
     submissionId: submission.id,
     submissionCode: submission.submissionCode,
     version: submission.version,
     status: submission.status,
-    jobId: job.id,
-    jobStatus: job.status,
   };
 }
 
@@ -746,6 +728,17 @@ export async function getSubmissionJourneyStatus(buildId: string) {
     };
   }
 
+  // Normalize any legacy ANALYZING/QUEUED status to SUBMITTED
+  if (currentSubmission.status === "ANALYZING" || currentSubmission.status === "QUEUED") {
+    try {
+      await db.buildSubmission.update({
+        where: { id: currentSubmission.id },
+        data: { status: "SUBMITTED" },
+      });
+      currentSubmission.status = "SUBMITTED";
+    } catch (e) {}
+  }
+
   // Parse report findings
   let criteriaResults: any[] = [];
   let supportedFindings: string[] = [];
@@ -773,8 +766,18 @@ export async function getSubmissionJourneyStatus(buildId: string) {
       version: currentSubmission.version,
       status: currentSubmission.status,
       submittedAt: currentSubmission.submittedAt.toISOString(),
+      featureName: currentSubmission.featureName,
+      workstream: currentSubmission.workstream,
+      responsibility: currentSubmission.responsibility,
       requirementText: currentSubmission.requirementText,
       whatYouBuilt: currentSubmission.whatYouBuilt,
+      acceptanceCriteria: (() => {
+        try {
+          return JSON.parse(currentSubmission.acceptanceCriteria || "[]");
+        } catch {
+          return [];
+        }
+      })(),
       project: {
         id: build.project.id,
         name: build.project.name,

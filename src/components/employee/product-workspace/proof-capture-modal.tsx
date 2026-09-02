@@ -149,11 +149,15 @@ export function ProofCaptureModal({
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      updateCurrentState({
-        evidenceUrl: previewUrl,
-        uploadedFileName: file.name,
-      });
+      const reader = new FileReader();
+      reader.onload = (loadEvt) => {
+        const base64Url = (loadEvt.target?.result as string) || "";
+        updateCurrentState({
+          evidenceUrl: base64Url,
+          uploadedFileName: file.name,
+        });
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -519,12 +523,37 @@ export function ProofCaptureModal({
                   </span>
                   <input
                     type="text"
-                    value={current.evidenceUrl}
-                    onChange={(e) => updateCurrentState({ evidenceUrl: e.target.value })}
+                    value={current.evidenceUrl.startsWith("data:image") ? "[Image Attached via Upload]" : current.evidenceUrl}
+                    onChange={(e) => updateCurrentState({ evidenceUrl: e.target.value, uploadedFileName: undefined })}
                     placeholder="https://assets.domain.com/screenshots/view.png"
                     className="w-full p-2.5 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] text-xs text-[var(--bos-text-primary)] outline-none font-mono focus:border-[var(--bos-accent)]"
                   />
                 </div>
+
+                {/* Live Screenshot Preview */}
+                {current.evidenceUrl && (
+                  <div className="p-3 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold uppercase text-emerald-400">
+                        Screenshot Preview
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => updateCurrentState({ evidenceUrl: "", uploadedFileName: undefined })}
+                        className="text-[10px] font-mono text-rose-400 hover:underline cursor-pointer"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                    <div className="max-h-40 rounded-xl overflow-hidden border border-[var(--bos-border)] bg-black/20 flex items-center justify-center">
+                      <img
+                        src={current.evidenceUrl}
+                        alt="Screenshot proof preview"
+                        className="max-h-40 w-auto object-contain rounded-lg"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
