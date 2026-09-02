@@ -46,16 +46,14 @@ export function EmployeeOnboardingWizard({
   const [location, setLocation] = useState("");
   const [employmentType, setEmploymentType] = useState("FULL_TIME");
 
-  const [selectedRoleId, setSelectedRoleId] = useState<string>(roles[0]?.id || "");
-  const [selectedTeamId, setSelectedTeamId] = useState<string>(teams[0]?.id || "");
+  const [selectedRoleId, setSelectedRoleId] = useState<string>("");
+  const [selectedTeamId, setSelectedTeamId] = useState<string>("");
 
   const [primaryResponsibility, setPrimaryResponsibility] = useState("");
   const [secondaryResponsibilities, setSecondaryResponsibilities] = useState<string[]>([]);
   const [newSecondary, setNewSecondary] = useState("");
 
-  const [capabilities, setCapabilities] = useState<Array<{ skill: string; level: string }>>([
-    { skill: "TypeScript", level: "EXPERT" },
-  ]);
+  const [capabilities, setCapabilities] = useState<Array<{ skill: string; level: string }>>([]);
   const [newSkill, setNewSkill] = useState("");
   const [newSkillLevel, setNewSkillLevel] = useState("ADVANCED");
 
@@ -67,8 +65,8 @@ export function EmployeeOnboardingWizard({
   const [createdResult, setCreatedResult] = useState<any | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const selectedRole = roles.find((r) => r.id === selectedRoleId) || roles[0];
-  const selectedTeam = teams.find((t) => t.id === selectedTeamId) || teams[0];
+  const selectedRole = roles.find((r) => r.id === selectedRoleId) || null;
+  const selectedTeam = teams.find((t) => t.id === selectedTeamId) || null;
 
   const handleAddSecondary = () => {
     if (!newSecondary.trim()) return;
@@ -586,15 +584,22 @@ export function EmployeeOnboardingWizard({
                   <h4 className="text-[13.5px] font-bold text-[var(--bos-text-primary)]">
                     {fullName || "New Employee"}
                   </h4>
-                  <span className="text-[11px] font-mono text-[var(--bos-accent)] block">
-                    {selectedRole?.name || "Select Role"}
+                  <span
+                    className={cn(
+                      "text-[11px] font-mono block",
+                      selectedRole
+                        ? "text-[var(--bos-accent)] font-semibold"
+                        : "text-[var(--bos-text-tertiary)] italic"
+                    )}
+                  >
+                    {selectedRole ? selectedRole.name : "Role unassigned (Select in Step 02)"}
                   </span>
                 </div>
               </div>
 
               <div className="text-[11px] font-mono text-[var(--bos-text-secondary)] space-y-1 pt-2 border-t border-[var(--bos-border)]/60">
                 <div>Email: {email || "—"}</div>
-                <div>Team: {selectedTeam?.name || "—"}</div>
+                <div>Team: {selectedTeam ? selectedTeam.name : "Unassigned (Select in Step 04)"}</div>
                 <div>Capacity Target: {capacityTargetHours}h/week</div>
                 <div>Capabilities: {capabilities.length} defined</div>
               </div>

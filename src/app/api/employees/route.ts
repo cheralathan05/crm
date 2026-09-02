@@ -98,52 +98,95 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+
     // Check email uniqueness within workspace
     const existing = await db.employee.findFirst({
-      where: { workspaceId: workspace.id, email: email.trim().toLowerCase() },
+      where: { workspaceId: workspace.id, email: cleanEmail },
+      include: { role: true, team: true },
     });
-    if (existing && existing.status !== "OFFBOARDED") {
-      return NextResponse.json(
-        { ok: false, message: "An active employee with this email already exists." },
-        { status: 409 },
-      );
+
+    let employee: any = null;
+    let employeeCode = "";
+
+    if (existing) {
+      if (existing.status === "OFFBOARDED") {
+        // Reactivate previously offboarded employee record
+        employeeCode = existing.employeeCode;
+        employee = await db.employee.update({
+          where: { id: existing.id },
+          data: {
+            fullName: fullName.trim(),
+            preferredName: preferredName?.trim() || null,
+            phone: phone?.trim() || null,
+            status: sendInvitation ? "INVITED" : "ACTIVE",
+            department,
+            timezone,
+            location: location?.trim() || null,
+            employmentType,
+            roleId: roleId || null,
+            teamId: teamId || null,
+            primaryResponsibility: primaryResponsibility?.trim() || null,
+            secondaryResponsibilities: JSON.stringify(secondaryResponsibilities),
+            accountabilities: JSON.stringify(accountabilities),
+            deliverableOwnership: JSON.stringify(deliverableOwnership),
+            approvalResponsibility: JSON.stringify(approvalResponsibility),
+            escalationResponsibility: JSON.stringify(escalationResponsibility),
+            capabilities: JSON.stringify(capabilities),
+            customPermissions: JSON.stringify(customPermissions),
+            capacityTargetHours: Number(capacityTargetHours) || 40.0,
+            offboardedAt: null,
+            offboardedReason: null,
+            offboardedNotes: null,
+          },
+          include: { role: true, team: true },
+        });
+      } else {
+        return NextResponse.json(
+          {
+            ok: false,
+            message: `An employee with email '${cleanEmail}' already exists (${existing.fullName} - ${existing.employeeCode}). You can re-invite them from their profile in the Directory.`,
+          },
+          { status: 409 },
+        );
+      }
+    } else {
+      // Auto-generate employee code (e.g. EMP-001, EMP-002)
+      const empCount = await db.employee.count({ where: { workspaceId: workspace.id } });
+      employeeCode = `EMP-${String(empCount + 1).padStart(3, "0")}`;
+
+      // Create Employee record
+      employee = await db.employee.create({
+        data: {
+          workspaceId: workspace.id,
+          employeeCode,
+          fullName: fullName.trim(),
+          preferredName: preferredName?.trim() || null,
+          email: cleanEmail,
+          phone: phone?.trim() || null,
+          status: sendInvitation ? "INVITED" : "ACTIVE",
+          department,
+          timezone,
+          location: location?.trim() || null,
+          employmentType,
+          roleId: roleId || null,
+          teamId: teamId || null,
+          primaryResponsibility: primaryResponsibility?.trim() || null,
+          secondaryResponsibilities: JSON.stringify(secondaryResponsibilities),
+          accountabilities: JSON.stringify(accountabilities),
+          deliverableOwnership: JSON.stringify(deliverableOwnership),
+          approvalResponsibility: JSON.stringify(approvalResponsibility),
+          escalationResponsibility: JSON.stringify(escalationResponsibility),
+          capabilities: JSON.stringify(capabilities),
+          customPermissions: JSON.stringify(customPermissions),
+          capacityTargetHours: Number(capacityTargetHours) || 40.0,
+        },
+        include: {
+          role: true,
+          team: true,
+        },
+      });
     }
-
-    // Auto-generate employee code (e.g. EMP-001, EMP-002)
-    const empCount = await db.employee.count({ where: { workspaceId: workspace.id } });
-    const employeeCode = `EMP-${String(empCount + 1).padStart(3, "0")}`;
-
-    // Create Employee record
-    const employee = await db.employee.create({
-      data: {
-        workspaceId: workspace.id,
-        employeeCode,
-        fullName: fullName.trim(),
-        preferredName: preferredName?.trim() || null,
-        email: email.trim().toLowerCase(),
-        phone: phone?.trim() || null,
-        status: sendInvitation ? "INVITED" : "ACTIVE",
-        department,
-        timezone,
-        location: location?.trim() || null,
-        employmentType,
-        roleId: roleId || null,
-        teamId: teamId || null,
-        primaryResponsibility: primaryResponsibility?.trim() || null,
-        secondaryResponsibilities: JSON.stringify(secondaryResponsibilities),
-        accountabilities: JSON.stringify(accountabilities),
-        deliverableOwnership: JSON.stringify(deliverableOwnership),
-        approvalResponsibility: JSON.stringify(approvalResponsibility),
-        escalationResponsibility: JSON.stringify(escalationResponsibility),
-        capabilities: JSON.stringify(capabilities),
-        customPermissions: JSON.stringify(customPermissions),
-        capacityTargetHours: Number(capacityTargetHours) || 40.0,
-      },
-      include: {
-        role: true,
-        team: true,
-      },
-    });
 
     // Create audit event
     await db.employeeAuditEvent.create({
@@ -154,7 +197,7 @@ export async function POST(req: NextRequest) {
         actorName: user?.name || "Admin",
         detail: `Onboarded employee ${employee.fullName} (${employee.employeeCode}) with role ${employee.role?.name || "None"}.`,
         afterState: JSON.stringify({
-          employeeCode,
+          employeeCode: employee.employeeCode,
           email: employee.email,
           role: employee.role?.name,
         }),
@@ -179,6 +222,12 @@ export async function POST(req: NextRequest) {
       invitation: invitationResult,
     });
   } catch (err: any) {
+    if (err.code === "P2002") {
+      return NextResponse.json(
+        { ok: false, message: "An employee with this email already exists in this workspace." },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       { ok: false, message: err.message || "Failed to create employee." },
       { status: 500 },
