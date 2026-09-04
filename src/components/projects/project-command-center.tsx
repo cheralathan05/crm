@@ -1,3 +1,4 @@
+import { AdminProjectTeamView } from "./admin-project-team-view";
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
@@ -109,7 +110,8 @@ type ActiveWorkspaceView =
   | "changes"
   | "commercials"
   | "vault"
-  | "activity";
+  | "activity"
+  | "communication";
 
 export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const router = useRouter();
@@ -199,6 +201,14 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
     },
   ]);
 
+  // Admin Communication & Activity State
+  const [selectedAdminConversationId, setSelectedAdminConversationId] = useState<string | null>(null);
+  const [adminReplyText, setAdminReplyText] = useState("");
+  const [adminReplyType, setAdminReplyType] = useState<string>("TEXT");
+  const [sendingAdminReply, setSendingAdminReply] = useState(false);
+  const [adminCommFilter, setAdminCommFilter] = useState<"ALL" | "BLOCKER" | "HANDOFF" | "DECISION">("ALL");
+  const [activityFilter, setActivityFilter] = useState<string>("ALL");
+
   const refreshProject = async () => {
     try {
       const [resPrj, resBp] = await Promise.all([
@@ -233,6 +243,36 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   }, [projectId]);
 
   // ── Handlers ─────────────────────────────────────────────────────────────
+
+  const handleSendAdminReply = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!adminReplyText.trim() || !selectedAdminConversationId) return;
+
+    try {
+      setSendingAdminReply(true);
+      const res = await fetch(`/api/messages/conversations/${selectedAdminConversationId}/messages`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: adminReplyText.trim(),
+          messageType: adminReplyType,
+          metadata: {
+            projectId,
+          },
+        }),
+      });
+      if (res.ok) {
+        setAdminReplyText("");
+        setNotice("Reply dispatched into project conversation.");
+        setTimeout(() => setNotice(null), 3000);
+        await refreshProject();
+      }
+    } catch (err) {
+      console.error("Failed to send admin reply:", err);
+    } finally {
+      setSendingAdminReply(false);
+    }
+  };
 
   const handleUpdateTaskStatus = async (taskId: string, newStatus: "TODO" | "IN_PROGRESS" | "DONE") => {
     startTransition(async () => {
@@ -632,6 +672,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const team = project.team || [];
   const changeRequests = project.changeRequests || [];
   const activities = project.activities || [];
+  const workConversations = project.workConversations || [];
 
   // Active work happening right now
   const inProgressTasks = tasks.filter((t: any) => t.status === "IN_PROGRESS" || t.status === "TODO");
@@ -926,6 +967,7 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               { id: "tasks", label: `Tasks (${tasks.length})`, icon: ListTodo },
               { id: "deliverables", label: `Deliverables (${deliverables.length})`, icon: FileCheck2 },
               { id: "team", label: `Team (${team.length})`, icon: Users },
+              { id: "communication", label: `Communication (${workConversations.length})`, icon: MessageSquare },
             ].map((tab) => {
               const Icon = tab.icon;
               const isActive = view === tab.id;
@@ -2182,236 +2224,20 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
 
         {/* ── VIEW: TEAM INTELLIGENCE (Real Data Only) ─────────────── */}
         {view === "team" && (
-          <div className="space-y-6">
-            {/* Header */}
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
-                  TEAM INTELLIGENCE
-                </h3>
-                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
-                  Live connection between approved proposal scope, project workstreams, real tasks, and staff workload.
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveDrawer("team")}
-                className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] font-medium rounded-sm hover:brightness-95 transition-all shadow-xs cursor-pointer flex items-center gap-1.5"
-              >
-                <Plus className="w-3.5 h-3.5" />
-                <span>+ Assign Team Member</span>
-              </button>
-            </div>
-
-            {/* 3 Top Summary Numbers */}
-            <div className="grid grid-cols-3 gap-4 text-center">
-              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
-                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
-                  TEAM MEMBERS
-                </span>
-                <p className="text-[24px] font-bold text-[var(--bos-text-primary)] font-mono">
-                  {team.length}
-                </p>
-              </div>
-              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
-                <span className="font-mono text-[11px] uppercase font-bold text-[var(--bos-accent)] block">
-                  ACTIVE TASKS
-                </span>
-                <p className="text-[24px] font-bold text-[var(--bos-accent)] font-mono">
-                  {tasks.filter((t: any) => t.status !== "DONE" && t.status !== "COMPLETED").length}
-                </p>
-              </div>
-              <div className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
-                <span className="font-mono text-[11px] uppercase font-bold text-[#b5452a] block">
-                  UNASSIGNED
-                </span>
-                <p className="text-[24px] font-bold text-[#b5452a] font-mono">
-                  {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).length}
-                </p>
-              </div>
-            </div>
-
-            {/* Real Workstream Filter */}
-            <div className="flex items-center gap-1.5 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
-              <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)] uppercase mr-1">Workstream:</span>
-              {["ALL", "FRONTEND", "BACKEND", "DATABASE", "QA", "DEPLOYMENT"].map((ws) => {
-                const count = ws === "ALL" ? tasks.length : tasks.filter((t: any) => (t.workstream || t.layer || "").toUpperCase().includes(ws)).length;
-                if (ws !== "ALL" && count === 0) return null;
-                return (
-                  <button
-                    key={ws}
-                    onClick={() => setTeamWorkstreamFilter(ws)}
-                    className={cn(
-                      "px-3 py-1 rounded text-[11px] font-mono transition-all cursor-pointer whitespace-nowrap",
-                      teamWorkstreamFilter === ws
-                        ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
-                        : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
-                    )}
-                  >
-                    {ws} ({count})
-                  </button>
-                );
-              })}
-            </div>
-
-            {/* Employee Cards */}
-            <div className="grid md:grid-cols-3 gap-4">
-              {team.map((member: any) => {
-                const memberTasks = tasks.filter((t: any) => t.assigneeName === member.name || t.assigneeId === member.id);
-                const inProgressTasks = memberTasks.filter((t: any) => t.status === "IN_PROGRESS");
-                const inReviewTasks = memberTasks.filter((t: any) => t.status === "IN_REVIEW");
-                const completedTasks = memberTasks.filter((t: any) => t.status === "DONE" || t.status === "COMPLETED");
-                const activeTasks = memberTasks.filter((t: any) => t.status !== "DONE" && t.status !== "COMPLETED");
-
-                const workloadState = activeTasks.length > 8 ? "OVERLOADED" : activeTasks.length > 4 ? "BUSY" : "HEALTHY";
-                const workloadColor = workloadState === "OVERLOADED" ? "text-[#b5452a] bg-[#fbece7]" : workloadState === "BUSY" ? "text-[var(--bos-accent)] bg-[#fdf5eb]" : "text-[#2c5324] bg-[#eaf5e7]";
-
-                return (
-                  <div
-                    key={member.id}
-                    className="p-5 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4 relative group"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] flex items-center justify-center font-bold text-[13px] text-[var(--bos-text-primary)]">
-                          {member.name?.slice(0, 2).toUpperCase() || "TM"}
-                        </div>
-                        <div>
-                          <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">{member.name}</h4>
-                          <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">{member.role}</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => handleRemoveMember(member.id)}
-                        title="Remove from project"
-                        className="opacity-0 group-hover:opacity-100 p-1 text-[var(--bos-text-tertiary)] hover:text-[#b5452a] transition-all cursor-pointer"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-
-                    <div className="space-y-1 text-[12px]">
-                      <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
-                        PROJECT WORK
-                      </span>
-                      <p className="text-[var(--bos-text-secondary)]">
-                        <strong>{memberTasks.length} assigned</strong> · {inProgressTasks.length} in progress · {inReviewTasks.length} in review · {completedTasks.length} completed
-                      </p>
-                    </div>
-
-                    <div className="flex items-center justify-between text-[11px] font-mono pt-2 border-t border-[var(--bos-border-subtle)]">
-                      <span className="text-[var(--bos-text-tertiary)] uppercase">WORKLOAD</span>
-                      <span className={cn("px-2 py-0.5 rounded font-bold uppercase text-[10px]", workloadColor)}>
-                        {member.allocation || 100}% · {workloadState}
-                      </span>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setSelectedMember(member);
-                        setActiveDrawer("team");
-                      }}
-                      className="w-full py-1.5 bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] hover:border-[var(--bos-accent)] rounded text-[11.5px] font-mono text-[var(--bos-accent)] text-center cursor-pointer transition-colors"
-                    >
-                      View Work ({memberTasks.length} tasks) →
-                    </button>
-                  </div>
-                );
-              })}
-
-              {team.length === 0 && (
-                <div className="col-span-3 p-8 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] text-center space-y-2">
-                  <Users className="w-8 h-8 text-[var(--bos-text-tertiary)] mx-auto opacity-60" />
-                  <h4 className="text-[14px] font-bold text-[var(--bos-text-primary)]">NO TEAM MEMBERS</h4>
-                  <p className="text-[12px] text-[var(--bos-text-secondary)]">
-                    No employees are currently assigned to this project.
-                  </p>
-                  <button
-                    onClick={() => setActiveDrawer("team")}
-                    className="px-4 py-2 bg-[var(--bos-accent)] text-white text-[12px] rounded font-medium cursor-pointer"
-                  >
-                    + Assign Team Member
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* UNASSIGNED WORK SECTION */}
-            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
-              <div className="flex items-center justify-between border-b border-[var(--bos-border-subtle)] pb-3">
-                <div>
-                  <span className="font-mono text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
-                    BACKLOG TRIAGE
-                  </span>
-                  <h4 className="text-[15px] font-serif font-bold text-[var(--bos-text-primary)]">
-                    UNASSIGNED WORK
-                  </h4>
-                </div>
-                <span className="font-mono text-[11px] text-[var(--bos-text-secondary)]">
-                  {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).length} Tasks Waiting for Owner
-                </span>
-              </div>
-
-              {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).length > 0 ? (
-                <div className="space-y-2.5">
-                  {tasks.filter((t: any) => !t.assigneeName && !t.assigneeId).map((task: any) => (
-                    <div key={task.id} className="p-3.5 rounded bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] flex items-center justify-between gap-4 flex-wrap">
-                      <div className="space-y-0.5">
-                        <div className="flex items-center gap-2">
-                          <span className="font-mono text-[9.5px] px-1.5 py-0.5 rounded bg-[var(--bos-surface-sunken)] font-bold text-[var(--bos-text-secondary)]">
-                            {task.code || "TASK"}
-                          </span>
-                          <strong className="text-[13px] text-[var(--bos-text-primary)]">{task.title}</strong>
-                        </div>
-                        <div className="flex items-center gap-3 text-[11px] font-mono text-[var(--bos-text-secondary)]">
-                          <span>{task.workstream || task.layer || "Engineering"}</span>
-                          <span>Priority: <strong className={task.priority === "HIGH" || task.priority === "URGENT" ? "text-[#b5452a]" : ""}>{task.priority}</strong></span>
-                          <span>Effort: {task.estimatedHours || 8}h</span>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        {team.length > 0 ? (
-                          <select
-                            onChange={(e) => {
-                              if (e.target.value) {
-                                const m = team.find((tm: any) => tm.name === e.target.value || tm.id === e.target.value);
-                                if (m) handleAssignTaskToMember(task.id, m.name, m.id);
-                              }
-                            }}
-                            defaultValue=""
-                            className="h-8 px-2 text-[11px] font-mono bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded text-[var(--bos-text-primary)] cursor-pointer"
-                          >
-                            <option value="" disabled>Assign to...</option>
-                            {team.map((m: any) => (
-                              <option key={m.id} value={m.name}>{m.name} ({m.role})</option>
-                            ))}
-                          </select>
-                        ) : (
-                          <button
-                            onClick={() => setActiveDrawer("team")}
-                            className="px-3 py-1 bg-[var(--bos-accent)] text-white text-[11px] font-mono rounded cursor-pointer"
-                          >
-                            + Add Staff First
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 rounded bg-[#eaf5e7] border border-[#d2eacb] text-center text-[#2c5324] space-y-0.5">
-                  <strong className="text-[13px]">✓ ALL PROJECT WORK HAS AN OWNER</strong>
-                  <p className="text-[11.5px]">No project tasks are waiting for an owner.</p>
-                </div>
-              )}
-            </div>
-          </div>
+          <AdminProjectTeamView
+            projectId={project.id}
+            projectName={project.name}
+            onNavigateTab={(tab, ctx) => {
+              if (tab === "communication") {
+                setView("communication");
+                if (ctx?.targetConversationId) {
+                  setSelectedAdminConversationId(ctx.targetConversationId);
+                }
+              }
+            }}
+          />
         )}
 
-        {/* ── VIEW: SCOPE CHANGES (Real Change Request Engine) ────── */}
         {view === "changes" && (
           <div className="space-y-6">
             {/* Header */}
@@ -2821,36 +2647,406 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
           </div>
         )}
 
+        {/* ── VIEW: PROJECT COMMUNICATION (Conversations & Execution History) ── */}
+        {view === "communication" && (
+          <div className="space-y-6">
+            {/* Header & Metrics */}
+            <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <div>
+                  <span className="font-mono text-[10.5px] uppercase font-bold text-[var(--bos-accent)]">
+                    TEAM COMMUNICATION HUB
+                  </span>
+                  <h3 className="text-[20px] font-serif font-bold text-[var(--bos-text-primary)] mt-0.5">
+                    PROJECT CONVERSATIONS & EXECUTION TRAIL
+                  </h3>
+                  <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                    Real-time contextual discussions between specialists, admins, and leads. All messages auto-bind to tasks, blockers, and deliverables.
+                  </p>
+                </div>
+
+                {/* Quick summary badges */}
+                <div className="flex items-center gap-3 font-mono text-[11px]">
+                  <div className="px-3 py-1.5 rounded bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)]">
+                    <span className="text-[var(--bos-text-tertiary)] block text-[9px]">THREADS</span>
+                    <strong className="text-[var(--bos-text-primary)] text-sm">{workConversations.length}</strong>
+                  </div>
+                  <div className="px-3 py-1.5 rounded bg-rose-500/10 border border-rose-500/20">
+                    <span className="text-rose-400 block text-[9px]">BLOCKERS</span>
+                    <strong className="text-rose-400 text-sm">
+                      {workConversations.filter((c: any) => c.isBlocker || c.messages?.some((m: any) => m.messageType === "BLOCKER")).length}
+                    </strong>
+                  </div>
+                  <div className="px-3 py-1.5 rounded bg-purple-500/10 border border-purple-500/20">
+                    <span className="text-purple-400 block text-[9px]">HANDOFFS</span>
+                    <strong className="text-purple-400 text-sm">
+                      {workConversations.filter((c: any) => c.isHandoff || c.messages?.some((m: any) => m.messageType === "HANDOFF")).length}
+                    </strong>
+                  </div>
+                  <div className="px-3 py-1.5 rounded bg-amber-500/10 border border-amber-500/20">
+                    <span className="text-amber-400 block text-[9px]">DECISIONS</span>
+                    <strong className="text-amber-400 text-sm">
+                      {workConversations.reduce((acc: number, c: any) => acc + (c.messages?.filter((m: any) => m.messageType === "DECISION").length || 0), 0)}
+                    </strong>
+                  </div>
+                </div>
+              </div>
+
+              {/* Filter Buttons */}
+              <div className="flex items-center gap-2 pt-2 border-t border-[var(--bos-border-subtle)] font-mono text-[11px]">
+                {(["ALL", "BLOCKER", "HANDOFF", "DECISION"] as const).map((flt) => {
+                  let count = workConversations.length;
+                  if (flt === "BLOCKER") {
+                    count = workConversations.filter((c: any) => c.isBlocker || c.messages?.some((m: any) => m.messageType === "BLOCKER")).length;
+                  } else if (flt === "HANDOFF") {
+                    count = workConversations.filter((c: any) => c.isHandoff || c.messages?.some((m: any) => m.messageType === "HANDOFF")).length;
+                  } else if (flt === "DECISION") {
+                    count = workConversations.reduce((acc: number, c: any) => acc + (c.messages?.filter((m: any) => m.messageType === "DECISION").length || 0), 0);
+                  }
+                  return (
+                    <button
+                      key={flt}
+                      type="button"
+                      onClick={() => setAdminCommFilter(flt)}
+                      className={cn(
+                        "px-3 py-1 rounded transition-all cursor-pointer font-medium",
+                        adminCommFilter === flt
+                          ? "bg-[var(--bos-accent)] text-white font-bold"
+                          : "bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]",
+                      )}
+                    >
+                      {flt} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Split View: Left List / Right Active Conversation */}
+            {workConversations.length === 0 ? (
+              <div className="p-12 text-center rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] font-mono text-xs text-[var(--bos-text-tertiary)] space-y-2">
+                <MessageSquare className="w-8 h-8 mx-auto text-[var(--bos-border-subtle)]" />
+                <p>No conversations initiated for this project yet.</p>
+                <p className="text-[11px]">Assigned employees will automatically create contextual threads when starting work, reporting blockers, or completing handoffs.</p>
+              </div>
+            ) : (
+              (() => {
+                const filteredConvs = workConversations.filter((c: any) => {
+                  if (adminCommFilter === "BLOCKER") return c.isBlocker || c.messages?.some((m: any) => m.messageType === "BLOCKER");
+                  if (adminCommFilter === "HANDOFF") return c.isHandoff || c.messages?.some((m: any) => m.messageType === "HANDOFF");
+                  if (adminCommFilter === "DECISION") return c.messages?.some((m: any) => m.messageType === "DECISION");
+                  return true;
+                });
+
+                const effectiveId = selectedAdminConversationId || filteredConvs[0]?.id || workConversations[0]?.id;
+                const activeConv = workConversations.find((c: any) => c.id === effectiveId) || workConversations[0];
+
+                return (
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 min-h-[600px]">
+                    {/* Left Pane: Conversation List */}
+                    <div className="lg:col-span-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] overflow-hidden flex flex-col">
+                      <div className="p-3.5 border-b border-[var(--bos-border-subtle)] font-mono text-xs font-bold text-[var(--bos-text-primary)] flex items-center justify-between">
+                        <span>PROJECT THREADS</span>
+                        <span className="text-[10px] text-[var(--bos-text-tertiary)]">{filteredConvs.length} available</span>
+                      </div>
+                      <div className="flex-1 overflow-y-auto divide-y divide-[var(--bos-border-subtle)]">
+                        {filteredConvs.map((conv: any) => {
+                          const isSelected = activeConv?.id === conv.id;
+                          const lastMsg = conv.messages?.[conv.messages.length - 1];
+                          return (
+                            <button
+                              key={conv.id}
+                              type="button"
+                              onClick={() => setSelectedAdminConversationId(conv.id)}
+                              className={cn(
+                                "w-full p-3.5 text-left transition-all flex flex-col gap-1 cursor-pointer",
+                                isSelected
+                                  ? "bg-[var(--bos-accent)]/10 border-l-4 border-l-[var(--bos-accent)]"
+                                  : "hover:bg-[var(--bos-surface-sunken)]",
+                              )}
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-mono text-xs font-bold text-[var(--bos-text-primary)] truncate max-w-[200px]">
+                                  {conv.title}
+                                </span>
+                                {conv.isBlocker && (
+                                  <span className="px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-400 text-[9px] font-bold">
+                                    BLOCKER
+                                  </span>
+                                )}
+                              </div>
+                              {conv.task && (
+                                <div className="text-[10.5px] font-mono text-[var(--bos-accent)] truncate">
+                                  {conv.task.code}: {conv.task.title}
+                                </div>
+                              )}
+                              <div className="text-[11px] font-mono text-[var(--bos-text-secondary)] truncate">
+                                {lastMsg?.content || conv.lastMessagePreview || "No messages"}
+                              </div>
+                              <div className="flex items-center justify-between pt-1 text-[10px] font-mono text-[var(--bos-text-tertiary)]">
+                                <span>{conv.messages?.length || 0} messages</span>
+                                <span>{new Date(conv.lastMessageAt || conv.updatedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Right Pane: Conversation Details & Stream */}
+                    <div className="lg:col-span-8 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] flex flex-col overflow-hidden">
+                      {activeConv ? (
+                        <>
+                          {/* Thread Context Banner */}
+                          <div className="p-4 border-b border-[var(--bos-border-subtle)] bg-[var(--bos-surface-sunken)]/60 space-y-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <h4 className="text-sm font-bold text-[var(--bos-text-primary)]">
+                                {activeConv.title}
+                              </h4>
+                              <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                                {activeConv.isBlocker && (
+                                  <span className="px-2 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold">
+                                    ACTIVE BLOCKER
+                                  </span>
+                                )}
+                                {activeConv.isHandoff && (
+                                  <span className="px-2 py-0.5 rounded bg-purple-500/20 text-purple-400 font-bold">
+                                    HANDOFF
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* Work Binding Details */}
+                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 font-mono text-[10.5px]">
+                              <div>
+                                <span className="text-[9px] uppercase text-[var(--bos-text-tertiary)] block">ATTACHED WORK</span>
+                                <strong className="text-[var(--bos-text-primary)] truncate block">
+                                  {activeConv.task ? `${activeConv.task.code}: ${activeConv.task.title}` : "Project General"}
+                                </strong>
+                              </div>
+                              <div>
+                                <span className="text-[9px] uppercase text-[var(--bos-text-tertiary)] block">WORK STATUS</span>
+                                <strong className="text-emerald-400 block">
+                                  {activeConv.task?.status || "IN_PROGRESS"}
+                                </strong>
+                              </div>
+                              <div>
+                                <span className="text-[9px] uppercase text-[var(--bos-text-tertiary)] block">LAYER / ROLE</span>
+                                <strong className="text-sky-400 block">
+                                  {activeConv.workstream || activeConv.task?.layer || "ENGINEERING"}
+                                </strong>
+                              </div>
+                              <div>
+                                <span className="text-[9px] uppercase text-[var(--bos-text-tertiary)] block">DEPENDENCY</span>
+                                <strong className="text-amber-400 truncate block">
+                                  {activeConv.dependencyLabel || "None"}
+                                </strong>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Messages List */}
+                          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3 max-h-[400px]">
+                            {activeConv.messages?.length === 0 ? (
+                              <div className="text-center py-10 font-mono text-xs text-[var(--bos-text-tertiary)]">
+                                No messages in this thread yet.
+                              </div>
+                            ) : (
+                              activeConv.messages.map((m: any) => {
+                                const isBlocker = m.messageType === "BLOCKER";
+                                const isDecision = m.messageType === "DECISION";
+                                const isHandoff = m.messageType === "HANDOFF";
+                                const isHelp = m.messageType === "HELP";
+
+                                return (
+                                  <div
+                                    key={m.id}
+                                    className="p-3.5 rounded-lg bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-1.5 font-mono text-xs"
+                                  >
+                                    <div className="flex items-center justify-between text-[10.5px]">
+                                      <div className="flex items-center gap-2">
+                                        <strong className="text-[var(--bos-text-primary)] font-bold">{m.senderName}</strong>
+                                        <span className="text-[var(--bos-text-tertiary)]">({m.senderRole || "Specialist"})</span>
+                                        {m.messageType && m.messageType !== "TEXT" && (
+                                          <span
+                                            className={cn(
+                                              "px-1.5 py-0.2 rounded font-bold uppercase text-[9px]",
+                                              isBlocker
+                                                ? "bg-rose-500/20 text-rose-400"
+                                                : isDecision
+                                                ? "bg-amber-500/20 text-amber-400"
+                                                : isHandoff
+                                                ? "bg-purple-500/20 text-purple-400"
+                                                : isHelp
+                                                ? "bg-orange-500/20 text-orange-400"
+                                                : "bg-[var(--bos-accent)]/20 text-[var(--bos-accent)]",
+                                            )}
+                                          >
+                                            {m.messageType}
+                                          </span>
+                                        )}
+                                      </div>
+                                      <span className="text-[var(--bos-text-tertiary)]">
+                                        {new Date(m.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(m.createdAt).toLocaleDateString()}
+                                      </span>
+                                    </div>
+                                    <p className="text-[var(--bos-text-primary)] font-sans text-xs leading-relaxed whitespace-pre-wrap">
+                                      {m.content}
+                                    </p>
+                                  </div>
+                                );
+                              })
+                            )}
+                          </div>
+
+                          {/* Admin Reply Composer */}
+                          <div className="p-4 border-t border-[var(--bos-border-subtle)] bg-[var(--bos-surface-sunken)]/40 space-y-2">
+                            <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                              <span className="text-[var(--bos-text-tertiary)] uppercase font-bold">Reply As Admin:</span>
+                              {["TEXT", "UPDATE", "DECISION"].map((tp) => (
+                                <button
+                                  key={tp}
+                                  type="button"
+                                  onClick={() => setAdminReplyType(tp)}
+                                  className={cn(
+                                    "px-2 py-0.5 rounded border transition-all cursor-pointer font-semibold",
+                                    adminReplyType === tp
+                                      ? "bg-[var(--bos-accent)] border-[var(--bos-accent)] text-white"
+                                      : "bg-[var(--bos-surface-canvas)] border-[var(--bos-border-subtle)] text-[var(--bos-text-secondary)]",
+                                  )}
+                                >
+                                  {tp}
+                                </button>
+                              ))}
+                            </div>
+
+                            <form onSubmit={handleSendAdminReply} className="flex items-center gap-2">
+                              <input
+                                type="text"
+                                value={adminReplyText}
+                                onChange={(e) => setAdminReplyText(e.target.value)}
+                                placeholder="Reply to team as Admin (persists to execution history)..."
+                                className="flex-1 px-3.5 py-2 rounded-md bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] text-xs text-[var(--bos-text-primary)] placeholder-[var(--bos-text-tertiary)] focus:outline-none focus:border-[var(--bos-accent)] font-sans"
+                              />
+                              <button
+                                type="submit"
+                                disabled={sendingAdminReply || !adminReplyText.trim()}
+                                className="px-4 py-2 rounded-md bg-[var(--bos-accent)] text-white font-mono text-xs font-bold hover:brightness-110 transition-all flex items-center gap-1.5 disabled:opacity-50 cursor-pointer"
+                              >
+                                {sendingAdminReply ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Send className="w-3.5 h-3.5" />}
+                                <span>Send</span>
+                              </button>
+                            </form>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="flex-1 flex items-center justify-center p-8 font-mono text-xs text-[var(--bos-text-tertiary)]">
+                          Select a conversation to inspect.
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()
+            )}
+          </div>
+        )}
+
         {/* ── VIEW: LIVE EVENT STREAM (Audit & Events) ─────────────── */}
         {view === "activity" && (
           <div className="p-6 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-4">
-            <div>
-              <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
-                LIVE EVENT STREAM
-              </h3>
-              <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
-                Real-time immutable audit trail of project delivery events, client sign-offs, and state transitions.
-              </p>
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h3 className="text-[18px] font-serif font-bold text-[var(--bos-text-primary)]">
+                  LIVE EVENT STREAM
+                </h3>
+                <p className="text-[12.5px] text-[var(--bos-text-secondary)]">
+                  Real-time immutable audit trail of project delivery events, client sign-offs, and communication actions.
+                </p>
+              </div>
+
+              {/* Activity Filter Buttons */}
+              <div className="flex items-center gap-1.5 font-mono text-[10px]">
+                {["ALL", "COMMUNICATION", "BLOCKERS", "DELIVERY"].map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setActivityFilter(f)}
+                    className={cn(
+                      "px-2.5 py-1 rounded transition-colors cursor-pointer font-semibold",
+                      activityFilter === f
+                        ? "bg-[var(--bos-accent)] text-white"
+                        : "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]",
+                    )}
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div className="divide-y divide-[var(--bos-border-subtle)]">
-              {activities.map((act: any) => (
-                <div key={act.id} className="py-3.5 flex items-start gap-3">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[var(--bos-accent)] mt-1 shrink-0" />
-                  <div className="space-y-0.5 flex-1">
-                    <div className="flex items-center justify-between">
-                      <strong className="text-[13.5px] text-[var(--bos-text-primary)]">{act.title}</strong>
-                      <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)]">
-                        {new Date(act.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(act.createdAt).toLocaleDateString()}
-                      </span>
+              {activities
+                .filter((act: any) => {
+                  if (activityFilter === "COMMUNICATION") {
+                    return act.type === "MESSAGE_SENT" || act.type === "HELP_REQUESTED" || act.type === "DECISION_RECORDED";
+                  }
+                  if (activityFilter === "BLOCKERS") {
+                    return act.type === "BLOCKER_REPORTED" || act.type === "BLOCKER_RESOLVED";
+                  }
+                  if (activityFilter === "DELIVERY") {
+                    return act.type !== "MESSAGE_SENT" && act.type !== "BLOCKER_REPORTED";
+                  }
+                  return true;
+                })
+                .map((act: any) => {
+                  const isBlocker = act.type === "BLOCKER_REPORTED";
+                  const isMsg = act.type === "MESSAGE_SENT";
+                  const isHelp = act.type === "HELP_REQUESTED";
+                  const isHandoff = act.type === "WORK_HANDOFF";
+                  const isDecision = act.type === "DECISION_RECORDED";
+
+                  return (
+                    <div key={act.id} className="py-3.5 flex items-start gap-3">
+                      <div
+                        className={cn(
+                          "w-2.5 h-2.5 rounded-full mt-1 shrink-0",
+                          isBlocker
+                            ? "bg-rose-500 ring-4 ring-rose-500/20"
+                            : isHelp
+                            ? "bg-orange-500 ring-4 ring-orange-500/20"
+                            : isHandoff
+                            ? "bg-purple-500 ring-4 ring-purple-500/20"
+                            : isDecision
+                            ? "bg-amber-500 ring-4 ring-amber-500/20"
+                            : isMsg
+                            ? "bg-sky-500"
+                            : "bg-[var(--bos-accent)]",
+                        )}
+                      />
+                      <div className="space-y-0.5 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <strong className="text-[13.5px] text-[var(--bos-text-primary)]">{act.title}</strong>
+                            {act.type && (
+                              <span className="px-1.5 py-0.2 rounded font-mono text-[9px] font-bold uppercase bg-[var(--bos-surface-sunken)] text-[var(--bos-text-tertiary)] border border-[var(--bos-border-subtle)]">
+                                {act.type.replace("_", " ")}
+                              </span>
+                            )}
+                          </div>
+                          <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)]">
+                            {new Date(act.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} · {new Date(act.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        {act.detail && <p className="text-[12px] text-[var(--bos-text-secondary)]">{act.detail}</p>}
+                        <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)] block">
+                          Actor: {act.actorName || "Delivery System"}
+                        </span>
+                      </div>
                     </div>
-                    {act.detail && <p className="text-[12px] text-[var(--bos-text-secondary)]">{act.detail}</p>}
-                    <span className="font-mono text-[10.5px] text-[var(--bos-text-tertiary)] block">
-                      Actor: {act.actorName || "Delivery System"}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                  );
+                })}
 
               {activities.length === 0 && (
                 <p className="text-[12px] text-[var(--bos-text-tertiary)] italic py-4 text-center">

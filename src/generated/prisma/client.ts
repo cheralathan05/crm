@@ -176,6 +176,12 @@ export type TaskComment = Prisma.TaskCommentModel
  */
 export type TaskAttachment = Prisma.TaskAttachmentModel
 /**
+ * Model TaskSubmission
+ * *
+ *  * Real task submission record — freezes employee proof of completion and enables review iterations.
+ */
+export type TaskSubmission = Prisma.TaskSubmissionModel
+/**
  * Model TaskReview
  * 
  */

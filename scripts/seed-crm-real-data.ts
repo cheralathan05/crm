@@ -26,8 +26,6 @@ async function seedRealCRMData() {
         projectId: project.id,
         version: 1,
         status: "APPROVED",
-        summary: "Comprehensive architectural blueprint for the AI-Powered Business CRM Platform.",
-        technicalApproach: "Next.js 16 App Router frontend with Tailwind CSS design tokens, server actions, RESTful API layer, Prisma ORM, and SQLite/PostgreSQL persistence.",
       },
     });
   } else {

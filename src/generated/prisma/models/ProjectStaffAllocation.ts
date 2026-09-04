@@ -39,6 +39,9 @@ export type ProjectStaffAllocationMinAggregateOutputType = {
   employeeId: string | null
   projectId: string | null
   projectRole: string | null
+  teamName: string | null
+  status: string | null
+  permissions: string | null
   allocationPercentage: number | null
   workstream: string | null
   joinedAt: Date | null
@@ -52,6 +55,9 @@ export type ProjectStaffAllocationMaxAggregateOutputType = {
   employeeId: string | null
   projectId: string | null
   projectRole: string | null
+  teamName: string | null
+  status: string | null
+  permissions: string | null
   allocationPercentage: number | null
   workstream: string | null
   joinedAt: Date | null
@@ -65,6 +71,9 @@ export type ProjectStaffAllocationCountAggregateOutputType = {
   employeeId: number
   projectId: number
   projectRole: number
+  teamName: number
+  status: number
+  permissions: number
   allocationPercentage: number
   workstream: number
   joinedAt: number
@@ -88,6 +97,9 @@ export type ProjectStaffAllocationMinAggregateInputType = {
   employeeId?: true
   projectId?: true
   projectRole?: true
+  teamName?: true
+  status?: true
+  permissions?: true
   allocationPercentage?: true
   workstream?: true
   joinedAt?: true
@@ -101,6 +113,9 @@ export type ProjectStaffAllocationMaxAggregateInputType = {
   employeeId?: true
   projectId?: true
   projectRole?: true
+  teamName?: true
+  status?: true
+  permissions?: true
   allocationPercentage?: true
   workstream?: true
   joinedAt?: true
@@ -114,6 +129,9 @@ export type ProjectStaffAllocationCountAggregateInputType = {
   employeeId?: true
   projectId?: true
   projectRole?: true
+  teamName?: true
+  status?: true
+  permissions?: true
   allocationPercentage?: true
   workstream?: true
   joinedAt?: true
@@ -214,6 +232,9 @@ export type ProjectStaffAllocationGroupByOutputType = {
   employeeId: string
   projectId: string
   projectRole: string
+  teamName: string
+  status: string
+  permissions: string
   allocationPercentage: number
   workstream: string | null
   joinedAt: Date
@@ -250,6 +271,9 @@ export type ProjectStaffAllocationWhereInput = {
   employeeId?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   projectId?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   projectRole?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  teamName?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  status?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  permissions?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   allocationPercentage?: Prisma.IntFilter<"ProjectStaffAllocation"> | number
   workstream?: Prisma.StringNullableFilter<"ProjectStaffAllocation"> | string | null
   joinedAt?: Prisma.DateTimeFilter<"ProjectStaffAllocation"> | Date | string
@@ -265,6 +289,9 @@ export type ProjectStaffAllocationOrderByWithRelationInput = {
   employeeId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectRole?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   allocationPercentage?: Prisma.SortOrder
   workstream?: Prisma.SortOrderInput | Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
@@ -284,6 +311,9 @@ export type ProjectStaffAllocationWhereUniqueInput = Prisma.AtLeast<{
   employeeId?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   projectId?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   projectRole?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  teamName?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  status?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  permissions?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   allocationPercentage?: Prisma.IntFilter<"ProjectStaffAllocation"> | number
   workstream?: Prisma.StringNullableFilter<"ProjectStaffAllocation"> | string | null
   joinedAt?: Prisma.DateTimeFilter<"ProjectStaffAllocation"> | Date | string
@@ -299,6 +329,9 @@ export type ProjectStaffAllocationOrderByWithAggregationInput = {
   employeeId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectRole?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   allocationPercentage?: Prisma.SortOrder
   workstream?: Prisma.SortOrderInput | Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
@@ -320,6 +353,9 @@ export type ProjectStaffAllocationScalarWhereWithAggregatesInput = {
   employeeId?: Prisma.StringWithAggregatesFilter<"ProjectStaffAllocation"> | string
   projectId?: Prisma.StringWithAggregatesFilter<"ProjectStaffAllocation"> | string
   projectRole?: Prisma.StringWithAggregatesFilter<"ProjectStaffAllocation"> | string
+  teamName?: Prisma.StringWithAggregatesFilter<"ProjectStaffAllocation"> | string
+  status?: Prisma.StringWithAggregatesFilter<"ProjectStaffAllocation"> | string
+  permissions?: Prisma.StringWithAggregatesFilter<"ProjectStaffAllocation"> | string
   allocationPercentage?: Prisma.IntWithAggregatesFilter<"ProjectStaffAllocation"> | number
   workstream?: Prisma.StringNullableWithAggregatesFilter<"ProjectStaffAllocation"> | string | null
   joinedAt?: Prisma.DateTimeWithAggregatesFilter<"ProjectStaffAllocation"> | Date | string
@@ -331,6 +367,9 @@ export type ProjectStaffAllocationScalarWhereWithAggregatesInput = {
 export type ProjectStaffAllocationCreateInput = {
   id?: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -346,6 +385,9 @@ export type ProjectStaffAllocationUncheckedCreateInput = {
   employeeId: string
   projectId: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -357,6 +399,9 @@ export type ProjectStaffAllocationUncheckedCreateInput = {
 export type ProjectStaffAllocationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -372,6 +417,9 @@ export type ProjectStaffAllocationUncheckedUpdateInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -385,6 +433,9 @@ export type ProjectStaffAllocationCreateManyInput = {
   employeeId: string
   projectId: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -396,6 +447,9 @@ export type ProjectStaffAllocationCreateManyInput = {
 export type ProjectStaffAllocationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -409,6 +463,9 @@ export type ProjectStaffAllocationUncheckedUpdateManyInput = {
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -437,6 +494,9 @@ export type ProjectStaffAllocationCountOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectRole?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   allocationPercentage?: Prisma.SortOrder
   workstream?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
@@ -454,6 +514,9 @@ export type ProjectStaffAllocationMaxOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectRole?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   allocationPercentage?: Prisma.SortOrder
   workstream?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
@@ -467,6 +530,9 @@ export type ProjectStaffAllocationMinOrderByAggregateInput = {
   employeeId?: Prisma.SortOrder
   projectId?: Prisma.SortOrder
   projectRole?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  status?: Prisma.SortOrder
+  permissions?: Prisma.SortOrder
   allocationPercentage?: Prisma.SortOrder
   workstream?: Prisma.SortOrder
   joinedAt?: Prisma.SortOrder
@@ -566,6 +632,9 @@ export type ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeNestedInput 
 export type ProjectStaffAllocationCreateWithoutProjectInput = {
   id?: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -579,6 +648,9 @@ export type ProjectStaffAllocationUncheckedCreateWithoutProjectInput = {
   id?: string
   employeeId: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -620,6 +692,9 @@ export type ProjectStaffAllocationScalarWhereInput = {
   employeeId?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   projectId?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   projectRole?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  teamName?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  status?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
+  permissions?: Prisma.StringFilter<"ProjectStaffAllocation"> | string
   allocationPercentage?: Prisma.IntFilter<"ProjectStaffAllocation"> | number
   workstream?: Prisma.StringNullableFilter<"ProjectStaffAllocation"> | string | null
   joinedAt?: Prisma.DateTimeFilter<"ProjectStaffAllocation"> | Date | string
@@ -631,6 +706,9 @@ export type ProjectStaffAllocationScalarWhereInput = {
 export type ProjectStaffAllocationCreateWithoutEmployeeInput = {
   id?: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -644,6 +722,9 @@ export type ProjectStaffAllocationUncheckedCreateWithoutEmployeeInput = {
   id?: string
   projectId: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -681,6 +762,9 @@ export type ProjectStaffAllocationCreateManyProjectInput = {
   id?: string
   employeeId: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -692,6 +776,9 @@ export type ProjectStaffAllocationCreateManyProjectInput = {
 export type ProjectStaffAllocationUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -705,6 +792,9 @@ export type ProjectStaffAllocationUncheckedUpdateWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -717,6 +807,9 @@ export type ProjectStaffAllocationUncheckedUpdateManyWithoutProjectInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -729,6 +822,9 @@ export type ProjectStaffAllocationCreateManyEmployeeInput = {
   id?: string
   projectId: string
   projectRole?: string
+  teamName?: string
+  status?: string
+  permissions?: string
   allocationPercentage?: number
   workstream?: string | null
   joinedAt?: Date | string
@@ -740,6 +836,9 @@ export type ProjectStaffAllocationCreateManyEmployeeInput = {
 export type ProjectStaffAllocationUpdateWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -753,6 +852,9 @@ export type ProjectStaffAllocationUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -765,6 +867,9 @@ export type ProjectStaffAllocationUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   projectId?: Prisma.StringFieldUpdateOperationsInput | string
   projectRole?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  permissions?: Prisma.StringFieldUpdateOperationsInput | string
   allocationPercentage?: Prisma.IntFieldUpdateOperationsInput | number
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   joinedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -780,6 +885,9 @@ export type ProjectStaffAllocationSelect<ExtArgs extends runtime.Types.Extension
   employeeId?: boolean
   projectId?: boolean
   projectRole?: boolean
+  teamName?: boolean
+  status?: boolean
+  permissions?: boolean
   allocationPercentage?: boolean
   workstream?: boolean
   joinedAt?: boolean
@@ -795,6 +903,9 @@ export type ProjectStaffAllocationSelectCreateManyAndReturn<ExtArgs extends runt
   employeeId?: boolean
   projectId?: boolean
   projectRole?: boolean
+  teamName?: boolean
+  status?: boolean
+  permissions?: boolean
   allocationPercentage?: boolean
   workstream?: boolean
   joinedAt?: boolean
@@ -810,6 +921,9 @@ export type ProjectStaffAllocationSelectUpdateManyAndReturn<ExtArgs extends runt
   employeeId?: boolean
   projectId?: boolean
   projectRole?: boolean
+  teamName?: boolean
+  status?: boolean
+  permissions?: boolean
   allocationPercentage?: boolean
   workstream?: boolean
   joinedAt?: boolean
@@ -825,6 +939,9 @@ export type ProjectStaffAllocationSelectScalar = {
   employeeId?: boolean
   projectId?: boolean
   projectRole?: boolean
+  teamName?: boolean
+  status?: boolean
+  permissions?: boolean
   allocationPercentage?: boolean
   workstream?: boolean
   joinedAt?: boolean
@@ -833,7 +950,7 @@ export type ProjectStaffAllocationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type ProjectStaffAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "projectId" | "projectRole" | "allocationPercentage" | "workstream" | "joinedAt" | "releasedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["projectStaffAllocation"]>
+export type ProjectStaffAllocationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "employeeId" | "projectId" | "projectRole" | "teamName" | "status" | "permissions" | "allocationPercentage" | "workstream" | "joinedAt" | "releasedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["projectStaffAllocation"]>
 export type ProjectStaffAllocationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   project?: boolean | Prisma.ClientProjectDefaultArgs<ExtArgs>
@@ -858,6 +975,9 @@ export type $ProjectStaffAllocationPayload<ExtArgs extends runtime.Types.Extensi
     employeeId: string
     projectId: string
     projectRole: string
+    teamName: string
+    status: string
+    permissions: string
     allocationPercentage: number
     workstream: string | null
     joinedAt: Date
@@ -1293,6 +1413,9 @@ export interface ProjectStaffAllocationFieldRefs {
   readonly employeeId: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
   readonly projectId: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
   readonly projectRole: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
+  readonly teamName: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
+  readonly status: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
+  readonly permissions: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
   readonly allocationPercentage: Prisma.FieldRef<"ProjectStaffAllocation", 'Int'>
   readonly workstream: Prisma.FieldRef<"ProjectStaffAllocation", 'String'>
   readonly joinedAt: Prisma.FieldRef<"ProjectStaffAllocation", 'DateTime'>

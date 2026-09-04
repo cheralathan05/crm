@@ -36,6 +36,8 @@ export type WorkConversationMinAggregateOutputType = {
   workstream: string | null
   dependencyWorkstream: string | null
   dependencyLabel: string | null
+  targetWorkstream: string | null
+  teamName: string | null
   isBlocker: boolean | null
   blockerStatus: string | null
   blockerReason: string | null
@@ -57,6 +59,8 @@ export type WorkConversationMaxAggregateOutputType = {
   workstream: string | null
   dependencyWorkstream: string | null
   dependencyLabel: string | null
+  targetWorkstream: string | null
+  teamName: string | null
   isBlocker: boolean | null
   blockerStatus: string | null
   blockerReason: string | null
@@ -78,6 +82,8 @@ export type WorkConversationCountAggregateOutputType = {
   workstream: number
   dependencyWorkstream: number
   dependencyLabel: number
+  targetWorkstream: number
+  teamName: number
   isBlocker: number
   blockerStatus: number
   blockerReason: number
@@ -101,6 +107,8 @@ export type WorkConversationMinAggregateInputType = {
   workstream?: true
   dependencyWorkstream?: true
   dependencyLabel?: true
+  targetWorkstream?: true
+  teamName?: true
   isBlocker?: true
   blockerStatus?: true
   blockerReason?: true
@@ -122,6 +130,8 @@ export type WorkConversationMaxAggregateInputType = {
   workstream?: true
   dependencyWorkstream?: true
   dependencyLabel?: true
+  targetWorkstream?: true
+  teamName?: true
   isBlocker?: true
   blockerStatus?: true
   blockerReason?: true
@@ -143,6 +153,8 @@ export type WorkConversationCountAggregateInputType = {
   workstream?: true
   dependencyWorkstream?: true
   dependencyLabel?: true
+  targetWorkstream?: true
+  teamName?: true
   isBlocker?: true
   blockerStatus?: true
   blockerReason?: true
@@ -237,6 +249,8 @@ export type WorkConversationGroupByOutputType = {
   workstream: string | null
   dependencyWorkstream: string | null
   dependencyLabel: string | null
+  targetWorkstream: string | null
+  teamName: string | null
   isBlocker: boolean
   blockerStatus: string | null
   blockerReason: string | null
@@ -279,6 +293,8 @@ export type WorkConversationWhereInput = {
   workstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   dependencyWorkstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   dependencyLabel?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
+  targetWorkstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
+  teamName?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   isBlocker?: Prisma.BoolFilter<"WorkConversation"> | boolean
   blockerStatus?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   blockerReason?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
@@ -305,6 +321,8 @@ export type WorkConversationOrderByWithRelationInput = {
   workstream?: Prisma.SortOrderInput | Prisma.SortOrder
   dependencyWorkstream?: Prisma.SortOrderInput | Prisma.SortOrder
   dependencyLabel?: Prisma.SortOrderInput | Prisma.SortOrder
+  targetWorkstream?: Prisma.SortOrderInput | Prisma.SortOrder
+  teamName?: Prisma.SortOrderInput | Prisma.SortOrder
   isBlocker?: Prisma.SortOrder
   blockerStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   blockerReason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -334,6 +352,8 @@ export type WorkConversationWhereUniqueInput = Prisma.AtLeast<{
   workstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   dependencyWorkstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   dependencyLabel?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
+  targetWorkstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
+  teamName?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   isBlocker?: Prisma.BoolFilter<"WorkConversation"> | boolean
   blockerStatus?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   blockerReason?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
@@ -360,6 +380,8 @@ export type WorkConversationOrderByWithAggregationInput = {
   workstream?: Prisma.SortOrderInput | Prisma.SortOrder
   dependencyWorkstream?: Prisma.SortOrderInput | Prisma.SortOrder
   dependencyLabel?: Prisma.SortOrderInput | Prisma.SortOrder
+  targetWorkstream?: Prisma.SortOrderInput | Prisma.SortOrder
+  teamName?: Prisma.SortOrderInput | Prisma.SortOrder
   isBlocker?: Prisma.SortOrder
   blockerStatus?: Prisma.SortOrderInput | Prisma.SortOrder
   blockerReason?: Prisma.SortOrderInput | Prisma.SortOrder
@@ -387,6 +409,8 @@ export type WorkConversationScalarWhereWithAggregatesInput = {
   workstream?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
   dependencyWorkstream?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
   dependencyLabel?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
+  targetWorkstream?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
+  teamName?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
   isBlocker?: Prisma.BoolWithAggregatesFilter<"WorkConversation"> | boolean
   blockerStatus?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
   blockerReason?: Prisma.StringNullableWithAggregatesFilter<"WorkConversation"> | string | null
@@ -405,6 +429,8 @@ export type WorkConversationCreateInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -431,6 +457,8 @@ export type WorkConversationUncheckedCreateInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -451,6 +479,8 @@ export type WorkConversationUpdateInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -477,6 +507,8 @@ export type WorkConversationUncheckedUpdateInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -500,6 +532,8 @@ export type WorkConversationCreateManyInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -518,6 +552,8 @@ export type WorkConversationUpdateManyMutationInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -539,6 +575,8 @@ export type WorkConversationUncheckedUpdateManyInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -570,6 +608,8 @@ export type WorkConversationCountOrderByAggregateInput = {
   workstream?: Prisma.SortOrder
   dependencyWorkstream?: Prisma.SortOrder
   dependencyLabel?: Prisma.SortOrder
+  targetWorkstream?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
   isBlocker?: Prisma.SortOrder
   blockerStatus?: Prisma.SortOrder
   blockerReason?: Prisma.SortOrder
@@ -591,6 +631,8 @@ export type WorkConversationMaxOrderByAggregateInput = {
   workstream?: Prisma.SortOrder
   dependencyWorkstream?: Prisma.SortOrder
   dependencyLabel?: Prisma.SortOrder
+  targetWorkstream?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
   isBlocker?: Prisma.SortOrder
   blockerStatus?: Prisma.SortOrder
   blockerReason?: Prisma.SortOrder
@@ -612,6 +654,8 @@ export type WorkConversationMinOrderByAggregateInput = {
   workstream?: Prisma.SortOrder
   dependencyWorkstream?: Prisma.SortOrder
   dependencyLabel?: Prisma.SortOrder
+  targetWorkstream?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
   isBlocker?: Prisma.SortOrder
   blockerStatus?: Prisma.SortOrder
   blockerReason?: Prisma.SortOrder
@@ -789,6 +833,8 @@ export type WorkConversationCreateWithoutWorkspaceInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -813,6 +859,8 @@ export type WorkConversationUncheckedCreateWithoutWorkspaceInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -864,6 +912,8 @@ export type WorkConversationScalarWhereInput = {
   workstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   dependencyWorkstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   dependencyLabel?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
+  targetWorkstream?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
+  teamName?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   isBlocker?: Prisma.BoolFilter<"WorkConversation"> | boolean
   blockerStatus?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
   blockerReason?: Prisma.StringNullableFilter<"WorkConversation"> | string | null
@@ -882,6 +932,8 @@ export type WorkConversationCreateWithoutProjectInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -906,6 +958,8 @@ export type WorkConversationUncheckedCreateWithoutProjectInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -951,6 +1005,8 @@ export type WorkConversationCreateWithoutTaskInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -975,6 +1031,8 @@ export type WorkConversationUncheckedCreateWithoutTaskInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1020,6 +1078,8 @@ export type WorkConversationCreateWithoutParticipantsInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1045,6 +1105,8 @@ export type WorkConversationUncheckedCreateWithoutParticipantsInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1080,6 +1142,8 @@ export type WorkConversationUpdateWithoutParticipantsInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1105,6 +1169,8 @@ export type WorkConversationUncheckedUpdateWithoutParticipantsInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1124,6 +1190,8 @@ export type WorkConversationCreateWithoutMessagesInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1149,6 +1217,8 @@ export type WorkConversationUncheckedCreateWithoutMessagesInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1184,6 +1254,8 @@ export type WorkConversationUpdateWithoutMessagesInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1209,6 +1281,8 @@ export type WorkConversationUncheckedUpdateWithoutMessagesInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1230,6 +1304,8 @@ export type WorkConversationCreateManyWorkspaceInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1248,6 +1324,8 @@ export type WorkConversationUpdateWithoutWorkspaceInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1272,6 +1350,8 @@ export type WorkConversationUncheckedUpdateWithoutWorkspaceInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1294,6 +1374,8 @@ export type WorkConversationUncheckedUpdateManyWithoutWorkspaceInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1314,6 +1396,8 @@ export type WorkConversationCreateManyProjectInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1332,6 +1416,8 @@ export type WorkConversationUpdateWithoutProjectInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1356,6 +1442,8 @@ export type WorkConversationUncheckedUpdateWithoutProjectInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1378,6 +1466,8 @@ export type WorkConversationUncheckedUpdateManyWithoutProjectInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1398,6 +1488,8 @@ export type WorkConversationCreateManyTaskInput = {
   workstream?: string | null
   dependencyWorkstream?: string | null
   dependencyLabel?: string | null
+  targetWorkstream?: string | null
+  teamName?: string | null
   isBlocker?: boolean
   blockerStatus?: string | null
   blockerReason?: string | null
@@ -1416,6 +1508,8 @@ export type WorkConversationUpdateWithoutTaskInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1440,6 +1534,8 @@ export type WorkConversationUncheckedUpdateWithoutTaskInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1462,6 +1558,8 @@ export type WorkConversationUncheckedUpdateManyWithoutTaskInput = {
   workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   dependencyLabel?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  targetWorkstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBlocker?: Prisma.BoolFieldUpdateOperationsInput | boolean
   blockerStatus?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   blockerReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
@@ -1523,6 +1621,8 @@ export type WorkConversationSelect<ExtArgs extends runtime.Types.Extensions.Inte
   workstream?: boolean
   dependencyWorkstream?: boolean
   dependencyLabel?: boolean
+  targetWorkstream?: boolean
+  teamName?: boolean
   isBlocker?: boolean
   blockerStatus?: boolean
   blockerReason?: boolean
@@ -1550,6 +1650,8 @@ export type WorkConversationSelectCreateManyAndReturn<ExtArgs extends runtime.Ty
   workstream?: boolean
   dependencyWorkstream?: boolean
   dependencyLabel?: boolean
+  targetWorkstream?: boolean
+  teamName?: boolean
   isBlocker?: boolean
   blockerStatus?: boolean
   blockerReason?: boolean
@@ -1574,6 +1676,8 @@ export type WorkConversationSelectUpdateManyAndReturn<ExtArgs extends runtime.Ty
   workstream?: boolean
   dependencyWorkstream?: boolean
   dependencyLabel?: boolean
+  targetWorkstream?: boolean
+  teamName?: boolean
   isBlocker?: boolean
   blockerStatus?: boolean
   blockerReason?: boolean
@@ -1598,6 +1702,8 @@ export type WorkConversationSelectScalar = {
   workstream?: boolean
   dependencyWorkstream?: boolean
   dependencyLabel?: boolean
+  targetWorkstream?: boolean
+  teamName?: boolean
   isBlocker?: boolean
   blockerStatus?: boolean
   blockerReason?: boolean
@@ -1609,7 +1715,7 @@ export type WorkConversationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type WorkConversationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "type" | "title" | "projectId" | "taskId" | "workstream" | "dependencyWorkstream" | "dependencyLabel" | "isBlocker" | "blockerStatus" | "blockerReason" | "isHandoff" | "handoffStatus" | "lastMessageAt" | "lastMessagePreview" | "createdAt" | "updatedAt", ExtArgs["result"]["workConversation"]>
+export type WorkConversationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "type" | "title" | "projectId" | "taskId" | "workstream" | "dependencyWorkstream" | "dependencyLabel" | "targetWorkstream" | "teamName" | "isBlocker" | "blockerStatus" | "blockerReason" | "isHandoff" | "handoffStatus" | "lastMessageAt" | "lastMessagePreview" | "createdAt" | "updatedAt", ExtArgs["result"]["workConversation"]>
 export type WorkConversationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   project?: boolean | Prisma.WorkConversation$projectArgs<ExtArgs>
@@ -1648,6 +1754,8 @@ export type $WorkConversationPayload<ExtArgs extends runtime.Types.Extensions.In
     workstream: string | null
     dependencyWorkstream: string | null
     dependencyLabel: string | null
+    targetWorkstream: string | null
+    teamName: string | null
     isBlocker: boolean
     blockerStatus: string | null
     blockerReason: string | null
@@ -2094,6 +2202,8 @@ export interface WorkConversationFieldRefs {
   readonly workstream: Prisma.FieldRef<"WorkConversation", 'String'>
   readonly dependencyWorkstream: Prisma.FieldRef<"WorkConversation", 'String'>
   readonly dependencyLabel: Prisma.FieldRef<"WorkConversation", 'String'>
+  readonly targetWorkstream: Prisma.FieldRef<"WorkConversation", 'String'>
+  readonly teamName: Prisma.FieldRef<"WorkConversation", 'String'>
   readonly isBlocker: Prisma.FieldRef<"WorkConversation", 'Boolean'>
   readonly blockerStatus: Prisma.FieldRef<"WorkConversation", 'String'>
   readonly blockerReason: Prisma.FieldRef<"WorkConversation", 'String'>

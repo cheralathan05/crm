@@ -77,6 +77,7 @@ export const ModelName = {
   TaskDependency: 'TaskDependency',
   TaskComment: 'TaskComment',
   TaskAttachment: 'TaskAttachment',
+  TaskSubmission: 'TaskSubmission',
   TaskReview: 'TaskReview',
   TaskActivity: 'TaskActivity',
   TaskTimeEntry: 'TaskTimeEntry',
@@ -670,9 +671,31 @@ export const TaskAttachmentScalarFieldEnum = {
 export type TaskAttachmentScalarFieldEnum = (typeof TaskAttachmentScalarFieldEnum)[keyof typeof TaskAttachmentScalarFieldEnum]
 
 
+export const TaskSubmissionScalarFieldEnum = {
+  id: 'id',
+  submissionCode: 'submissionCode',
+  taskId: 'taskId',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  summary: 'summary',
+  proofType: 'proofType',
+  proofUrl: 'proofUrl',
+  knownIssues: 'knownIssues',
+  comments: 'comments',
+  iteration: 'iteration',
+  status: 'status',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TaskSubmissionScalarFieldEnum = (typeof TaskSubmissionScalarFieldEnum)[keyof typeof TaskSubmissionScalarFieldEnum]
+
+
 export const TaskReviewScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
+  submissionId: 'submissionId',
   reviewerId: 'reviewerId',
   reviewerName: 'reviewerName',
   status: 'status',
@@ -1481,6 +1504,9 @@ export type OrganizationTeamScalarFieldEnum = (typeof OrganizationTeamScalarFiel
 
 export const EmployeeInvitationScalarFieldEnum = {
   id: 'id',
+  projectId: 'projectId',
+  teamName: 'teamName',
+  projectRole: 'projectRole',
   workspaceId: 'workspaceId',
   employeeId: 'employeeId',
   recipientEmail: 'recipientEmail',
@@ -1526,6 +1552,9 @@ export const ProjectStaffAllocationScalarFieldEnum = {
   employeeId: 'employeeId',
   projectId: 'projectId',
   projectRole: 'projectRole',
+  teamName: 'teamName',
+  status: 'status',
+  permissions: 'permissions',
   allocationPercentage: 'allocationPercentage',
   workstream: 'workstream',
   joinedAt: 'joinedAt',
@@ -1910,6 +1939,8 @@ export const WorkConversationScalarFieldEnum = {
   workstream: 'workstream',
   dependencyWorkstream: 'dependencyWorkstream',
   dependencyLabel: 'dependencyLabel',
+  targetWorkstream: 'targetWorkstream',
+  teamName: 'teamName',
   isBlocker: 'isBlocker',
   blockerStatus: 'blockerStatus',
   blockerReason: 'blockerReason',
@@ -1946,6 +1977,7 @@ export const WorkMessageScalarFieldEnum = {
   senderUserId: 'senderUserId',
   senderName: 'senderName',
   senderRole: 'senderRole',
+  senderTeam: 'senderTeam',
   senderAvatar: 'senderAvatar',
   content: 'content',
   messageType: 'messageType',

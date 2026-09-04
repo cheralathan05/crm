@@ -494,6 +494,7 @@ export type ClientTaskWhereInput = {
   comments?: Prisma.TaskCommentListRelationFilter
   attachments?: Prisma.TaskAttachmentListRelationFilter
   reviews?: Prisma.TaskReviewListRelationFilter
+  submissions?: Prisma.TaskSubmissionListRelationFilter
   activities?: Prisma.TaskActivityListRelationFilter
   timeEntries?: Prisma.TaskTimeEntryListRelationFilter
   evidenceRecords?: Prisma.EvidenceRecordListRelationFilter
@@ -553,6 +554,7 @@ export type ClientTaskOrderByWithRelationInput = {
   comments?: Prisma.TaskCommentOrderByRelationAggregateInput
   attachments?: Prisma.TaskAttachmentOrderByRelationAggregateInput
   reviews?: Prisma.TaskReviewOrderByRelationAggregateInput
+  submissions?: Prisma.TaskSubmissionOrderByRelationAggregateInput
   activities?: Prisma.TaskActivityOrderByRelationAggregateInput
   timeEntries?: Prisma.TaskTimeEntryOrderByRelationAggregateInput
   evidenceRecords?: Prisma.EvidenceRecordOrderByRelationAggregateInput
@@ -615,6 +617,7 @@ export type ClientTaskWhereUniqueInput = Prisma.AtLeast<{
   comments?: Prisma.TaskCommentListRelationFilter
   attachments?: Prisma.TaskAttachmentListRelationFilter
   reviews?: Prisma.TaskReviewListRelationFilter
+  submissions?: Prisma.TaskSubmissionListRelationFilter
   activities?: Prisma.TaskActivityListRelationFilter
   timeEntries?: Prisma.TaskTimeEntryListRelationFilter
   evidenceRecords?: Prisma.EvidenceRecordListRelationFilter
@@ -756,6 +759,7 @@ export type ClientTaskCreateInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -809,6 +813,7 @@ export type ClientTaskUncheckedCreateInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -862,6 +867,7 @@ export type ClientTaskUpdateInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -915,6 +921,7 @@ export type ClientTaskUncheckedUpdateInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -1452,6 +1459,20 @@ export type ClientTaskUpdateOneRequiredWithoutAttachmentsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientTaskUpdateToOneWithWhereWithoutAttachmentsInput, Prisma.ClientTaskUpdateWithoutAttachmentsInput>, Prisma.ClientTaskUncheckedUpdateWithoutAttachmentsInput>
 }
 
+export type ClientTaskCreateNestedOneWithoutSubmissionsInput = {
+  create?: Prisma.XOR<Prisma.ClientTaskCreateWithoutSubmissionsInput, Prisma.ClientTaskUncheckedCreateWithoutSubmissionsInput>
+  connectOrCreate?: Prisma.ClientTaskCreateOrConnectWithoutSubmissionsInput
+  connect?: Prisma.ClientTaskWhereUniqueInput
+}
+
+export type ClientTaskUpdateOneRequiredWithoutSubmissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientTaskCreateWithoutSubmissionsInput, Prisma.ClientTaskUncheckedCreateWithoutSubmissionsInput>
+  connectOrCreate?: Prisma.ClientTaskCreateOrConnectWithoutSubmissionsInput
+  upsert?: Prisma.ClientTaskUpsertWithoutSubmissionsInput
+  connect?: Prisma.ClientTaskWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientTaskUpdateToOneWithWhereWithoutSubmissionsInput, Prisma.ClientTaskUpdateWithoutSubmissionsInput>, Prisma.ClientTaskUncheckedUpdateWithoutSubmissionsInput>
+}
+
 export type ClientTaskCreateNestedOneWithoutReviewsInput = {
   create?: Prisma.XOR<Prisma.ClientTaskCreateWithoutReviewsInput, Prisma.ClientTaskUncheckedCreateWithoutReviewsInput>
   connectOrCreate?: Prisma.ClientTaskCreateOrConnectWithoutReviewsInput
@@ -1687,6 +1708,7 @@ export type ClientTaskCreateWithoutClientInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -1739,6 +1761,7 @@ export type ClientTaskUncheckedCreateWithoutClientInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -1859,6 +1882,7 @@ export type ClientTaskCreateWithoutProjectInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -1911,6 +1935,7 @@ export type ClientTaskUncheckedCreateWithoutProjectInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -1988,6 +2013,7 @@ export type ClientTaskCreateWithoutMilestoneInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -2040,6 +2066,7 @@ export type ClientTaskUncheckedCreateWithoutMilestoneInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -2117,6 +2144,7 @@ export type ClientTaskCreateWithoutDeliverableInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -2169,6 +2197,7 @@ export type ClientTaskUncheckedCreateWithoutDeliverableInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -2246,6 +2275,7 @@ export type ClientTaskCreateWithoutSubtasksInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -2298,6 +2328,7 @@ export type ClientTaskUncheckedCreateWithoutSubtasksInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -2366,6 +2397,7 @@ export type ClientTaskUpdateWithoutSubtasksInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -2418,6 +2450,7 @@ export type ClientTaskUncheckedUpdateWithoutSubtasksInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -2470,6 +2503,7 @@ export type ClientTaskCreateWithoutAcceptanceCriteriaInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -2522,6 +2556,7 @@ export type ClientTaskUncheckedCreateWithoutAcceptanceCriteriaInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -2590,6 +2625,7 @@ export type ClientTaskUpdateWithoutAcceptanceCriteriaInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -2642,6 +2678,7 @@ export type ClientTaskUncheckedUpdateWithoutAcceptanceCriteriaInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -2694,6 +2731,7 @@ export type ClientTaskCreateWithoutDependenciesInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -2746,6 +2784,7 @@ export type ClientTaskUncheckedCreateWithoutDependenciesInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -2803,6 +2842,7 @@ export type ClientTaskCreateWithoutDependentOnMeInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -2855,6 +2895,7 @@ export type ClientTaskUncheckedCreateWithoutDependentOnMeInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -2923,6 +2964,7 @@ export type ClientTaskUpdateWithoutDependenciesInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -2975,6 +3017,7 @@ export type ClientTaskUncheckedUpdateWithoutDependenciesInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -3038,6 +3081,7 @@ export type ClientTaskUpdateWithoutDependentOnMeInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -3090,6 +3134,7 @@ export type ClientTaskUncheckedUpdateWithoutDependentOnMeInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -3142,6 +3187,7 @@ export type ClientTaskCreateWithoutCommentsInput = {
   dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -3194,6 +3240,7 @@ export type ClientTaskUncheckedCreateWithoutCommentsInput = {
   dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -3262,6 +3309,7 @@ export type ClientTaskUpdateWithoutCommentsInput = {
   dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -3314,6 +3362,7 @@ export type ClientTaskUncheckedUpdateWithoutCommentsInput = {
   dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -3366,6 +3415,7 @@ export type ClientTaskCreateWithoutAttachmentsInput = {
   dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -3418,6 +3468,7 @@ export type ClientTaskUncheckedCreateWithoutAttachmentsInput = {
   dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -3486,6 +3537,7 @@ export type ClientTaskUpdateWithoutAttachmentsInput = {
   dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -3537,6 +3589,235 @@ export type ClientTaskUncheckedUpdateWithoutAttachmentsInput = {
   dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
   dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
+  reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
+  activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
+  timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
+  evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutTaskNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutTaskNestedInput
+}
+
+export type ClientTaskCreateWithoutSubmissionsInput = {
+  id?: string
+  code?: string | null
+  title: string
+  description?: string | null
+  expectedResult?: string | null
+  blockedReason?: string | null
+  workstream?: string | null
+  status?: $Enums.TaskStatus
+  priority?: $Enums.TaskPriority
+  clientVisibility?: $Enums.ClientVisibility
+  teamRole?: string | null
+  assigneeId?: string | null
+  assigneeName?: string | null
+  dueAt?: Date | string | null
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  estimatedHours?: number | null
+  actualHours?: number | null
+  order?: number
+  sourceType?: string | null
+  sourceRequirementId?: string | null
+  sourceRequirementTitle?: string | null
+  sourceProposalId?: string | null
+  sourceProposalReference?: string | null
+  sourceScopeItem?: string | null
+  sourceDeliverableTitle?: string | null
+  sourceSection?: string | null
+  layer?: string | null
+  workId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  client: Prisma.ClientCreateNestedOneWithoutTasksInput
+  project?: Prisma.ClientProjectCreateNestedOneWithoutTasksInput
+  milestone?: Prisma.ProjectMilestoneCreateNestedOneWithoutTasksInput
+  deliverable?: Prisma.ProjectDeliverableCreateNestedOneWithoutTasksInput
+  blueprint?: Prisma.EngineeringBlueprintCreateNestedOneWithoutTasksInput
+  testSpecification?: Prisma.TestSpecificationCreateNestedOneWithoutTasksInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutTaskInput
+  subtasks?: Prisma.SubTaskCreateNestedManyWithoutTaskInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionCreateNestedManyWithoutTaskInput
+  dependencies?: Prisma.TaskDependencyCreateNestedManyWithoutTaskInput
+  dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
+  comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
+  reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
+  timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
+  evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutTaskInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutTaskInput
+}
+
+export type ClientTaskUncheckedCreateWithoutSubmissionsInput = {
+  id?: string
+  code?: string | null
+  clientId: string
+  projectId?: string | null
+  milestoneId?: string | null
+  deliverableId?: string | null
+  title: string
+  description?: string | null
+  expectedResult?: string | null
+  blockedReason?: string | null
+  workstream?: string | null
+  status?: $Enums.TaskStatus
+  priority?: $Enums.TaskPriority
+  clientVisibility?: $Enums.ClientVisibility
+  teamRole?: string | null
+  assigneeId?: string | null
+  assigneeName?: string | null
+  dueAt?: Date | string | null
+  startedAt?: Date | string | null
+  completedAt?: Date | string | null
+  estimatedHours?: number | null
+  actualHours?: number | null
+  order?: number
+  sourceType?: string | null
+  sourceRequirementId?: string | null
+  sourceRequirementTitle?: string | null
+  sourceProposalId?: string | null
+  sourceProposalReference?: string | null
+  sourceScopeItem?: string | null
+  sourceDeliverableTitle?: string | null
+  sourceSection?: string | null
+  blueprintId?: string | null
+  layer?: string | null
+  workId?: string | null
+  testSpecificationId?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutTaskInput
+  subtasks?: Prisma.SubTaskUncheckedCreateNestedManyWithoutTaskInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedCreateNestedManyWithoutTaskInput
+  dependencies?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutTaskInput
+  dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
+  comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
+  attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
+  reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
+  timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
+  evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutTaskInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutTaskInput
+}
+
+export type ClientTaskCreateOrConnectWithoutSubmissionsInput = {
+  where: Prisma.ClientTaskWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientTaskCreateWithoutSubmissionsInput, Prisma.ClientTaskUncheckedCreateWithoutSubmissionsInput>
+}
+
+export type ClientTaskUpsertWithoutSubmissionsInput = {
+  update: Prisma.XOR<Prisma.ClientTaskUpdateWithoutSubmissionsInput, Prisma.ClientTaskUncheckedUpdateWithoutSubmissionsInput>
+  create: Prisma.XOR<Prisma.ClientTaskCreateWithoutSubmissionsInput, Prisma.ClientTaskUncheckedCreateWithoutSubmissionsInput>
+  where?: Prisma.ClientTaskWhereInput
+}
+
+export type ClientTaskUpdateToOneWithWhereWithoutSubmissionsInput = {
+  where?: Prisma.ClientTaskWhereInput
+  data: Prisma.XOR<Prisma.ClientTaskUpdateWithoutSubmissionsInput, Prisma.ClientTaskUncheckedUpdateWithoutSubmissionsInput>
+}
+
+export type ClientTaskUpdateWithoutSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expectedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  priority?: Prisma.EnumTaskPriorityFieldUpdateOperationsInput | $Enums.TaskPriority
+  clientVisibility?: Prisma.EnumClientVisibilityFieldUpdateOperationsInput | $Enums.ClientVisibility
+  teamRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  actualHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  sourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceScopeItem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDeliverableTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  layer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  client?: Prisma.ClientUpdateOneRequiredWithoutTasksNestedInput
+  project?: Prisma.ClientProjectUpdateOneWithoutTasksNestedInput
+  milestone?: Prisma.ProjectMilestoneUpdateOneWithoutTasksNestedInput
+  deliverable?: Prisma.ProjectDeliverableUpdateOneWithoutTasksNestedInput
+  blueprint?: Prisma.EngineeringBlueprintUpdateOneWithoutTasksNestedInput
+  testSpecification?: Prisma.TestSpecificationUpdateOneWithoutTasksNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutTaskNestedInput
+  subtasks?: Prisma.SubTaskUpdateManyWithoutTaskNestedInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUpdateManyWithoutTaskNestedInput
+  dependencies?: Prisma.TaskDependencyUpdateManyWithoutTaskNestedInput
+  dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
+  comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
+  reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
+  timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
+  evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutTaskNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutTaskNestedInput
+}
+
+export type ClientTaskUncheckedUpdateWithoutSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  milestoneId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  deliverableId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  expectedResult?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blockedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workstream?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  status?: Prisma.EnumTaskStatusFieldUpdateOperationsInput | $Enums.TaskStatus
+  priority?: Prisma.EnumTaskPriorityFieldUpdateOperationsInput | $Enums.TaskPriority
+  clientVisibility?: Prisma.EnumClientVisibilityFieldUpdateOperationsInput | $Enums.ClientVisibility
+  teamRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  assigneeName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  dueAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  estimatedHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  actualHours?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  order?: Prisma.IntFieldUpdateOperationsInput | number
+  sourceType?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceRequirementTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceProposalReference?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceScopeItem?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceDeliverableTitle?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sourceSection?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  blueprintId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  layer?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  testSpecificationId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutTaskNestedInput
+  subtasks?: Prisma.SubTaskUncheckedUpdateManyWithoutTaskNestedInput
+  acceptanceCriteria?: Prisma.TaskAcceptanceCriterionUncheckedUpdateManyWithoutTaskNestedInput
+  dependencies?: Prisma.TaskDependencyUncheckedUpdateManyWithoutTaskNestedInput
+  dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
+  comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
+  attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
@@ -3590,6 +3871,7 @@ export type ClientTaskCreateWithoutReviewsInput = {
   dependentOnMe?: Prisma.TaskDependencyCreateNestedManyWithoutDependsOnTaskInput
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -3642,6 +3924,7 @@ export type ClientTaskUncheckedCreateWithoutReviewsInput = {
   dependentOnMe?: Prisma.TaskDependencyUncheckedCreateNestedManyWithoutDependsOnTaskInput
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -3710,6 +3993,7 @@ export type ClientTaskUpdateWithoutReviewsInput = {
   dependentOnMe?: Prisma.TaskDependencyUpdateManyWithoutDependsOnTaskNestedInput
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -3762,6 +4046,7 @@ export type ClientTaskUncheckedUpdateWithoutReviewsInput = {
   dependentOnMe?: Prisma.TaskDependencyUncheckedUpdateManyWithoutDependsOnTaskNestedInput
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -3815,6 +4100,7 @@ export type ClientTaskCreateWithoutActivitiesInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutTaskInput
@@ -3867,6 +4153,7 @@ export type ClientTaskUncheckedCreateWithoutActivitiesInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutTaskInput
@@ -3935,6 +4222,7 @@ export type ClientTaskUpdateWithoutActivitiesInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutTaskNestedInput
@@ -3987,6 +4275,7 @@ export type ClientTaskUncheckedUpdateWithoutActivitiesInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutTaskNestedInput
@@ -4039,6 +4328,7 @@ export type ClientTaskCreateWithoutTimeEntriesInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutTaskInput
@@ -4091,6 +4381,7 @@ export type ClientTaskUncheckedCreateWithoutTimeEntriesInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutTaskInput
@@ -4159,6 +4450,7 @@ export type ClientTaskUpdateWithoutTimeEntriesInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutTaskNestedInput
@@ -4211,6 +4503,7 @@ export type ClientTaskUncheckedUpdateWithoutTimeEntriesInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutTaskNestedInput
@@ -4262,6 +4555,7 @@ export type ClientTaskCreateWithoutBlueprintInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -4314,6 +4608,7 @@ export type ClientTaskUncheckedCreateWithoutBlueprintInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -4391,6 +4686,7 @@ export type ClientTaskCreateWithoutTestSpecificationInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -4443,6 +4739,7 @@ export type ClientTaskUncheckedCreateWithoutTestSpecificationInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -4521,6 +4818,7 @@ export type ClientTaskCreateWithoutEvidenceRecordsInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutTaskInput
@@ -4573,6 +4871,7 @@ export type ClientTaskUncheckedCreateWithoutEvidenceRecordsInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutTaskInput
@@ -4641,6 +4940,7 @@ export type ClientTaskUpdateWithoutEvidenceRecordsInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutTaskNestedInput
@@ -4693,6 +4993,7 @@ export type ClientTaskUncheckedUpdateWithoutEvidenceRecordsInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutTaskNestedInput
@@ -4745,6 +5046,7 @@ export type ClientTaskCreateWithoutBuildSessionsInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -4797,6 +5099,7 @@ export type ClientTaskUncheckedCreateWithoutBuildSessionsInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -4865,6 +5168,7 @@ export type ClientTaskUpdateWithoutBuildSessionsInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -4917,6 +5221,7 @@ export type ClientTaskUncheckedUpdateWithoutBuildSessionsInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -4969,6 +5274,7 @@ export type ClientTaskCreateWithoutCheckpointsInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -5021,6 +5327,7 @@ export type ClientTaskUncheckedCreateWithoutCheckpointsInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -5089,6 +5396,7 @@ export type ClientTaskUpdateWithoutCheckpointsInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -5141,6 +5449,7 @@ export type ClientTaskUncheckedUpdateWithoutCheckpointsInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -5192,6 +5501,7 @@ export type ClientTaskCreateWithoutWorkConversationsInput = {
   comments?: Prisma.TaskCommentCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordCreateNestedManyWithoutTaskInput
@@ -5244,6 +5554,7 @@ export type ClientTaskUncheckedCreateWithoutWorkConversationsInput = {
   comments?: Prisma.TaskCommentUncheckedCreateNestedManyWithoutTaskInput
   attachments?: Prisma.TaskAttachmentUncheckedCreateNestedManyWithoutTaskInput
   reviews?: Prisma.TaskReviewUncheckedCreateNestedManyWithoutTaskInput
+  submissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutTaskInput
   activities?: Prisma.TaskActivityUncheckedCreateNestedManyWithoutTaskInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedCreateNestedManyWithoutTaskInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedCreateNestedManyWithoutTaskInput
@@ -5312,6 +5623,7 @@ export type ClientTaskUpdateWithoutWorkConversationsInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -5364,6 +5676,7 @@ export type ClientTaskUncheckedUpdateWithoutWorkConversationsInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -5455,6 +5768,7 @@ export type ClientTaskUpdateWithoutClientInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -5507,6 +5821,7 @@ export type ClientTaskUncheckedUpdateWithoutClientInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -5637,6 +5952,7 @@ export type ClientTaskUpdateWithoutProjectInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -5689,6 +6005,7 @@ export type ClientTaskUncheckedUpdateWithoutProjectInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -5819,6 +6136,7 @@ export type ClientTaskUpdateWithoutMilestoneInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -5871,6 +6189,7 @@ export type ClientTaskUncheckedUpdateWithoutMilestoneInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -6001,6 +6320,7 @@ export type ClientTaskUpdateWithoutDeliverableInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -6053,6 +6373,7 @@ export type ClientTaskUncheckedUpdateWithoutDeliverableInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -6183,6 +6504,7 @@ export type ClientTaskUpdateWithoutBlueprintInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -6235,6 +6557,7 @@ export type ClientTaskUncheckedUpdateWithoutBlueprintInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -6365,6 +6688,7 @@ export type ClientTaskUpdateWithoutTestSpecificationInput = {
   comments?: Prisma.TaskCommentUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUpdateManyWithoutTaskNestedInput
@@ -6417,6 +6741,7 @@ export type ClientTaskUncheckedUpdateWithoutTestSpecificationInput = {
   comments?: Prisma.TaskCommentUncheckedUpdateManyWithoutTaskNestedInput
   attachments?: Prisma.TaskAttachmentUncheckedUpdateManyWithoutTaskNestedInput
   reviews?: Prisma.TaskReviewUncheckedUpdateManyWithoutTaskNestedInput
+  submissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutTaskNestedInput
   activities?: Prisma.TaskActivityUncheckedUpdateManyWithoutTaskNestedInput
   timeEntries?: Prisma.TaskTimeEntryUncheckedUpdateManyWithoutTaskNestedInput
   evidenceRecords?: Prisma.EvidenceRecordUncheckedUpdateManyWithoutTaskNestedInput
@@ -6477,6 +6802,7 @@ export type ClientTaskCountOutputType = {
   comments: number
   attachments: number
   reviews: number
+  submissions: number
   activities: number
   timeEntries: number
   evidenceRecords: number
@@ -6493,6 +6819,7 @@ export type ClientTaskCountOutputTypeSelect<ExtArgs extends runtime.Types.Extens
   comments?: boolean | ClientTaskCountOutputTypeCountCommentsArgs
   attachments?: boolean | ClientTaskCountOutputTypeCountAttachmentsArgs
   reviews?: boolean | ClientTaskCountOutputTypeCountReviewsArgs
+  submissions?: boolean | ClientTaskCountOutputTypeCountSubmissionsArgs
   activities?: boolean | ClientTaskCountOutputTypeCountActivitiesArgs
   timeEntries?: boolean | ClientTaskCountOutputTypeCountTimeEntriesArgs
   evidenceRecords?: boolean | ClientTaskCountOutputTypeCountEvidenceRecordsArgs
@@ -6564,6 +6891,13 @@ export type ClientTaskCountOutputTypeCountAttachmentsArgs<ExtArgs extends runtim
  */
 export type ClientTaskCountOutputTypeCountReviewsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.TaskReviewWhereInput
+}
+
+/**
+ * ClientTaskCountOutputType without action
+ */
+export type ClientTaskCountOutputTypeCountSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskSubmissionWhereInput
 }
 
 /**
@@ -6654,6 +6988,7 @@ export type ClientTaskSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   comments?: boolean | Prisma.ClientTask$commentsArgs<ExtArgs>
   attachments?: boolean | Prisma.ClientTask$attachmentsArgs<ExtArgs>
   reviews?: boolean | Prisma.ClientTask$reviewsArgs<ExtArgs>
+  submissions?: boolean | Prisma.ClientTask$submissionsArgs<ExtArgs>
   activities?: boolean | Prisma.ClientTask$activitiesArgs<ExtArgs>
   timeEntries?: boolean | Prisma.ClientTask$timeEntriesArgs<ExtArgs>
   evidenceRecords?: boolean | Prisma.ClientTask$evidenceRecordsArgs<ExtArgs>
@@ -6810,6 +7145,7 @@ export type ClientTaskInclude<ExtArgs extends runtime.Types.Extensions.InternalA
   comments?: boolean | Prisma.ClientTask$commentsArgs<ExtArgs>
   attachments?: boolean | Prisma.ClientTask$attachmentsArgs<ExtArgs>
   reviews?: boolean | Prisma.ClientTask$reviewsArgs<ExtArgs>
+  submissions?: boolean | Prisma.ClientTask$submissionsArgs<ExtArgs>
   activities?: boolean | Prisma.ClientTask$activitiesArgs<ExtArgs>
   timeEntries?: boolean | Prisma.ClientTask$timeEntriesArgs<ExtArgs>
   evidenceRecords?: boolean | Prisma.ClientTask$evidenceRecordsArgs<ExtArgs>
@@ -6851,6 +7187,7 @@ export type $ClientTaskPayload<ExtArgs extends runtime.Types.Extensions.Internal
     comments: Prisma.$TaskCommentPayload<ExtArgs>[]
     attachments: Prisma.$TaskAttachmentPayload<ExtArgs>[]
     reviews: Prisma.$TaskReviewPayload<ExtArgs>[]
+    submissions: Prisma.$TaskSubmissionPayload<ExtArgs>[]
     activities: Prisma.$TaskActivityPayload<ExtArgs>[]
     timeEntries: Prisma.$TaskTimeEntryPayload<ExtArgs>[]
     evidenceRecords: Prisma.$EvidenceRecordPayload<ExtArgs>[]
@@ -7303,6 +7640,7 @@ export interface Prisma__ClientTaskClient<T, Null = never, ExtArgs extends runti
   comments<T extends Prisma.ClientTask$commentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$commentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskCommentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   attachments<T extends Prisma.ClientTask$attachmentsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$attachmentsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskAttachmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   reviews<T extends Prisma.ClientTask$reviewsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$reviewsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskReviewPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  submissions<T extends Prisma.ClientTask$submissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$submissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   activities<T extends Prisma.ClientTask$activitiesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$activitiesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskActivityPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   timeEntries<T extends Prisma.ClientTask$timeEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$timeEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskTimeEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   evidenceRecords<T extends Prisma.ClientTask$evidenceRecordsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTask$evidenceRecordsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EvidenceRecordPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -8057,6 +8395,30 @@ export type ClientTask$reviewsArgs<ExtArgs extends runtime.Types.Extensions.Inte
   take?: number
   skip?: number
   distinct?: Prisma.TaskReviewScalarFieldEnum | Prisma.TaskReviewScalarFieldEnum[]
+}
+
+/**
+ * ClientTask.submissions
+ */
+export type ClientTask$submissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskSubmission
+   */
+  select?: Prisma.TaskSubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskSubmission
+   */
+  omit?: Prisma.TaskSubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskSubmissionInclude<ExtArgs> | null
+  where?: Prisma.TaskSubmissionWhereInput
+  orderBy?: Prisma.TaskSubmissionOrderByWithRelationInput | Prisma.TaskSubmissionOrderByWithRelationInput[]
+  cursor?: Prisma.TaskSubmissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskSubmissionScalarFieldEnum | Prisma.TaskSubmissionScalarFieldEnum[]
 }
 
 /**

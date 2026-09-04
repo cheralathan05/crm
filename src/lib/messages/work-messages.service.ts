@@ -357,6 +357,18 @@ export async function getConversationDetails(conversationId: string, actorEmploy
 /**
  * Dispatch a message into a work conversation.
  */
+export type WorkMessageType =
+  | "TEXT"
+  | "QUESTION"
+  | "UPDATE"
+  | "HELP"
+  | "BLOCKER"
+  | "HANDOFF"
+  | "REVIEW"
+  | "DECISION"
+  | "WORK_LINK"
+  | "SYSTEM";
+
 export async function sendWorkMessage({
   conversationId,
   senderEmployeeId,
@@ -373,15 +385,34 @@ export async function sendWorkMessage({
   senderName: string;
   senderRole?: string;
   content: string;
-  messageType?: "TEXT" | "BLOCKER" | "HANDOFF" | "WORK_LINK" | "SYSTEM";
+  messageType?: WorkMessageType;
   metadata?: Record<string, any>;
 }) {
   const conversation = await db.workConversation.findUnique({
     where: { id: conversationId },
-    include: { participants: true },
+    include: {
+      participants: true,
+      project: { select: { id: true, name: true, code: true } },
+      task: { select: { id: true, code: true, title: true, layer: true } },
+    },
   });
 
   if (!conversation) throw new Error("Conversation not found.");
+
+  // Enrich metadata with complete project-aware context
+  const enrichedMetadata = {
+    ...metadata,
+    projectId: conversation.projectId,
+    projectName: conversation.project?.name,
+    taskId: conversation.taskId,
+    taskCode: conversation.task?.code,
+    taskTitle: conversation.task?.title,
+    workstream: conversation.workstream,
+    dependencyWorkstream: conversation.dependencyWorkstream,
+    dependencyLabel: conversation.dependencyLabel,
+    senderRole: senderRole || "Team Member",
+    sentAt: new Date().toISOString(),
+  };
 
   // Create message record
   const message = await db.workMessage.create({
@@ -393,7 +424,7 @@ export async function sendWorkMessage({
       senderRole: senderRole || "Team Member",
       content,
       messageType,
-      metadata: JSON.stringify(metadata),
+      metadata: JSON.stringify(enrichedMetadata),
     },
   });
 
@@ -407,6 +438,37 @@ export async function sendWorkMessage({
       ...(messageType === "HANDOFF" ? { isHandoff: true, handoffStatus: "PENDING" } : {}),
     },
   });
+
+  // AUTOMATIC PROJECT RECORDING:
+  // Every project-related message is automatically logged to the immutable ProjectActivity audit trail.
+  if (conversation.projectId) {
+    let actType = "MESSAGE_SENT";
+    let actTitle = `${senderRole || "Specialist"}: Project Message`;
+
+    if (messageType === "BLOCKER") {
+      actType = "BLOCKER_REPORTED";
+      actTitle = `🚨 Blocker: ${conversation.task?.title || conversation.title}`;
+    } else if (messageType === "HANDOFF") {
+      actType = "WORK_HANDOFF";
+      actTitle = `📦 Handoff: ${conversation.task?.title || conversation.title}`;
+    } else if (messageType === "HELP") {
+      actType = "HELP_REQUESTED";
+      actTitle = `🆘 Help Requested: ${conversation.task?.title || conversation.title}`;
+    } else if (messageType === "DECISION") {
+      actType = "DECISION_RECORDED";
+      actTitle = `⚖️ Decision: ${conversation.task?.title || conversation.title}`;
+    }
+
+    await db.projectActivity.create({
+      data: {
+        projectId: conversation.projectId,
+        type: actType,
+        title: actTitle,
+        detail: `${senderName} (${senderRole || "Member"}) in ${conversation.task?.title || conversation.title}: "${content.slice(0, 140)}"`,
+        actorName: senderName,
+      },
+    });
+  }
 
   // Increment unread count for other participants
   for (const participant of conversation.participants) {
@@ -432,7 +494,7 @@ export async function sendWorkMessage({
             whatChanged: content.slice(0, 120),
             whyItMatters: `New activity in work thread: ${conversation.title}`,
             whatToDo: "Open Messages to review and reply.",
-            actionUrl: `/messages?thread=${conversationId}`,
+            actionUrl: `/employee/work?tab=MESSAGES&thread=${conversationId}`,
           },
         });
       }
@@ -440,6 +502,167 @@ export async function sendWorkMessage({
   }
 
   return message;
+}
+
+/**
+ * Persist a real conversation message as an official Project Decision.
+ */
+export async function markMessageAsDecision({
+  messageId,
+  decisionText,
+  reason,
+  authorName,
+}: {
+  messageId: string;
+  decisionText?: string;
+  reason?: string;
+  authorName: string;
+}) {
+  const message = await db.workMessage.findUnique({
+    where: { id: messageId },
+    include: {
+      conversation: {
+        include: {
+          project: true,
+          task: true,
+        },
+      },
+    },
+  });
+
+  if (!message) throw new Error("Message not found.");
+  if (!message.conversation.projectId) {
+    throw new Error("Cannot mark decision on conversation without an attached project.");
+  }
+
+  const decText = decisionText?.trim() || message.content;
+  const projectDecision = await db.projectDecision.create({
+    data: {
+      projectId: message.conversation.projectId,
+      title: message.conversation.task?.title
+        ? `Decision on ${message.conversation.task.title}`
+        : `Project Decision: ${message.conversation.title}`,
+      decision: decText,
+      reason: reason || `Agreed in work conversation within ${message.conversation.title}`,
+      decisionOwner: authorName,
+      relatedFeature: message.conversation.task?.title || null,
+      relatedRequirement: message.conversation.task?.code || null,
+      impact: "Bound to work item and saved to project memory.",
+    },
+  });
+
+  // Update message to DECISION type and store decisionId in metadata
+  let meta: any = {};
+  try {
+    meta = JSON.parse(message.metadata || "{}");
+  } catch {}
+  meta.decisionId = projectDecision.id;
+  meta.isDecision = true;
+
+  const updatedMessage = await db.workMessage.update({
+    where: { id: messageId },
+    data: {
+      messageType: "DECISION",
+      metadata: JSON.stringify(meta),
+    },
+  });
+
+  return { decision: projectDecision, message: updatedMessage };
+}
+
+/**
+ * Generate factual conversation intelligence: summary + open action items.
+ * NEVER invents facts. Strictly derives from real database messages.
+ */
+export async function summarizeConversationWithAI(conversationId: string) {
+  const conversation = await db.workConversation.findUnique({
+    where: { id: conversationId },
+    include: {
+      project: true,
+      task: true,
+      messages: {
+        orderBy: { createdAt: "asc" },
+        take: 40,
+      },
+    },
+  });
+
+  if (!conversation) throw new Error("Conversation not found.");
+
+  if (conversation.messages.length === 0) {
+    return {
+      summary: "No messages exchanged in this conversation yet.",
+      openItems: ["Initiate conversation with assigned team member."],
+    };
+  }
+
+  const messageStreamText = conversation.messages
+    .map((m) => `${m.senderName} (${m.senderRole || "Member"}) [${m.messageType}]: ${m.content}`)
+    .join("\n");
+
+  const prompt = `You are Business OS Work-Context AI. Summarize this real engineering conversation concisely.
+DO NOT INVENT FACTS. ONLY use the messages provided.
+
+Project: ${conversation.project?.name || "General"}
+Work Item: ${conversation.task?.title || "Project Work"}
+Workstream: ${conversation.workstream || "General"}
+
+Conversation:
+${messageStreamText}
+
+Return valid JSON with:
+{
+  "summary": "1-3 concise factual sentences summarizing what was discussed or decided.",
+  "openItems": ["list of remaining questions, blockers, or next actions explicitly stated in the conversation"]
+}`;
+
+  try {
+    const { askOllamaJson, isOllamaAvailable } = await import("@/lib/ai/ollama/ollama.client");
+    const available = await isOllamaAvailable();
+    if (available) {
+      const aiRes = await askOllamaJson({
+        systemPrompt: "You are Business OS Work-Context AI. Summarize this real engineering conversation concisely. DO NOT INVENT FACTS. Return valid JSON only.",
+        userPrompt: prompt,
+        temperature: 0.1,
+      });
+      if (aiRes.ok && aiRes.content) {
+        const parsed = JSON.parse(aiRes.content);
+        if (parsed.summary && Array.isArray(parsed.openItems)) {
+          return parsed;
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("[summarizeConversationWithAI] Ollama unavailable, using deterministic summary:", err);
+  }
+
+  // Factual deterministic summary from real database messages
+  const lastMsg = conversation.messages[conversation.messages.length - 1];
+  const blockerMsg = conversation.messages.find((m) => m.messageType === "BLOCKER");
+  const handoffMsg = conversation.messages.find((m) => m.messageType === "HANDOFF");
+  const decisionMsg = conversation.messages.find((m) => m.messageType === "DECISION");
+
+  let summary = `Thread contains ${conversation.messages.length} messages regarding ${conversation.task?.title || conversation.project?.name || "assigned work"}. Last message from ${lastMsg.senderName}: "${lastMsg.content.slice(0, 100)}".`;
+  if (blockerMsg) {
+    summary = `Active blocker reported by ${blockerMsg.senderName}: "${blockerMsg.content}". Discussion focused on resolving dependency.`;
+  } else if (decisionMsg) {
+    summary = `Formal decision recorded in thread: "${decisionMsg.content}".`;
+  } else if (handoffMsg) {
+    summary = `Work handoff submitted by ${handoffMsg.senderName} for acceptance verification.`;
+  }
+
+  const openItems: string[] = [];
+  if (conversation.isBlocker && conversation.blockerStatus !== "RESOLVED") {
+    openItems.push(`Resolve blocker: ${conversation.blockerReason || "Dependency constraint"}`);
+  }
+  if (conversation.isHandoff && conversation.handoffStatus !== "ACCEPTED") {
+    openItems.push(`Complete verification review for ${conversation.task?.title || "work item"}`);
+  }
+  if (openItems.length === 0) {
+    openItems.push(`Awaiting response or next action from ${lastMsg.senderName}.`);
+  }
+
+  return { summary, openItems };
 }
 
 /**
@@ -753,3 +976,86 @@ export async function sendWorkHandoffToQA({
 
   return { ok: true, threadId: thread.id, message: handoffMsg };
 }
+
+/**
+ * 1-Click: Request Help on Assigned Work.
+ * Automatically binds Employee, Project, Role, Task, and Timestamp.
+ * Creates a HELP message and alerts Project Admin & Team.
+ */
+export async function requestWorkHelp({
+  workspaceId,
+  actorEmployeeId,
+  actorName,
+  actorRole,
+  projectId,
+  taskId,
+  question,
+}: {
+  workspaceId: string;
+  actorEmployeeId: string;
+  actorName: string;
+  actorRole: string;
+  projectId?: string | null;
+  taskId?: string | null;
+  question: string;
+}) {
+  let task: any = null;
+  if (taskId) {
+    task = await db.clientTask.findUnique({
+      where: { id: taskId },
+      include: { project: true },
+    });
+  }
+
+  // Find workspace admin / owner
+  const workspace = await db.workspace.findUnique({
+    where: { id: workspaceId },
+    include: { owner: true },
+  });
+
+  const thread = await startOrGetWorkThread({
+    workspaceId,
+    actorEmployeeId,
+    actorName,
+    actorRole,
+    projectId: projectId || task?.projectId || null,
+    taskId: taskId || null,
+    dependencyLabel: "Assistance Request",
+  });
+
+  const helpMsg = await sendWorkMessage({
+    conversationId: thread.id,
+    senderEmployeeId: actorEmployeeId,
+    senderName: actorName,
+    senderRole: actorRole,
+    content: question,
+    messageType: "HELP",
+    metadata: {
+      helpRequested: true,
+      taskId: task?.id,
+      taskCode: task?.code,
+      taskTitle: task?.title,
+      projectName: task?.project?.name,
+    },
+  });
+
+  // Ensure workspace owner is in the thread
+  if (workspace?.ownerId) {
+    const adminParticipant = await db.workConversationParticipant.findFirst({
+      where: { conversationId: thread.id, userId: workspace.ownerId },
+    });
+    if (!adminParticipant) {
+      await db.workConversationParticipant.create({
+        data: {
+          conversationId: thread.id,
+          userId: workspace.ownerId,
+          role: "ADMIN",
+          unreadCount: 1,
+        },
+      });
+    }
+  }
+
+  return { ok: true, threadId: thread.id, message: helpMsg };
+}
+

@@ -376,9 +376,25 @@ export async function getProjectForUser(userId: string, projectId: string) {
       changeRequests: {
         orderBy: { submittedAt: "desc" },
       },
+      workConversations: {
+        orderBy: { lastMessageAt: "desc" },
+        include: {
+          task: { select: { id: true, title: true, code: true, status: true, layer: true } },
+          participants: {
+            include: {
+              employee: { select: { id: true, fullName: true, role: true } },
+              user: { select: { id: true, name: true } },
+            },
+          },
+          messages: {
+            orderBy: { createdAt: "asc" },
+            take: 30,
+          },
+        },
+      },
       activities: {
         orderBy: { createdAt: "desc" },
-        take: 30,
+        take: 60,
       },
     },
   });

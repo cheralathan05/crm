@@ -625,6 +625,7 @@ model ClientProject {
   clarifications       ClarificationItem[]
   drifts               ArchitectureDrift[]
   staffAllocations     ProjectStaffAllocation[]
+  invitations          EmployeeInvitation[]
   projectBriefs        EmployeeProjectBrief[]
   buildSessions        EmployeeBuildSession[]
   contributions        EmployeeContribution[]
@@ -633,6 +634,7 @@ model ClientProject {
   checkpoints          BuildCheckpoint[]
   productBuilds        ProductBuild[]
   buildSubmissions     BuildSubmission[]
+  taskSubmissions      TaskSubmission[]
   buildAuditEvents     BuildJourneyAuditEvent[]
   workConversations    WorkConversation[]
 
@@ -810,6 +812,7 @@ model ClientTask {
   comments                TaskComment[]
   attachments             TaskAttachment[]
   reviews                 TaskReview[]
+  submissions             TaskSubmission[]
   activities              TaskActivity[]
   timeEntries             TaskTimeEntry[]
   evidenceRecords         EvidenceRecord[]
@@ -899,10 +902,42 @@ model TaskAttachment {
   @@index([taskId])
 }
 
+/**
+ * Real task submission record — freezes employee proof of completion and enables review iterations.
+ */
+model TaskSubmission {
+  id             String        @id @default(cuid())
+  submissionCode String        @unique // e.g. SUB-TSK-001-1
+  task           ClientTask    @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  taskId         String
+  project        ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId      String
+  employee       Employee      @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId     String
+  summary        String        // Completion summary: what was built and verified
+  proofType      String        @default("SCREENSHOT") // SCREENSHOT | URL | COMMIT | PR | TEST | DEPLOYMENT | DOCUMENT
+  proofUrl       String?
+  knownIssues    String?
+  comments       String?
+  iteration      Int           @default(1)
+  status         String        @default("SUBMITTED") // SUBMITTED | IN_REVIEW | CHANGES_REQUESTED | APPROVED
+  submittedAt    DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  reviews        TaskReview[]
+
+  @@index([taskId, iteration])
+  @@index([projectId, status])
+  @@index([employeeId])
+}
+
 model TaskReview {
   id           String           @id @default(cuid())
   task         ClientTask       @relation(fields: [taskId], references: [id], onDelete: Cascade)
   taskId       String
+  submission   TaskSubmission?  @relation(fields: [submissionId], references: [id], onDelete: SetNull)
+  submissionId String?
   reviewerId   String?
   reviewerName String
   status       TaskReviewStatus @default(PENDING)
@@ -912,6 +947,7 @@ model TaskReview {
   createdAt    DateTime         @default(now())
 
   @@index([taskId, createdAt])
+  @@index([submissionId])
 }
 
 model TaskActivity {
@@ -1910,6 +1946,7 @@ model Employee {
   checkpoints               BuildCheckpoint[]
   productBuilds             ProductBuild[]
   buildSubmissions          BuildSubmission[]
+  taskSubmissions           TaskSubmission[]
   workConversationParticipants WorkConversationParticipant[]
   sentWorkMessages          WorkMessage[] @relation("EmployeeSentWorkMessages")
 
@@ -1967,6 +2004,10 @@ model OrganizationTeam {
 /** Real invitation lifecycle with secure cryptographic tokens and email dispatching. */
 model EmployeeInvitation {
   id               String            @id @default(cuid())
+  projectId        String?
+  project          ClientProject?    @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  teamName         String?           // FRONTEND | BACKEND | DATABASE | QA
+  projectRole      String?           // e.g. Frontend Developer
   workspace        Workspace         @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   workspaceId      String
   employee         Employee          @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -1993,6 +2034,7 @@ model EmployeeInvitation {
 
   @@index([workspaceId, status])
   @@index([employeeId])
+  @@index([projectId])
 }
 
 /** Immutable audit trail for all employee, role, permission, and staffing events. */
@@ -2022,6 +2064,9 @@ model ProjectStaffAllocation {
   project              ClientProject @relation(fields: [projectId], references: [id], onDelete: Cascade)
   projectId            String
   projectRole          String        @default("Engineer")
+  teamName             String        @default("FRONTEND")
+  status               String        @default("ACTIVE")
+  permissions          String        @default("{}")
   allocationPercentage Int           @default(100) // e.g. 50% or 100%
   workstream           String?       @default("ENGINEERING")
   joinedAt             DateTime      @default(now())
@@ -2503,7 +2548,9 @@ model WorkConversation {
   taskId                String?
   workstream            String?                        // FRONTEND | BACKEND | DATABASE | QA
   dependencyWorkstream  String?                        // BACKEND | DATABASE | QA
-  dependencyLabel       String?                        // e.g. "Product API", "Order Schema"
+  dependencyLabel       String?
+  targetWorkstream      String?                       // e.g. BACKEND for CROSS-TEAM
+  teamName              String?                       // FRONTEND | BACKEND | DATABASE | QA
   isBlocker             Boolean                        @default(false)
   blockerStatus         String?                        // ACTIVE | RESOLVED
   blockerReason         String?
@@ -2551,6 +2598,7 @@ model WorkMessage {
   senderUserId      String?
   senderName        String
   senderRole        String?
+  senderTeam        String?
   senderAvatar      String?
   content           String
   messageType       String           @default("TEXT") // TEXT | BLOCKER | HANDOFF | WORK_LINK | SYSTEM

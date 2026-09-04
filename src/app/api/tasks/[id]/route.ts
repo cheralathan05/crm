@@ -159,7 +159,15 @@ export async function PATCH(req: Request, { params }: Ctx) {
     });
   }
 
-  // If task completed, trigger deliverable automation
+  // If task completed, trigger dependency resolution cascade and deliverable automation
+  if (
+    (body.status === "COMPLETED" || body.status === "DONE") &&
+    existingTask.projectId
+  ) {
+    const { cascadeDependencyResolution } = await import("@/lib/tasks/task-engine.service");
+    await cascadeDependencyResolution(id, existingTask.projectId);
+  }
+
   if (
     (body.status === "COMPLETED" || body.status === "DONE" || body.status === "CLIENT_APPROVED") &&
     existingTask.deliverableId

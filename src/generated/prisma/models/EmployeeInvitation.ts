@@ -36,6 +36,9 @@ export type EmployeeInvitationSumAggregateOutputType = {
 
 export type EmployeeInvitationMinAggregateOutputType = {
   id: string | null
+  projectId: string | null
+  teamName: string | null
+  projectRole: string | null
   workspaceId: string | null
   employeeId: string | null
   recipientEmail: string | null
@@ -59,6 +62,9 @@ export type EmployeeInvitationMinAggregateOutputType = {
 
 export type EmployeeInvitationMaxAggregateOutputType = {
   id: string | null
+  projectId: string | null
+  teamName: string | null
+  projectRole: string | null
   workspaceId: string | null
   employeeId: string | null
   recipientEmail: string | null
@@ -82,6 +88,9 @@ export type EmployeeInvitationMaxAggregateOutputType = {
 
 export type EmployeeInvitationCountAggregateOutputType = {
   id: number
+  projectId: number
+  teamName: number
+  projectRole: number
   workspaceId: number
   employeeId: number
   recipientEmail: number
@@ -115,6 +124,9 @@ export type EmployeeInvitationSumAggregateInputType = {
 
 export type EmployeeInvitationMinAggregateInputType = {
   id?: true
+  projectId?: true
+  teamName?: true
+  projectRole?: true
   workspaceId?: true
   employeeId?: true
   recipientEmail?: true
@@ -138,6 +150,9 @@ export type EmployeeInvitationMinAggregateInputType = {
 
 export type EmployeeInvitationMaxAggregateInputType = {
   id?: true
+  projectId?: true
+  teamName?: true
+  projectRole?: true
   workspaceId?: true
   employeeId?: true
   recipientEmail?: true
@@ -161,6 +176,9 @@ export type EmployeeInvitationMaxAggregateInputType = {
 
 export type EmployeeInvitationCountAggregateInputType = {
   id?: true
+  projectId?: true
+  teamName?: true
+  projectRole?: true
   workspaceId?: true
   employeeId?: true
   recipientEmail?: true
@@ -271,6 +289,9 @@ export type EmployeeInvitationGroupByArgs<ExtArgs extends runtime.Types.Extensio
 
 export type EmployeeInvitationGroupByOutputType = {
   id: string
+  projectId: string | null
+  teamName: string | null
+  projectRole: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -317,6 +338,9 @@ export type EmployeeInvitationWhereInput = {
   OR?: Prisma.EmployeeInvitationWhereInput[]
   NOT?: Prisma.EmployeeInvitationWhereInput | Prisma.EmployeeInvitationWhereInput[]
   id?: Prisma.StringFilter<"EmployeeInvitation"> | string
+  projectId?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
+  teamName?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
+  projectRole?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
   workspaceId?: Prisma.StringFilter<"EmployeeInvitation"> | string
   employeeId?: Prisma.StringFilter<"EmployeeInvitation"> | string
   recipientEmail?: Prisma.StringFilter<"EmployeeInvitation"> | string
@@ -336,6 +360,7 @@ export type EmployeeInvitationWhereInput = {
   invitedByName?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeInvitation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeInvitation"> | Date | string
+  project?: Prisma.XOR<Prisma.ClientProjectNullableScalarRelationFilter, Prisma.ClientProjectWhereInput> | null
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   role?: Prisma.XOR<Prisma.OrganizationRoleNullableScalarRelationFilter, Prisma.OrganizationRoleWhereInput> | null
@@ -344,6 +369,9 @@ export type EmployeeInvitationWhereInput = {
 
 export type EmployeeInvitationOrderByWithRelationInput = {
   id?: Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  teamName?: Prisma.SortOrderInput | Prisma.SortOrder
+  projectRole?: Prisma.SortOrderInput | Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   recipientEmail?: Prisma.SortOrder
@@ -363,6 +391,7 @@ export type EmployeeInvitationOrderByWithRelationInput = {
   invitedByName?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  project?: Prisma.ClientProjectOrderByWithRelationInput
   workspace?: Prisma.WorkspaceOrderByWithRelationInput
   employee?: Prisma.EmployeeOrderByWithRelationInput
   role?: Prisma.OrganizationRoleOrderByWithRelationInput
@@ -375,6 +404,9 @@ export type EmployeeInvitationWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.EmployeeInvitationWhereInput | Prisma.EmployeeInvitationWhereInput[]
   OR?: Prisma.EmployeeInvitationWhereInput[]
   NOT?: Prisma.EmployeeInvitationWhereInput | Prisma.EmployeeInvitationWhereInput[]
+  projectId?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
+  teamName?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
+  projectRole?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
   workspaceId?: Prisma.StringFilter<"EmployeeInvitation"> | string
   employeeId?: Prisma.StringFilter<"EmployeeInvitation"> | string
   recipientEmail?: Prisma.StringFilter<"EmployeeInvitation"> | string
@@ -393,6 +425,7 @@ export type EmployeeInvitationWhereUniqueInput = Prisma.AtLeast<{
   invitedByName?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
   createdAt?: Prisma.DateTimeFilter<"EmployeeInvitation"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"EmployeeInvitation"> | Date | string
+  project?: Prisma.XOR<Prisma.ClientProjectNullableScalarRelationFilter, Prisma.ClientProjectWhereInput> | null
   workspace?: Prisma.XOR<Prisma.WorkspaceScalarRelationFilter, Prisma.WorkspaceWhereInput>
   employee?: Prisma.XOR<Prisma.EmployeeScalarRelationFilter, Prisma.EmployeeWhereInput>
   role?: Prisma.XOR<Prisma.OrganizationRoleNullableScalarRelationFilter, Prisma.OrganizationRoleWhereInput> | null
@@ -401,6 +434,9 @@ export type EmployeeInvitationWhereUniqueInput = Prisma.AtLeast<{
 
 export type EmployeeInvitationOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
+  projectId?: Prisma.SortOrderInput | Prisma.SortOrder
+  teamName?: Prisma.SortOrderInput | Prisma.SortOrder
+  projectRole?: Prisma.SortOrderInput | Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   recipientEmail?: Prisma.SortOrder
@@ -432,6 +468,9 @@ export type EmployeeInvitationScalarWhereWithAggregatesInput = {
   OR?: Prisma.EmployeeInvitationScalarWhereWithAggregatesInput[]
   NOT?: Prisma.EmployeeInvitationScalarWhereWithAggregatesInput | Prisma.EmployeeInvitationScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"EmployeeInvitation"> | string
+  projectId?: Prisma.StringNullableWithAggregatesFilter<"EmployeeInvitation"> | string | null
+  teamName?: Prisma.StringNullableWithAggregatesFilter<"EmployeeInvitation"> | string | null
+  projectRole?: Prisma.StringNullableWithAggregatesFilter<"EmployeeInvitation"> | string | null
   workspaceId?: Prisma.StringWithAggregatesFilter<"EmployeeInvitation"> | string
   employeeId?: Prisma.StringWithAggregatesFilter<"EmployeeInvitation"> | string
   recipientEmail?: Prisma.StringWithAggregatesFilter<"EmployeeInvitation"> | string
@@ -455,6 +494,8 @@ export type EmployeeInvitationScalarWhereWithAggregatesInput = {
 
 export type EmployeeInvitationCreateInput = {
   id?: string
+  teamName?: string | null
+  projectRole?: string | null
   recipientEmail: string
   recipientName: string
   tokenHash: string
@@ -470,6 +511,7 @@ export type EmployeeInvitationCreateInput = {
   invitedByName?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: Prisma.ClientProjectCreateNestedOneWithoutInvitationsInput
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInvitationsInput
   employee: Prisma.EmployeeCreateNestedOneWithoutInvitationsInput
   role?: Prisma.OrganizationRoleCreateNestedOneWithoutInvitationsInput
@@ -478,6 +520,9 @@ export type EmployeeInvitationCreateInput = {
 
 export type EmployeeInvitationUncheckedCreateInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -501,6 +546,8 @@ export type EmployeeInvitationUncheckedCreateInput = {
 
 export type EmployeeInvitationUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -516,6 +563,7 @@ export type EmployeeInvitationUpdateInput = {
   invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ClientProjectUpdateOneWithoutInvitationsNestedInput
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInvitationsNestedInput
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutInvitationsNestedInput
   role?: Prisma.OrganizationRoleUpdateOneWithoutInvitationsNestedInput
@@ -524,6 +572,9 @@ export type EmployeeInvitationUpdateInput = {
 
 export type EmployeeInvitationUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
@@ -547,6 +598,9 @@ export type EmployeeInvitationUncheckedUpdateInput = {
 
 export type EmployeeInvitationCreateManyInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -570,6 +624,8 @@ export type EmployeeInvitationCreateManyInput = {
 
 export type EmployeeInvitationUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -589,6 +645,9 @@ export type EmployeeInvitationUpdateManyMutationInput = {
 
 export type EmployeeInvitationUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
@@ -622,6 +681,9 @@ export type EmployeeInvitationOrderByRelationAggregateInput = {
 
 export type EmployeeInvitationCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  projectRole?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   recipientEmail?: Prisma.SortOrder
@@ -649,6 +711,9 @@ export type EmployeeInvitationAvgOrderByAggregateInput = {
 
 export type EmployeeInvitationMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  projectRole?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   recipientEmail?: Prisma.SortOrder
@@ -672,6 +737,9 @@ export type EmployeeInvitationMaxOrderByAggregateInput = {
 
 export type EmployeeInvitationMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
+  projectId?: Prisma.SortOrder
+  teamName?: Prisma.SortOrder
+  projectRole?: Prisma.SortOrder
   workspaceId?: Prisma.SortOrder
   employeeId?: Prisma.SortOrder
   recipientEmail?: Prisma.SortOrder
@@ -736,6 +804,48 @@ export type EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceNestedInput = {
   connect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
   update?: Prisma.EmployeeInvitationUpdateWithWhereUniqueWithoutWorkspaceInput | Prisma.EmployeeInvitationUpdateWithWhereUniqueWithoutWorkspaceInput[]
   updateMany?: Prisma.EmployeeInvitationUpdateManyWithWhereWithoutWorkspaceInput | Prisma.EmployeeInvitationUpdateManyWithWhereWithoutWorkspaceInput[]
+  deleteMany?: Prisma.EmployeeInvitationScalarWhereInput | Prisma.EmployeeInvitationScalarWhereInput[]
+}
+
+export type EmployeeInvitationCreateNestedManyWithoutProjectInput = {
+  create?: Prisma.XOR<Prisma.EmployeeInvitationCreateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput> | Prisma.EmployeeInvitationCreateWithoutProjectInput[] | Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput | Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput[]
+  createMany?: Prisma.EmployeeInvitationCreateManyProjectInputEnvelope
+  connect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+}
+
+export type EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput = {
+  create?: Prisma.XOR<Prisma.EmployeeInvitationCreateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput> | Prisma.EmployeeInvitationCreateWithoutProjectInput[] | Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput | Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput[]
+  createMany?: Prisma.EmployeeInvitationCreateManyProjectInputEnvelope
+  connect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+}
+
+export type EmployeeInvitationUpdateManyWithoutProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeInvitationCreateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput> | Prisma.EmployeeInvitationCreateWithoutProjectInput[] | Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput | Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput[]
+  upsert?: Prisma.EmployeeInvitationUpsertWithWhereUniqueWithoutProjectInput | Prisma.EmployeeInvitationUpsertWithWhereUniqueWithoutProjectInput[]
+  createMany?: Prisma.EmployeeInvitationCreateManyProjectInputEnvelope
+  set?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  disconnect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  delete?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  connect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  update?: Prisma.EmployeeInvitationUpdateWithWhereUniqueWithoutProjectInput | Prisma.EmployeeInvitationUpdateWithWhereUniqueWithoutProjectInput[]
+  updateMany?: Prisma.EmployeeInvitationUpdateManyWithWhereWithoutProjectInput | Prisma.EmployeeInvitationUpdateManyWithWhereWithoutProjectInput[]
+  deleteMany?: Prisma.EmployeeInvitationScalarWhereInput | Prisma.EmployeeInvitationScalarWhereInput[]
+}
+
+export type EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput = {
+  create?: Prisma.XOR<Prisma.EmployeeInvitationCreateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput> | Prisma.EmployeeInvitationCreateWithoutProjectInput[] | Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput[]
+  connectOrCreate?: Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput | Prisma.EmployeeInvitationCreateOrConnectWithoutProjectInput[]
+  upsert?: Prisma.EmployeeInvitationUpsertWithWhereUniqueWithoutProjectInput | Prisma.EmployeeInvitationUpsertWithWhereUniqueWithoutProjectInput[]
+  createMany?: Prisma.EmployeeInvitationCreateManyProjectInputEnvelope
+  set?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  disconnect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  delete?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  connect?: Prisma.EmployeeInvitationWhereUniqueInput | Prisma.EmployeeInvitationWhereUniqueInput[]
+  update?: Prisma.EmployeeInvitationUpdateWithWhereUniqueWithoutProjectInput | Prisma.EmployeeInvitationUpdateWithWhereUniqueWithoutProjectInput[]
+  updateMany?: Prisma.EmployeeInvitationUpdateManyWithWhereWithoutProjectInput | Prisma.EmployeeInvitationUpdateManyWithWhereWithoutProjectInput[]
   deleteMany?: Prisma.EmployeeInvitationScalarWhereInput | Prisma.EmployeeInvitationScalarWhereInput[]
 }
 
@@ -867,6 +977,8 @@ export type EmployeeInvitationUncheckedUpdateManyWithoutTeamNestedInput = {
 
 export type EmployeeInvitationCreateWithoutWorkspaceInput = {
   id?: string
+  teamName?: string | null
+  projectRole?: string | null
   recipientEmail: string
   recipientName: string
   tokenHash: string
@@ -882,6 +994,7 @@ export type EmployeeInvitationCreateWithoutWorkspaceInput = {
   invitedByName?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: Prisma.ClientProjectCreateNestedOneWithoutInvitationsInput
   employee: Prisma.EmployeeCreateNestedOneWithoutInvitationsInput
   role?: Prisma.OrganizationRoleCreateNestedOneWithoutInvitationsInput
   team?: Prisma.OrganizationTeamCreateNestedOneWithoutInvitationsInput
@@ -889,6 +1002,9 @@ export type EmployeeInvitationCreateWithoutWorkspaceInput = {
 
 export type EmployeeInvitationUncheckedCreateWithoutWorkspaceInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   employeeId: string
   recipientEmail: string
   recipientName: string
@@ -939,6 +1055,9 @@ export type EmployeeInvitationScalarWhereInput = {
   OR?: Prisma.EmployeeInvitationScalarWhereInput[]
   NOT?: Prisma.EmployeeInvitationScalarWhereInput | Prisma.EmployeeInvitationScalarWhereInput[]
   id?: Prisma.StringFilter<"EmployeeInvitation"> | string
+  projectId?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
+  teamName?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
+  projectRole?: Prisma.StringNullableFilter<"EmployeeInvitation"> | string | null
   workspaceId?: Prisma.StringFilter<"EmployeeInvitation"> | string
   employeeId?: Prisma.StringFilter<"EmployeeInvitation"> | string
   recipientEmail?: Prisma.StringFilter<"EmployeeInvitation"> | string
@@ -960,8 +1079,10 @@ export type EmployeeInvitationScalarWhereInput = {
   updatedAt?: Prisma.DateTimeFilter<"EmployeeInvitation"> | Date | string
 }
 
-export type EmployeeInvitationCreateWithoutEmployeeInput = {
+export type EmployeeInvitationCreateWithoutProjectInput = {
   id?: string
+  teamName?: string | null
+  projectRole?: string | null
   recipientEmail: string
   recipientName: string
   tokenHash: string
@@ -978,12 +1099,91 @@ export type EmployeeInvitationCreateWithoutEmployeeInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInvitationsInput
+  employee: Prisma.EmployeeCreateNestedOneWithoutInvitationsInput
+  role?: Prisma.OrganizationRoleCreateNestedOneWithoutInvitationsInput
+  team?: Prisma.OrganizationTeamCreateNestedOneWithoutInvitationsInput
+}
+
+export type EmployeeInvitationUncheckedCreateWithoutProjectInput = {
+  id?: string
+  teamName?: string | null
+  projectRole?: string | null
+  workspaceId: string
+  employeeId: string
+  recipientEmail: string
+  recipientName: string
+  roleId?: string | null
+  teamId?: string | null
+  tokenHash: string
+  status?: string
+  sentAt?: Date | string | null
+  lastOpenedAt?: Date | string | null
+  acceptedAt?: Date | string | null
+  expiresAt: Date | string
+  revokedAt?: Date | string | null
+  deliveryAttempts?: number
+  deliveryError?: string | null
+  invitedById?: string | null
+  invitedByName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EmployeeInvitationCreateOrConnectWithoutProjectInput = {
+  where: Prisma.EmployeeInvitationWhereUniqueInput
+  create: Prisma.XOR<Prisma.EmployeeInvitationCreateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput>
+}
+
+export type EmployeeInvitationCreateManyProjectInputEnvelope = {
+  data: Prisma.EmployeeInvitationCreateManyProjectInput | Prisma.EmployeeInvitationCreateManyProjectInput[]
+}
+
+export type EmployeeInvitationUpsertWithWhereUniqueWithoutProjectInput = {
+  where: Prisma.EmployeeInvitationWhereUniqueInput
+  update: Prisma.XOR<Prisma.EmployeeInvitationUpdateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedUpdateWithoutProjectInput>
+  create: Prisma.XOR<Prisma.EmployeeInvitationCreateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedCreateWithoutProjectInput>
+}
+
+export type EmployeeInvitationUpdateWithWhereUniqueWithoutProjectInput = {
+  where: Prisma.EmployeeInvitationWhereUniqueInput
+  data: Prisma.XOR<Prisma.EmployeeInvitationUpdateWithoutProjectInput, Prisma.EmployeeInvitationUncheckedUpdateWithoutProjectInput>
+}
+
+export type EmployeeInvitationUpdateManyWithWhereWithoutProjectInput = {
+  where: Prisma.EmployeeInvitationScalarWhereInput
+  data: Prisma.XOR<Prisma.EmployeeInvitationUpdateManyMutationInput, Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectInput>
+}
+
+export type EmployeeInvitationCreateWithoutEmployeeInput = {
+  id?: string
+  teamName?: string | null
+  projectRole?: string | null
+  recipientEmail: string
+  recipientName: string
+  tokenHash: string
+  status?: string
+  sentAt?: Date | string | null
+  lastOpenedAt?: Date | string | null
+  acceptedAt?: Date | string | null
+  expiresAt: Date | string
+  revokedAt?: Date | string | null
+  deliveryAttempts?: number
+  deliveryError?: string | null
+  invitedById?: string | null
+  invitedByName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  project?: Prisma.ClientProjectCreateNestedOneWithoutInvitationsInput
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutInvitationsInput
   role?: Prisma.OrganizationRoleCreateNestedOneWithoutInvitationsInput
   team?: Prisma.OrganizationTeamCreateNestedOneWithoutInvitationsInput
 }
 
 export type EmployeeInvitationUncheckedCreateWithoutEmployeeInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   recipientEmail: string
   recipientName: string
@@ -1031,6 +1231,8 @@ export type EmployeeInvitationUpdateManyWithWhereWithoutEmployeeInput = {
 
 export type EmployeeInvitationCreateWithoutRoleInput = {
   id?: string
+  teamName?: string | null
+  projectRole?: string | null
   recipientEmail: string
   recipientName: string
   tokenHash: string
@@ -1046,6 +1248,7 @@ export type EmployeeInvitationCreateWithoutRoleInput = {
   invitedByName?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: Prisma.ClientProjectCreateNestedOneWithoutInvitationsInput
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInvitationsInput
   employee: Prisma.EmployeeCreateNestedOneWithoutInvitationsInput
   team?: Prisma.OrganizationTeamCreateNestedOneWithoutInvitationsInput
@@ -1053,6 +1256,9 @@ export type EmployeeInvitationCreateWithoutRoleInput = {
 
 export type EmployeeInvitationUncheckedCreateWithoutRoleInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -1100,6 +1306,8 @@ export type EmployeeInvitationUpdateManyWithWhereWithoutRoleInput = {
 
 export type EmployeeInvitationCreateWithoutTeamInput = {
   id?: string
+  teamName?: string | null
+  projectRole?: string | null
   recipientEmail: string
   recipientName: string
   tokenHash: string
@@ -1115,6 +1323,7 @@ export type EmployeeInvitationCreateWithoutTeamInput = {
   invitedByName?: string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  project?: Prisma.ClientProjectCreateNestedOneWithoutInvitationsInput
   workspace: Prisma.WorkspaceCreateNestedOneWithoutInvitationsInput
   employee: Prisma.EmployeeCreateNestedOneWithoutInvitationsInput
   role?: Prisma.OrganizationRoleCreateNestedOneWithoutInvitationsInput
@@ -1122,6 +1331,9 @@ export type EmployeeInvitationCreateWithoutTeamInput = {
 
 export type EmployeeInvitationUncheckedCreateWithoutTeamInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -1169,6 +1381,9 @@ export type EmployeeInvitationUpdateManyWithWhereWithoutTeamInput = {
 
 export type EmployeeInvitationCreateManyWorkspaceInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   employeeId: string
   recipientEmail: string
   recipientName: string
@@ -1191,6 +1406,8 @@ export type EmployeeInvitationCreateManyWorkspaceInput = {
 
 export type EmployeeInvitationUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1206,6 +1423,7 @@ export type EmployeeInvitationUpdateWithoutWorkspaceInput = {
   invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ClientProjectUpdateOneWithoutInvitationsNestedInput
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutInvitationsNestedInput
   role?: Prisma.OrganizationRoleUpdateOneWithoutInvitationsNestedInput
   team?: Prisma.OrganizationTeamUpdateOneWithoutInvitationsNestedInput
@@ -1213,6 +1431,9 @@ export type EmployeeInvitationUpdateWithoutWorkspaceInput = {
 
 export type EmployeeInvitationUncheckedUpdateWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1235,6 +1456,109 @@ export type EmployeeInvitationUncheckedUpdateWithoutWorkspaceInput = {
 
 export type EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invitedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EmployeeInvitationCreateManyProjectInput = {
+  id?: string
+  teamName?: string | null
+  projectRole?: string | null
+  workspaceId: string
+  employeeId: string
+  recipientEmail: string
+  recipientName: string
+  roleId?: string | null
+  teamId?: string | null
+  tokenHash: string
+  status?: string
+  sentAt?: Date | string | null
+  lastOpenedAt?: Date | string | null
+  acceptedAt?: Date | string | null
+  expiresAt: Date | string
+  revokedAt?: Date | string | null
+  deliveryAttempts?: number
+  deliveryError?: string | null
+  invitedById?: string | null
+  invitedByName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type EmployeeInvitationUpdateWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invitedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInvitationsNestedInput
+  employee?: Prisma.EmployeeUpdateOneRequiredWithoutInvitationsNestedInput
+  role?: Prisma.OrganizationRoleUpdateOneWithoutInvitationsNestedInput
+  team?: Prisma.OrganizationTeamUpdateOneWithoutInvitationsNestedInput
+}
+
+export type EmployeeInvitationUncheckedUpdateWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  employeeId?: Prisma.StringFieldUpdateOperationsInput | string
+  recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
+  recipientName?: Prisma.StringFieldUpdateOperationsInput | string
+  roleId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.StringFieldUpdateOperationsInput | string
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  acceptedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  expiresAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  revokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deliveryAttempts?: Prisma.IntFieldUpdateOperationsInput | number
+  deliveryError?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invitedById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type EmployeeInvitationUncheckedUpdateManyWithoutProjectInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1257,6 +1581,9 @@ export type EmployeeInvitationUncheckedUpdateManyWithoutWorkspaceInput = {
 
 export type EmployeeInvitationCreateManyEmployeeInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   recipientEmail: string
   recipientName: string
@@ -1279,6 +1606,8 @@ export type EmployeeInvitationCreateManyEmployeeInput = {
 
 export type EmployeeInvitationUpdateWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1294,6 +1623,7 @@ export type EmployeeInvitationUpdateWithoutEmployeeInput = {
   invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ClientProjectUpdateOneWithoutInvitationsNestedInput
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInvitationsNestedInput
   role?: Prisma.OrganizationRoleUpdateOneWithoutInvitationsNestedInput
   team?: Prisma.OrganizationTeamUpdateOneWithoutInvitationsNestedInput
@@ -1301,6 +1631,9 @@ export type EmployeeInvitationUpdateWithoutEmployeeInput = {
 
 export type EmployeeInvitationUncheckedUpdateWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1323,6 +1656,9 @@ export type EmployeeInvitationUncheckedUpdateWithoutEmployeeInput = {
 
 export type EmployeeInvitationUncheckedUpdateManyWithoutEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1345,6 +1681,9 @@ export type EmployeeInvitationUncheckedUpdateManyWithoutEmployeeInput = {
 
 export type EmployeeInvitationCreateManyRoleInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -1367,6 +1706,8 @@ export type EmployeeInvitationCreateManyRoleInput = {
 
 export type EmployeeInvitationUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1382,6 +1723,7 @@ export type EmployeeInvitationUpdateWithoutRoleInput = {
   invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ClientProjectUpdateOneWithoutInvitationsNestedInput
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInvitationsNestedInput
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutInvitationsNestedInput
   team?: Prisma.OrganizationTeamUpdateOneWithoutInvitationsNestedInput
@@ -1389,6 +1731,9 @@ export type EmployeeInvitationUpdateWithoutRoleInput = {
 
 export type EmployeeInvitationUncheckedUpdateWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1411,6 +1756,9 @@ export type EmployeeInvitationUncheckedUpdateWithoutRoleInput = {
 
 export type EmployeeInvitationUncheckedUpdateManyWithoutRoleInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1433,6 +1781,9 @@ export type EmployeeInvitationUncheckedUpdateManyWithoutRoleInput = {
 
 export type EmployeeInvitationCreateManyTeamInput = {
   id?: string
+  projectId?: string | null
+  teamName?: string | null
+  projectRole?: string | null
   workspaceId: string
   employeeId: string
   recipientEmail: string
@@ -1455,6 +1806,8 @@ export type EmployeeInvitationCreateManyTeamInput = {
 
 export type EmployeeInvitationUpdateWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
   recipientName?: Prisma.StringFieldUpdateOperationsInput | string
   tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1470,6 +1823,7 @@ export type EmployeeInvitationUpdateWithoutTeamInput = {
   invitedByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  project?: Prisma.ClientProjectUpdateOneWithoutInvitationsNestedInput
   workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutInvitationsNestedInput
   employee?: Prisma.EmployeeUpdateOneRequiredWithoutInvitationsNestedInput
   role?: Prisma.OrganizationRoleUpdateOneWithoutInvitationsNestedInput
@@ -1477,6 +1831,9 @@ export type EmployeeInvitationUpdateWithoutTeamInput = {
 
 export type EmployeeInvitationUncheckedUpdateWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1499,6 +1856,9 @@ export type EmployeeInvitationUncheckedUpdateWithoutTeamInput = {
 
 export type EmployeeInvitationUncheckedUpdateManyWithoutTeamInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  projectId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  teamName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  projectRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
   employeeId?: Prisma.StringFieldUpdateOperationsInput | string
   recipientEmail?: Prisma.StringFieldUpdateOperationsInput | string
@@ -1523,6 +1883,9 @@ export type EmployeeInvitationUncheckedUpdateManyWithoutTeamInput = {
 
 export type EmployeeInvitationSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  projectId?: boolean
+  teamName?: boolean
+  projectRole?: boolean
   workspaceId?: boolean
   employeeId?: boolean
   recipientEmail?: boolean
@@ -1542,6 +1905,7 @@ export type EmployeeInvitationSelect<ExtArgs extends runtime.Types.Extensions.In
   invitedByName?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  project?: boolean | Prisma.EmployeeInvitation$projectArgs<ExtArgs>
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   role?: boolean | Prisma.EmployeeInvitation$roleArgs<ExtArgs>
@@ -1550,6 +1914,9 @@ export type EmployeeInvitationSelect<ExtArgs extends runtime.Types.Extensions.In
 
 export type EmployeeInvitationSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  projectId?: boolean
+  teamName?: boolean
+  projectRole?: boolean
   workspaceId?: boolean
   employeeId?: boolean
   recipientEmail?: boolean
@@ -1569,6 +1936,7 @@ export type EmployeeInvitationSelectCreateManyAndReturn<ExtArgs extends runtime.
   invitedByName?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  project?: boolean | Prisma.EmployeeInvitation$projectArgs<ExtArgs>
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   role?: boolean | Prisma.EmployeeInvitation$roleArgs<ExtArgs>
@@ -1577,6 +1945,9 @@ export type EmployeeInvitationSelectCreateManyAndReturn<ExtArgs extends runtime.
 
 export type EmployeeInvitationSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
+  projectId?: boolean
+  teamName?: boolean
+  projectRole?: boolean
   workspaceId?: boolean
   employeeId?: boolean
   recipientEmail?: boolean
@@ -1596,6 +1967,7 @@ export type EmployeeInvitationSelectUpdateManyAndReturn<ExtArgs extends runtime.
   invitedByName?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  project?: boolean | Prisma.EmployeeInvitation$projectArgs<ExtArgs>
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   role?: boolean | Prisma.EmployeeInvitation$roleArgs<ExtArgs>
@@ -1604,6 +1976,9 @@ export type EmployeeInvitationSelectUpdateManyAndReturn<ExtArgs extends runtime.
 
 export type EmployeeInvitationSelectScalar = {
   id?: boolean
+  projectId?: boolean
+  teamName?: boolean
+  projectRole?: boolean
   workspaceId?: boolean
   employeeId?: boolean
   recipientEmail?: boolean
@@ -1625,20 +2000,23 @@ export type EmployeeInvitationSelectScalar = {
   updatedAt?: boolean
 }
 
-export type EmployeeInvitationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "workspaceId" | "employeeId" | "recipientEmail" | "recipientName" | "roleId" | "teamId" | "tokenHash" | "status" | "sentAt" | "lastOpenedAt" | "acceptedAt" | "expiresAt" | "revokedAt" | "deliveryAttempts" | "deliveryError" | "invitedById" | "invitedByName" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeInvitation"]>
+export type EmployeeInvitationOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "projectId" | "teamName" | "projectRole" | "workspaceId" | "employeeId" | "recipientEmail" | "recipientName" | "roleId" | "teamId" | "tokenHash" | "status" | "sentAt" | "lastOpenedAt" | "acceptedAt" | "expiresAt" | "revokedAt" | "deliveryAttempts" | "deliveryError" | "invitedById" | "invitedByName" | "createdAt" | "updatedAt", ExtArgs["result"]["employeeInvitation"]>
 export type EmployeeInvitationInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  project?: boolean | Prisma.EmployeeInvitation$projectArgs<ExtArgs>
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   role?: boolean | Prisma.EmployeeInvitation$roleArgs<ExtArgs>
   team?: boolean | Prisma.EmployeeInvitation$teamArgs<ExtArgs>
 }
 export type EmployeeInvitationIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  project?: boolean | Prisma.EmployeeInvitation$projectArgs<ExtArgs>
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   role?: boolean | Prisma.EmployeeInvitation$roleArgs<ExtArgs>
   team?: boolean | Prisma.EmployeeInvitation$teamArgs<ExtArgs>
 }
 export type EmployeeInvitationIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  project?: boolean | Prisma.EmployeeInvitation$projectArgs<ExtArgs>
   workspace?: boolean | Prisma.WorkspaceDefaultArgs<ExtArgs>
   employee?: boolean | Prisma.EmployeeDefaultArgs<ExtArgs>
   role?: boolean | Prisma.EmployeeInvitation$roleArgs<ExtArgs>
@@ -1648,6 +2026,7 @@ export type EmployeeInvitationIncludeUpdateManyAndReturn<ExtArgs extends runtime
 export type $EmployeeInvitationPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "EmployeeInvitation"
   objects: {
+    project: Prisma.$ClientProjectPayload<ExtArgs> | null
     workspace: Prisma.$WorkspacePayload<ExtArgs>
     employee: Prisma.$EmployeePayload<ExtArgs>
     role: Prisma.$OrganizationRolePayload<ExtArgs> | null
@@ -1655,6 +2034,9 @@ export type $EmployeeInvitationPayload<ExtArgs extends runtime.Types.Extensions.
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
+    projectId: string | null
+    teamName: string | null
+    projectRole: string | null
     workspaceId: string
     employeeId: string
     recipientEmail: string
@@ -2068,6 +2450,7 @@ readonly fields: EmployeeInvitationFieldRefs;
  */
 export interface Prisma__EmployeeInvitationClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  project<T extends Prisma.EmployeeInvitation$projectArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeInvitation$projectArgs<ExtArgs>>): Prisma.Prisma__ClientProjectClient<runtime.Types.Result.GetResult<Prisma.$ClientProjectPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   workspace<T extends Prisma.WorkspaceDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.WorkspaceDefaultArgs<ExtArgs>>): Prisma.Prisma__WorkspaceClient<runtime.Types.Result.GetResult<Prisma.$WorkspacePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   employee<T extends Prisma.EmployeeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeDefaultArgs<ExtArgs>>): Prisma.Prisma__EmployeeClient<runtime.Types.Result.GetResult<Prisma.$EmployeePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   role<T extends Prisma.EmployeeInvitation$roleArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.EmployeeInvitation$roleArgs<ExtArgs>>): Prisma.Prisma__OrganizationRoleClient<runtime.Types.Result.GetResult<Prisma.$OrganizationRolePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
@@ -2102,6 +2485,9 @@ export interface Prisma__EmployeeInvitationClient<T, Null = never, ExtArgs exten
  */
 export interface EmployeeInvitationFieldRefs {
   readonly id: Prisma.FieldRef<"EmployeeInvitation", 'String'>
+  readonly projectId: Prisma.FieldRef<"EmployeeInvitation", 'String'>
+  readonly teamName: Prisma.FieldRef<"EmployeeInvitation", 'String'>
+  readonly projectRole: Prisma.FieldRef<"EmployeeInvitation", 'String'>
   readonly workspaceId: Prisma.FieldRef<"EmployeeInvitation", 'String'>
   readonly employeeId: Prisma.FieldRef<"EmployeeInvitation", 'String'>
   readonly recipientEmail: Prisma.FieldRef<"EmployeeInvitation", 'String'>
@@ -2517,6 +2903,25 @@ export type EmployeeInvitationDeleteManyArgs<ExtArgs extends runtime.Types.Exten
    * Limit how many EmployeeInvitations to delete.
    */
   limit?: number
+}
+
+/**
+ * EmployeeInvitation.project
+ */
+export type EmployeeInvitation$projectArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the ClientProject
+   */
+  select?: Prisma.ClientProjectSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the ClientProject
+   */
+  omit?: Prisma.ClientProjectOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ClientProjectInclude<ExtArgs> | null
+  where?: Prisma.ClientProjectWhereInput
 }
 
 /**

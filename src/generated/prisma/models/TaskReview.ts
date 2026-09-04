@@ -27,6 +27,7 @@ export type AggregateTaskReview = {
 export type TaskReviewMinAggregateOutputType = {
   id: string | null
   taskId: string | null
+  submissionId: string | null
   reviewerId: string | null
   reviewerName: string | null
   status: $Enums.TaskReviewStatus | null
@@ -39,6 +40,7 @@ export type TaskReviewMinAggregateOutputType = {
 export type TaskReviewMaxAggregateOutputType = {
   id: string | null
   taskId: string | null
+  submissionId: string | null
   reviewerId: string | null
   reviewerName: string | null
   status: $Enums.TaskReviewStatus | null
@@ -51,6 +53,7 @@ export type TaskReviewMaxAggregateOutputType = {
 export type TaskReviewCountAggregateOutputType = {
   id: number
   taskId: number
+  submissionId: number
   reviewerId: number
   reviewerName: number
   status: number
@@ -65,6 +68,7 @@ export type TaskReviewCountAggregateOutputType = {
 export type TaskReviewMinAggregateInputType = {
   id?: true
   taskId?: true
+  submissionId?: true
   reviewerId?: true
   reviewerName?: true
   status?: true
@@ -77,6 +81,7 @@ export type TaskReviewMinAggregateInputType = {
 export type TaskReviewMaxAggregateInputType = {
   id?: true
   taskId?: true
+  submissionId?: true
   reviewerId?: true
   reviewerName?: true
   status?: true
@@ -89,6 +94,7 @@ export type TaskReviewMaxAggregateInputType = {
 export type TaskReviewCountAggregateInputType = {
   id?: true
   taskId?: true
+  submissionId?: true
   reviewerId?: true
   reviewerName?: true
   status?: true
@@ -174,6 +180,7 @@ export type TaskReviewGroupByArgs<ExtArgs extends runtime.Types.Extensions.Inter
 export type TaskReviewGroupByOutputType = {
   id: string
   taskId: string
+  submissionId: string | null
   reviewerId: string | null
   reviewerName: string
   status: $Enums.TaskReviewStatus
@@ -207,6 +214,7 @@ export type TaskReviewWhereInput = {
   NOT?: Prisma.TaskReviewWhereInput | Prisma.TaskReviewWhereInput[]
   id?: Prisma.StringFilter<"TaskReview"> | string
   taskId?: Prisma.StringFilter<"TaskReview"> | string
+  submissionId?: Prisma.StringNullableFilter<"TaskReview"> | string | null
   reviewerId?: Prisma.StringNullableFilter<"TaskReview"> | string | null
   reviewerName?: Prisma.StringFilter<"TaskReview"> | string
   status?: Prisma.EnumTaskReviewStatusFilter<"TaskReview"> | $Enums.TaskReviewStatus
@@ -215,11 +223,13 @@ export type TaskReviewWhereInput = {
   decidedAt?: Prisma.DateTimeNullableFilter<"TaskReview"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"TaskReview"> | Date | string
   task?: Prisma.XOR<Prisma.ClientTaskScalarRelationFilter, Prisma.ClientTaskWhereInput>
+  submission?: Prisma.XOR<Prisma.TaskSubmissionNullableScalarRelationFilter, Prisma.TaskSubmissionWhereInput> | null
 }
 
 export type TaskReviewOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewerName?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -228,6 +238,7 @@ export type TaskReviewOrderByWithRelationInput = {
   decidedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   task?: Prisma.ClientTaskOrderByWithRelationInput
+  submission?: Prisma.TaskSubmissionOrderByWithRelationInput
 }
 
 export type TaskReviewWhereUniqueInput = Prisma.AtLeast<{
@@ -236,6 +247,7 @@ export type TaskReviewWhereUniqueInput = Prisma.AtLeast<{
   OR?: Prisma.TaskReviewWhereInput[]
   NOT?: Prisma.TaskReviewWhereInput | Prisma.TaskReviewWhereInput[]
   taskId?: Prisma.StringFilter<"TaskReview"> | string
+  submissionId?: Prisma.StringNullableFilter<"TaskReview"> | string | null
   reviewerId?: Prisma.StringNullableFilter<"TaskReview"> | string | null
   reviewerName?: Prisma.StringFilter<"TaskReview"> | string
   status?: Prisma.EnumTaskReviewStatusFilter<"TaskReview"> | $Enums.TaskReviewStatus
@@ -244,11 +256,13 @@ export type TaskReviewWhereUniqueInput = Prisma.AtLeast<{
   decidedAt?: Prisma.DateTimeNullableFilter<"TaskReview"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"TaskReview"> | Date | string
   task?: Prisma.XOR<Prisma.ClientTaskScalarRelationFilter, Prisma.ClientTaskWhereInput>
+  submission?: Prisma.XOR<Prisma.TaskSubmissionNullableScalarRelationFilter, Prisma.TaskSubmissionWhereInput> | null
 }, "id">
 
 export type TaskReviewOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewerId?: Prisma.SortOrderInput | Prisma.SortOrder
   reviewerName?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -267,6 +281,7 @@ export type TaskReviewScalarWhereWithAggregatesInput = {
   NOT?: Prisma.TaskReviewScalarWhereWithAggregatesInput | Prisma.TaskReviewScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"TaskReview"> | string
   taskId?: Prisma.StringWithAggregatesFilter<"TaskReview"> | string
+  submissionId?: Prisma.StringNullableWithAggregatesFilter<"TaskReview"> | string | null
   reviewerId?: Prisma.StringNullableWithAggregatesFilter<"TaskReview"> | string | null
   reviewerName?: Prisma.StringWithAggregatesFilter<"TaskReview"> | string
   status?: Prisma.EnumTaskReviewStatusWithAggregatesFilter<"TaskReview"> | $Enums.TaskReviewStatus
@@ -286,11 +301,13 @@ export type TaskReviewCreateInput = {
   decidedAt?: Date | string | null
   createdAt?: Date | string
   task: Prisma.ClientTaskCreateNestedOneWithoutReviewsInput
+  submission?: Prisma.TaskSubmissionCreateNestedOneWithoutReviewsInput
 }
 
 export type TaskReviewUncheckedCreateInput = {
   id?: string
   taskId: string
+  submissionId?: string | null
   reviewerId?: string | null
   reviewerName: string
   status?: $Enums.TaskReviewStatus
@@ -310,11 +327,13 @@ export type TaskReviewUpdateInput = {
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   task?: Prisma.ClientTaskUpdateOneRequiredWithoutReviewsNestedInput
+  submission?: Prisma.TaskSubmissionUpdateOneWithoutReviewsNestedInput
 }
 
 export type TaskReviewUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   taskId?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
@@ -327,6 +346,7 @@ export type TaskReviewUncheckedUpdateInput = {
 export type TaskReviewCreateManyInput = {
   id?: string
   taskId: string
+  submissionId?: string | null
   reviewerId?: string | null
   reviewerName: string
   status?: $Enums.TaskReviewStatus
@@ -350,6 +370,7 @@ export type TaskReviewUpdateManyMutationInput = {
 export type TaskReviewUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   taskId?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
@@ -372,6 +393,7 @@ export type TaskReviewOrderByRelationAggregateInput = {
 export type TaskReviewCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   reviewerName?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -384,6 +406,7 @@ export type TaskReviewCountOrderByAggregateInput = {
 export type TaskReviewMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   reviewerName?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -396,6 +419,7 @@ export type TaskReviewMaxOrderByAggregateInput = {
 export type TaskReviewMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   taskId?: Prisma.SortOrder
+  submissionId?: Prisma.SortOrder
   reviewerId?: Prisma.SortOrder
   reviewerName?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -447,6 +471,48 @@ export type TaskReviewUncheckedUpdateManyWithoutTaskNestedInput = {
   deleteMany?: Prisma.TaskReviewScalarWhereInput | Prisma.TaskReviewScalarWhereInput[]
 }
 
+export type TaskReviewCreateNestedManyWithoutSubmissionInput = {
+  create?: Prisma.XOR<Prisma.TaskReviewCreateWithoutSubmissionInput, Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput> | Prisma.TaskReviewCreateWithoutSubmissionInput[] | Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput | Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput[]
+  createMany?: Prisma.TaskReviewCreateManySubmissionInputEnvelope
+  connect?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+}
+
+export type TaskReviewUncheckedCreateNestedManyWithoutSubmissionInput = {
+  create?: Prisma.XOR<Prisma.TaskReviewCreateWithoutSubmissionInput, Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput> | Prisma.TaskReviewCreateWithoutSubmissionInput[] | Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput | Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput[]
+  createMany?: Prisma.TaskReviewCreateManySubmissionInputEnvelope
+  connect?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+}
+
+export type TaskReviewUpdateManyWithoutSubmissionNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskReviewCreateWithoutSubmissionInput, Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput> | Prisma.TaskReviewCreateWithoutSubmissionInput[] | Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput | Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput[]
+  upsert?: Prisma.TaskReviewUpsertWithWhereUniqueWithoutSubmissionInput | Prisma.TaskReviewUpsertWithWhereUniqueWithoutSubmissionInput[]
+  createMany?: Prisma.TaskReviewCreateManySubmissionInputEnvelope
+  set?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  disconnect?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  delete?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  connect?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  update?: Prisma.TaskReviewUpdateWithWhereUniqueWithoutSubmissionInput | Prisma.TaskReviewUpdateWithWhereUniqueWithoutSubmissionInput[]
+  updateMany?: Prisma.TaskReviewUpdateManyWithWhereWithoutSubmissionInput | Prisma.TaskReviewUpdateManyWithWhereWithoutSubmissionInput[]
+  deleteMany?: Prisma.TaskReviewScalarWhereInput | Prisma.TaskReviewScalarWhereInput[]
+}
+
+export type TaskReviewUncheckedUpdateManyWithoutSubmissionNestedInput = {
+  create?: Prisma.XOR<Prisma.TaskReviewCreateWithoutSubmissionInput, Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput> | Prisma.TaskReviewCreateWithoutSubmissionInput[] | Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput[]
+  connectOrCreate?: Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput | Prisma.TaskReviewCreateOrConnectWithoutSubmissionInput[]
+  upsert?: Prisma.TaskReviewUpsertWithWhereUniqueWithoutSubmissionInput | Prisma.TaskReviewUpsertWithWhereUniqueWithoutSubmissionInput[]
+  createMany?: Prisma.TaskReviewCreateManySubmissionInputEnvelope
+  set?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  disconnect?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  delete?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  connect?: Prisma.TaskReviewWhereUniqueInput | Prisma.TaskReviewWhereUniqueInput[]
+  update?: Prisma.TaskReviewUpdateWithWhereUniqueWithoutSubmissionInput | Prisma.TaskReviewUpdateWithWhereUniqueWithoutSubmissionInput[]
+  updateMany?: Prisma.TaskReviewUpdateManyWithWhereWithoutSubmissionInput | Prisma.TaskReviewUpdateManyWithWhereWithoutSubmissionInput[]
+  deleteMany?: Prisma.TaskReviewScalarWhereInput | Prisma.TaskReviewScalarWhereInput[]
+}
+
 export type EnumTaskReviewStatusFieldUpdateOperationsInput = {
   set?: $Enums.TaskReviewStatus
 }
@@ -460,10 +526,12 @@ export type TaskReviewCreateWithoutTaskInput = {
   submittedAt?: Date | string
   decidedAt?: Date | string | null
   createdAt?: Date | string
+  submission?: Prisma.TaskSubmissionCreateNestedOneWithoutReviewsInput
 }
 
 export type TaskReviewUncheckedCreateWithoutTaskInput = {
   id?: string
+  submissionId?: string | null
   reviewerId?: string | null
   reviewerName: string
   status?: $Enums.TaskReviewStatus
@@ -504,6 +572,7 @@ export type TaskReviewScalarWhereInput = {
   NOT?: Prisma.TaskReviewScalarWhereInput | Prisma.TaskReviewScalarWhereInput[]
   id?: Prisma.StringFilter<"TaskReview"> | string
   taskId?: Prisma.StringFilter<"TaskReview"> | string
+  submissionId?: Prisma.StringNullableFilter<"TaskReview"> | string | null
   reviewerId?: Prisma.StringNullableFilter<"TaskReview"> | string | null
   reviewerName?: Prisma.StringFilter<"TaskReview"> | string
   status?: Prisma.EnumTaskReviewStatusFilter<"TaskReview"> | $Enums.TaskReviewStatus
@@ -513,8 +582,58 @@ export type TaskReviewScalarWhereInput = {
   createdAt?: Prisma.DateTimeFilter<"TaskReview"> | Date | string
 }
 
+export type TaskReviewCreateWithoutSubmissionInput = {
+  id?: string
+  reviewerId?: string | null
+  reviewerName: string
+  status?: $Enums.TaskReviewStatus
+  feedback?: string | null
+  submittedAt?: Date | string
+  decidedAt?: Date | string | null
+  createdAt?: Date | string
+  task: Prisma.ClientTaskCreateNestedOneWithoutReviewsInput
+}
+
+export type TaskReviewUncheckedCreateWithoutSubmissionInput = {
+  id?: string
+  taskId: string
+  reviewerId?: string | null
+  reviewerName: string
+  status?: $Enums.TaskReviewStatus
+  feedback?: string | null
+  submittedAt?: Date | string
+  decidedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type TaskReviewCreateOrConnectWithoutSubmissionInput = {
+  where: Prisma.TaskReviewWhereUniqueInput
+  create: Prisma.XOR<Prisma.TaskReviewCreateWithoutSubmissionInput, Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput>
+}
+
+export type TaskReviewCreateManySubmissionInputEnvelope = {
+  data: Prisma.TaskReviewCreateManySubmissionInput | Prisma.TaskReviewCreateManySubmissionInput[]
+}
+
+export type TaskReviewUpsertWithWhereUniqueWithoutSubmissionInput = {
+  where: Prisma.TaskReviewWhereUniqueInput
+  update: Prisma.XOR<Prisma.TaskReviewUpdateWithoutSubmissionInput, Prisma.TaskReviewUncheckedUpdateWithoutSubmissionInput>
+  create: Prisma.XOR<Prisma.TaskReviewCreateWithoutSubmissionInput, Prisma.TaskReviewUncheckedCreateWithoutSubmissionInput>
+}
+
+export type TaskReviewUpdateWithWhereUniqueWithoutSubmissionInput = {
+  where: Prisma.TaskReviewWhereUniqueInput
+  data: Prisma.XOR<Prisma.TaskReviewUpdateWithoutSubmissionInput, Prisma.TaskReviewUncheckedUpdateWithoutSubmissionInput>
+}
+
+export type TaskReviewUpdateManyWithWhereWithoutSubmissionInput = {
+  where: Prisma.TaskReviewScalarWhereInput
+  data: Prisma.XOR<Prisma.TaskReviewUpdateManyMutationInput, Prisma.TaskReviewUncheckedUpdateManyWithoutSubmissionInput>
+}
+
 export type TaskReviewCreateManyTaskInput = {
   id?: string
+  submissionId?: string | null
   reviewerId?: string | null
   reviewerName: string
   status?: $Enums.TaskReviewStatus
@@ -533,10 +652,12 @@ export type TaskReviewUpdateWithoutTaskInput = {
   submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  submission?: Prisma.TaskSubmissionUpdateOneWithoutReviewsNestedInput
 }
 
 export type TaskReviewUncheckedUpdateWithoutTaskInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
@@ -548,6 +669,55 @@ export type TaskReviewUncheckedUpdateWithoutTaskInput = {
 
 export type TaskReviewUncheckedUpdateManyWithoutTaskInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
+  submissionId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
+  feedback?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TaskReviewCreateManySubmissionInput = {
+  id?: string
+  taskId: string
+  reviewerId?: string | null
+  reviewerName: string
+  status?: $Enums.TaskReviewStatus
+  feedback?: string | null
+  submittedAt?: Date | string
+  decidedAt?: Date | string | null
+  createdAt?: Date | string
+}
+
+export type TaskReviewUpdateWithoutSubmissionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
+  feedback?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  task?: Prisma.ClientTaskUpdateOneRequiredWithoutReviewsNestedInput
+}
+
+export type TaskReviewUncheckedUpdateWithoutSubmissionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.StringFieldUpdateOperationsInput | string
+  reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
+  status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
+  feedback?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  submittedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  decidedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type TaskReviewUncheckedUpdateManyWithoutSubmissionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  taskId?: Prisma.StringFieldUpdateOperationsInput | string
   reviewerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   reviewerName?: Prisma.StringFieldUpdateOperationsInput | string
   status?: Prisma.EnumTaskReviewStatusFieldUpdateOperationsInput | $Enums.TaskReviewStatus
@@ -562,6 +732,7 @@ export type TaskReviewUncheckedUpdateManyWithoutTaskInput = {
 export type TaskReviewSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   taskId?: boolean
+  submissionId?: boolean
   reviewerId?: boolean
   reviewerName?: boolean
   status?: boolean
@@ -570,11 +741,13 @@ export type TaskReviewSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
   decidedAt?: boolean
   createdAt?: boolean
   task?: boolean | Prisma.ClientTaskDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.TaskReview$submissionArgs<ExtArgs>
 }, ExtArgs["result"]["taskReview"]>
 
 export type TaskReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   taskId?: boolean
+  submissionId?: boolean
   reviewerId?: boolean
   reviewerName?: boolean
   status?: boolean
@@ -583,11 +756,13 @@ export type TaskReviewSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
   decidedAt?: boolean
   createdAt?: boolean
   task?: boolean | Prisma.ClientTaskDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.TaskReview$submissionArgs<ExtArgs>
 }, ExtArgs["result"]["taskReview"]>
 
 export type TaskReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   taskId?: boolean
+  submissionId?: boolean
   reviewerId?: boolean
   reviewerName?: boolean
   status?: boolean
@@ -596,11 +771,13 @@ export type TaskReviewSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
   decidedAt?: boolean
   createdAt?: boolean
   task?: boolean | Prisma.ClientTaskDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.TaskReview$submissionArgs<ExtArgs>
 }, ExtArgs["result"]["taskReview"]>
 
 export type TaskReviewSelectScalar = {
   id?: boolean
   taskId?: boolean
+  submissionId?: boolean
   reviewerId?: boolean
   reviewerName?: boolean
   status?: boolean
@@ -610,25 +787,30 @@ export type TaskReviewSelectScalar = {
   createdAt?: boolean
 }
 
-export type TaskReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "reviewerId" | "reviewerName" | "status" | "feedback" | "submittedAt" | "decidedAt" | "createdAt", ExtArgs["result"]["taskReview"]>
+export type TaskReviewOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "taskId" | "submissionId" | "reviewerId" | "reviewerName" | "status" | "feedback" | "submittedAt" | "decidedAt" | "createdAt", ExtArgs["result"]["taskReview"]>
 export type TaskReviewInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   task?: boolean | Prisma.ClientTaskDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.TaskReview$submissionArgs<ExtArgs>
 }
 export type TaskReviewIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   task?: boolean | Prisma.ClientTaskDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.TaskReview$submissionArgs<ExtArgs>
 }
 export type TaskReviewIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   task?: boolean | Prisma.ClientTaskDefaultArgs<ExtArgs>
+  submission?: boolean | Prisma.TaskReview$submissionArgs<ExtArgs>
 }
 
 export type $TaskReviewPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "TaskReview"
   objects: {
     task: Prisma.$ClientTaskPayload<ExtArgs>
+    submission: Prisma.$TaskSubmissionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     taskId: string
+    submissionId: string | null
     reviewerId: string | null
     reviewerName: string
     status: $Enums.TaskReviewStatus
@@ -1031,6 +1213,7 @@ readonly fields: TaskReviewFieldRefs;
 export interface Prisma__TaskReviewClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   task<T extends Prisma.ClientTaskDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientTaskDefaultArgs<ExtArgs>>): Prisma.Prisma__ClientTaskClient<runtime.Types.Result.GetResult<Prisma.$ClientTaskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+  submission<T extends Prisma.TaskReview$submissionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.TaskReview$submissionArgs<ExtArgs>>): Prisma.Prisma__TaskSubmissionClient<runtime.Types.Result.GetResult<Prisma.$TaskSubmissionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1062,6 +1245,7 @@ export interface Prisma__TaskReviewClient<T, Null = never, ExtArgs extends runti
 export interface TaskReviewFieldRefs {
   readonly id: Prisma.FieldRef<"TaskReview", 'String'>
   readonly taskId: Prisma.FieldRef<"TaskReview", 'String'>
+  readonly submissionId: Prisma.FieldRef<"TaskReview", 'String'>
   readonly reviewerId: Prisma.FieldRef<"TaskReview", 'String'>
   readonly reviewerName: Prisma.FieldRef<"TaskReview", 'String'>
   readonly status: Prisma.FieldRef<"TaskReview", 'TaskReviewStatus'>
@@ -1465,6 +1649,25 @@ export type TaskReviewDeleteManyArgs<ExtArgs extends runtime.Types.Extensions.In
    * Limit how many TaskReviews to delete.
    */
   limit?: number
+}
+
+/**
+ * TaskReview.submission
+ */
+export type TaskReview$submissionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskSubmission
+   */
+  select?: Prisma.TaskSubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskSubmission
+   */
+  omit?: Prisma.TaskSubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskSubmissionInclude<ExtArgs> | null
+  where?: Prisma.TaskSubmissionWhereInput
 }
 
 /**

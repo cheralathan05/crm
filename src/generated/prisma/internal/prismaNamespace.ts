@@ -423,6 +423,7 @@ export const ModelName = {
   TaskDependency: 'TaskDependency',
   TaskComment: 'TaskComment',
   TaskAttachment: 'TaskAttachment',
+  TaskSubmission: 'TaskSubmission',
   TaskReview: 'TaskReview',
   TaskActivity: 'TaskActivity',
   TaskTimeEntry: 'TaskTimeEntry',
@@ -506,7 +507,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "workspace" | "client" | "contact" | "clientActivity" | "clientRequirement" | "clientProposal" | "proposalVersion" | "proposalDelivery" | "proposalView" | "proposalApproval" | "proposalChangeRequest" | "proposalChangeRequestItem" | "proposalRejection" | "clientProject" | "projectMilestone" | "projectDeliverable" | "projectMember" | "projectChangeRequest" | "projectActivity" | "clientTask" | "subTask" | "taskAcceptanceCriterion" | "taskDependency" | "taskComment" | "taskAttachment" | "taskReview" | "taskActivity" | "taskTimeEntry" | "clientPayment" | "clientDocument" | "clientMessage" | "clientNote" | "clientAuditEvent" | "requirementRequest" | "requirementAnswer" | "requirementFeature" | "requirementAttachment" | "requirementQuestion" | "requirementUpdateProposal" | "requirementConflict" | "questionDelivery" | "requirementComment" | "requirementRevision" | "requirementEvent" | "clientCopilotMessage" | "clientCustomFieldDef" | "onboarding" | "workspaceProfile" | "businessProfile" | "workspacePreferences" | "notificationPreferences" | "workspaceSetup" | "verificationToken" | "engineeringBlueprint" | "frontendCapability" | "backendApi" | "backendService" | "databaseEntity" | "integrationRequirement" | "securityRequirement" | "testSpecification" | "engineeringDependency" | "clarificationItem" | "architectureDrift" | "evidenceRecord" | "employee" | "organizationRole" | "organizationTeam" | "employeeInvitation" | "employeeAuditEvent" | "projectStaffAllocation" | "employeeOnboardingState" | "employeePolicyAcknowledgement" | "employeeToolAccess" | "employeeProjectBrief" | "employeeBuildSession" | "employeeContribution" | "projectDecision" | "contributionRecognition" | "employeeInboxItem" | "buildCheckpoint" | "productBuild" | "buildProof" | "buildReview" | "buildHandoff" | "buildSubmission" | "buildVerificationJob" | "buildVerificationReport" | "buildReviewDecision" | "buildJourneyAuditEvent" | "workConversation" | "workConversationParticipant" | "workMessage"
+    modelProps: "user" | "workspace" | "client" | "contact" | "clientActivity" | "clientRequirement" | "clientProposal" | "proposalVersion" | "proposalDelivery" | "proposalView" | "proposalApproval" | "proposalChangeRequest" | "proposalChangeRequestItem" | "proposalRejection" | "clientProject" | "projectMilestone" | "projectDeliverable" | "projectMember" | "projectChangeRequest" | "projectActivity" | "clientTask" | "subTask" | "taskAcceptanceCriterion" | "taskDependency" | "taskComment" | "taskAttachment" | "taskSubmission" | "taskReview" | "taskActivity" | "taskTimeEntry" | "clientPayment" | "clientDocument" | "clientMessage" | "clientNote" | "clientAuditEvent" | "requirementRequest" | "requirementAnswer" | "requirementFeature" | "requirementAttachment" | "requirementQuestion" | "requirementUpdateProposal" | "requirementConflict" | "questionDelivery" | "requirementComment" | "requirementRevision" | "requirementEvent" | "clientCopilotMessage" | "clientCustomFieldDef" | "onboarding" | "workspaceProfile" | "businessProfile" | "workspacePreferences" | "notificationPreferences" | "workspaceSetup" | "verificationToken" | "engineeringBlueprint" | "frontendCapability" | "backendApi" | "backendService" | "databaseEntity" | "integrationRequirement" | "securityRequirement" | "testSpecification" | "engineeringDependency" | "clarificationItem" | "architectureDrift" | "evidenceRecord" | "employee" | "organizationRole" | "organizationTeam" | "employeeInvitation" | "employeeAuditEvent" | "projectStaffAllocation" | "employeeOnboardingState" | "employeePolicyAcknowledgement" | "employeeToolAccess" | "employeeProjectBrief" | "employeeBuildSession" | "employeeContribution" | "projectDecision" | "contributionRecognition" | "employeeInboxItem" | "buildCheckpoint" | "productBuild" | "buildProof" | "buildReview" | "buildHandoff" | "buildSubmission" | "buildVerificationJob" | "buildVerificationReport" | "buildReviewDecision" | "buildJourneyAuditEvent" | "workConversation" | "workConversationParticipant" | "workMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -2431,6 +2432,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TaskAttachmentCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TaskAttachmentCountAggregateOutputType> | number
+        }
+      }
+    }
+    TaskSubmission: {
+      payload: Prisma.$TaskSubmissionPayload<ExtArgs>
+      fields: Prisma.TaskSubmissionFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.TaskSubmissionFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.TaskSubmissionFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>
+        }
+        findFirst: {
+          args: Prisma.TaskSubmissionFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.TaskSubmissionFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>
+        }
+        findMany: {
+          args: Prisma.TaskSubmissionFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>[]
+        }
+        create: {
+          args: Prisma.TaskSubmissionCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>
+        }
+        createMany: {
+          args: Prisma.TaskSubmissionCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.TaskSubmissionCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>[]
+        }
+        delete: {
+          args: Prisma.TaskSubmissionDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>
+        }
+        update: {
+          args: Prisma.TaskSubmissionUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>
+        }
+        deleteMany: {
+          args: Prisma.TaskSubmissionDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.TaskSubmissionUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.TaskSubmissionUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>[]
+        }
+        upsert: {
+          args: Prisma.TaskSubmissionUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$TaskSubmissionPayload>
+        }
+        aggregate: {
+          args: Prisma.TaskSubmissionAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateTaskSubmission>
+        }
+        groupBy: {
+          args: Prisma.TaskSubmissionGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskSubmissionGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.TaskSubmissionCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.TaskSubmissionCountAggregateOutputType> | number
         }
       }
     }
@@ -8012,9 +8087,31 @@ export const TaskAttachmentScalarFieldEnum = {
 export type TaskAttachmentScalarFieldEnum = (typeof TaskAttachmentScalarFieldEnum)[keyof typeof TaskAttachmentScalarFieldEnum]
 
 
+export const TaskSubmissionScalarFieldEnum = {
+  id: 'id',
+  submissionCode: 'submissionCode',
+  taskId: 'taskId',
+  projectId: 'projectId',
+  employeeId: 'employeeId',
+  summary: 'summary',
+  proofType: 'proofType',
+  proofUrl: 'proofUrl',
+  knownIssues: 'knownIssues',
+  comments: 'comments',
+  iteration: 'iteration',
+  status: 'status',
+  submittedAt: 'submittedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type TaskSubmissionScalarFieldEnum = (typeof TaskSubmissionScalarFieldEnum)[keyof typeof TaskSubmissionScalarFieldEnum]
+
+
 export const TaskReviewScalarFieldEnum = {
   id: 'id',
   taskId: 'taskId',
+  submissionId: 'submissionId',
   reviewerId: 'reviewerId',
   reviewerName: 'reviewerName',
   status: 'status',
@@ -8823,6 +8920,9 @@ export type OrganizationTeamScalarFieldEnum = (typeof OrganizationTeamScalarFiel
 
 export const EmployeeInvitationScalarFieldEnum = {
   id: 'id',
+  projectId: 'projectId',
+  teamName: 'teamName',
+  projectRole: 'projectRole',
   workspaceId: 'workspaceId',
   employeeId: 'employeeId',
   recipientEmail: 'recipientEmail',
@@ -8868,6 +8968,9 @@ export const ProjectStaffAllocationScalarFieldEnum = {
   employeeId: 'employeeId',
   projectId: 'projectId',
   projectRole: 'projectRole',
+  teamName: 'teamName',
+  status: 'status',
+  permissions: 'permissions',
   allocationPercentage: 'allocationPercentage',
   workstream: 'workstream',
   joinedAt: 'joinedAt',
@@ -9252,6 +9355,8 @@ export const WorkConversationScalarFieldEnum = {
   workstream: 'workstream',
   dependencyWorkstream: 'dependencyWorkstream',
   dependencyLabel: 'dependencyLabel',
+  targetWorkstream: 'targetWorkstream',
+  teamName: 'teamName',
   isBlocker: 'isBlocker',
   blockerStatus: 'blockerStatus',
   blockerReason: 'blockerReason',
@@ -9288,6 +9393,7 @@ export const WorkMessageScalarFieldEnum = {
   senderUserId: 'senderUserId',
   senderName: 'senderName',
   senderRole: 'senderRole',
+  senderTeam: 'senderTeam',
   senderAvatar: 'senderAvatar',
   content: 'content',
   messageType: 'messageType',
@@ -9763,6 +9869,7 @@ export type GlobalOmitConfig = {
   taskDependency?: Prisma.TaskDependencyOmit
   taskComment?: Prisma.TaskCommentOmit
   taskAttachment?: Prisma.TaskAttachmentOmit
+  taskSubmission?: Prisma.TaskSubmissionOmit
   taskReview?: Prisma.TaskReviewOmit
   taskActivity?: Prisma.TaskActivityOmit
   taskTimeEntry?: Prisma.TaskTimeEntryOmit

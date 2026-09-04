@@ -31,6 +31,7 @@ export type WorkMessageMinAggregateOutputType = {
   senderUserId: string | null
   senderName: string | null
   senderRole: string | null
+  senderTeam: string | null
   senderAvatar: string | null
   content: string | null
   messageType: string | null
@@ -46,6 +47,7 @@ export type WorkMessageMaxAggregateOutputType = {
   senderUserId: string | null
   senderName: string | null
   senderRole: string | null
+  senderTeam: string | null
   senderAvatar: string | null
   content: string | null
   messageType: string | null
@@ -61,6 +63,7 @@ export type WorkMessageCountAggregateOutputType = {
   senderUserId: number
   senderName: number
   senderRole: number
+  senderTeam: number
   senderAvatar: number
   content: number
   messageType: number
@@ -78,6 +81,7 @@ export type WorkMessageMinAggregateInputType = {
   senderUserId?: true
   senderName?: true
   senderRole?: true
+  senderTeam?: true
   senderAvatar?: true
   content?: true
   messageType?: true
@@ -93,6 +97,7 @@ export type WorkMessageMaxAggregateInputType = {
   senderUserId?: true
   senderName?: true
   senderRole?: true
+  senderTeam?: true
   senderAvatar?: true
   content?: true
   messageType?: true
@@ -108,6 +113,7 @@ export type WorkMessageCountAggregateInputType = {
   senderUserId?: true
   senderName?: true
   senderRole?: true
+  senderTeam?: true
   senderAvatar?: true
   content?: true
   messageType?: true
@@ -196,6 +202,7 @@ export type WorkMessageGroupByOutputType = {
   senderUserId: string | null
   senderName: string
   senderRole: string | null
+  senderTeam: string | null
   senderAvatar: string | null
   content: string
   messageType: string
@@ -232,6 +239,7 @@ export type WorkMessageWhereInput = {
   senderUserId?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   senderName?: Prisma.StringFilter<"WorkMessage"> | string
   senderRole?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
+  senderTeam?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   senderAvatar?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   content?: Prisma.StringFilter<"WorkMessage"> | string
   messageType?: Prisma.StringFilter<"WorkMessage"> | string
@@ -250,6 +258,7 @@ export type WorkMessageOrderByWithRelationInput = {
   senderUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderRole?: Prisma.SortOrderInput | Prisma.SortOrder
+  senderTeam?: Prisma.SortOrderInput | Prisma.SortOrder
   senderAvatar?: Prisma.SortOrderInput | Prisma.SortOrder
   content?: Prisma.SortOrder
   messageType?: Prisma.SortOrder
@@ -271,6 +280,7 @@ export type WorkMessageWhereUniqueInput = Prisma.AtLeast<{
   senderUserId?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   senderName?: Prisma.StringFilter<"WorkMessage"> | string
   senderRole?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
+  senderTeam?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   senderAvatar?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   content?: Prisma.StringFilter<"WorkMessage"> | string
   messageType?: Prisma.StringFilter<"WorkMessage"> | string
@@ -289,6 +299,7 @@ export type WorkMessageOrderByWithAggregationInput = {
   senderUserId?: Prisma.SortOrderInput | Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderRole?: Prisma.SortOrderInput | Prisma.SortOrder
+  senderTeam?: Prisma.SortOrderInput | Prisma.SortOrder
   senderAvatar?: Prisma.SortOrderInput | Prisma.SortOrder
   content?: Prisma.SortOrder
   messageType?: Prisma.SortOrder
@@ -310,6 +321,7 @@ export type WorkMessageScalarWhereWithAggregatesInput = {
   senderUserId?: Prisma.StringNullableWithAggregatesFilter<"WorkMessage"> | string | null
   senderName?: Prisma.StringWithAggregatesFilter<"WorkMessage"> | string
   senderRole?: Prisma.StringNullableWithAggregatesFilter<"WorkMessage"> | string | null
+  senderTeam?: Prisma.StringNullableWithAggregatesFilter<"WorkMessage"> | string | null
   senderAvatar?: Prisma.StringNullableWithAggregatesFilter<"WorkMessage"> | string | null
   content?: Prisma.StringWithAggregatesFilter<"WorkMessage"> | string
   messageType?: Prisma.StringWithAggregatesFilter<"WorkMessage"> | string
@@ -322,6 +334,7 @@ export type WorkMessageCreateInput = {
   id?: string
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -340,6 +353,7 @@ export type WorkMessageUncheckedCreateInput = {
   senderUserId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -352,6 +366,7 @@ export type WorkMessageUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -370,6 +385,7 @@ export type WorkMessageUncheckedUpdateInput = {
   senderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -385,6 +401,7 @@ export type WorkMessageCreateManyInput = {
   senderUserId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -397,6 +414,7 @@ export type WorkMessageUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -412,6 +430,7 @@ export type WorkMessageUncheckedUpdateManyInput = {
   senderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -437,6 +456,7 @@ export type WorkMessageCountOrderByAggregateInput = {
   senderUserId?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderRole?: Prisma.SortOrder
+  senderTeam?: Prisma.SortOrder
   senderAvatar?: Prisma.SortOrder
   content?: Prisma.SortOrder
   messageType?: Prisma.SortOrder
@@ -452,6 +472,7 @@ export type WorkMessageMaxOrderByAggregateInput = {
   senderUserId?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderRole?: Prisma.SortOrder
+  senderTeam?: Prisma.SortOrder
   senderAvatar?: Prisma.SortOrder
   content?: Prisma.SortOrder
   messageType?: Prisma.SortOrder
@@ -467,6 +488,7 @@ export type WorkMessageMinOrderByAggregateInput = {
   senderUserId?: Prisma.SortOrder
   senderName?: Prisma.SortOrder
   senderRole?: Prisma.SortOrder
+  senderTeam?: Prisma.SortOrder
   senderAvatar?: Prisma.SortOrder
   content?: Prisma.SortOrder
   messageType?: Prisma.SortOrder
@@ -605,6 +627,7 @@ export type WorkMessageCreateWithoutSenderUserInput = {
   id?: string
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -621,6 +644,7 @@ export type WorkMessageUncheckedCreateWithoutSenderUserInput = {
   senderEmployeeId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -664,6 +688,7 @@ export type WorkMessageScalarWhereInput = {
   senderUserId?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   senderName?: Prisma.StringFilter<"WorkMessage"> | string
   senderRole?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
+  senderTeam?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   senderAvatar?: Prisma.StringNullableFilter<"WorkMessage"> | string | null
   content?: Prisma.StringFilter<"WorkMessage"> | string
   messageType?: Prisma.StringFilter<"WorkMessage"> | string
@@ -676,6 +701,7 @@ export type WorkMessageCreateWithoutSenderEmployeeInput = {
   id?: string
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -692,6 +718,7 @@ export type WorkMessageUncheckedCreateWithoutSenderEmployeeInput = {
   senderUserId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -729,6 +756,7 @@ export type WorkMessageCreateWithoutConversationInput = {
   id?: string
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -745,6 +773,7 @@ export type WorkMessageUncheckedCreateWithoutConversationInput = {
   senderUserId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -784,6 +813,7 @@ export type WorkMessageCreateManySenderUserInput = {
   senderEmployeeId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -796,6 +826,7 @@ export type WorkMessageUpdateWithoutSenderUserInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -812,6 +843,7 @@ export type WorkMessageUncheckedUpdateWithoutSenderUserInput = {
   senderEmployeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -826,6 +858,7 @@ export type WorkMessageUncheckedUpdateManyWithoutSenderUserInput = {
   senderEmployeeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -840,6 +873,7 @@ export type WorkMessageCreateManySenderEmployeeInput = {
   senderUserId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -852,6 +886,7 @@ export type WorkMessageUpdateWithoutSenderEmployeeInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -868,6 +903,7 @@ export type WorkMessageUncheckedUpdateWithoutSenderEmployeeInput = {
   senderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -882,6 +918,7 @@ export type WorkMessageUncheckedUpdateManyWithoutSenderEmployeeInput = {
   senderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -896,6 +933,7 @@ export type WorkMessageCreateManyConversationInput = {
   senderUserId?: string | null
   senderName: string
   senderRole?: string | null
+  senderTeam?: string | null
   senderAvatar?: string | null
   content: string
   messageType?: string
@@ -908,6 +946,7 @@ export type WorkMessageUpdateWithoutConversationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -924,6 +963,7 @@ export type WorkMessageUncheckedUpdateWithoutConversationInput = {
   senderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -938,6 +978,7 @@ export type WorkMessageUncheckedUpdateManyWithoutConversationInput = {
   senderUserId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderName?: Prisma.StringFieldUpdateOperationsInput | string
   senderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  senderTeam?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   senderAvatar?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   content?: Prisma.StringFieldUpdateOperationsInput | string
   messageType?: Prisma.StringFieldUpdateOperationsInput | string
@@ -955,6 +996,7 @@ export type WorkMessageSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   senderUserId?: boolean
   senderName?: boolean
   senderRole?: boolean
+  senderTeam?: boolean
   senderAvatar?: boolean
   content?: boolean
   messageType?: boolean
@@ -973,6 +1015,7 @@ export type WorkMessageSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   senderUserId?: boolean
   senderName?: boolean
   senderRole?: boolean
+  senderTeam?: boolean
   senderAvatar?: boolean
   content?: boolean
   messageType?: boolean
@@ -991,6 +1034,7 @@ export type WorkMessageSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   senderUserId?: boolean
   senderName?: boolean
   senderRole?: boolean
+  senderTeam?: boolean
   senderAvatar?: boolean
   content?: boolean
   messageType?: boolean
@@ -1009,6 +1053,7 @@ export type WorkMessageSelectScalar = {
   senderUserId?: boolean
   senderName?: boolean
   senderRole?: boolean
+  senderTeam?: boolean
   senderAvatar?: boolean
   content?: boolean
   messageType?: boolean
@@ -1017,7 +1062,7 @@ export type WorkMessageSelectScalar = {
   updatedAt?: boolean
 }
 
-export type WorkMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "senderEmployeeId" | "senderUserId" | "senderName" | "senderRole" | "senderAvatar" | "content" | "messageType" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["workMessage"]>
+export type WorkMessageOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "conversationId" | "senderEmployeeId" | "senderUserId" | "senderName" | "senderRole" | "senderTeam" | "senderAvatar" | "content" | "messageType" | "metadata" | "createdAt" | "updatedAt", ExtArgs["result"]["workMessage"]>
 export type WorkMessageInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   conversation?: boolean | Prisma.WorkConversationDefaultArgs<ExtArgs>
   senderEmployee?: boolean | Prisma.WorkMessage$senderEmployeeArgs<ExtArgs>
@@ -1048,6 +1093,7 @@ export type $WorkMessagePayload<ExtArgs extends runtime.Types.Extensions.Interna
     senderUserId: string | null
     senderName: string
     senderRole: string | null
+    senderTeam: string | null
     senderAvatar: string | null
     content: string
     messageType: string
@@ -1486,6 +1532,7 @@ export interface WorkMessageFieldRefs {
   readonly senderUserId: Prisma.FieldRef<"WorkMessage", 'String'>
   readonly senderName: Prisma.FieldRef<"WorkMessage", 'String'>
   readonly senderRole: Prisma.FieldRef<"WorkMessage", 'String'>
+  readonly senderTeam: Prisma.FieldRef<"WorkMessage", 'String'>
   readonly senderAvatar: Prisma.FieldRef<"WorkMessage", 'String'>
   readonly content: Prisma.FieldRef<"WorkMessage", 'String'>
   readonly messageType: Prisma.FieldRef<"WorkMessage", 'String'>

@@ -372,6 +372,7 @@ export type ClientProjectWhereInput = {
   clarifications?: Prisma.ClarificationItemListRelationFilter
   drifts?: Prisma.ArchitectureDriftListRelationFilter
   staffAllocations?: Prisma.ProjectStaffAllocationListRelationFilter
+  invitations?: Prisma.EmployeeInvitationListRelationFilter
   projectBriefs?: Prisma.EmployeeProjectBriefListRelationFilter
   buildSessions?: Prisma.EmployeeBuildSessionListRelationFilter
   contributions?: Prisma.EmployeeContributionListRelationFilter
@@ -380,6 +381,7 @@ export type ClientProjectWhereInput = {
   checkpoints?: Prisma.BuildCheckpointListRelationFilter
   productBuilds?: Prisma.ProductBuildListRelationFilter
   buildSubmissions?: Prisma.BuildSubmissionListRelationFilter
+  taskSubmissions?: Prisma.TaskSubmissionListRelationFilter
   buildAuditEvents?: Prisma.BuildJourneyAuditEventListRelationFilter
   workConversations?: Prisma.WorkConversationListRelationFilter
 }
@@ -419,6 +421,7 @@ export type ClientProjectOrderByWithRelationInput = {
   clarifications?: Prisma.ClarificationItemOrderByRelationAggregateInput
   drifts?: Prisma.ArchitectureDriftOrderByRelationAggregateInput
   staffAllocations?: Prisma.ProjectStaffAllocationOrderByRelationAggregateInput
+  invitations?: Prisma.EmployeeInvitationOrderByRelationAggregateInput
   projectBriefs?: Prisma.EmployeeProjectBriefOrderByRelationAggregateInput
   buildSessions?: Prisma.EmployeeBuildSessionOrderByRelationAggregateInput
   contributions?: Prisma.EmployeeContributionOrderByRelationAggregateInput
@@ -427,6 +430,7 @@ export type ClientProjectOrderByWithRelationInput = {
   checkpoints?: Prisma.BuildCheckpointOrderByRelationAggregateInput
   productBuilds?: Prisma.ProductBuildOrderByRelationAggregateInput
   buildSubmissions?: Prisma.BuildSubmissionOrderByRelationAggregateInput
+  taskSubmissions?: Prisma.TaskSubmissionOrderByRelationAggregateInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventOrderByRelationAggregateInput
   workConversations?: Prisma.WorkConversationOrderByRelationAggregateInput
 }
@@ -469,6 +473,7 @@ export type ClientProjectWhereUniqueInput = Prisma.AtLeast<{
   clarifications?: Prisma.ClarificationItemListRelationFilter
   drifts?: Prisma.ArchitectureDriftListRelationFilter
   staffAllocations?: Prisma.ProjectStaffAllocationListRelationFilter
+  invitations?: Prisma.EmployeeInvitationListRelationFilter
   projectBriefs?: Prisma.EmployeeProjectBriefListRelationFilter
   buildSessions?: Prisma.EmployeeBuildSessionListRelationFilter
   contributions?: Prisma.EmployeeContributionListRelationFilter
@@ -477,6 +482,7 @@ export type ClientProjectWhereUniqueInput = Prisma.AtLeast<{
   checkpoints?: Prisma.BuildCheckpointListRelationFilter
   productBuilds?: Prisma.ProductBuildListRelationFilter
   buildSubmissions?: Prisma.BuildSubmissionListRelationFilter
+  taskSubmissions?: Prisma.TaskSubmissionListRelationFilter
   buildAuditEvents?: Prisma.BuildJourneyAuditEventListRelationFilter
   workConversations?: Prisma.WorkConversationListRelationFilter
 }, "id">
@@ -572,6 +578,7 @@ export type ClientProjectCreateInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -580,6 +587,7 @@ export type ClientProjectCreateInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -617,6 +625,7 @@ export type ClientProjectUncheckedCreateInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -625,6 +634,7 @@ export type ClientProjectUncheckedCreateInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -662,6 +672,7 @@ export type ClientProjectUpdateInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -670,6 +681,7 @@ export type ClientProjectUpdateInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -707,6 +719,7 @@ export type ClientProjectUncheckedUpdateInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -715,6 +728,7 @@ export type ClientProjectUncheckedUpdateInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -1077,6 +1091,20 @@ export type ClientProjectUpdateOneWithoutTasksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientProjectUpdateToOneWithWhereWithoutTasksInput, Prisma.ClientProjectUpdateWithoutTasksInput>, Prisma.ClientProjectUncheckedUpdateWithoutTasksInput>
 }
 
+export type ClientProjectCreateNestedOneWithoutTaskSubmissionsInput = {
+  create?: Prisma.XOR<Prisma.ClientProjectCreateWithoutTaskSubmissionsInput, Prisma.ClientProjectUncheckedCreateWithoutTaskSubmissionsInput>
+  connectOrCreate?: Prisma.ClientProjectCreateOrConnectWithoutTaskSubmissionsInput
+  connect?: Prisma.ClientProjectWhereUniqueInput
+}
+
+export type ClientProjectUpdateOneRequiredWithoutTaskSubmissionsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientProjectCreateWithoutTaskSubmissionsInput, Prisma.ClientProjectUncheckedCreateWithoutTaskSubmissionsInput>
+  connectOrCreate?: Prisma.ClientProjectCreateOrConnectWithoutTaskSubmissionsInput
+  upsert?: Prisma.ClientProjectUpsertWithoutTaskSubmissionsInput
+  connect?: Prisma.ClientProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientProjectUpdateToOneWithWhereWithoutTaskSubmissionsInput, Prisma.ClientProjectUpdateWithoutTaskSubmissionsInput>, Prisma.ClientProjectUncheckedUpdateWithoutTaskSubmissionsInput>
+}
+
 export type ClientProjectCreateNestedOneWithoutBlueprintsInput = {
   create?: Prisma.XOR<Prisma.ClientProjectCreateWithoutBlueprintsInput, Prisma.ClientProjectUncheckedCreateWithoutBlueprintsInput>
   connectOrCreate?: Prisma.ClientProjectCreateOrConnectWithoutBlueprintsInput
@@ -1117,6 +1145,22 @@ export type ClientProjectUpdateOneRequiredWithoutDriftsNestedInput = {
   upsert?: Prisma.ClientProjectUpsertWithoutDriftsInput
   connect?: Prisma.ClientProjectWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.ClientProjectUpdateToOneWithWhereWithoutDriftsInput, Prisma.ClientProjectUpdateWithoutDriftsInput>, Prisma.ClientProjectUncheckedUpdateWithoutDriftsInput>
+}
+
+export type ClientProjectCreateNestedOneWithoutInvitationsInput = {
+  create?: Prisma.XOR<Prisma.ClientProjectCreateWithoutInvitationsInput, Prisma.ClientProjectUncheckedCreateWithoutInvitationsInput>
+  connectOrCreate?: Prisma.ClientProjectCreateOrConnectWithoutInvitationsInput
+  connect?: Prisma.ClientProjectWhereUniqueInput
+}
+
+export type ClientProjectUpdateOneWithoutInvitationsNestedInput = {
+  create?: Prisma.XOR<Prisma.ClientProjectCreateWithoutInvitationsInput, Prisma.ClientProjectUncheckedCreateWithoutInvitationsInput>
+  connectOrCreate?: Prisma.ClientProjectCreateOrConnectWithoutInvitationsInput
+  upsert?: Prisma.ClientProjectUpsertWithoutInvitationsInput
+  disconnect?: Prisma.ClientProjectWhereInput | boolean
+  delete?: Prisma.ClientProjectWhereInput | boolean
+  connect?: Prisma.ClientProjectWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ClientProjectUpdateToOneWithWhereWithoutInvitationsInput, Prisma.ClientProjectUpdateWithoutInvitationsInput>, Prisma.ClientProjectUncheckedUpdateWithoutInvitationsInput>
 }
 
 export type ClientProjectCreateNestedOneWithoutStaffAllocationsInput = {
@@ -1307,6 +1351,7 @@ export type ClientProjectCreateWithoutClientInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -1315,6 +1360,7 @@ export type ClientProjectCreateWithoutClientInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -1351,6 +1397,7 @@ export type ClientProjectUncheckedCreateWithoutClientInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -1359,6 +1406,7 @@ export type ClientProjectUncheckedCreateWithoutClientInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -1448,6 +1496,7 @@ export type ClientProjectCreateWithoutProposalInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -1456,6 +1505,7 @@ export type ClientProjectCreateWithoutProposalInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -1492,6 +1542,7 @@ export type ClientProjectUncheckedCreateWithoutProposalInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -1500,6 +1551,7 @@ export type ClientProjectUncheckedCreateWithoutProposalInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -1561,6 +1613,7 @@ export type ClientProjectCreateWithoutMilestonesInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -1569,6 +1622,7 @@ export type ClientProjectCreateWithoutMilestonesInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -1605,6 +1659,7 @@ export type ClientProjectUncheckedCreateWithoutMilestonesInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -1613,6 +1668,7 @@ export type ClientProjectUncheckedCreateWithoutMilestonesInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -1665,6 +1721,7 @@ export type ClientProjectUpdateWithoutMilestonesInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -1673,6 +1730,7 @@ export type ClientProjectUpdateWithoutMilestonesInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -1709,6 +1767,7 @@ export type ClientProjectUncheckedUpdateWithoutMilestonesInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -1717,6 +1776,7 @@ export type ClientProjectUncheckedUpdateWithoutMilestonesInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -1753,6 +1813,7 @@ export type ClientProjectCreateWithoutDeliverablesInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -1761,6 +1822,7 @@ export type ClientProjectCreateWithoutDeliverablesInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -1797,6 +1859,7 @@ export type ClientProjectUncheckedCreateWithoutDeliverablesInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -1805,6 +1868,7 @@ export type ClientProjectUncheckedCreateWithoutDeliverablesInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -1857,6 +1921,7 @@ export type ClientProjectUpdateWithoutDeliverablesInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -1865,6 +1930,7 @@ export type ClientProjectUpdateWithoutDeliverablesInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -1901,6 +1967,7 @@ export type ClientProjectUncheckedUpdateWithoutDeliverablesInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -1909,6 +1976,7 @@ export type ClientProjectUncheckedUpdateWithoutDeliverablesInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -1945,6 +2013,7 @@ export type ClientProjectCreateWithoutTeamInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -1953,6 +2022,7 @@ export type ClientProjectCreateWithoutTeamInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -1989,6 +2059,7 @@ export type ClientProjectUncheckedCreateWithoutTeamInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -1997,6 +2068,7 @@ export type ClientProjectUncheckedCreateWithoutTeamInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -2049,6 +2121,7 @@ export type ClientProjectUpdateWithoutTeamInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -2057,6 +2130,7 @@ export type ClientProjectUpdateWithoutTeamInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -2093,6 +2167,7 @@ export type ClientProjectUncheckedUpdateWithoutTeamInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2101,6 +2176,7 @@ export type ClientProjectUncheckedUpdateWithoutTeamInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -2137,6 +2213,7 @@ export type ClientProjectCreateWithoutChangeRequestsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -2145,6 +2222,7 @@ export type ClientProjectCreateWithoutChangeRequestsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -2181,6 +2259,7 @@ export type ClientProjectUncheckedCreateWithoutChangeRequestsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -2189,6 +2268,7 @@ export type ClientProjectUncheckedCreateWithoutChangeRequestsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -2241,6 +2321,7 @@ export type ClientProjectUpdateWithoutChangeRequestsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -2249,6 +2330,7 @@ export type ClientProjectUpdateWithoutChangeRequestsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -2285,6 +2367,7 @@ export type ClientProjectUncheckedUpdateWithoutChangeRequestsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2293,6 +2376,7 @@ export type ClientProjectUncheckedUpdateWithoutChangeRequestsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -2329,6 +2413,7 @@ export type ClientProjectCreateWithoutActivitiesInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -2337,6 +2422,7 @@ export type ClientProjectCreateWithoutActivitiesInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -2373,6 +2459,7 @@ export type ClientProjectUncheckedCreateWithoutActivitiesInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -2381,6 +2468,7 @@ export type ClientProjectUncheckedCreateWithoutActivitiesInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -2433,6 +2521,7 @@ export type ClientProjectUpdateWithoutActivitiesInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -2441,6 +2530,7 @@ export type ClientProjectUpdateWithoutActivitiesInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -2477,6 +2567,7 @@ export type ClientProjectUncheckedUpdateWithoutActivitiesInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2485,6 +2576,7 @@ export type ClientProjectUncheckedUpdateWithoutActivitiesInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -2521,6 +2613,7 @@ export type ClientProjectCreateWithoutTasksInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -2529,6 +2622,7 @@ export type ClientProjectCreateWithoutTasksInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -2565,6 +2659,7 @@ export type ClientProjectUncheckedCreateWithoutTasksInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -2573,6 +2668,7 @@ export type ClientProjectUncheckedCreateWithoutTasksInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -2625,6 +2721,7 @@ export type ClientProjectUpdateWithoutTasksInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -2633,6 +2730,7 @@ export type ClientProjectUpdateWithoutTasksInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -2669,6 +2767,208 @@ export type ClientProjectUncheckedUpdateWithoutTasksInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
+  decisions?: Prisma.ProjectDecisionUncheckedUpdateManyWithoutProjectNestedInput
+  recognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutProjectNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
+  buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ClientProjectCreateWithoutTaskSubmissionsInput = {
+  id?: string
+  proposalVersion?: number | null
+  requirementRequestId?: string | null
+  name: string
+  code?: string | null
+  description?: string | null
+  stage?: $Enums.ProjectStage
+  health?: $Enums.ProjectHealth
+  progress?: number
+  budget?: number | null
+  currency?: string
+  managerId?: string | null
+  managerName?: string | null
+  startedAt?: Date | string | null
+  deadline?: Date | string | null
+  targetCompletion?: Date | string | null
+  completedAt?: Date | string | null
+  scopeSnapshot?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  client: Prisma.ClientCreateNestedOneWithoutProjectsInput
+  proposal?: Prisma.ClientProposalCreateNestedOneWithoutProjectsInput
+  tasks?: Prisma.ClientTaskCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
+  deliverables?: Prisma.ProjectDeliverableCreateNestedManyWithoutProjectInput
+  team?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeRequests?: Prisma.ProjectChangeRequestCreateNestedManyWithoutProjectInput
+  activities?: Prisma.ProjectActivityCreateNestedManyWithoutProjectInput
+  blueprints?: Prisma.EngineeringBlueprintCreateNestedManyWithoutProjectInput
+  clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
+  drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
+  staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
+  decisions?: Prisma.ProjectDecisionCreateNestedManyWithoutProjectInput
+  recognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutProjectInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
+  buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
+}
+
+export type ClientProjectUncheckedCreateWithoutTaskSubmissionsInput = {
+  id?: string
+  clientId: string
+  proposalId?: string | null
+  proposalVersion?: number | null
+  requirementRequestId?: string | null
+  name: string
+  code?: string | null
+  description?: string | null
+  stage?: $Enums.ProjectStage
+  health?: $Enums.ProjectHealth
+  progress?: number
+  budget?: number | null
+  currency?: string
+  managerId?: string | null
+  managerName?: string | null
+  startedAt?: Date | string | null
+  deadline?: Date | string | null
+  targetCompletion?: Date | string | null
+  completedAt?: Date | string | null
+  scopeSnapshot?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tasks?: Prisma.ClientTaskUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
+  deliverables?: Prisma.ProjectDeliverableUncheckedCreateNestedManyWithoutProjectInput
+  team?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeRequests?: Prisma.ProjectChangeRequestUncheckedCreateNestedManyWithoutProjectInput
+  activities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutProjectInput
+  blueprints?: Prisma.EngineeringBlueprintUncheckedCreateNestedManyWithoutProjectInput
+  clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
+  drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
+  staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
+  decisions?: Prisma.ProjectDecisionUncheckedCreateNestedManyWithoutProjectInput
+  recognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutProjectInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
+  buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ClientProjectCreateOrConnectWithoutTaskSubmissionsInput = {
+  where: Prisma.ClientProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientProjectCreateWithoutTaskSubmissionsInput, Prisma.ClientProjectUncheckedCreateWithoutTaskSubmissionsInput>
+}
+
+export type ClientProjectUpsertWithoutTaskSubmissionsInput = {
+  update: Prisma.XOR<Prisma.ClientProjectUpdateWithoutTaskSubmissionsInput, Prisma.ClientProjectUncheckedUpdateWithoutTaskSubmissionsInput>
+  create: Prisma.XOR<Prisma.ClientProjectCreateWithoutTaskSubmissionsInput, Prisma.ClientProjectUncheckedCreateWithoutTaskSubmissionsInput>
+  where?: Prisma.ClientProjectWhereInput
+}
+
+export type ClientProjectUpdateToOneWithWhereWithoutTaskSubmissionsInput = {
+  where?: Prisma.ClientProjectWhereInput
+  data: Prisma.XOR<Prisma.ClientProjectUpdateWithoutTaskSubmissionsInput, Prisma.ClientProjectUncheckedUpdateWithoutTaskSubmissionsInput>
+}
+
+export type ClientProjectUpdateWithoutTaskSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  requirementRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumProjectStageFieldUpdateOperationsInput | $Enums.ProjectStage
+  health?: Prisma.EnumProjectHealthFieldUpdateOperationsInput | $Enums.ProjectHealth
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  budget?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  targetCompletion?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scopeSnapshot?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
+  proposal?: Prisma.ClientProposalUpdateOneWithoutProjectsNestedInput
+  tasks?: Prisma.ClientTaskUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
+  deliverables?: Prisma.ProjectDeliverableUpdateManyWithoutProjectNestedInput
+  team?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeRequests?: Prisma.ProjectChangeRequestUpdateManyWithoutProjectNestedInput
+  activities?: Prisma.ProjectActivityUpdateManyWithoutProjectNestedInput
+  blueprints?: Prisma.EngineeringBlueprintUpdateManyWithoutProjectNestedInput
+  clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
+  drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
+  staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
+  decisions?: Prisma.ProjectDecisionUpdateManyWithoutProjectNestedInput
+  recognitions?: Prisma.ContributionRecognitionUpdateManyWithoutProjectNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
+  buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
+}
+
+export type ClientProjectUncheckedUpdateWithoutTaskSubmissionsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  proposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  requirementRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumProjectStageFieldUpdateOperationsInput | $Enums.ProjectStage
+  health?: Prisma.EnumProjectHealthFieldUpdateOperationsInput | $Enums.ProjectHealth
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  budget?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  targetCompletion?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scopeSnapshot?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tasks?: Prisma.ClientTaskUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
+  deliverables?: Prisma.ProjectDeliverableUncheckedUpdateManyWithoutProjectNestedInput
+  team?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeRequests?: Prisma.ProjectChangeRequestUncheckedUpdateManyWithoutProjectNestedInput
+  activities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutProjectNestedInput
+  blueprints?: Prisma.EngineeringBlueprintUncheckedUpdateManyWithoutProjectNestedInput
+  clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
+  drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
+  staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2713,6 +3013,7 @@ export type ClientProjectCreateWithoutBlueprintsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -2721,6 +3022,7 @@ export type ClientProjectCreateWithoutBlueprintsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -2757,6 +3059,7 @@ export type ClientProjectUncheckedCreateWithoutBlueprintsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -2765,6 +3068,7 @@ export type ClientProjectUncheckedCreateWithoutBlueprintsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -2817,6 +3121,7 @@ export type ClientProjectUpdateWithoutBlueprintsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -2825,6 +3130,7 @@ export type ClientProjectUpdateWithoutBlueprintsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -2861,6 +3167,7 @@ export type ClientProjectUncheckedUpdateWithoutBlueprintsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -2869,6 +3176,7 @@ export type ClientProjectUncheckedUpdateWithoutBlueprintsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -2905,6 +3213,7 @@ export type ClientProjectCreateWithoutClarificationsInput = {
   blueprints?: Prisma.EngineeringBlueprintCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -2913,6 +3222,7 @@ export type ClientProjectCreateWithoutClarificationsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -2949,6 +3259,7 @@ export type ClientProjectUncheckedCreateWithoutClarificationsInput = {
   blueprints?: Prisma.EngineeringBlueprintUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -2957,6 +3268,7 @@ export type ClientProjectUncheckedCreateWithoutClarificationsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -3009,6 +3321,7 @@ export type ClientProjectUpdateWithoutClarificationsInput = {
   blueprints?: Prisma.EngineeringBlueprintUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -3017,6 +3330,7 @@ export type ClientProjectUpdateWithoutClarificationsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -3053,6 +3367,7 @@ export type ClientProjectUncheckedUpdateWithoutClarificationsInput = {
   blueprints?: Prisma.EngineeringBlueprintUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3061,6 +3376,7 @@ export type ClientProjectUncheckedUpdateWithoutClarificationsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -3097,6 +3413,7 @@ export type ClientProjectCreateWithoutDriftsInput = {
   blueprints?: Prisma.EngineeringBlueprintCreateNestedManyWithoutProjectInput
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -3105,6 +3422,7 @@ export type ClientProjectCreateWithoutDriftsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -3141,6 +3459,7 @@ export type ClientProjectUncheckedCreateWithoutDriftsInput = {
   blueprints?: Prisma.EngineeringBlueprintUncheckedCreateNestedManyWithoutProjectInput
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -3149,6 +3468,7 @@ export type ClientProjectUncheckedCreateWithoutDriftsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -3201,6 +3521,7 @@ export type ClientProjectUpdateWithoutDriftsInput = {
   blueprints?: Prisma.EngineeringBlueprintUpdateManyWithoutProjectNestedInput
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -3209,6 +3530,7 @@ export type ClientProjectUpdateWithoutDriftsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -3245,6 +3567,7 @@ export type ClientProjectUncheckedUpdateWithoutDriftsInput = {
   blueprints?: Prisma.EngineeringBlueprintUncheckedUpdateManyWithoutProjectNestedInput
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3253,6 +3576,207 @@ export type ClientProjectUncheckedUpdateWithoutDriftsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
+  workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
+}
+
+export type ClientProjectCreateWithoutInvitationsInput = {
+  id?: string
+  proposalVersion?: number | null
+  requirementRequestId?: string | null
+  name: string
+  code?: string | null
+  description?: string | null
+  stage?: $Enums.ProjectStage
+  health?: $Enums.ProjectHealth
+  progress?: number
+  budget?: number | null
+  currency?: string
+  managerId?: string | null
+  managerName?: string | null
+  startedAt?: Date | string | null
+  deadline?: Date | string | null
+  targetCompletion?: Date | string | null
+  completedAt?: Date | string | null
+  scopeSnapshot?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  client: Prisma.ClientCreateNestedOneWithoutProjectsInput
+  proposal?: Prisma.ClientProposalCreateNestedOneWithoutProjectsInput
+  tasks?: Prisma.ClientTaskCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneCreateNestedManyWithoutProjectInput
+  deliverables?: Prisma.ProjectDeliverableCreateNestedManyWithoutProjectInput
+  team?: Prisma.ProjectMemberCreateNestedManyWithoutProjectInput
+  changeRequests?: Prisma.ProjectChangeRequestCreateNestedManyWithoutProjectInput
+  activities?: Prisma.ProjectActivityCreateNestedManyWithoutProjectInput
+  blueprints?: Prisma.EngineeringBlueprintCreateNestedManyWithoutProjectInput
+  clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
+  drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
+  staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
+  buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
+  contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
+  decisions?: Prisma.ProjectDecisionCreateNestedManyWithoutProjectInput
+  recognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutProjectInput
+  checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
+  productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
+  buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
+  workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
+}
+
+export type ClientProjectUncheckedCreateWithoutInvitationsInput = {
+  id?: string
+  clientId: string
+  proposalId?: string | null
+  proposalVersion?: number | null
+  requirementRequestId?: string | null
+  name: string
+  code?: string | null
+  description?: string | null
+  stage?: $Enums.ProjectStage
+  health?: $Enums.ProjectHealth
+  progress?: number
+  budget?: number | null
+  currency?: string
+  managerId?: string | null
+  managerName?: string | null
+  startedAt?: Date | string | null
+  deadline?: Date | string | null
+  targetCompletion?: Date | string | null
+  completedAt?: Date | string | null
+  scopeSnapshot?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  tasks?: Prisma.ClientTaskUncheckedCreateNestedManyWithoutProjectInput
+  milestones?: Prisma.ProjectMilestoneUncheckedCreateNestedManyWithoutProjectInput
+  deliverables?: Prisma.ProjectDeliverableUncheckedCreateNestedManyWithoutProjectInput
+  team?: Prisma.ProjectMemberUncheckedCreateNestedManyWithoutProjectInput
+  changeRequests?: Prisma.ProjectChangeRequestUncheckedCreateNestedManyWithoutProjectInput
+  activities?: Prisma.ProjectActivityUncheckedCreateNestedManyWithoutProjectInput
+  blueprints?: Prisma.EngineeringBlueprintUncheckedCreateNestedManyWithoutProjectInput
+  clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
+  drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
+  staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
+  contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
+  decisions?: Prisma.ProjectDecisionUncheckedCreateNestedManyWithoutProjectInput
+  recognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutProjectInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
+  productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
+  buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
+  workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
+}
+
+export type ClientProjectCreateOrConnectWithoutInvitationsInput = {
+  where: Prisma.ClientProjectWhereUniqueInput
+  create: Prisma.XOR<Prisma.ClientProjectCreateWithoutInvitationsInput, Prisma.ClientProjectUncheckedCreateWithoutInvitationsInput>
+}
+
+export type ClientProjectUpsertWithoutInvitationsInput = {
+  update: Prisma.XOR<Prisma.ClientProjectUpdateWithoutInvitationsInput, Prisma.ClientProjectUncheckedUpdateWithoutInvitationsInput>
+  create: Prisma.XOR<Prisma.ClientProjectCreateWithoutInvitationsInput, Prisma.ClientProjectUncheckedCreateWithoutInvitationsInput>
+  where?: Prisma.ClientProjectWhereInput
+}
+
+export type ClientProjectUpdateToOneWithWhereWithoutInvitationsInput = {
+  where?: Prisma.ClientProjectWhereInput
+  data: Prisma.XOR<Prisma.ClientProjectUpdateWithoutInvitationsInput, Prisma.ClientProjectUncheckedUpdateWithoutInvitationsInput>
+}
+
+export type ClientProjectUpdateWithoutInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  requirementRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumProjectStageFieldUpdateOperationsInput | $Enums.ProjectStage
+  health?: Prisma.EnumProjectHealthFieldUpdateOperationsInput | $Enums.ProjectHealth
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  budget?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  targetCompletion?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scopeSnapshot?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  client?: Prisma.ClientUpdateOneRequiredWithoutProjectsNestedInput
+  proposal?: Prisma.ClientProposalUpdateOneWithoutProjectsNestedInput
+  tasks?: Prisma.ClientTaskUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUpdateManyWithoutProjectNestedInput
+  deliverables?: Prisma.ProjectDeliverableUpdateManyWithoutProjectNestedInput
+  team?: Prisma.ProjectMemberUpdateManyWithoutProjectNestedInput
+  changeRequests?: Prisma.ProjectChangeRequestUpdateManyWithoutProjectNestedInput
+  activities?: Prisma.ProjectActivityUpdateManyWithoutProjectNestedInput
+  blueprints?: Prisma.EngineeringBlueprintUpdateManyWithoutProjectNestedInput
+  clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
+  drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
+  staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
+  contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
+  decisions?: Prisma.ProjectDecisionUpdateManyWithoutProjectNestedInput
+  recognitions?: Prisma.ContributionRecognitionUpdateManyWithoutProjectNestedInput
+  checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
+  productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
+  buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
+  buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
+  workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
+}
+
+export type ClientProjectUncheckedUpdateWithoutInvitationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  proposalId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  proposalVersion?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  requirementRequestId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  description?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  stage?: Prisma.EnumProjectStageFieldUpdateOperationsInput | $Enums.ProjectStage
+  health?: Prisma.EnumProjectHealthFieldUpdateOperationsInput | $Enums.ProjectHealth
+  progress?: Prisma.IntFieldUpdateOperationsInput | number
+  budget?: Prisma.NullableFloatFieldUpdateOperationsInput | number | null
+  currency?: Prisma.StringFieldUpdateOperationsInput | string
+  managerId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  managerName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  startedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  deadline?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  targetCompletion?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  completedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  scopeSnapshot?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  tasks?: Prisma.ClientTaskUncheckedUpdateManyWithoutProjectNestedInput
+  milestones?: Prisma.ProjectMilestoneUncheckedUpdateManyWithoutProjectNestedInput
+  deliverables?: Prisma.ProjectDeliverableUncheckedUpdateManyWithoutProjectNestedInput
+  team?: Prisma.ProjectMemberUncheckedUpdateManyWithoutProjectNestedInput
+  changeRequests?: Prisma.ProjectChangeRequestUncheckedUpdateManyWithoutProjectNestedInput
+  activities?: Prisma.ProjectActivityUncheckedUpdateManyWithoutProjectNestedInput
+  blueprints?: Prisma.EngineeringBlueprintUncheckedUpdateManyWithoutProjectNestedInput
+  clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
+  drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
+  staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
+  buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
+  contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
+  decisions?: Prisma.ProjectDecisionUncheckedUpdateManyWithoutProjectNestedInput
+  recognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutProjectNestedInput
+  checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
+  productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
+  buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -3289,6 +3813,7 @@ export type ClientProjectCreateWithoutStaffAllocationsInput = {
   blueprints?: Prisma.EngineeringBlueprintCreateNestedManyWithoutProjectInput
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -3297,6 +3822,7 @@ export type ClientProjectCreateWithoutStaffAllocationsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -3333,6 +3859,7 @@ export type ClientProjectUncheckedCreateWithoutStaffAllocationsInput = {
   blueprints?: Prisma.EngineeringBlueprintUncheckedCreateNestedManyWithoutProjectInput
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -3341,6 +3868,7 @@ export type ClientProjectUncheckedCreateWithoutStaffAllocationsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -3393,6 +3921,7 @@ export type ClientProjectUpdateWithoutStaffAllocationsInput = {
   blueprints?: Prisma.EngineeringBlueprintUpdateManyWithoutProjectNestedInput
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -3401,6 +3930,7 @@ export type ClientProjectUpdateWithoutStaffAllocationsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -3437,6 +3967,7 @@ export type ClientProjectUncheckedUpdateWithoutStaffAllocationsInput = {
   blueprints?: Prisma.EngineeringBlueprintUncheckedUpdateManyWithoutProjectNestedInput
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3445,6 +3976,7 @@ export type ClientProjectUncheckedUpdateWithoutStaffAllocationsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -3482,6 +4014,7 @@ export type ClientProjectCreateWithoutProjectBriefsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
   decisions?: Prisma.ProjectDecisionCreateNestedManyWithoutProjectInput
@@ -3489,6 +4022,7 @@ export type ClientProjectCreateWithoutProjectBriefsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -3526,6 +4060,7 @@ export type ClientProjectUncheckedCreateWithoutProjectBriefsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.ProjectDecisionUncheckedCreateNestedManyWithoutProjectInput
@@ -3533,6 +4068,7 @@ export type ClientProjectUncheckedCreateWithoutProjectBriefsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -3586,6 +4122,7 @@ export type ClientProjectUpdateWithoutProjectBriefsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.ProjectDecisionUpdateManyWithoutProjectNestedInput
@@ -3593,6 +4130,7 @@ export type ClientProjectUpdateWithoutProjectBriefsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -3630,6 +4168,7 @@ export type ClientProjectUncheckedUpdateWithoutProjectBriefsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.ProjectDecisionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3637,6 +4176,7 @@ export type ClientProjectUncheckedUpdateWithoutProjectBriefsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -3674,6 +4214,7 @@ export type ClientProjectCreateWithoutBuildSessionsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
   decisions?: Prisma.ProjectDecisionCreateNestedManyWithoutProjectInput
@@ -3681,6 +4222,7 @@ export type ClientProjectCreateWithoutBuildSessionsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -3718,6 +4260,7 @@ export type ClientProjectUncheckedCreateWithoutBuildSessionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.ProjectDecisionUncheckedCreateNestedManyWithoutProjectInput
@@ -3725,6 +4268,7 @@ export type ClientProjectUncheckedCreateWithoutBuildSessionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -3778,6 +4322,7 @@ export type ClientProjectUpdateWithoutBuildSessionsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.ProjectDecisionUpdateManyWithoutProjectNestedInput
@@ -3785,6 +4330,7 @@ export type ClientProjectUpdateWithoutBuildSessionsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -3822,6 +4368,7 @@ export type ClientProjectUncheckedUpdateWithoutBuildSessionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.ProjectDecisionUncheckedUpdateManyWithoutProjectNestedInput
@@ -3829,6 +4376,7 @@ export type ClientProjectUncheckedUpdateWithoutBuildSessionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -3866,6 +4414,7 @@ export type ClientProjectCreateWithoutContributionsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   decisions?: Prisma.ProjectDecisionCreateNestedManyWithoutProjectInput
@@ -3873,6 +4422,7 @@ export type ClientProjectCreateWithoutContributionsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -3910,6 +4460,7 @@ export type ClientProjectUncheckedCreateWithoutContributionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   decisions?: Prisma.ProjectDecisionUncheckedCreateNestedManyWithoutProjectInput
@@ -3917,6 +4468,7 @@ export type ClientProjectUncheckedCreateWithoutContributionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -3970,6 +4522,7 @@ export type ClientProjectUpdateWithoutContributionsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.ProjectDecisionUpdateManyWithoutProjectNestedInput
@@ -3977,6 +4530,7 @@ export type ClientProjectUpdateWithoutContributionsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -4014,6 +4568,7 @@ export type ClientProjectUncheckedUpdateWithoutContributionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   decisions?: Prisma.ProjectDecisionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4021,6 +4576,7 @@ export type ClientProjectUncheckedUpdateWithoutContributionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -4058,6 +4614,7 @@ export type ClientProjectCreateWithoutDecisionsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -4065,6 +4622,7 @@ export type ClientProjectCreateWithoutDecisionsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -4102,6 +4660,7 @@ export type ClientProjectUncheckedCreateWithoutDecisionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -4109,6 +4668,7 @@ export type ClientProjectUncheckedCreateWithoutDecisionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -4162,6 +4722,7 @@ export type ClientProjectUpdateWithoutDecisionsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -4169,6 +4730,7 @@ export type ClientProjectUpdateWithoutDecisionsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -4206,6 +4768,7 @@ export type ClientProjectUncheckedUpdateWithoutDecisionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4213,6 +4776,7 @@ export type ClientProjectUncheckedUpdateWithoutDecisionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -4250,6 +4814,7 @@ export type ClientProjectCreateWithoutRecognitionsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -4257,6 +4822,7 @@ export type ClientProjectCreateWithoutRecognitionsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -4294,6 +4860,7 @@ export type ClientProjectUncheckedCreateWithoutRecognitionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -4301,6 +4868,7 @@ export type ClientProjectUncheckedCreateWithoutRecognitionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -4354,6 +4922,7 @@ export type ClientProjectUpdateWithoutRecognitionsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -4361,6 +4930,7 @@ export type ClientProjectUpdateWithoutRecognitionsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -4398,6 +4968,7 @@ export type ClientProjectUncheckedUpdateWithoutRecognitionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4405,6 +4976,7 @@ export type ClientProjectUncheckedUpdateWithoutRecognitionsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -4442,6 +5014,7 @@ export type ClientProjectCreateWithoutCheckpointsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -4449,6 +5022,7 @@ export type ClientProjectCreateWithoutCheckpointsInput = {
   recognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -4486,6 +5060,7 @@ export type ClientProjectUncheckedCreateWithoutCheckpointsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -4493,6 +5068,7 @@ export type ClientProjectUncheckedCreateWithoutCheckpointsInput = {
   recognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -4546,6 +5122,7 @@ export type ClientProjectUpdateWithoutCheckpointsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -4553,6 +5130,7 @@ export type ClientProjectUpdateWithoutCheckpointsInput = {
   recognitions?: Prisma.ContributionRecognitionUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -4590,6 +5168,7 @@ export type ClientProjectUncheckedUpdateWithoutCheckpointsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4597,6 +5176,7 @@ export type ClientProjectUncheckedUpdateWithoutCheckpointsInput = {
   recognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -4634,6 +5214,7 @@ export type ClientProjectCreateWithoutProductBuildsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -4641,6 +5222,7 @@ export type ClientProjectCreateWithoutProductBuildsInput = {
   recognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutProjectInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -4678,6 +5260,7 @@ export type ClientProjectUncheckedCreateWithoutProductBuildsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -4685,6 +5268,7 @@ export type ClientProjectUncheckedCreateWithoutProductBuildsInput = {
   recognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutProjectInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -4738,6 +5322,7 @@ export type ClientProjectUpdateWithoutProductBuildsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -4745,6 +5330,7 @@ export type ClientProjectUpdateWithoutProductBuildsInput = {
   recognitions?: Prisma.ContributionRecognitionUpdateManyWithoutProjectNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -4782,6 +5368,7 @@ export type ClientProjectUncheckedUpdateWithoutProductBuildsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4789,6 +5376,7 @@ export type ClientProjectUncheckedUpdateWithoutProductBuildsInput = {
   recognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutProjectNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -4826,6 +5414,7 @@ export type ClientProjectCreateWithoutBuildSubmissionsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -4833,6 +5422,7 @@ export type ClientProjectCreateWithoutBuildSubmissionsInput = {
   recognitions?: Prisma.ContributionRecognitionCreateNestedManyWithoutProjectInput
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
@@ -4870,6 +5460,7 @@ export type ClientProjectUncheckedCreateWithoutBuildSubmissionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -4877,6 +5468,7 @@ export type ClientProjectUncheckedCreateWithoutBuildSubmissionsInput = {
   recognitions?: Prisma.ContributionRecognitionUncheckedCreateNestedManyWithoutProjectInput
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
@@ -4930,6 +5522,7 @@ export type ClientProjectUpdateWithoutBuildSubmissionsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -4937,6 +5530,7 @@ export type ClientProjectUpdateWithoutBuildSubmissionsInput = {
   recognitions?: Prisma.ContributionRecognitionUpdateManyWithoutProjectNestedInput
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -4974,6 +5568,7 @@ export type ClientProjectUncheckedUpdateWithoutBuildSubmissionsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -4981,6 +5576,7 @@ export type ClientProjectUncheckedUpdateWithoutBuildSubmissionsInput = {
   recognitions?: Prisma.ContributionRecognitionUncheckedUpdateManyWithoutProjectNestedInput
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -5018,6 +5614,7 @@ export type ClientProjectCreateWithoutBuildAuditEventsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -5026,6 +5623,7 @@ export type ClientProjectCreateWithoutBuildAuditEventsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationCreateNestedManyWithoutProjectInput
 }
 
@@ -5062,6 +5660,7 @@ export type ClientProjectUncheckedCreateWithoutBuildAuditEventsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -5070,6 +5669,7 @@ export type ClientProjectUncheckedCreateWithoutBuildAuditEventsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   workConversations?: Prisma.WorkConversationUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -5122,6 +5722,7 @@ export type ClientProjectUpdateWithoutBuildAuditEventsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -5130,6 +5731,7 @@ export type ClientProjectUpdateWithoutBuildAuditEventsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
 
@@ -5166,6 +5768,7 @@ export type ClientProjectUncheckedUpdateWithoutBuildAuditEventsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5174,6 +5777,7 @@ export type ClientProjectUncheckedUpdateWithoutBuildAuditEventsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -5210,6 +5814,7 @@ export type ClientProjectCreateWithoutWorkConversationsInput = {
   clarifications?: Prisma.ClarificationItemCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionCreateNestedManyWithoutProjectInput
@@ -5218,6 +5823,7 @@ export type ClientProjectCreateWithoutWorkConversationsInput = {
   checkpoints?: Prisma.BuildCheckpointCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventCreateNestedManyWithoutProjectInput
 }
 
@@ -5254,6 +5860,7 @@ export type ClientProjectUncheckedCreateWithoutWorkConversationsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedCreateNestedManyWithoutProjectInput
   drifts?: Prisma.ArchitectureDriftUncheckedCreateNestedManyWithoutProjectInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedCreateNestedManyWithoutProjectInput
+  invitations?: Prisma.EmployeeInvitationUncheckedCreateNestedManyWithoutProjectInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedCreateNestedManyWithoutProjectInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedCreateNestedManyWithoutProjectInput
   contributions?: Prisma.EmployeeContributionUncheckedCreateNestedManyWithoutProjectInput
@@ -5262,6 +5869,7 @@ export type ClientProjectUncheckedCreateWithoutWorkConversationsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedCreateNestedManyWithoutProjectInput
   productBuilds?: Prisma.ProductBuildUncheckedCreateNestedManyWithoutProjectInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedCreateNestedManyWithoutProjectInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedCreateNestedManyWithoutProjectInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedCreateNestedManyWithoutProjectInput
 }
 
@@ -5314,6 +5922,7 @@ export type ClientProjectUpdateWithoutWorkConversationsInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -5322,6 +5931,7 @@ export type ClientProjectUpdateWithoutWorkConversationsInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
 }
 
@@ -5358,6 +5968,7 @@ export type ClientProjectUncheckedUpdateWithoutWorkConversationsInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5366,6 +5977,7 @@ export type ClientProjectUncheckedUpdateWithoutWorkConversationsInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
 }
 
@@ -5425,6 +6037,7 @@ export type ClientProjectUpdateWithoutClientInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -5433,6 +6046,7 @@ export type ClientProjectUpdateWithoutClientInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -5469,6 +6083,7 @@ export type ClientProjectUncheckedUpdateWithoutClientInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5477,6 +6092,7 @@ export type ClientProjectUncheckedUpdateWithoutClientInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -5561,6 +6177,7 @@ export type ClientProjectUpdateWithoutProposalInput = {
   clarifications?: Prisma.ClarificationItemUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUpdateManyWithoutProjectNestedInput
@@ -5569,6 +6186,7 @@ export type ClientProjectUpdateWithoutProposalInput = {
   checkpoints?: Prisma.BuildCheckpointUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUpdateManyWithoutProjectNestedInput
 }
@@ -5605,6 +6223,7 @@ export type ClientProjectUncheckedUpdateWithoutProposalInput = {
   clarifications?: Prisma.ClarificationItemUncheckedUpdateManyWithoutProjectNestedInput
   drifts?: Prisma.ArchitectureDriftUncheckedUpdateManyWithoutProjectNestedInput
   staffAllocations?: Prisma.ProjectStaffAllocationUncheckedUpdateManyWithoutProjectNestedInput
+  invitations?: Prisma.EmployeeInvitationUncheckedUpdateManyWithoutProjectNestedInput
   projectBriefs?: Prisma.EmployeeProjectBriefUncheckedUpdateManyWithoutProjectNestedInput
   buildSessions?: Prisma.EmployeeBuildSessionUncheckedUpdateManyWithoutProjectNestedInput
   contributions?: Prisma.EmployeeContributionUncheckedUpdateManyWithoutProjectNestedInput
@@ -5613,6 +6232,7 @@ export type ClientProjectUncheckedUpdateWithoutProposalInput = {
   checkpoints?: Prisma.BuildCheckpointUncheckedUpdateManyWithoutProjectNestedInput
   productBuilds?: Prisma.ProductBuildUncheckedUpdateManyWithoutProjectNestedInput
   buildSubmissions?: Prisma.BuildSubmissionUncheckedUpdateManyWithoutProjectNestedInput
+  taskSubmissions?: Prisma.TaskSubmissionUncheckedUpdateManyWithoutProjectNestedInput
   buildAuditEvents?: Prisma.BuildJourneyAuditEventUncheckedUpdateManyWithoutProjectNestedInput
   workConversations?: Prisma.WorkConversationUncheckedUpdateManyWithoutProjectNestedInput
 }
@@ -5657,6 +6277,7 @@ export type ClientProjectCountOutputType = {
   clarifications: number
   drifts: number
   staffAllocations: number
+  invitations: number
   projectBriefs: number
   buildSessions: number
   contributions: number
@@ -5665,6 +6286,7 @@ export type ClientProjectCountOutputType = {
   checkpoints: number
   productBuilds: number
   buildSubmissions: number
+  taskSubmissions: number
   buildAuditEvents: number
   workConversations: number
 }
@@ -5680,6 +6302,7 @@ export type ClientProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Ext
   clarifications?: boolean | ClientProjectCountOutputTypeCountClarificationsArgs
   drifts?: boolean | ClientProjectCountOutputTypeCountDriftsArgs
   staffAllocations?: boolean | ClientProjectCountOutputTypeCountStaffAllocationsArgs
+  invitations?: boolean | ClientProjectCountOutputTypeCountInvitationsArgs
   projectBriefs?: boolean | ClientProjectCountOutputTypeCountProjectBriefsArgs
   buildSessions?: boolean | ClientProjectCountOutputTypeCountBuildSessionsArgs
   contributions?: boolean | ClientProjectCountOutputTypeCountContributionsArgs
@@ -5688,6 +6311,7 @@ export type ClientProjectCountOutputTypeSelect<ExtArgs extends runtime.Types.Ext
   checkpoints?: boolean | ClientProjectCountOutputTypeCountCheckpointsArgs
   productBuilds?: boolean | ClientProjectCountOutputTypeCountProductBuildsArgs
   buildSubmissions?: boolean | ClientProjectCountOutputTypeCountBuildSubmissionsArgs
+  taskSubmissions?: boolean | ClientProjectCountOutputTypeCountTaskSubmissionsArgs
   buildAuditEvents?: boolean | ClientProjectCountOutputTypeCountBuildAuditEventsArgs
   workConversations?: boolean | ClientProjectCountOutputTypeCountWorkConversationsArgs
 }
@@ -5775,6 +6399,13 @@ export type ClientProjectCountOutputTypeCountStaffAllocationsArgs<ExtArgs extend
 /**
  * ClientProjectCountOutputType without action
  */
+export type ClientProjectCountOutputTypeCountInvitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.EmployeeInvitationWhereInput
+}
+
+/**
+ * ClientProjectCountOutputType without action
+ */
 export type ClientProjectCountOutputTypeCountProjectBriefsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.EmployeeProjectBriefWhereInput
 }
@@ -5831,6 +6462,13 @@ export type ClientProjectCountOutputTypeCountBuildSubmissionsArgs<ExtArgs extend
 /**
  * ClientProjectCountOutputType without action
  */
+export type ClientProjectCountOutputTypeCountTaskSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.TaskSubmissionWhereInput
+}
+
+/**
+ * ClientProjectCountOutputType without action
+ */
 export type ClientProjectCountOutputTypeCountBuildAuditEventsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   where?: Prisma.BuildJourneyAuditEventWhereInput
 }
@@ -5878,6 +6516,7 @@ export type ClientProjectSelect<ExtArgs extends runtime.Types.Extensions.Interna
   clarifications?: boolean | Prisma.ClientProject$clarificationsArgs<ExtArgs>
   drifts?: boolean | Prisma.ClientProject$driftsArgs<ExtArgs>
   staffAllocations?: boolean | Prisma.ClientProject$staffAllocationsArgs<ExtArgs>
+  invitations?: boolean | Prisma.ClientProject$invitationsArgs<ExtArgs>
   projectBriefs?: boolean | Prisma.ClientProject$projectBriefsArgs<ExtArgs>
   buildSessions?: boolean | Prisma.ClientProject$buildSessionsArgs<ExtArgs>
   contributions?: boolean | Prisma.ClientProject$contributionsArgs<ExtArgs>
@@ -5886,6 +6525,7 @@ export type ClientProjectSelect<ExtArgs extends runtime.Types.Extensions.Interna
   checkpoints?: boolean | Prisma.ClientProject$checkpointsArgs<ExtArgs>
   productBuilds?: boolean | Prisma.ClientProject$productBuildsArgs<ExtArgs>
   buildSubmissions?: boolean | Prisma.ClientProject$buildSubmissionsArgs<ExtArgs>
+  taskSubmissions?: boolean | Prisma.ClientProject$taskSubmissionsArgs<ExtArgs>
   buildAuditEvents?: boolean | Prisma.ClientProject$buildAuditEventsArgs<ExtArgs>
   workConversations?: boolean | Prisma.ClientProject$workConversationsArgs<ExtArgs>
   _count?: boolean | Prisma.ClientProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -5984,6 +6624,7 @@ export type ClientProjectInclude<ExtArgs extends runtime.Types.Extensions.Intern
   clarifications?: boolean | Prisma.ClientProject$clarificationsArgs<ExtArgs>
   drifts?: boolean | Prisma.ClientProject$driftsArgs<ExtArgs>
   staffAllocations?: boolean | Prisma.ClientProject$staffAllocationsArgs<ExtArgs>
+  invitations?: boolean | Prisma.ClientProject$invitationsArgs<ExtArgs>
   projectBriefs?: boolean | Prisma.ClientProject$projectBriefsArgs<ExtArgs>
   buildSessions?: boolean | Prisma.ClientProject$buildSessionsArgs<ExtArgs>
   contributions?: boolean | Prisma.ClientProject$contributionsArgs<ExtArgs>
@@ -5992,6 +6633,7 @@ export type ClientProjectInclude<ExtArgs extends runtime.Types.Extensions.Intern
   checkpoints?: boolean | Prisma.ClientProject$checkpointsArgs<ExtArgs>
   productBuilds?: boolean | Prisma.ClientProject$productBuildsArgs<ExtArgs>
   buildSubmissions?: boolean | Prisma.ClientProject$buildSubmissionsArgs<ExtArgs>
+  taskSubmissions?: boolean | Prisma.ClientProject$taskSubmissionsArgs<ExtArgs>
   buildAuditEvents?: boolean | Prisma.ClientProject$buildAuditEventsArgs<ExtArgs>
   workConversations?: boolean | Prisma.ClientProject$workConversationsArgs<ExtArgs>
   _count?: boolean | Prisma.ClientProjectCountOutputTypeDefaultArgs<ExtArgs>
@@ -6020,6 +6662,7 @@ export type $ClientProjectPayload<ExtArgs extends runtime.Types.Extensions.Inter
     clarifications: Prisma.$ClarificationItemPayload<ExtArgs>[]
     drifts: Prisma.$ArchitectureDriftPayload<ExtArgs>[]
     staffAllocations: Prisma.$ProjectStaffAllocationPayload<ExtArgs>[]
+    invitations: Prisma.$EmployeeInvitationPayload<ExtArgs>[]
     projectBriefs: Prisma.$EmployeeProjectBriefPayload<ExtArgs>[]
     buildSessions: Prisma.$EmployeeBuildSessionPayload<ExtArgs>[]
     contributions: Prisma.$EmployeeContributionPayload<ExtArgs>[]
@@ -6028,6 +6671,7 @@ export type $ClientProjectPayload<ExtArgs extends runtime.Types.Extensions.Inter
     checkpoints: Prisma.$BuildCheckpointPayload<ExtArgs>[]
     productBuilds: Prisma.$ProductBuildPayload<ExtArgs>[]
     buildSubmissions: Prisma.$BuildSubmissionPayload<ExtArgs>[]
+    taskSubmissions: Prisma.$TaskSubmissionPayload<ExtArgs>[]
     buildAuditEvents: Prisma.$BuildJourneyAuditEventPayload<ExtArgs>[]
     workConversations: Prisma.$WorkConversationPayload<ExtArgs>[]
   }
@@ -6460,6 +7104,7 @@ export interface Prisma__ClientProjectClient<T, Null = never, ExtArgs extends ru
   clarifications<T extends Prisma.ClientProject$clarificationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$clarificationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ClarificationItemPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   drifts<T extends Prisma.ClientProject$driftsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$driftsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ArchitectureDriftPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   staffAllocations<T extends Prisma.ClientProject$staffAllocationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$staffAllocationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProjectStaffAllocationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  invitations<T extends Prisma.ClientProject$invitationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$invitationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeInvitationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   projectBriefs<T extends Prisma.ClientProject$projectBriefsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$projectBriefsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeProjectBriefPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   buildSessions<T extends Prisma.ClientProject$buildSessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$buildSessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeBuildSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   contributions<T extends Prisma.ClientProject$contributionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$contributionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EmployeeContributionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -6468,6 +7113,7 @@ export interface Prisma__ClientProjectClient<T, Null = never, ExtArgs extends ru
   checkpoints<T extends Prisma.ClientProject$checkpointsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$checkpointsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildCheckpointPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   productBuilds<T extends Prisma.ClientProject$productBuildsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$productBuildsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ProductBuildPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   buildSubmissions<T extends Prisma.ClientProject$buildSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$buildSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  taskSubmissions<T extends Prisma.ClientProject$taskSubmissionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$taskSubmissionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskSubmissionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   buildAuditEvents<T extends Prisma.ClientProject$buildAuditEventsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$buildAuditEventsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$BuildJourneyAuditEventPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   workConversations<T extends Prisma.ClientProject$workConversationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ClientProject$workConversationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkConversationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
@@ -7179,6 +7825,30 @@ export type ClientProject$staffAllocationsArgs<ExtArgs extends runtime.Types.Ext
 }
 
 /**
+ * ClientProject.invitations
+ */
+export type ClientProject$invitationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the EmployeeInvitation
+   */
+  select?: Prisma.EmployeeInvitationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the EmployeeInvitation
+   */
+  omit?: Prisma.EmployeeInvitationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.EmployeeInvitationInclude<ExtArgs> | null
+  where?: Prisma.EmployeeInvitationWhereInput
+  orderBy?: Prisma.EmployeeInvitationOrderByWithRelationInput | Prisma.EmployeeInvitationOrderByWithRelationInput[]
+  cursor?: Prisma.EmployeeInvitationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.EmployeeInvitationScalarFieldEnum | Prisma.EmployeeInvitationScalarFieldEnum[]
+}
+
+/**
  * ClientProject.projectBriefs
  */
 export type ClientProject$projectBriefsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -7368,6 +8038,30 @@ export type ClientProject$buildSubmissionsArgs<ExtArgs extends runtime.Types.Ext
   take?: number
   skip?: number
   distinct?: Prisma.BuildSubmissionScalarFieldEnum | Prisma.BuildSubmissionScalarFieldEnum[]
+}
+
+/**
+ * ClientProject.taskSubmissions
+ */
+export type ClientProject$taskSubmissionsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the TaskSubmission
+   */
+  select?: Prisma.TaskSubmissionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the TaskSubmission
+   */
+  omit?: Prisma.TaskSubmissionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.TaskSubmissionInclude<ExtArgs> | null
+  where?: Prisma.TaskSubmissionWhereInput
+  orderBy?: Prisma.TaskSubmissionOrderByWithRelationInput | Prisma.TaskSubmissionOrderByWithRelationInput[]
+  cursor?: Prisma.TaskSubmissionWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.TaskSubmissionScalarFieldEnum | Prisma.TaskSubmissionScalarFieldEnum[]
 }
 
 /**
