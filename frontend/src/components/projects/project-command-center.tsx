@@ -209,6 +209,24 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
   const [sendingAdminReply, setSendingAdminReply] = useState(false);
   const [adminCommFilter, setAdminCommFilter] = useState<"ALL" | "BLOCKER" | "HANDOFF" | "DECISION">("ALL");
   const [activityFilter, setActivityFilter] = useState<string>("ALL");
+  const [isResyncing, setIsResyncing] = useState(false);
+
+  const handleResyncProject = async () => {
+    if (!confirm("Resynchronize all project workstreams and tasks directly from the approved proposal scope?")) return;
+    try {
+      setIsResyncing(true);
+      const res = await fetch(`/api/projects/${projectId}/resync`, { method: "POST" });
+      const json = await res.json();
+      if (!res.ok || !json.ok) throw new Error(json.message || "Failed to resynchronize project.");
+      setNotice("Project tasks successfully aligned with approved proposal.");
+      setTimeout(() => setNotice(null), 4000);
+      await refreshProject();
+    } catch (err: any) {
+      setError(err.message || "Failed to resync project.");
+    } finally {
+      setIsResyncing(false);
+    }
+  };
 
   const refreshProject = async () => {
     try {

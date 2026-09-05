@@ -515,7 +515,7 @@ export async function processProjectEvent(input: ProjectEventInput): Promise<Pro
  * Propagates dependency readiness across all project tasks.
  * If task A depends on task B and task B is DONE, task A unlocks (BLOCKED -> READY).
  */
-async function updateTaskReadinessStates(projectId: string): Promise<number> {
+export async function updateTaskReadinessStates(projectId: string): Promise<number> {
   let unlockedCount = 0;
 
   const tasks = await db.clientTask.findMany({
@@ -535,7 +535,10 @@ async function updateTaskReadinessStates(projectId: string): Promise<number> {
     }
 
     const hasIncompleteDependencies = t.dependencies.some(
-      (d) => d.dependsOnTask.status !== "DONE" && d.dependsOnTask.status !== "COMPLETED",
+      (d) =>
+        d.dependsOnTask.status !== "DONE" &&
+        d.dependsOnTask.status !== "COMPLETED" &&
+        d.dependsOnTask.executionState !== "APPROVED",
     );
 
     if (hasIncompleteDependencies && (t.status !== "BLOCKED" || t.executionState !== "NOT_READY")) {
