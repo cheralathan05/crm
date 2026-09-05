@@ -104,3 +104,30 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET(request: NextRequest) {
+  try {
+    const email = request.nextUrl.searchParams.get("email");
+    if (!email) {
+      return NextResponse.json({ ok: false, message: "Email parameter required." }, { status: 400 });
+    }
+
+    const user = await db.user.findUnique({
+      where: { email: email.trim().toLowerCase() },
+      select: { id: true, emailVerified: true },
+    });
+
+    if (!user) {
+      return NextResponse.json({ ok: false, verified: false }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      ok: true,
+      verified: Boolean(user.emailVerified),
+    });
+  } catch (error) {
+    console.error("[verify-email-check] error:", error);
+    return NextResponse.json({ ok: false, verified: false }, { status: 500 });
+  }
+}
+

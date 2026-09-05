@@ -69,6 +69,33 @@ function VerifyEmailContent() {
     verify();
   }, [token]);
 
+  // Auto-detect when email is verified in another browser, tab, or phone
+  useEffect(() => {
+    if (state !== "paused" || !email) return;
+
+    let mounted = true;
+    const checkStatus = async () => {
+      try {
+        const res = await fetch(`/api/auth/verify-email?email=${encodeURIComponent(email)}`);
+        const data = await res.json();
+        if (mounted && data.ok && data.verified) {
+          setState("verified");
+        }
+      } catch {
+        // ignore background poll errors
+      }
+    };
+
+    // Immediate check + repeat every 2.5 seconds
+    checkStatus();
+    const interval = setInterval(checkStatus, 2500);
+
+    return () => {
+      mounted = false;
+      clearInterval(interval);
+    };
+  }, [state, email]);
+
   // Resend countdown
   useEffect(() => {
     if (resendCountdown <= 0) return;
