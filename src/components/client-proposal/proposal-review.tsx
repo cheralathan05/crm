@@ -806,6 +806,20 @@ function ClientBlockRender({ block, explainable }: { block: ProposalBlock; expla
             Total Investment: {block.total}
           </div>
         )}
+        {block.type === "pricing_table" && "milestones" in block && Array.isArray(block.milestones) && block.milestones.length > 0 && (
+          <div className="p-3 bg-white border-t border-[#e7e2d8] space-y-2">
+            <div className="text-[10px] font-mono uppercase tracking-[0.1em] text-[#b5452a] font-bold">Payment Schedule Milestones</div>
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {block.milestones.map((m, mIdx) => (
+                <div key={mIdx} className="bg-[#faf7f2] p-2 rounded border border-[#e7e2d8] text-[11px] space-y-0.5">
+                  <div className="font-bold text-[#1a1714]">{m.name}</div>
+                  <div className="font-mono text-[10.5px] text-[var(--bos-accent)] font-semibold">{m.amount}</div>
+                  <div className="text-[9.5px] text-[#6b655c]">{m.schedule}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
@@ -1153,6 +1167,226 @@ function ClientBlockRender({ block, explainable }: { block: ProposalBlock; expla
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (block.type === "objective_card") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-2.5">
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-[13.5px] font-bold text-[#1a1714]">{block.title}</div>
+          {block.requirement && (
+            <span className="shrink-0 px-2 py-0.5 rounded-[3px] text-[9.5px] font-mono uppercase tracking-[0.1em] font-semibold bg-[#faf7f2] text-[#6b655c] border border-[#e7e2d8]">
+              {block.requirement}
+            </span>
+          )}
+        </div>
+        <p className="text-[12px] text-[#2a2621] leading-relaxed">{block.description}</p>
+        {(block.businessNeed || block.successIndicator || block.expectedOutcome) && (
+          <div className="rounded-sm bg-[#faf7f2] border border-[#e7e2d8] p-2.5 space-y-1.5 text-[11px]">
+            {block.businessNeed && (
+              <div>
+                <strong className="text-[#1a1714]">Strategic Need:</strong> <span className="text-[#6b655c]">{block.businessNeed}</span>
+              </div>
+            )}
+            {block.successIndicator && (
+              <div>
+                <strong className="text-[#3f6e35]">Success Indicator:</strong> <span className="text-[#2c4f26]">{block.successIndicator}</span>
+              </div>
+            )}
+            {block.expectedOutcome && (
+              <div>
+                <strong className="text-[#b5452a]">Expected Outcome:</strong> <span className="text-[#6b655c]">{block.expectedOutcome}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (block.type === "statistic") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-4 my-3 flex flex-col sm:flex-row items-baseline gap-3">
+        <div className="text-[28px] font-mono font-bold text-[var(--bos-accent)] leading-none">{block.value}</div>
+        <div>
+          <div className="text-[12.5px] font-bold text-[#1a1714]">{block.label}</div>
+          {block.detail && <div className="text-[11px] text-[#6b655c] mt-0.5">{block.detail}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "process_flow") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-accent)] font-bold">Process Workflow</div>
+        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-2.5">
+          {block.steps.map((step, idx) => (
+            <div key={idx} className="flex items-start gap-2.5 bg-[#faf7f2] p-2.5 rounded-sm border border-[#e7e2d8] text-[11.5px]">
+              <span className="font-mono text-[10px] font-bold text-[var(--bos-accent)] bg-[#f5edea] w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5">
+                {String(idx + 1).padStart(2, "0")}
+              </span>
+              <span className="text-[#1a1714] leading-snug">{step}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "deliverable") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-2">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[9px] font-bold text-[var(--bos-accent)] bg-[#f5edea] px-1.5 py-0.5 rounded-[3px]">
+              {block.id || "DEL"}
+            </span>
+            <span className="text-[13px] font-bold text-[#1a1714]">{block.name}</span>
+          </div>
+          <span className="font-mono text-[9px] uppercase px-1.5 py-0.5 rounded-[3px] bg-[#faf7f2] text-[#6b655c] border border-[#e7e2d8]">
+            {block.status || "Planned"}
+          </span>
+        </div>
+        <p className="text-[11.5px] text-[#6b655c] leading-relaxed">{block.description}</p>
+        {(block.scope || block.output || block.acceptance) && (
+          <div className="grid sm:grid-cols-2 gap-2 text-[10.5px] bg-[#faf7f2] p-2 rounded-sm border border-[#e7e2d8]">
+            {block.scope && <div><strong className="text-[#1a1714]">Scope:</strong> {block.scope}</div>}
+            {block.output && <div><strong className="text-[#1a1714]">Output:</strong> {block.output}</div>}
+            {block.acceptance && <div className="sm:col-span-2 text-[#3f6e35]"><strong className="text-[#2c4f26]">Acceptance:</strong> {block.acceptance}</div>}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (block.type === "milestone") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-3.5 my-2 flex items-start justify-between gap-3 text-[11.5px]">
+        <div className="space-y-1">
+          <div className="font-semibold text-[#1a1714] text-[12.5px]">{block.title}</div>
+          <p className="text-[#6b655c] leading-snug">{block.description}</p>
+        </div>
+        <div className="text-right shrink-0 space-y-1">
+          {block.date && <div className="font-mono text-[10px] text-[#9a948a] font-semibold">{block.date}</div>}
+          {block.status && (
+            <span className="inline-block font-mono text-[8.5px] uppercase px-1.5 py-0.5 rounded bg-[#faf7f2] text-[#6b655c] border border-[#e7e2d8]">
+              {block.status}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "requirement_reference") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-[#faf7f2] p-3 my-2 flex items-center justify-between gap-3 text-[11.5px]">
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-[9px] font-bold text-[var(--bos-accent)] bg-[#f5edea] px-1.5 py-0.5 rounded-[3px]">
+            {block.reference}
+          </span>
+          <span className="font-semibold text-[#1a1714]">{block.title}</span>
+        </div>
+        {block.status && (
+          <span className="font-mono text-[8.5px] uppercase px-1.5 py-0.5 rounded bg-white text-[#3f6e35] font-semibold border border-[#d8edd4]">
+            {block.status}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  if (block.type === "architecture") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        {block.title && <div className="text-[13px] font-semibold text-[#1a1714]">{block.title}</div>}
+        <div className="space-y-2">
+          {block.layers.map((layer, idx) => (
+            <div key={idx} className="flex items-start justify-between gap-3 bg-[#faf7f2] p-2.5 rounded-sm border border-[#e7e2d8] text-[11.5px]">
+              <div>
+                <div className="font-semibold text-[#1a1714]">{layer.name}</div>
+                {layer.purpose && <div className="text-[10.5px] text-[#6b655c] mt-0.5">{layer.purpose}</div>}
+              </div>
+              <span className="font-mono text-[10px] font-bold text-[var(--bos-accent)] bg-white px-2 py-0.5 rounded border border-[#e7e2d8] shrink-0">
+                {layer.tech}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "risk") {
+    return (
+      <div className="rounded-sm border border-[#f5dfb8] bg-[#fdf3e7] p-3.5 my-2.5 space-y-1.5 text-[11.5px]">
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-[#9a5b13] text-[12.5px]">{block.title}</span>
+          <div className="flex items-center gap-1.5 font-mono text-[9px]">
+            {block.impact && <span className="bg-[#fae7cf] text-[#7c4d08] px-1.5 py-0.5 rounded">Impact: {block.impact}</span>}
+            {block.probability && <span className="bg-[#fae7cf] text-[#7c4d08] px-1.5 py-0.5 rounded">Prob: {block.probability}</span>}
+          </div>
+        </div>
+        <p className="text-[#7c4d08] leading-snug">{block.description}</p>
+        {block.mitigation && (
+          <div className="text-[10.5px] text-[#2c4f26] bg-[#eef6ec] p-2 rounded-sm border border-[#c3e2bf]">
+            <strong className="text-[#3f6e35]">Mitigation Strategy:</strong> {block.mitigation}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  if (block.type === "assumption") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-3 my-2 flex items-start gap-2.5 text-[11.5px]">
+        <span className="font-mono text-[9px] font-bold text-[#6b655c] bg-[#faf7f2] px-1.5 py-0.5 rounded border border-[#e7e2d8] shrink-0 mt-0.5">
+          {block.id || "ASM"}
+        </span>
+        <div className="flex-1 space-y-0.5">
+          <p className="text-[#1a1714] leading-snug">{block.description}</p>
+          {block.owner && <div className="text-[10px] text-[#9a948a]">Owner: {block.owner}</div>}
+        </div>
+      </div>
+    );
+  }
+
+  if (block.type === "signature") {
+    return (
+      <div className="rounded-sm border border-[#e7e2d8] bg-white p-4 my-3 space-y-3">
+        <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-accent)] font-bold">
+          {block.role === "CLIENT" ? "Client Authorized Signatory" : "Service Provider Signatory"}
+        </div>
+        <div className="grid sm:grid-cols-2 gap-3 pt-2 text-[11.5px]">
+          <div className="space-y-1">
+            <div className="text-[10px] font-mono text-[#9a948a] uppercase">Signatory Name</div>
+            <div className="font-semibold text-[#1a1714] border-b border-[#e7e2d8] pb-1">{block.name || "Pending Acceptance"}</div>
+          </div>
+          <div className="space-y-1">
+            <div className="text-[10px] font-mono text-[#9a948a] uppercase">Title / Role</div>
+            <div className="font-medium text-[#6b655c] border-b border-[#e7e2d8] pb-1">{block.title || "Authorized Representative"}</div>
+          </div>
+        </div>
+        {block.date && (
+          <div className="text-[10.5px] font-mono text-[#9a948a]">Date: {block.date}</div>
+        )}
+      </div>
+    );
+  }
+
+  if (block.type === "spacer") {
+    return <div className="h-4" aria-hidden="true" />;
+  }
+
+  if (block.type === "page_break") {
+    return (
+      <div className="my-6 flex items-center gap-3 text-[#9a948a]" aria-hidden="true">
+        <div className="h-px flex-1 bg-[#e7e2d8]" />
+        <span className="font-mono text-[8.5px] uppercase tracking-widest text-[#9a948a]">Page Break</span>
+        <div className="h-px flex-1 bg-[#e7e2d8]" />
       </div>
     );
   }

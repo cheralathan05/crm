@@ -28,17 +28,21 @@ export async function GET(_req: Request, { params }: Ctx) {
   }
   const { proposal } = resolved;
 
+  const url = new URL(_req.url);
+  const isDownload = url.searchParams.has("download") || url.searchParams.get("dl") === "1";
+  const forceRefresh = url.searchParams.has("refresh") || isDownload;
+
   let pdfBytes: Buffer | null = null;
 
-  // Try reading existing file
-  if (proposal.pdfPath) {
+  // Try reading existing file if not explicitly refreshing or downloading
+  if (proposal.pdfPath && !forceRefresh) {
     const stored = await readStored(proposal.pdfPath);
     if (stored) {
       pdfBytes = stored.buffer;
     }
   }
 
-  // If file doesn't exist on disk or pdfPath is null, generate from database document
+  // If file doesn't exist on disk, or refresh/download was requested, generate from database document
   if (!pdfBytes) {
     try {
       const [workspace, client, contact, request, requirementFeatures] = await Promise.all([
@@ -112,9 +116,9 @@ export async function GET(_req: Request, { params }: Ctx) {
   return new NextResponse(new Uint8Array(pdfBytes), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `inline; filename="${safeName}-v${proposal.version}.pdf"`,
+      "Content-Disposition": `${isDownload ? "attachment" : "inline"}; filename="${safeName}-v${proposal.version}.pdf"`,
       "Content-Length": String(pdfBytes.length),
-      "Cache-Control": "private, max-age=300",
+      "Cache-Control": isDownload || forceRefresh ? "no-cache, no-store, must-revalidate" : "private, max-age=300",
     },
   });
 }

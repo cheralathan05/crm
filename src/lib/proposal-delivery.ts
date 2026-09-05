@@ -1,9 +1,12 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 import { db } from "./db";
 import { generateToken, hashToken, tokenExpiry } from "./tokens";
 import { readStored } from "./uploads";
 import { recordAudit } from "./clients";
-import { recordEvent } from "./requirements";
-import { amountLabel } from "./proposal-doc";
+import { recordEvent, loadAnswers, loadFeatures } from "./requirements";
+import { amountLabel, normalizeDoc, type ProposalDoc } from "./proposal-doc";
+import { generateProposalPdf, buildProposalDocument } from "./proposal";
 import { syncRealDocuments } from "./documents/document-indexer.service";
 import {
   sendProposalEmail,
@@ -164,14 +167,6 @@ export async function sendProposalToClient(input: {
   // Validations — never send a broken proposal.
   if (proposal.status === "APPROVED" && kind !== "RESEND") throw new Error("This proposal has already been approved.");
   if (proposal.status === "REJECTED") throw new Error("This proposal was declined by the client and can no longer be sent.");
-  if (!proposal.finalizedAt || !proposal.pdfPath) {
-    throw new Error("Finalize the proposal and generate the PDF before sending it to the client.");
-  }
-  const stored = await readStored(proposal.pdfPath);
-  if (!stored) {
-    throw new Error("The finalized PDF file is missing. Finalize the proposal again to regenerate it.");
-  }
-
   const [client, request] = await Promise.all([
     db.client.findUnique({ where: { id: proposal.clientId } }),
     proposal.requirementRequestId ? db.requirementRequest.findUnique({ where: { id: proposal.requirementRequestId } }) : null,
@@ -180,6 +175,80 @@ export async function sendProposalToClient(input: {
 
   const resolvedWorkspace = await db.workspace.findUnique({ where: { id: client.workspaceId }, include: { profile: true } });
   if (!resolvedWorkspace) throw new Error("Workspace not found.");
+
+  // Always compile fresh PDF from authoritative proposal document to ensure
+  // 100% complete content with zero missing pages or sections
+  let pdfBuffer: Buffer | null = null;
+  let pdfPages = proposal.pdfPages ?? 0;
+
+  try {
+    let doc: ProposalDoc;
+    try {
+      doc = JSON.parse(proposal.document || "{}") as ProposalDoc;
+    } catch {
+      doc = {
+        version: proposal.version,
+        meta: {
+          reference: proposal.reference ?? "PROP",
+          title: proposal.title,
+          clientName: client.companyName,
+          preparedBy: resolvedWorkspace.companyName,
+          preparedFor: client.email ?? null,
+          amount: proposal.amount,
+          currency: proposal.currency,
+          amountLabel: "To be confirmed",
+          timelineLabel: "",
+          date: proposal.createdAt.toISOString(),
+        },
+        sections: [],
+      };
+    }
+
+    if (!doc.sections || doc.sections.length === 0) {
+      const [contact, requirementFeatures] = await Promise.all([
+        db.contact.findFirst({ where: { clientId: proposal.clientId, isPrimary: true } }),
+        proposal.requirementRequestId ? loadFeatures(proposal.requirementRequestId) : Promise.resolve([]),
+      ]);
+      const answers = request ? await loadAnswers(request.id) : {};
+      doc = buildProposalDocument({
+        proposal,
+        client,
+        workspace: resolvedWorkspace,
+        contact,
+        answers,
+        features: requirementFeatures,
+      });
+    }
+
+    doc = normalizeDoc(doc);
+    const pdfResult = await generateProposalPdf(doc);
+    pdfBuffer = pdfResult.buffer;
+    pdfPages = pdfResult.pages;
+
+    // Persist fresh PDF to disk
+    const dir = path.join(process.cwd(), "uploads", "proposals");
+    await mkdir(dir, { recursive: true });
+    const fileName = `${proposal.id}-v${proposal.version}.pdf`;
+    await writeFile(path.join(dir, fileName), pdfBuffer);
+    const pdfPath = `proposals/${fileName}`;
+
+    await db.clientProposal.update({
+      where: { id: proposal.id },
+      data: { pdfPath, pdfPages, finalizedAt: proposal.finalizedAt ?? new Date() },
+    });
+  } catch (genErr) {
+    console.warn("[sendProposalToClient] Live PDF generation warning, falling back to stored file:", genErr);
+    if (proposal.pdfPath) {
+      const stored = await readStored(proposal.pdfPath);
+      if (stored) {
+        pdfBuffer = stored.buffer;
+      }
+    }
+  }
+
+  if (!pdfBuffer) {
+    throw new Error("Could not compile proposal PDF. Please ensure all proposal sections are configured properly.");
+  }
 
   let recipient: { contactId: string | null; name: string; email: string };
   if (input.recipientEmail?.trim()) {
@@ -215,7 +284,7 @@ export async function sendProposalToClient(input: {
     senderName: input.actorName ?? resolvedWorkspace.companyName,
     pdf: {
       filename: `${resolvedWorkspace.companyName.replace(/[^A-Za-z0-9-]/g, "")}-${safeName}-v${proposal.version}.pdf`,
-      buffer: stored.buffer,
+      buffer: pdfBuffer,
     },
     version: proposal.version,
     revision: kind === "REVISION",
@@ -1113,7 +1182,39 @@ export async function serializeClientProposal(token: string) {
   }
 
   const documentMeta = (parsedDoc.meta && typeof parsedDoc.meta === "object") ? parsedDoc.meta as Record<string, unknown> : {};
-  const sections = Array.isArray(parsedDoc.sections) ? parsedDoc.sections : [];
+  let sections = Array.isArray(parsedDoc.sections) ? parsedDoc.sections : [];
+
+  if (sections.length === 0) {
+    try {
+      const [contact, request, requirementFeatures] = await Promise.all([
+        db.contact.findFirst({ where: { clientId: proposal.clientId, isPrimary: true } }),
+        proposal.requirementRequestId ? db.requirementRequest.findUnique({ where: { id: proposal.requirementRequestId } }) : null,
+        proposal.requirementRequestId ? loadFeatures(proposal.requirementRequestId) : Promise.resolve([]),
+      ]);
+      const answers = request ? await loadAnswers(request.id) : {};
+      const fullDoc = buildProposalDocument({
+        proposal,
+        client: {
+          id: proposal.clientId,
+          companyName: client?.companyName ?? "",
+          industry: client?.industry ?? null,
+          email: client?.email ?? null,
+          workspaceId: proposal.client.workspaceId,
+        } as any,
+        workspace: {
+          id: proposal.client.workspaceId,
+          companyName: workspace?.companyName ?? "",
+          ownerId: "",
+        } as any,
+        contact,
+        answers,
+        features: requirementFeatures,
+      });
+      sections = fullDoc.sections;
+    } catch (e) {
+      console.warn("[serializeClientProposal] fallback doc generation warning:", e);
+    }
+  }
 
   const document = {
     version: proposal.version,
