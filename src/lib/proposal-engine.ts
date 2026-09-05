@@ -641,6 +641,23 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
     })
   );
 
+  // ── 00b. CONTENTS / TABLE OF CONTENTS ──
+  sections.push(
+    sec({
+      id: "contents",
+      number: "—",
+      title: "Contents",
+      kicker: "TABLE OF CONTENTS",
+      source: "WORKSPACE",
+      group: "OVERVIEW",
+      blocks: [
+        p(
+          `Directory of strategic solutions, specifications, deliverables, and commercial governance prepared for ${companyName}.`
+        ),
+      ],
+    })
+  );
+
   // ── 01. EXECUTIVE PRODUCT SUMMARY ──
   sections.push(
     sec({
@@ -1190,6 +1207,16 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
       ],
     })
   );
+
+  /* ── Continuous Sequential Section Numbering ── */
+  let seqIdx = 1;
+  for (const s of sections) {
+    if (s.id === "cover" || s.id === "contents") {
+      s.number = s.id === "cover" ? "00" : "—";
+    } else {
+      s.number = String(seqIdx++).padStart(2, "0");
+    }
+  }
 
   /* ── 16. Return Unified ProposalDoc ── */
   return {

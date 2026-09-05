@@ -271,6 +271,30 @@ function cardTable(rows: { label: string; value: string }[]): unknown {
   };
 }
 
+function pdfCardBox(innerContent: unknown, options?: { borderColor?: string; fillColor?: string; padding?: number; margin?: number[] }): unknown {
+  const borderColor = options?.borderColor || RULE;
+  const fillColor = options?.fillColor || "#faf7f2";
+  const pad = options?.padding ?? 8;
+  return {
+    table: {
+      widths: ["*"],
+      body: [[{ stack: Array.isArray(innerContent) ? innerContent : [innerContent] }]],
+    },
+    layout: {
+      hLineWidth: () => 0.6,
+      vLineWidth: () => 0.6,
+      hLineColor: () => borderColor,
+      vLineColor: () => borderColor,
+      fillColor: () => fillColor,
+      paddingLeft: () => pad,
+      paddingRight: () => pad,
+      paddingTop: () => pad,
+      paddingBottom: () => pad,
+    },
+    margin: options?.margin ?? [0, 2, 0, 10],
+  };
+}
+
 function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
   const out: unknown[] = [];
   let breakNext = false;
@@ -316,20 +340,31 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       const bg = tone === "warning" ? "#fdf3e7" : tone === "success" ? "#eef6ec" : "#f5edea";
       const fg = tone === "warning" ? "#9a5b13" : tone === "success" ? "#3f6e35" : ACCENT;
       push({
-        stack: [
-          ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: fg, margin: [0, 0, 0, 4] }] : []),
-          { text: b.text || "", style: "body" },
-        ],
+        table: {
+          widths: ["*"],
+          body: [[{
+            stack: [
+              ...(b.title ? [{ text: b.title.toUpperCase(), style: "micro", bold: true, color: fg, margin: [0, 0, 0, 4] }] : []),
+              { text: b.text || "", style: "body" },
+            ],
+          }]],
+        },
+        layout: {
+          hLineWidth: () => 0.6,
+          vLineWidth: (i: number) => (i === 0 ? 3 : 0.6),
+          hLineColor: () => fg,
+          vLineColor: (i: number) => (i === 0 ? fg : RULE),
+          fillColor: () => bg,
+          paddingLeft: () => 10,
+          paddingRight: () => 10,
+          paddingTop: () => 8,
+          paddingBottom: () => 8,
+        },
         margin: [0, 4, 0, 12],
-        background: bg,
-        padding: [10, 10, 10, 10],
-        borderColor: fg,
-        borderWidth: [2, 0, 0, 0],
       });
     } else if (b.type === "feature_card") {
-      push({
-        stack: [
-          { canvas: [{ type: "rect", x: 0, y: 0, w: 4, h: 100, color: ACCENT }] },
+      push(
+        pdfCardBox([
           { text: b.title || "Feature", style: "cardTitle" },
           { text: b.purpose || "", style: "body", margin: [0, 2, 0, 4] },
           ...(b.capabilities && b.capabilities.length > 0
@@ -341,26 +376,22 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
             { label: "Status", value: b.status || "Planned" },
             ...(b.requirementSource ? [{ label: "Source", value: b.requirementSource }] : []),
           ]),
-        ],
-        margin: [0, 2, 0, 12],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [12, 10, 12, 10],
-      });
+          ...(b.businessNeed ? [{ text: `Strategic Need: ${b.businessNeed}`, style: "micro", color: INK, margin: [0, 4, 0, 0] }] : []),
+          ...(b.acceptanceCriteria && b.acceptanceCriteria.length > 0
+            ? [{ text: `Acceptance: ${b.acceptanceCriteria.join(" · ")}`, style: "micro", color: "#3f6e35", margin: [0, 2, 0, 0] }]
+            : []),
+        ], { fillColor: "#ffffff", borderColor: RULE, padding: 10 })
+      );
     } else if (b.type === "objective_card") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { text: (b.title || "Objective").toUpperCase(), style: "micro", bold: true, color: ACCENT, margin: [0, 0, 0, 3] },
           { text: b.description || "", style: "body" },
           ...(b.businessNeed ? [{ text: `Business Need: ${b.businessNeed}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
           ...(b.successIndicator ? [{ text: `Success Indicator: ${b.successIndicator}`, style: "body", color: INK, bold: true, margin: [0, 3, 0, 0] }] : []),
           ...(b.requirement ? [{ text: b.requirement, style: "micro", color: FAINT, margin: [0, 3, 0, 0] }] : []),
-        ],
-        margin: [0, 2, 0, 12],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [12, 10, 12, 10],
-      });
+        ], { fillColor: "#faf7f2", borderColor: RULE, padding: 10 })
+      );
     } else if (b.type === "statistic") {
       push({
         table: {
@@ -467,18 +498,14 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 0, 0, 8],
       });
     } else if (b.type === "deliverable") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { columns: [{ text: (b.id || "DEL").toUpperCase(), style: "micro", bold: true, color: ACCENT }, { text: (b.status || "PLANNED").toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] },
           { text: b.name || "", style: "cardTitle" },
           ...(b.description ? [{ text: b.description, style: "body" }] : []),
           ...(b.acceptance ? [{ text: `Acceptance Criteria: ${b.acceptance}`, style: "micro", color: MUTED, margin: [0, 4, 0, 0] }] : []),
-        ],
-        margin: [0, 2, 0, 12],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [12, 10, 12, 10],
-      });
+        ], { fillColor: "#faf7f2", borderColor: RULE, padding: 10 })
+      );
     } else if (b.type === "requirement_reference") {
       push({
         columns: [
@@ -515,6 +542,37 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
       if (isPricing && b.total) {
         push({ columns: [{ text: "Total Investment", style: "micro", bold: true, color: FAINT, alignment: "right" }, { text: b.total, style: "body", bold: true, color: ACCENT, alignment: "right", width: "auto" }], margin: [0, -8, 0, 10] });
       }
+      if (isPricing && b.milestones && b.milestones.length > 0) {
+        push({
+          table: {
+            widths: ["*", "auto", "auto"],
+            headerRows: 1,
+            body: [
+              [
+                { text: "MILESTONE STAGE", style: "tableHeader" },
+                { text: "AMOUNT", style: "tableHeader" },
+                { text: "SCHEDULE", style: "tableHeader" },
+              ],
+              ...b.milestones.map((m) => [
+                { text: m.name || "", style: "tableCell", bold: true },
+                { text: m.amount || "", style: "tableCell", color: ACCENT, bold: true },
+                { text: m.schedule || "", style: "tableCell", fontSize: 8.5, color: MUTED },
+              ]),
+            ],
+          },
+          layout: {
+            hLineWidth: (i: number) => (i <= 1 ? 0.8 : 0.3),
+            vLineWidth: () => 0,
+            hLineColor: (i: number) => (i <= 1 ? ACCENT : RULE),
+            paddingLeft: () => 8,
+            paddingRight: () => 8,
+            paddingTop: () => 6,
+            paddingBottom: () => 6,
+            fillColor: (rowIndex: number) => (rowIndex === 0 ? ACCENT : rowIndex % 2 === 0 ? "#faf7f2" : null),
+          },
+          margin: [0, 2, 0, 12],
+        });
+      }
     } else if (b.type === "assumption") {
       push({
         columns: [
@@ -532,33 +590,24 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 0, 0, 8],
       });
     } else if (b.type === "risk") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { columns: [{ text: b.title || "Risk", style: "cardTitle" }, ...(b.status ? [{ text: b.status.toUpperCase(), style: "micro", color: FAINT, alignment: "right" }] : [])] },
           ...(b.description ? [{ text: b.description, style: "body" }] : []),
           ...(b.impact ? [{ text: `Impact: ${b.impact}`, style: "body", color: MUTED, margin: [0, 2, 0, 0] }] : []),
           ...(b.mitigation ? [{ text: `Mitigation: ${b.mitigation}`, style: "body", color: "#3f6e35", margin: [0, 2, 0, 0] }] : []),
-        ],
-        margin: [0, 2, 0, 12],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [12, 10, 12, 10],
-      });
+        ], { fillColor: "#faf7f2", borderColor: RULE, padding: 10 })
+      );
     } else if (b.type === "approval") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { text: "OFFICIAL PROPOSAL ACCEPTANCE", style: "micro", bold: true, color: ACCENT },
           { text: `Authorized Client: ${b.clientName ?? "—"}`, style: "body", bold: true, margin: [0, 4, 0, 2] },
           { text: `Scope: ${b.approvedScope ?? "Approved Scope"}`, style: "body", color: MUTED },
           { text: `Acceptance Date: ${b.acceptanceDate ?? "—"}`, style: "body", color: MUTED },
           { text: `Verified Digital Signature: ${b.authorizedPerson ?? "Client Representative"}`, style: "body", color: INK, margin: [0, 4, 0, 0] },
-        ],
-        margin: [0, 6, 0, 14],
-        background: "#faf7f2",
-        padding: [12, 10, 12, 10],
-        borderColor: ACCENT,
-        borderWidth: [1, 1, 1, 1],
-      });
+        ], { fillColor: "#faf7f2", borderColor: ACCENT, padding: 12 })
+      );
     } else if (b.type === "signature") {
       push({
         columns: [
@@ -628,20 +677,20 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 2, 0, 12],
       });
     } else if (b.type === "module_card") {
-      push({
-        stack: [
-          { columns: [{ text: `${b.id || "MODULE"}: ${b.name || ""}`, style: "cardTitle" }, { text: (b.priority || "MUST_HAVE").replace("_", " "), style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
+      push(
+        pdfCardBox([
+          { columns: [{ text: `${b.id || "MODULE"}: ${b.name || ""}`, style: "cardTitle" }, { text: (b.priority || "MUST_HAVE").replace(/_/g, " "), style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
           { text: b.purpose || "", style: "body", margin: [0, 2, 0, 4] },
           { text: `Primary Users: ${(b.primaryUsers || []).join(", ") || "All Users"}`, style: "micro", color: MUTED, margin: [0, 0, 0, 4] },
           { text: "Core Actions:", style: "micro", bold: true, color: INK },
           { text: (b.userActions || []).map((a) => `• ${a}`).join("\n") || "—", style: "body", color: MUTED, fontSize: 9, margin: [0, 2, 0, 4] },
+          ...(b.businessRules && b.businessRules.length > 0 ? [
+            { text: "Business Rules:", style: "micro", bold: true, color: INK },
+            { text: b.businessRules.map((r) => `• ${r}`).join("\n"), style: "body", color: MUTED, fontSize: 8.5, margin: [0, 1, 0, 4] }
+          ] : []),
           { text: `Business Value: ${b.businessValue || "High Impact"}`, style: "body", color: "#3f6e35", fontSize: 9, bold: true },
-        ],
-        margin: [0, 2, 0, 10],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [10, 8, 10, 8],
-      });
+        ], { fillColor: "#faf7f2", borderColor: RULE, padding: 10 })
+      );
     } else if (b.type === "journey_flow") {
       push({
         stack: [
@@ -707,20 +756,16 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 4, 0, 14],
       });
     } else if (b.type === "acceptance_spec") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { columns: [{ text: `${b.id || "AC"}: ${b.featureTitle || ""}`, style: "cardTitle" }, { text: "GIVEN-WHEN-THEN", style: "micro", bold: true, color: ACCENT, alignment: "right" }] },
           { text: [{ text: "GIVEN ", bold: true, color: ACCENT }, { text: b.given || "" }], style: "body", fontSize: 9, margin: [0, 2, 0, 2] },
           { text: [{ text: "WHEN ", bold: true, color: ACCENT }, { text: b.when || "" }], style: "body", fontSize: 9, margin: [0, 0, 0, 2] },
           { text: "THEN:", bold: true, style: "body", color: ACCENT, fontSize: 9 },
           { text: (b.then || []).map((t) => `• ${t}`).join("\n") || "—", style: "body", color: MUTED, fontSize: 8.5, margin: [0, 1, 0, 4] },
           ...(b.failureBehavior ? [{ text: `Failure Behavior: ${b.failureBehavior}`, style: "micro", color: "#9a5b13" }] : []),
-        ],
-        margin: [0, 2, 0, 10],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [10, 8, 10, 8],
-      });
+        ], { fillColor: "#faf7f2", borderColor: RULE, padding: 9 })
+      );
     } else if (b.type === "domain_entity_map") {
       push({
         stack: [
@@ -740,8 +785,8 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
         margin: [0, 2, 0, 10],
       });
     } else if (b.type === "integration_spec") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { columns: [{ text: b.serviceName || "", style: "cardTitle" }, { text: b.category || "API", style: "micro", color: ACCENT, alignment: "right" }] },
           { text: b.purpose || "", style: "body", fontSize: 9, margin: [0, 1, 0, 3] },
           cardTable([
@@ -750,25 +795,17 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
             { label: "Direction", value: b.direction || "BIDIRECTIONAL" },
             { label: "Failure Protocol", value: b.failureBehavior || "—" },
           ]),
-        ],
-        margin: [0, 2, 0, 10],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [10, 8, 10, 8],
-      });
+        ], { fillColor: "#faf7f2", borderColor: RULE, padding: 9 })
+      );
     } else if (b.type === "screen_card") {
-      push({
-        stack: [
+      push(
+        pdfCardBox([
           { columns: [{ text: `${b.screenId || "SCR"}: ${b.name || ""}`, style: "cardTitle" }, { text: `User: ${b.primaryUser || "User"}`, style: "micro", color: FAINT, alignment: "right" }] },
           { text: b.purpose || "", style: "body", fontSize: 9, margin: [0, 1, 0, 2] },
           { text: `Key Info: ${(b.keyInformation || []).join(" · ") || "—"}`, style: "micro", color: MUTED },
           { text: `Actions: ${(b.primaryActions || []).join(" · ") || "—"}`, style: "micro", color: ACCENT },
-        ],
-        margin: [0, 2, 0, 8],
-        borderColor: RULE,
-        borderWidth: [0.6, 0.6, 0.6, 0.6],
-        padding: [8, 6, 8, 6],
-      });
+        ], { fillColor: "#ffffff", borderColor: RULE, padding: 8 })
+      );
     } else if (b.type === "qa_verification") {
       push({
         table: {
@@ -928,16 +965,23 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
           table: {
             widths: [28, "*", "auto"],
             body: bodySections.map((s, idx) => {
-              const pageNum = (cover ? 1 : 0) + 1 + idx + 1;
               return [
-                { text: String(idx + 1).padStart(2, "0"), color: ACCENT, bold: true, fontSize: 10 },
+                { text: s.number && s.number !== "—" ? s.number : String(idx + 1).padStart(2, "0"), color: ACCENT, bold: true, fontSize: 10 },
                 {
                   stack: [
                     { text: s.title, bold: true, fontSize: 11, color: INK },
                     { text: (s.kicker || "SECTION").toUpperCase(), fontSize: 8, color: FAINT, characterSpacing: 0.8, margin: [0, 1, 0, 0] },
                   ],
                 },
-                { text: `Page ${pageNum}`, color: MUTED, fontSize: 9.5, alignment: "right" },
+                {
+                  text: [
+                    { text: "Page " },
+                    { pageReference: `sec-${s.id}` }
+                  ],
+                  color: MUTED,
+                  fontSize: 9.5,
+                  alignment: "right"
+                },
               ];
             }),
           },
@@ -962,7 +1006,7 @@ export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
     content.push({
       stack: [
         { text: `${s.number}  ·  ${s.kicker.toUpperCase()}`, style: "kicker" },
-        { text: s.title, style: "sectionTitle" },
+        { text: s.title, style: "sectionTitle", id: `sec-${s.id}` },
         { text: "", margin: [0, 0, 0, 6] },
         ...pdfBlocks(s.blocks),
       ],
