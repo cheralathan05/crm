@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ArrowUpRight, ClipboardList, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip, TimeAgo } from "@/components/clients/kit";
+import { RequirementCollaborationStudio } from "@/components/requirements/requirement-collaboration-studio";
 
 /* ────────────────────────────────────────────────────────────────
    REQUIREMENTS — ADMIN DASHBOARD
@@ -58,6 +59,7 @@ export function RequirementsPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [studioRequestId, setStudioRequestId] = useState<string | null>(searchParams.get("id"));
   const seq = useRef(0);
 
   const fetchRows = useCallback(async () => {
@@ -217,16 +219,22 @@ export function RequirementsPage() {
           <RequirementRow
             key={row.id}
             row={row}
-            onOpen={() => {
-              if (row.clientId) {
-                router.push(`/clients/${row.clientId}#requirement-requests`);
-              } else {
-                router.push("/clients");
-              }
-            }}
+            onOpen={() => setStudioRequestId(row.id)}
           />
         ))}
       </div>
+
+      {studioRequestId && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-[#0d0f12]">
+          <RequirementCollaborationStudio
+            requestId={studioRequestId}
+            onClose={() => {
+              setStudioRequestId(null);
+              fetchRows();
+            }}
+          />
+        </div>
+      )}
 
       {!loading && !error && rows.length > 0 && (
         <div className="mt-4 flex items-center justify-between text-[11px] text-[var(--bos-text-tertiary)]">

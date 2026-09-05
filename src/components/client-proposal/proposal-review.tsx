@@ -392,7 +392,7 @@ export function ProposalReview({
                   <ExternalLink className="w-3 h-3" /> Open in New Tab
                 </a>
                 <a
-                  href={`/api/client/proposals/${token}/pdf`}
+                  href={`/api/client/proposals/${token}/pdf?download=1`}
                   download
                   className="inline-flex items-center gap-1 text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
                 >

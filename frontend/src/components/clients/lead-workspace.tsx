@@ -560,9 +560,9 @@ function Toast({ message }: { message: string | null }) {
   );
 }
 
-/* ── Mobile copilot sheet ──────────────────────────────────── */
+/* ── Universal Copilot Drawer (Desktop & Mobile Slide-Over) ── */
 
-function MobileCopilotSheet({
+function CopilotDrawer({
   detail,
   open,
   onClose,
@@ -584,30 +584,45 @@ function MobileCopilotSheet({
             initial={reduced ? false : { opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 bg-black/30 lg:hidden"
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs"
             onClick={onClose}
             aria-hidden="true"
           />
           <motion.div
-            initial={reduced ? false : { y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
-            className="fixed inset-x-0 bottom-0 z-50 lg:hidden h-[78vh] rounded-t-xl border-t border-[var(--bos-line-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] flex flex-col"
+            initial={reduced ? false : { x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ duration: 0.25, ease: "easeOut" }}
+            className="fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] bg-[var(--bos-bg)] border-l border-[var(--bos-line)] shadow-2xl flex flex-col"
             role="dialog"
             aria-label="Lead Copilot"
           >
-            <div className="flex items-center justify-between px-4 pt-3 pb-1">
-              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">
-                <Bot className="w-3.5 h-3.5 text-[var(--bos-accent)]" aria-hidden="true" />
-                Lead Copilot
+            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--bos-line)] bg-[var(--bos-surface)]/60">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-lg bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] flex items-center justify-center">
+                  <Bot className="w-4 h-4" aria-hidden="true" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-bold text-[var(--bos-text-primary)]">Lead Copilot</span>
+                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-[var(--bos-success)]/15 text-[var(--bos-success)]">Online</span>
+                  </div>
+                  <div className="text-[11px] text-[var(--bos-text-tertiary)] truncate max-w-[240px]">
+                    {detail.client.companyName}
+                  </div>
+                </div>
               </div>
-              <button type="button" onClick={onClose} aria-label="Close" className="p-1.5 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close Copilot"
+                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors cursor-pointer"
+              >
                 <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
-            <div className="flex-1 min-h-0 px-4 pb-4">
+            <div className="flex-1 min-h-0 p-4">
               <LeadCopilot
                 clientId={detail.client.id}
                 clientName={detail.client.companyName}
@@ -746,7 +761,7 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const ownerName = detail.client.ownerName ?? actorName;
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-[1400px]">
+    <div className="px-5 sm:px-8 py-6 max-w-[1600px] w-full mx-auto">
       <Toast message={toast} />
 
       {/* ── Top bar ──────────────────────────────────────── */}
@@ -754,12 +769,26 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         <button
           type="button"
           onClick={() => router.push("/clients")}
-          className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors duration-150"
+          className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 cursor-pointer"
         >
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
           Clients
         </button>
         <div className="flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={() => setCopilotOpen((o) => !o)}
+            className={cn(
+              "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-[11px] font-medium transition-colors duration-150 cursor-pointer",
+              copilotOpen
+                ? "bg-[var(--bos-accent)] text-white border-[var(--bos-accent)]"
+                : "border-[var(--bos-line)] bg-[var(--bos-surface-panel)] text-[var(--bos-text-primary)] hover:border-[var(--bos-accent)] hover:text-[var(--bos-accent)]",
+            )}
+          >
+            <Bot className="w-3.5 h-3.5" aria-hidden="true" />
+            <span>Copilot</span>
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-success)]" aria-hidden="true" />
+          </button>
           <MicroButton onClick={() => setEditOpen((o) => !o)}>
             <Pencil className="w-3 h-3" aria-hidden="true" />
             Edit
@@ -872,158 +901,134 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         <NextActionBlock detail={detail} ownerName={ownerName} onTake={takeAction} />
       </motion.div>
 
-      {/* ── Two-column: story + copilot ───────────────────── */}
-      <div
-        className={cn(
-          "mt-9 grid gap-8 xl:gap-10 transition-[grid-template-columns] duration-300 ease-out",
-          voiceMode ? "lg:grid-cols-[minmax(0,1fr)_480px]" : "lg:grid-cols-[minmax(0,1fr)_360px]",
-        )}
-      >
-        {/* Story — dims slightly while voice mode is active */}
-        <div
-          className={cn(
-            "min-w-0 space-y-10 transition-opacity duration-300",
-            voiceMode && "opacity-[0.93]",
-          )}
+      {/* ── Main story workspace — fully covers the container width ───────────────────── */}
+      <div className="mt-9 min-w-0 space-y-10">
+        <motion.section
+          {...(reduced ? {} : STORY_FADE)}
+          transition={{ duration: 0.35, delay: 0.2 }}
+          aria-labelledby="lead-state"
         >
-          <motion.section
-            {...(reduced ? {} : STORY_FADE)}
-            transition={{ duration: 0.35, delay: 0.2 }}
-            aria-labelledby="lead-state"
-          >
-            <StoryHeader icon={<ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />}>Current state</StoryHeader>
-            <CurrentStateBlock detail={detail} />
-            {signals.length > 0 && (
-              <div className="mt-5 pt-4 border-t border-[var(--bos-line)]">
-                <div className="mb-2"><MonoLabel>Opportunity</MonoLabel></div>
-                <div className="flex flex-wrap gap-1.5">
-                  {signals.map((s) => (
-                    <span
-                      key={s.label}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm border text-[10px] font-medium",
-                        s.positive
-                          ? "border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 text-[var(--bos-success)]"
-                          : "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 text-[var(--bos-warning)]",
-                      )}
-                    >
-                      {s.positive ? <Check className="w-2.5 h-2.5" aria-hidden="true" /> : <ShieldAlert className="w-2.5 h-2.5" aria-hidden="true" />}
-                      {s.label}
-                    </span>
-                  ))}
-                </div>
+          <StoryHeader icon={<ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />}>Current state</StoryHeader>
+          <CurrentStateBlock detail={detail} />
+          {signals.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-[var(--bos-line)]">
+              <div className="mb-2"><MonoLabel>Opportunity</MonoLabel></div>
+              <div className="flex flex-wrap gap-1.5">
+                {signals.map((s) => (
+                  <span
+                    key={s.label}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm border text-[10px] font-medium",
+                      s.positive
+                        ? "border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 text-[var(--bos-success)]"
+                        : "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 text-[var(--bos-warning)]",
+                    )}
+                  >
+                    {s.positive ? <Check className="w-2.5 h-2.5" aria-hidden="true" /> : <ShieldAlert className="w-2.5 h-2.5" aria-hidden="true" />}
+                    {s.label}
+                  </span>
+                ))}
               </div>
-            )}
-          </motion.section>
-
-          {/* Requirement */}
-          <motion.section
-            {...(reduced ? {} : STORY_FADE)}
-            transition={{ duration: 0.35, delay: 0.25 }}
-            id="requirement"
-          >
-            <StoryHeader
-              icon={<ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />}
-              meta={detail.requirementRequests.length > 0 ? `${detail.requirementRequests.length} request${detail.requirementRequests.length === 1 ? "" : "s"}` : undefined}
-            >
-              Requirement
-            </StoryHeader>
-            <RequirementRequests
-              requests={detail.requirementRequests}
-              clientId={detail.client.id}
-              defaultEmail={detail.primaryContact?.email}
-              configOpen={reqConfigOpen}
-              onConfigOpenChange={setReqConfigOpen}
-              onChanged={refresh}
-            />
-          </motion.section>
-
-          {/* Activity */}
-          <motion.section
-            {...(reduced ? {} : STORY_FADE)}
-            transition={{ duration: 0.35, delay: 0.3 }}
-          >
-            <StoryHeader icon={<History className="w-3.5 h-3.5" aria-hidden="true" />}>Activity</StoryHeader>
-            <Timeline clientId={detail.client.id} initial={[]} refreshKey={timelineKey} />
-          </motion.section>
-
-          {/* Connected */}
-          <motion.section {...(reduced ? {} : STORY_FADE)} transition={{ duration: 0.35, delay: 0.35 }}>
-            <StoryHeader icon={<Users className="w-3.5 h-3.5" aria-hidden="true" />}>Connected</StoryHeader>
-            <ConnectedList detail={detail} />
-          </motion.section>
-
-          {/* Quick create panel */}
-          {quickCreate && (
-            <div className="max-w-xl">
-              <QuickCreate clientId={detail.client.id} resource={quickCreate} onClose={() => setQuickCreate(null)} onSaved={refresh} />
             </div>
           )}
+        </motion.section>
 
-          {/* Edit panel */}
-          {editOpen && (
-            <LeadEdit
-              detail={detail}
-              onClose={() => setEditOpen(false)}
-              onSaved={async () => {
-                await refresh();
-                setEditOpen(false);
-                notify("Lead details updated.");
-              }}
-            />
-          )}
-
-          {/* Full record — progressive disclosure */}
-          <FullRecord
-            detail={detail}
-            transition={transition}
-            openCreate={openCreate}
-            openRequirements={openRequirements}
+        {/* Requirement */}
+        <motion.section
+          {...(reduced ? {} : STORY_FADE)}
+          transition={{ duration: 0.35, delay: 0.25 }}
+          id="requirement"
+        >
+          <StoryHeader
+            icon={<ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />}
+            meta={detail.requirementRequests.length > 0 ? `${detail.requirementRequests.length} request${detail.requirementRequests.length === 1 ? "" : "s"}` : undefined}
+          >
+            Requirement
+          </StoryHeader>
+          <RequirementRequests
+            requests={detail.requirementRequests}
+            clientId={detail.client.id}
+            defaultEmail={detail.primaryContact?.email}
+            configOpen={reqConfigOpen}
+            onConfigOpenChange={setReqConfigOpen}
+            onChanged={refresh}
           />
+        </motion.section>
 
-          <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)] pt-2">
-            <span>Everything here is derived from this lead&apos;s real records.</span>
-            <span className="font-mono uppercase tracking-[0.1em]">{leadCode(detail.client.id)}</span>
+        {/* Activity */}
+        <motion.section
+          {...(reduced ? {} : STORY_FADE)}
+          transition={{ duration: 0.35, delay: 0.3 }}
+        >
+          <StoryHeader icon={<History className="w-3.5 h-3.5" aria-hidden="true" />}>Activity</StoryHeader>
+          <Timeline clientId={detail.client.id} initial={[]} refreshKey={timelineKey} />
+        </motion.section>
+
+        {/* Connected */}
+        <motion.section {...(reduced ? {} : STORY_FADE)} transition={{ duration: 0.35, delay: 0.35 }}>
+          <StoryHeader icon={<Users className="w-3.5 h-3.5" aria-hidden="true" />}>Connected</StoryHeader>
+          <ConnectedList detail={detail} />
+        </motion.section>
+
+        {/* Quick create panel */}
+        {quickCreate && (
+          <div className="max-w-xl">
+            <QuickCreate clientId={detail.client.id} resource={quickCreate} onClose={() => setQuickCreate(null)} onSaved={refresh} />
           </div>
-        </div>
-
-        {/* Copilot — desktop */}
-        {isDesktop && (
-          <aside className="flex flex-col sticky top-20 self-start w-full">
-            <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/50 p-4 flex flex-col" style={{ height: "min(640px, calc(100vh - 8rem))" }}>
-              <LeadCopilot
-                clientId={detail.client.id}
-                clientName={detail.client.companyName}
-                className="h-full"
-                onChanged={refresh}
-                onVoiceModeChange={setVoiceMode}
-              />
-            </div>
-          </aside>
         )}
+
+        {/* Edit panel */}
+        {editOpen && (
+          <LeadEdit
+            detail={detail}
+            onClose={() => setEditOpen(false)}
+            onSaved={async () => {
+              await refresh();
+              setEditOpen(false);
+              notify("Lead details updated.");
+            }}
+          />
+        )}
+
+        {/* Full record — progressive disclosure */}
+        <FullRecord
+          detail={detail}
+          transition={transition}
+          openCreate={openCreate}
+          openRequirements={openRequirements}
+        />
+
+        <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)] pt-2">
+          <span>Everything here is derived from this lead&apos;s real records.</span>
+          <span className="font-mono uppercase tracking-[0.1em]">{leadCode(detail.client.id)}</span>
+        </div>
       </div>
 
-      {/* Mobile: Ask AI FAB + sheet (only when the desktop aside isn't mounted) */}
-      {!isDesktop && (
-        <button
-          type="button"
-          onClick={() => setCopilotOpen(true)}
-          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--bos-accent)] text-white text-[12px] font-medium shadow-[var(--bos-shadow-md)] hover:bg-[var(--bos-accent-hover)] transition-colors duration-150"
-          aria-label="Ask AI about this lead"
-        >
-          <Bot className="w-4 h-4" aria-hidden="true" />
-          Ask AI
-        </button>
-      )}
-      {!isDesktop && (
-        <MobileCopilotSheet
-          detail={detail}
-          open={copilotOpen}
-          onClose={() => setCopilotOpen(false)}
-          onRefresh={refresh}
-          onVoiceModeChange={setVoiceMode}
-        />
-      )}
+      {/* Floating Lead Copilot Trigger Icon */}
+      <button
+        type="button"
+        onClick={() => setCopilotOpen((o) => !o)}
+        className={cn(
+          "fixed bottom-6 right-6 z-40 inline-flex items-center gap-2.5 h-12 px-4 rounded-full text-[13px] font-semibold shadow-xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95",
+          copilotOpen
+            ? "bg-[var(--bos-surface-panel)] text-[var(--bos-text-primary)] border border-[var(--bos-accent)] ring-2 ring-[var(--bos-accent)]/30"
+            : "bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)]",
+        )}
+        aria-label="Toggle Lead Copilot"
+      >
+        <Bot className="w-5 h-5" aria-hidden="true" />
+        <span className="hidden sm:inline">Lead Copilot</span>
+        <span className="w-2 h-2 rounded-full bg-[var(--bos-success)] ring-2 ring-white" />
+      </button>
+
+      {/* Universal Slide-over Lead Copilot Drawer */}
+      <CopilotDrawer
+        detail={detail}
+        open={copilotOpen}
+        onClose={() => setCopilotOpen(false)}
+        onRefresh={refresh}
+        onVoiceModeChange={setVoiceMode}
+      />
     </div>
   );
 }

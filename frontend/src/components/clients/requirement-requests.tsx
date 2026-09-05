@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import { PROJECT_TYPE_OPTIONS, requestStatusLabel } from "@/lib/requirement-config";
 import type { ClientDetail } from "@/lib/client-serialize";
 import { Section, StatusChip, MicroButton, Progress } from "./kit";
-import { RequirementCommandCenter } from "./requirement-command-center";
+import { RequirementCollaborationStudio } from "@/components/requirements/requirement-collaboration-studio";
 
 /* ────────────────────────────────────────────────────────────────
    REQUIREMENT REQUESTS — inside the Client Command Center
@@ -240,16 +240,16 @@ export function RequirementRequests({
         </ul>
       )}
 
-      {/* Command center */}
+      {/* Collaboration Studio */}
       {openRequest && (
         <div className="mt-4">
-          <RequirementCommandCenter
+          <RequirementCollaborationStudio
             key={openRequest.id}
             requestId={openRequest.id}
-            initialLink={links[openRequest.id]}
-            defaultEmail={defaultEmail}
-            onClose={() => setOpenRequestId(null)}
-            onChanged={onChanged}
+            onClose={() => {
+              setOpenRequestId(null);
+              onChanged();
+            }}
           />
         </div>
       )}
