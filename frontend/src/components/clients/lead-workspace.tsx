@@ -19,6 +19,7 @@ import {
   FolderKanban,
   History,
   Mail,
+  Maximize2,
   MessageSquare,
   MoreHorizontal,
   Pencil,
@@ -560,83 +561,7 @@ function Toast({ message }: { message: string | null }) {
   );
 }
 
-/* ── Universal Copilot Drawer (Desktop & Mobile Slide-Over) ── */
-
-function CopilotDrawer({
-  detail,
-  open,
-  onClose,
-  onRefresh,
-  onVoiceModeChange,
-}: {
-  detail: ClientDetail;
-  open: boolean;
-  onClose: () => void;
-  onRefresh: () => void;
-  onVoiceModeChange?: (active: boolean) => void;
-}) {
-  const reduced = useReducedMotion();
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={reduced ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="fixed inset-0 z-50 bg-black/40 backdrop-blur-xs"
-            onClick={onClose}
-            aria-hidden="true"
-          />
-          <motion.div
-            initial={reduced ? false : { x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.25, ease: "easeOut" }}
-            className="fixed inset-y-0 right-0 z-50 w-full sm:w-[460px] bg-[var(--bos-bg)] border-l border-[var(--bos-line)] shadow-2xl flex flex-col"
-            role="dialog"
-            aria-label="Lead Copilot"
-          >
-            <div className="flex items-center justify-between px-5 py-4 border-b border-[var(--bos-line)] bg-[var(--bos-surface)]/60">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-lg bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] flex items-center justify-center">
-                  <Bot className="w-4 h-4" aria-hidden="true" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-[13px] font-bold text-[var(--bos-text-primary)]">Lead Copilot</span>
-                    <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-mono uppercase tracking-wider bg-[var(--bos-success)]/15 text-[var(--bos-success)]">Online</span>
-                  </div>
-                  <div className="text-[11px] text-[var(--bos-text-tertiary)] truncate max-w-[240px]">
-                    {detail.client.companyName}
-                  </div>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close Copilot"
-                className="w-8 h-8 rounded-lg flex items-center justify-center text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors cursor-pointer"
-              >
-                <X className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 p-4">
-              <LeadCopilot
-                clientId={detail.client.id}
-                clientName={detail.client.companyName}
-                className="h-full"
-                onChanged={onRefresh}
-                onVoiceModeChange={onVoiceModeChange}
-              />
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
+/* ── Mobile copilot sheet ──────────────────────────────────── */
 
 /* ── Lead Workspace ────────────────────────────────────────── */
 
@@ -650,6 +575,7 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const [timelineKey, setTimelineKey] = useState(0);
   const [reqConfigOpen, setReqConfigOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copilotFullscreen, setCopilotFullscreen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -746,6 +672,13 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
     });
   }, []);
 
+  const openFullscreenCopilot = useCallback(() => {
+    if (!isDesktop) {
+      setCopilotOpen(true);
+    }
+    setCopilotFullscreen(true);
+  }, [isDesktop]);
+
   const moreActions: { label: string; icon: React.ReactNode; resource: CreateResource }[] = [
     { label: "Contact", icon: <UserRound className="w-3.5 h-3.5" aria-hidden="true" />, resource: "contact" },
     { label: "Payment", icon: <Banknote className="w-3.5 h-3.5" aria-hidden="true" />, resource: "payment" },
@@ -761,7 +694,7 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const ownerName = detail.client.ownerName ?? actorName;
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-[1600px] w-full mx-auto">
+    <div className="px-4 sm:px-8 py-6 w-full max-w-full">
       <Toast message={toast} />
 
       {/* ── Top bar ──────────────────────────────────────── */}
@@ -769,26 +702,12 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         <button
           type="button"
           onClick={() => router.push("/clients")}
-          className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors duration-150 cursor-pointer"
+          className="inline-flex items-center gap-1.5 text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors duration-150"
         >
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" />
           Clients
         </button>
         <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() => setCopilotOpen((o) => !o)}
-            className={cn(
-              "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm border text-[11px] font-medium transition-colors duration-150 cursor-pointer",
-              copilotOpen
-                ? "bg-[var(--bos-accent)] text-white border-[var(--bos-accent)]"
-                : "border-[var(--bos-line)] bg-[var(--bos-surface-panel)] text-[var(--bos-text-primary)] hover:border-[var(--bos-accent)] hover:text-[var(--bos-accent)]",
-            )}
-          >
-            <Bot className="w-3.5 h-3.5" aria-hidden="true" />
-            <span>Copilot</span>
-            <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-success)]" aria-hidden="true" />
-          </button>
           <MicroButton onClick={() => setEditOpen((o) => !o)}>
             <Pencil className="w-3 h-3" aria-hidden="true" />
             Edit
@@ -797,6 +716,11 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
             <MicroButton onClick={openRequirements}>
               <ClipboardList className="w-3 h-3" aria-hidden="true" />
               Requirement
+            </MicroButton>
+            <MicroButton onClick={openFullscreenCopilot} title="Expand Lead Copilot full screen">
+              <Bot className="w-3 h-3 text-[var(--bos-accent)]" aria-hidden="true" />
+              Copilot
+              <Maximize2 className="w-2.5 h-2.5 text-[var(--bos-text-tertiary)] ml-0.5" aria-hidden="true" />
             </MicroButton>
             <MicroButton onClick={() => openCreate("proposal")}>
               <FileText className="w-3 h-3" aria-hidden="true" />
@@ -901,8 +825,8 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         <NextActionBlock detail={detail} ownerName={ownerName} onTake={takeAction} />
       </motion.div>
 
-      {/* ── Main story workspace — fully covers the container width ───────────────────── */}
-      <div className="mt-9 min-w-0 space-y-10">
+      {/* ── Main workspace content — full screen width ───────── */}
+      <div className="mt-9 w-full min-w-0 space-y-10">
         <motion.section
           {...(reduced ? {} : STORY_FADE)}
           transition={{ duration: 0.35, delay: 0.2 }}
@@ -1004,31 +928,97 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         </div>
       </div>
 
-      {/* Floating Lead Copilot Trigger Icon */}
-      <button
-        type="button"
-        onClick={() => setCopilotOpen((o) => !o)}
-        className={cn(
-          "fixed bottom-6 right-6 z-40 inline-flex items-center gap-2.5 h-12 px-4 rounded-full text-[13px] font-semibold shadow-xl transition-all duration-200 cursor-pointer hover:scale-105 active:scale-95",
-          copilotOpen
-            ? "bg-[var(--bos-surface-panel)] text-[var(--bos-text-primary)] border border-[var(--bos-accent)] ring-2 ring-[var(--bos-accent)]/30"
-            : "bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)]",
-        )}
-        aria-label="Toggle Lead Copilot"
-      >
-        <Bot className="w-5 h-5" aria-hidden="true" />
-        <span className="hidden sm:inline">Lead Copilot</span>
-        <span className="w-2 h-2 rounded-full bg-[var(--bos-success)] ring-2 ring-white" />
-      </button>
+      {/* ── Lead Copilot — Simple Floating Icon ──────────────── */}
+      {!copilotOpen && (
+        <button
+          type="button"
+          onClick={() => setCopilotOpen(true)}
+          className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-12 h-12 rounded-full bg-[var(--bos-accent)] text-white shadow-[var(--bos-shadow-lg)] hover:bg-[var(--bos-accent-hover)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--bos-accent-ring)]"
+          aria-label="Lead Copilot"
+          title="Lead Copilot"
+        >
+          <Bot className="w-5 h-5" aria-hidden="true" />
+          <span
+            className="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-[var(--bos-success)] border-2 border-[var(--bos-bg)] animate-pulse"
+            title="Copilot online"
+            aria-hidden="true"
+          />
+        </button>
+      )}
 
-      {/* Universal Slide-over Lead Copilot Drawer */}
-      <CopilotDrawer
-        detail={detail}
-        open={copilotOpen}
-        onClose={() => setCopilotOpen(false)}
-        onRefresh={refresh}
-        onVoiceModeChange={setVoiceMode}
-      />
+      {/* ── Lead Copilot — Floating Panel / Drawer ──────────── */}
+      <AnimatePresence>
+        {copilotOpen && (
+          <>
+            {/* Mobile backdrop */}
+            <motion.div
+              initial={reduced ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 z-50 bg-black/30 lg:hidden"
+              onClick={() => setCopilotOpen(false)}
+              aria-hidden="true"
+            />
+            <motion.div
+              initial={reduced ? false : { opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className={cn(
+                "fixed z-50 shadow-[var(--bos-shadow-xl)] border border-[var(--bos-line-strong)] bg-[var(--bos-bg)] flex flex-col overflow-hidden",
+                isDesktop
+                  ? "bottom-20 right-6 w-[430px] max-w-[calc(100vw-3rem)] h-[min(680px,calc(100vh-6.5rem))] rounded-xl"
+                  : "inset-x-0 bottom-0 h-[80vh] rounded-t-xl",
+              )}
+              role="dialog"
+              aria-label="Lead Copilot"
+            >
+              {/* Floating Panel Header */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[var(--bos-line)] bg-[var(--bos-surface)]/60 shrink-0">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">
+                  <Bot className="w-3.5 h-3.5 text-[var(--bos-accent)]" aria-hidden="true" />
+                  Lead Copilot
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCopilotFullscreen(true)}
+                    className="p-1 rounded-sm text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors"
+                    title="Full screen"
+                    aria-label="Full screen"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCopilotOpen(false)}
+                    aria-label="Close to icon"
+                    title="Close to icon"
+                    className="p-1 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] rounded-sm transition-colors"
+                  >
+                    <X className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 px-4 pb-4">
+                <LeadCopilot
+                  clientId={detail.client.id}
+                  clientName={detail.client.companyName}
+                  className="h-full"
+                  isFullscreen={copilotFullscreen}
+                  onFullscreenChange={(fs) => {
+                    setCopilotFullscreen(fs);
+                    if (fs) setCopilotOpen(true);
+                  }}
+                  onChanged={refresh}
+                  onVoiceModeChange={setVoiceMode}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

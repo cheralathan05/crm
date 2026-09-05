@@ -78,6 +78,7 @@ export async function POST(_req: Request, { params }: Ctx) {
       milestones: plan.milestones,
       deliverables: plan.deliverables,
       tasks: plan.tasks,
+      modules: plan.modules,
     });
 
     try {

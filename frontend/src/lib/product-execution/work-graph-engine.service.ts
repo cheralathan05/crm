@@ -73,18 +73,16 @@ export async function generateProductWorkGraph(projectId: string): Promise<{
   // Helper to pick primary assignee for a workstream
   const pickStaff = (workstream: string) => {
     if (workstream === "FRONTEND") {
-      // Prioritize John if assigned to frontend, else first frontend staff
-      return frontendStaff.find((s) => s.employee.fullName.toLowerCase().includes("john")) || frontendStaff[0];
+      return frontendStaff[0] || project.staffAllocations[0];
     }
     if (workstream === "BACKEND") {
-      // Prioritize Karthik or Vikram
-      return backendStaff.find((s) => s.employee.fullName.toLowerCase().includes("karthik")) || backendStaff[0];
+      return backendStaff[0] || project.staffAllocations[0];
     }
     if (workstream === "DATABASE") {
-      return databaseStaff.find((s) => s.employee.fullName.toLowerCase().includes("ananya")) || databaseStaff[0];
+      return databaseStaff[0] || backendStaff[0] || project.staffAllocations[0];
     }
     if (workstream === "QA") {
-      return qaStaff.find((s) => s.employee.fullName.toLowerCase().includes("siddharth")) || qaStaff[0];
+      return qaStaff[0] || project.staffAllocations[0];
     }
     return project.staffAllocations[0];
   };

@@ -9,42 +9,27 @@ import {
   BadgeCheck,
   Ban,
   Banknote,
-  Briefcase,
-  Calendar,
   Check,
   CheckCircle2,
   ChevronDown,
   ChevronRight,
   ClipboardList,
   Clock,
-  Compass,
   Copy,
-  DollarSign,
   Download,
   Eye,
   FileStack,
   FileText,
-  Gauge,
-  HelpCircle,
-  History,
-  Layers,
   Lightbulb,
   Loader2,
   Mail,
-  Maximize2,
   MessageCircle,
-  Minimize2,
   Pencil,
   RefreshCw,
   RotateCcw,
   Send,
-  ShieldAlert,
-  ShieldCheck,
   ShieldX,
   Sparkles,
-  Target,
-  User,
-  Wallet,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -314,7 +299,6 @@ export function RequirementCommandCenter({
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [isExpanded, setIsExpanded] = useState(false);
   const reducedMotion = useReducedMotion();
 
   const load = useCallback(async () => {
@@ -392,10 +376,6 @@ export function RequirementCommandCenter({
   const createProposal = () => {
     if (!bundle) return;
     void act(`/api/requirements/${bundle.request.id}/proposal`).then((res) => {
-      if (!res.ok && (res.data as { code?: string } | undefined)?.code === "PROPOSAL_BLOCKED") {
-        setView("clarifications");
-        return;
-      }
       if (res.ok) {
         const proposal = res.data?.proposal as { id?: string } | undefined;
         const proposalId = proposal?.id ? String(proposal.id) : "";
@@ -435,7 +415,8 @@ export function RequirementCommandCenter({
   // (client filling the workspace, submitted, or awaiting changes) can be
   // reviewed and approved — the submit click is not the gate.
   const canReview = ["SENT", "IN_PROGRESS", "SUBMITTED", "REVISION_SUBMITTED", "CHANGES_REQUESTED"].includes(r.status);
-  const inReview = reviewMode && canReview;
+  // Review mode only activates within the Review tab — navigating elsewhere auto-deactivates it.
+  const inReview = reviewMode && canReview && view === "review";
   const newestProposal = bundle.proposals[0] ?? null;
 
   const handleAction = (path: string, payload?: Record<string, unknown>) =>
@@ -444,473 +425,180 @@ export function RequirementCommandCenter({
     });
 
   return (
-    <div
-      className={cn(
-        "transition-all duration-300",
-        isExpanded
-          ? "fixed inset-0 z-50 overflow-y-auto bg-[var(--bos-bg)]/98 p-3 sm:p-6 lg:p-8 backdrop-blur-2xl"
-          : "rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] shadow-sm overflow-hidden",
-      )}
-    >
-      <div className={cn(isExpanded && "max-w-7xl mx-auto space-y-6")}>
-        {/* ═══ HERO — Executive Intelligence Header ═══ */}
-        <div className="p-5 sm:p-6 border-b border-[var(--bos-border)] bg-gradient-to-b from-[var(--bos-surface)]/50 to-transparent">
-          {/* Top meta & window tools */}
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-mono font-medium tracking-wide bg-[var(--bos-surface-sunken)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)]">
-                {r.reference}
-              </span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] border border-[var(--bos-accent-ring)]">
-                {PROJECT_TYPE_LABELS[r.projectType] ?? r.projectType.replace("_", " ")}
-              </span>
-              <StatusChip status={r.status} />
-              <span className="text-[11px] font-mono text-[var(--bos-text-tertiary)]">v{r.revision}</span>
+    <div className="rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)]/80 overflow-hidden">
+      {/* ═══ HERO — project intelligence header ═══ */}
+      <div className="px-4 sm:px-5 py-4 border-b border-[var(--bos-line)]">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <span className="font-mono text-[10px] tracking-[0.12em] text-[var(--bos-text-tertiary)]">{r.reference}</span>
+            <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-accent)]">
+              {PROJECT_TYPE_LABELS[r.projectType] ?? r.projectType.replace("_", " ")}
+            </span>
+          </div>
+          <MicroButton onClick={onClose}>
+            <X className="w-3 h-3" aria-hidden="true" /> Close
+          </MicroButton>
+        </div>
+
+        <div className="mt-2.5 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <div className="text-[10px] font-mono uppercase tracking-[0.2em] text-[var(--bos-text-tertiary)]">
+              Requirement Intelligence
             </div>
-            <div className="flex items-center gap-1.5">
-              <button
-                type="button"
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-medium text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all shadow-2xs cursor-pointer"
-                title={isExpanded ? "Collapse studio" : "Expand to fullscreen studio"}
-              >
-                {isExpanded ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                <span className="hidden sm:inline">{isExpanded ? "Collapse" : "Expand Studio"}</span>
-              </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="inline-flex items-center gap-1 h-8 px-2.5 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-medium text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all shadow-2xs cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" aria-hidden="true" />
-                <span>Close</span>
-              </button>
+            <h2 className="mt-1 text-[22px] font-semibold tracking-tight text-[var(--bos-text-primary)] leading-tight truncate">
+              {r.title}
+            </h2>
+            <div className="mt-1.5 flex items-center gap-2.5 flex-wrap text-[11px] text-[var(--bos-text-tertiary)]">
+              <span className="font-medium text-[var(--bos-text-secondary)]">{bundle.client?.companyName}</span>
+              {r.responderName && (
+                <span>Respondent · {r.responderName}{r.responderRole ? ` (${r.responderRole})` : ""}</span>
+              )}
+              <span>Revision {r.revision}</span>
+              {r.approvedAt && (
+                <span className="text-[var(--bos-success)]">
+                  Approved {new Date(r.approvedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                </span>
+              )}
             </div>
           </div>
 
-          {/* Main title & primary actions row */}
-          <div className="mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <div className="min-w-0">
-              <div className="flex items-center gap-2 text-[11px] font-medium tracking-wider uppercase text-[var(--bos-accent)]">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Requirement Intelligence Studio</span>
-              </div>
-              <h2 className="mt-1 text-2xl sm:text-3xl font-bold tracking-tight text-[var(--bos-text-primary)] truncate">
-                {r.title}
-              </h2>
-              <div className="mt-2 flex items-center gap-3 flex-wrap text-[12px] text-[var(--bos-text-secondary)]">
-                <span className="font-semibold text-[var(--bos-text-primary)]">{bundle.client?.companyName}</span>
-                {r.responderName && (
-                  <span className="flex items-center gap-1">
-                    <User className="w-3 h-3 text-[var(--bos-text-tertiary)]" />
-                    {r.responderName}{r.responderRole ? ` (${r.responderRole})` : ""}
-                  </span>
-                )}
-                {r.approvedAt ? (
-                  <span className="inline-flex items-center gap-1 text-[var(--bos-success)] font-medium">
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    Approved {new Date(r.approvedAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
-                  </span>
-                ) : (
-                  <span className="text-[var(--bos-text-tertiary)]">
-                    Updated {new Date(r.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Contextual Action Bar */}
-            <div className="flex items-center gap-2 flex-wrap shrink-0">
-              {r.status === "DRAFT" && (
-                <button
-                  type="button"
-                  onClick={() => setDialog("send")}
-                  className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-[var(--bos-accent)] text-white text-[13px] font-medium shadow-sm hover:bg-[var(--bos-accent-hover)] transition-all cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" aria-hidden="true" /> Send link to client
-                </button>
-              )}
-              {["SENT", "IN_PROGRESS", "CHANGES_REQUESTED"].includes(r.status) && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => setDialog("send")}
-                    className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-medium text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all shadow-2xs cursor-pointer"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-[var(--bos-text-secondary)]" aria-hidden="true" /> Remind Client
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => void copyLink()}
-                    className="inline-flex items-center gap-2 h-9 px-3.5 rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-medium text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all shadow-2xs cursor-pointer"
-                  >
-                    {copied ? <Check className="w-3.5 h-3.5 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3.5 h-3.5 text-[var(--bos-text-secondary)]" aria-hidden="true" />}
-                    {copied ? "Link Copied" : "Copy Link"}
-                  </button>
-                </>
-              )}
-              {canReview && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextMode = !inReview;
-                    setReviewMode(nextMode);
-                    setView(nextMode ? "review" : "overview");
-                  }}
-                  className={cn(
-                    "inline-flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-semibold transition-all shadow-sm cursor-pointer",
-                    inReview
-                      ? "border border-[var(--bos-border)] bg-[var(--bos-surface)] text-[var(--bos-text-primary)]"
-                      : "bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)]",
-                  )}
-                >
-                  <BadgeCheck className="w-4 h-4" aria-hidden="true" />
-                  {inReview ? "Exit Review" : "Review Requirements"}
-                </button>
-              )}
-              {r.status === "APPROVED" && !newestProposal && (
-                <button
-                  type="button"
-                  onClick={() => setDialog("proposal")}
-                  className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-[var(--bos-accent)] text-white text-[13px] font-semibold shadow-sm hover:bg-[var(--bos-accent-hover)] transition-all cursor-pointer"
-                >
-                  <Banknote className="w-4 h-4" aria-hidden="true" /> Generate Proposal
-                </button>
-              )}
-              {r.status === "APPROVED" && newestProposal && (
+          {/* Primary actions — contextual, one obvious next step */}
+          <div className="flex items-center gap-1.5 flex-wrap shrink-0 justify-end">
+            {r.status === "DRAFT" && (
+              <MicroButton variant="accent" onClick={() => setDialog("send")}>
+                <Send className="w-3 h-3" aria-hidden="true" /> Send link
+              </MicroButton>
+            )}
+            {["SENT", "IN_PROGRESS", "CHANGES_REQUESTED"].includes(r.status) && (
+              <>
+                <MicroButton variant="accent" onClick={() => setDialog("send")}>
+                  <Mail className="w-3 h-3" aria-hidden="true" /> Remind
+                </MicroButton>
+                <MicroButton onClick={() => void copyLink()}>
+                  {copied ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3 h-3" aria-hidden="true" />}
+                  {copied ? "Copied" : "Copy link"}
+                </MicroButton>
+              </>
+            )}
+            {canReview && (
+              <MicroButton
+                variant={inReview ? "default" : "accent"}
+                onClick={() => {
+                  setReviewMode(!inReview);
+                  if (!inReview) setView("review");
+                }}
+              >
+                <BadgeCheck className="w-3 h-3" aria-hidden="true" /> {inReview ? "Exit review" : "Review"}
+              </MicroButton>
+            )}
+            {r.status !== "REVOKED" && (
+              newestProposal ? (
                 <a
                   href={`/proposals/${newestProposal.id}`}
-                  className="inline-flex items-center gap-2 h-9 px-4 rounded-xl bg-[var(--bos-success)] text-white text-[13px] font-semibold shadow-sm hover:opacity-95 transition-all cursor-pointer"
+                  className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm text-[11px] font-medium bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shadow-sm"
+                  title="Open proposal studio"
                 >
-                  <FileText className="w-4 h-4" aria-hidden="true" /> Open Proposal Studio
+                  <FileText className="w-3 h-3" aria-hidden="true" /> Proposal
                 </a>
-              )}
-              {r.status !== "APPROVED" && r.status !== "REVOKED" && (
-                <button
-                  type="button"
-                  onClick={() => void act(`/api/requirements/${r.id}/regenerate`).then((res) => { if (res.ok) setLink(String(res.data?.link ?? "")); })}
-                  className="inline-flex items-center gap-1.5 h-9 px-3 rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-all shadow-2xs cursor-pointer"
-                  title="Generate new secure token"
+              ) : (
+                <MicroButton
+                  variant="accent"
+                  onClick={() => setDialog("proposal")}
+                  title="Create proposal from requirements"
                 >
-                  <RotateCcw className="w-3.5 h-3.5" aria-hidden="true" /> New link
-                </button>
-              )}
-            </div>
+                  <Banknote className="w-3 h-3" aria-hidden="true" /> Proposal
+                </MicroButton>
+              )
+            )}
+            {r.status !== "APPROVED" && r.status !== "REVOKED" && (
+              <>
+                <MicroButton onClick={() => void act(`/api/requirements/${r.id}/regenerate`).then((res) => { if (res.ok) setLink(String(res.data?.link ?? "")); })}>
+                  <RotateCcw className="w-3 h-3" aria-hidden="true" /> New link
+                </MicroButton>
+                <MicroButton onClick={() => setDialog("revoke")}>
+                  <ShieldX className="w-3 h-3" aria-hidden="true" /> Revoke
+                </MicroButton>
+              </>
+            )}
           </div>
+        </div>
 
-          {/* Project Health meter & quick signals strip */}
-          <div className="mt-5 p-4 rounded-xl bg-[var(--bos-surface)]/60 border border-[var(--bos-border)] space-y-3">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <div className="flex items-center gap-2">
-                <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">Project Completion & Health</span>
-                <span className="text-[11px] text-[var(--bos-text-tertiary)]">·</span>
-                <span className="text-[12px] text-[var(--bos-text-secondary)]">
-                  {completeWeight} of {weightSections.length} critical sections confirmed
-                </span>
-                {attention.length > 0 && (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-[var(--bos-warning)]/15 text-[var(--bos-warning)] border border-[var(--bos-warning)]/30">
-                    <AlertTriangle className="w-3 h-3" /> {attention.length} need attention
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-[14px] font-bold tabular-nums text-[var(--bos-text-primary)]">{r.completeness}%</span>
-              </div>
+        {/* Project health */}
+        <div className="mt-4 flex items-center gap-4">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between mb-1.5">
+              <span className="text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-tertiary)]">
+                Project health
+              </span>
+              <span className="text-[10px] font-mono tabular-nums text-[var(--bos-text-secondary)]">{r.completeness}%</span>
             </div>
-            <div className="h-2 w-full rounded-full bg-[var(--bos-overlay)] overflow-hidden">
+            <div className="h-1.5 rounded-full bg-[var(--bos-overlay)] overflow-hidden">
               <motion.div
-                className={cn(
-                  "h-full rounded-full transition-all",
-                  r.completeness >= 90 ? "bg-[var(--bos-success)]" : r.completeness >= 60 ? "bg-[var(--bos-accent)]" : "bg-[var(--bos-warning)]",
-                )}
+                className="h-full rounded-full bg-[var(--bos-accent)]"
                 initial={reducedMotion ? false : { width: 0 }}
                 animate={{ width: `${Math.min(100, Math.max(0, r.completeness))}%` }}
                 transition={{ duration: 0.6, ease: "easeOut" }}
               />
             </div>
-
-            {/* Quick Signals Strip */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div className="flex items-center gap-2 text-[12px]">
-                <span className="text-[var(--bos-text-tertiary)]">Client Intent:</span>
-                <span className="font-semibold text-[var(--bos-text-primary)]">{intent.label}</span>
-                <span className="text-[11px] text-[var(--bos-text-tertiary)]">({intent.confidence}% confidence)</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px]">
-                <span className="text-[var(--bos-text-tertiary)]">Scope Clarity:</span>
-                <span className={cn("font-semibold", scopeSig.tone === "good" ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>
-                  {scopeSig.label}
-                </span>
-                <span className="text-[11px] text-[var(--bos-text-tertiary)]">({scopeSig.open > 0 ? `${scopeSig.open} questions open` : "All areas clear"})</span>
-              </div>
-              <div className="flex items-center gap-2 text-[12px]">
-                <span className="text-[var(--bos-text-tertiary)]">Proposal Readiness:</span>
-                <span className={cn("font-semibold", readiness.readiness >= 90 ? "text-[var(--bos-success)]" : "text-[var(--bos-accent)]")}>
-                  {readiness.readiness}% ({readiness.label})
-                </span>
-              </div>
+            <div className="mt-1.5 text-[10px] text-[var(--bos-text-tertiary)]">
+              {completeWeight} of {weightSections.length} critical areas confirmed
+              {attention.length > 0 && ` · ${attention.length} need attention`}
             </div>
           </div>
-
-          {notice && (
-            <div className="mt-3 rounded-xl border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/10 px-4 py-2.5 text-[12px] text-[var(--bos-text-primary)] flex items-center justify-between">
-              <span>{notice}</span>
-              <button type="button" onClick={() => setNotice(null)} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] cursor-pointer">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
-
-          {/* Review mode active banner */}
-          <AnimatePresence>
-            {inReview && (
-              <motion.div
-                initial={reducedMotion ? false : { opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={reducedMotion ? undefined : { opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
-              >
-                <div className="mt-3 flex items-center gap-3 rounded-xl border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/10 px-4 py-3">
-                  <BadgeCheck className="w-5 h-5 text-[var(--bos-warning)] shrink-0" aria-hidden="true" />
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[12px] font-bold text-[var(--bos-warning)] uppercase tracking-wide">
-                      Interactive Review Mode Active
-                    </span>
-                    <p className="text-[11px] text-[var(--bos-text-secondary)]">
-                      {review.percent}% confirmed · {attention.length} items require attention before final approval.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => { setReviewMode(false); setView("overview"); }}
-                    className="h-7 px-3 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[11px] font-medium text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
-                  >
-                    Exit review
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
         </div>
 
-        {/* ═══ STUDIO NAVIGATION — Segmented Tabs ═══ */}
-        <div className="px-5 sm:px-6 py-3 border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/30 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <button
-              type="button"
-              onClick={() => { setView("overview"); setReviewMode(false); }}
-              className={cn(
-                "inline-flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-medium transition-all cursor-pointer",
-                view === "overview"
-                  ? "bg-[var(--bos-accent)] text-white shadow-xs font-semibold"
-                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)]",
-              )}
-            >
-              <ClipboardList className="w-4 h-4" />
-              <span>Overview</span>
-            </button>
+        {/* Intelligence cards */}
+        <div className="mt-3.5 grid grid-cols-1 sm:grid-cols-3 gap-2">
+          <IntelCard
+            label="Client intent"
+            value={intent.label}
+            sub={`${intent.confidence}% confidence`}
+            tone={intent.tone}
+          />
+          <IntelCard
+            label="Scope clarity"
+            value={scopeSig.label}
+            sub={scopeSig.open > 0 ? `${scopeSig.open} question${scopeSig.open === 1 ? "" : "s"} open` : "All areas covered"}
+            tone={scopeSig.tone}
+          />
+          <IntelCard
+            label="Proposal ready"
+            value={`${readiness.readiness}%`}
+            sub={readiness.label}
+            tone={readiness.readiness >= 95 ? "good" : readiness.readiness >= 70 ? "warn" : "neutral"}
+          />
+        </div>
 
-            <button
-              type="button"
-              onClick={() => { setView("review"); setReviewMode(canReview); }}
-              className={cn(
-                "inline-flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-medium transition-all cursor-pointer",
-                view === "review"
-                  ? "bg-[var(--bos-accent)] text-white shadow-xs font-semibold"
-                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)]",
-              )}
-            >
-              <BadgeCheck className="w-4 h-4" />
-              <span>Review & Audit</span>
-              {attention.length > 0 ? (
-                <span className={cn(
-                  "inline-flex items-center justify-center min-w-[18px] h-4.5 px-1.5 rounded-full text-[10px] font-bold",
-                  view === "review" ? "bg-white/20 text-white" : "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]",
-                )}>
-                  {attention.length}
-                </span>
-              ) : review.ready ? (
-                <Check className="w-3.5 h-3.5 text-[var(--bos-success)]" />
-              ) : null}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setView("clarifications")}
-              className={cn(
-                "inline-flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-medium transition-all cursor-pointer",
-                view === "clarifications"
-                  ? "bg-[var(--bos-accent)] text-white shadow-xs font-semibold"
-                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)]",
-              )}
-            >
-              <MessageCircle className="w-4 h-4" />
-              <span>Clarifications & Q&A</span>
-              {bundle.questions.length > 0 && (
-                <span className={cn(
-                  "inline-flex items-center justify-center min-w-[18px] h-4.5 px-1.5 rounded-full text-[10px] font-bold",
-                  view === "clarifications" ? "bg-white/20 text-white" : "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]",
-                )}>
-                  {bundle.questions.length}
-                </span>
-              )}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setView(SECTIONS[0]?.key ?? "business")}
-              className={cn(
-                "inline-flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-medium transition-all cursor-pointer",
-                SECTIONS.some((s) => s.key === view)
-                  ? "bg-[var(--bos-accent)] text-white shadow-xs font-semibold"
-                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)]",
-              )}
-            >
-              <FileText className="w-4 h-4" />
-              <span>Specifications (14)</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setView("activity")}
-              className={cn(
-                "inline-flex items-center gap-2 h-9 px-4 rounded-xl text-[13px] font-medium transition-all cursor-pointer",
-                view === "activity"
-                  ? "bg-[var(--bos-accent)] text-white shadow-xs font-semibold"
-                  : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)]",
-              )}
-            >
-              <History className="w-4 h-4" />
-              <span>Activity Log</span>
-              {bundle.events.length > 0 && (
-                <span className={cn(
-                  "inline-flex items-center justify-center min-w-[18px] h-4.5 px-1.5 rounded-full text-[10px] font-bold",
-                  view === "activity" ? "bg-white/20 text-white" : "bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]",
-                )}>
-                  {bundle.events.length}
-                </span>
-              )}
-            </button>
+        {notice && (
+          <div className="mt-3 rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6 px-3 py-2 text-[11px] text-[var(--bos-text-secondary)]">
+            {notice}
           </div>
-        </div>
+        )}
 
-        {/* ═══ VIEW CONTENT ═══ */}
-        <div className="p-5 sm:p-6 lg:p-8">
-          {busy && (
-            <div className="mb-4 flex items-center gap-2 text-[12px] text-[var(--bos-accent)] font-medium">
-              <Loader2 className="w-4 h-4 animate-spin" aria-hidden="true" />
-              <span>Synchronizing latest records…</span>
-            </div>
+        {/* Review mode bar */}
+        <AnimatePresence>
+          {inReview && (
+            <motion.div
+              initial={reducedMotion ? false : { opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={reducedMotion ? undefined : { opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="overflow-hidden"
+            >
+              <div className="mt-3 flex items-center gap-3 rounded-sm border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/6 px-3.5 py-2.5">
+                <span className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--bos-warning)]">
+                  <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" /> Reviewing requirement
+                </span>
+                <span className="text-[10px] text-[var(--bos-text-tertiary)]">
+                  {review.percent}% confirmed · {attention.length} item{attention.length === 1 ? "" : "s"} require attention
+                </span>
+                <MicroButton variant="ghost" onClick={() => { setReviewMode(false); setView("overview"); }} className="ml-auto">
+                  Exit review
+                </MicroButton>
+              </div>
+            </motion.div>
           )}
-
-          {viewQuestionId ? (
-            <QuestionDetailPanel
-              questionId={viewQuestionId}
-              bundle={bundle}
-              onClose={() => setViewQuestionId(null)}
-              onChanged={load}
-            />
-          ) : (
-            <>
-              {view === "overview" && (
-                <DecisionCenterView
-                  bundle={bundle}
-                  onAskClient={openAskClient}
-                  onViewQuestion={(qid) => setViewQuestionId(qid)}
-                  onReview={() => { setView("review"); setReviewMode(true); }}
-                  onApprove={approve}
-                  onProposal={() => setDialog("proposal")}
-                  onSend={() => setDialog("send")}
-                  onViewClarifications={() => setView("clarifications")}
-                  onSelectSection={(k) => setView(k)}
-                />
-              )}
-
-              {view === "review" && (
-                <ReviewView
-                  bundle={bundle}
-                  review={review}
-                  attention={attention}
-                  canReview={canReview}
-                  onAskClient={openAskClient}
-                  onApprove={approve}
-                  onProposal={() => setDialog("proposal")}
-                  onOpenProposal={() => {
-                    if (newestProposal) router.push(`/proposals/${newestProposal.id}`);
-                  }}
-                />
-              )}
-
-              {view === "activity" && (
-                <ActivityView
-                  bundle={bundle}
-                  onViewQuestion={(qid) => setViewQuestionId(qid)}
-                  onResolveComment={(cid) => void act(`/api/requirements/${r.id}/comments/${cid}/resolve`)}
-                />
-              )}
-
-              {view === "clarifications" && (
-                <ClarificationsView
-                  bundle={bundle}
-                  onViewQuestion={(qid) => setViewQuestionId(qid)}
-                  onAskClient={openAskClient}
-                />
-              )}
-
-              {SECTIONS.some((s) => s.key === view) && (
-                <div className="space-y-6">
-                  {/* Horizontal Section Pill Selector */}
-                  <div className="p-2.5 rounded-xl bg-[var(--bos-surface)]/60 border border-[var(--bos-border)] flex items-center gap-1.5 overflow-x-auto no-scrollbar">
-                    {SECTIONS.map((s) => {
-                      const state = sectionReview(bundle, s.key);
-                      const active = view === s.key;
-                      return (
-                        <button
-                          key={s.key}
-                          type="button"
-                          onClick={() => setView(s.key)}
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-medium whitespace-nowrap transition-all cursor-pointer",
-                            active
-                              ? "bg-[var(--bos-accent)] text-white shadow-2xs font-semibold"
-                              : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)]",
-                          )}
-                        >
-                          <span className={cn("text-[10px] font-mono", active ? "text-white/80" : "text-[var(--bos-text-tertiary)]")}>
-                            {s.number}
-                          </span>
-                          <span>{s.label}</span>
-                          {state === "confirmed" ? (
-                            <Check className={cn("w-3 h-3", active ? "text-white" : "text-[var(--bos-success)]")} />
-                          ) : state === "clarify" ? (
-                            <AlertTriangle className={cn("w-3 h-3", active ? "text-white" : "text-[var(--bos-warning)]")} />
-                          ) : null}
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Active Section Content */}
-                  {SECTIONS.map((s) =>
-                    view === s.key ? (
-                      <SectionView
-                        key={s.key}
-                        bundle={bundle}
-                        section={s}
-                        inReview={inReview}
-                        reviewState={sectionReview(bundle, s.key)}
-                        onAskClient={() => openAskClient(s.key)}
-                        onViewQuestion={(qid) => setViewQuestionId(qid)}
-                        onResolveComment={(cid) => void act(`/api/requirements/${r.id}/comments/${cid}/resolve`)}
-                      />
-                    ) : null,
-                  )}
-                </div>
-              )}
-            </>
-          )}
-        </div>
+        </AnimatePresence>
 
         {/* Dialogs */}
         {dialog && (
@@ -968,6 +656,252 @@ export function RequirementCommandCenter({
           />
         )}
       </AnimatePresence>
+
+      {!ceremony && (
+        <div className="grid lg:grid-cols-[208px_minmax(0,1fr)_264px]">
+          {/* ═══ LEFT — requirement navigator ═══ */}
+          <aside className="hidden lg:block border-r border-[var(--bos-line)] bg-[var(--bos-surface)]/30">
+            <div className="px-3.5 pt-3 pb-2 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">
+              Requirement
+            </div>
+            <nav className="px-2 pb-4 space-y-px" aria-label="Requirement sections">
+              <NavItem
+                active={view === "overview"}
+                onClick={() => setView("overview")}
+                icon={<ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />}
+                label="Overview"
+                right={r.status === "APPROVED" ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : undefined}
+              />
+              <NavItem
+                active={view === "review"}
+                onClick={() => { setView("review"); setReviewMode(canReview); }}
+                icon={<BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />}
+                label="Review"
+                right={
+                  canReview && attention.length > 0 ? (
+                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-[var(--bos-warning)]/15 text-[9px] font-mono text-[var(--bos-warning)]">
+                      {attention.length}
+                    </span>
+                  ) : review.ready ? (
+                    <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" />
+                  ) : undefined
+                }
+              />
+              <NavItem
+                active={view === "clarifications"}
+                onClick={() => setView("clarifications")}
+                icon={<MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />}
+                label="Clarifications"
+                right={
+                  bundle.questions.length > 0 ? (
+                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-[var(--bos-overlay)] text-[9px] font-mono text-[var(--bos-text-tertiary)]">
+                      {bundle.questions.length}
+                    </span>
+                  ) : undefined
+                }
+              />
+              <NavItem
+                active={view === "activity"}
+                onClick={() => setView("activity")}
+                icon={<Clock className="w-3.5 h-3.5" aria-hidden="true" />}
+                label="Activity"
+                right={
+                  bundle.events.length > 0 ? (
+                    <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-[var(--bos-overlay)] text-[9px] font-mono text-[var(--bos-text-tertiary)]">
+                      {bundle.events.length}
+                    </span>
+                  ) : undefined
+                }
+              />
+
+              <div className="pt-3 pb-1.5 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)] px-1">
+                Sections
+              </div>
+              {SECTIONS.map((s) => {
+                const state = sectionReview(bundle, s.key);
+                const openCount = bundle.comments.filter((c) => c.section === s.key && !c.resolvedAt).length;
+                const attachmentCount = s.key === "files" ? bundle.attachments.length : 0;
+                return (
+                  <NavItem
+                    key={s.key}
+                    active={view === s.key}
+                    onClick={() => setView(s.key)}
+                    label={s.label}
+                    number={s.number}
+                    right={
+                      attachmentCount > 0 ? (
+                        <span className="text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">{attachmentCount}</span>
+                      ) : state === "confirmed" ? (
+                        <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" />
+                      ) : state === "clarify" ? (
+                        <AlertTriangle className="w-3 h-3 text-[var(--bos-warning)]" aria-hidden="true" />
+                      ) : openCount > 0 ? (
+                        <span className="flex items-center justify-center min-w-[16px] h-4 px-1 rounded-full bg-[var(--bos-overlay)] text-[9px] font-mono text-[var(--bos-text-tertiary)]">
+                          {openCount}
+                        </span>
+                      ) : undefined
+                    }
+                    tone={state === "clarify" ? "warn" : state === "confirmed" ? "good" : "muted"}
+                  />
+                );
+              })}
+            </nav>
+          </aside>
+
+          {/* Mobile section picker */}
+          <div className="lg:hidden border-b border-[var(--bos-line)] px-3 py-2 flex gap-1 overflow-x-auto no-scrollbar">
+            <MobileChip active={view === "overview"} onClick={() => setView("overview")}>Overview</MobileChip>
+            <MobileChip active={view === "review"} onClick={() => setView("review")}>Review</MobileChip>
+            <MobileChip active={view === "clarifications"} onClick={() => setView("clarifications")}>Clarifications</MobileChip>
+            <MobileChip active={view === "activity"} onClick={() => setView("activity")}>Activity</MobileChip>
+            {SECTIONS.map((s) => (
+              <MobileChip key={s.key} active={view === s.key} onClick={() => setView(s.key)}>
+                {s.number} · {s.label}
+              </MobileChip>
+            ))}
+          </div>
+
+          {/* ═══ CENTER — editorial document ═══ */}
+          <div className="min-w-0 px-4 sm:px-6 py-5">
+            {busy && (
+              <div className="mb-3 flex items-center gap-2 text-[11px] text-[var(--bos-text-tertiary)]">
+                <Loader2 className="w-3.5 h-3.5 animate-spin" aria-hidden="true" /> Updating…
+              </div>
+            )}
+
+            {viewQuestionId ? (
+              <QuestionDetailPanel
+                questionId={viewQuestionId}
+                bundle={bundle}
+                onClose={() => setViewQuestionId(null)}
+                onChanged={load}
+              />
+            ) : (
+              <>
+                {view === "overview" && (
+                  <DecisionCenterView
+                    bundle={bundle}
+                    onAskClient={openAskClient}
+                    onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    onReview={() => { setView("review"); setReviewMode(true); }}
+                    onApprove={approve}
+                    onProposal={() => setDialog("proposal")}
+                    onSend={() => setDialog("send")}
+                    onViewClarifications={() => setView("clarifications")}
+                    onViewActivity={() => setView("activity")}
+                    onViewSection={(key) => setView(key)}
+                  />
+                )}
+                {view === "review" && (
+                  <ReviewView
+                    bundle={bundle}
+                    review={review}
+                    attention={attention}
+                    canReview={canReview}
+                    onAskClient={openAskClient}
+                    onApprove={approve}
+                    onProposal={() => setDialog("proposal")}
+                    onOpenProposal={() => {
+                      if (newestProposal) router.push(`/proposals/${newestProposal.id}`);
+                    }}
+                  />
+                )}
+                {view === "activity" && (
+                  <ActivityView
+                    bundle={bundle}
+                    onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    onResolveComment={(cid) => void act(`/api/requirements/${r.id}/comments/${cid}/resolve`)}
+                  />
+                )}
+                {view === "clarifications" && (
+                  <ClarificationsView
+                    bundle={bundle}
+                    onViewQuestion={(qid) => setViewQuestionId(qid)}
+                    onAskClient={openAskClient}
+                  />
+                )}
+                {SECTIONS.map((s) =>
+                  view === s.key ? (
+                    <SectionView
+                      key={s.key}
+                      bundle={bundle}
+                      section={s}
+                      inReview={inReview}
+                      reviewState={sectionReview(bundle, s.key)}
+                      onAskClient={() => openAskClient(s.key)}
+                      onViewQuestion={(qid) => setViewQuestionId(qid)}
+                      onResolveComment={(cid) => void act(`/api/requirements/${r.id}/comments/${cid}/resolve`)}
+                    />
+                  ) : null,
+                )}
+              </>
+            )}
+          </div>
+
+          {/* ═══ RIGHT — live intelligence ═══ */}
+          <aside className="hidden lg:block border-l border-[var(--bos-line)] bg-[var(--bos-surface)]/30">
+            <div className="px-3.5 pt-3 pb-2 text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">
+              Requirement intelligence
+            </div>
+            <div className="px-3.5 pb-5 space-y-5">
+              {/* Scope health */}
+              <div>
+                <div className="mb-1.5 text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-secondary)]">Scope health</div>
+                <div className={cn("flex items-center gap-1.5 text-[12px] font-medium", scopeSig.tone === "good" ? "text-[var(--bos-success)]" : "text-[var(--bos-warning)]")}>
+                  <span className={cn("w-1.5 h-1.5 rounded-full", scopeSig.tone === "good" ? "bg-[var(--bos-success)]" : "bg-[var(--bos-warning)]")} aria-hidden="true" />
+                  {scopeSig.label}
+                </div>
+              </div>
+
+              {/* Proposal readiness */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-secondary)]">Proposal readiness</span>
+                  <span className="text-[10px] font-mono tabular-nums text-[var(--bos-text-secondary)]">{readiness.readiness}%</span>
+                </div>
+                <div className="h-1 rounded-full bg-[var(--bos-overlay)] overflow-hidden">
+                  <div
+                    className={cn(
+                      "h-full rounded-full transition-[width] duration-500",
+                      readiness.readiness >= 95 ? "bg-[var(--bos-success)]" : readiness.readiness >= 70 ? "bg-[var(--bos-warning)]" : "bg-[var(--bos-accent)]",
+                    )}
+                    style={{ width: `${Math.min(100, Math.max(0, readiness.readiness))}%` }}
+                  />
+                </div>
+                <div className="mt-1 text-[10px] text-[var(--bos-text-tertiary)]">{readiness.label}</div>
+              </div>
+
+              {/* Live activity */}
+              <div>
+                <div className="mb-2 text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-secondary)]">Live activity</div>
+                {bundle.events.length === 0 ? (
+                  <p className="text-[11px] text-[var(--bos-text-tertiary)]">No activity yet.</p>
+                ) : (
+                  <ol className="relative border-l border-[var(--bos-line)] ml-1 space-y-2.5">
+                    {bundle.events.slice(0, 5).map((e) => (
+                      <li key={e.id} className="pl-3.5 relative">
+                        <span className="absolute -left-[3px] top-1 w-1.5 h-1.5 rounded-full bg-[var(--bos-accent)]" aria-hidden="true" />
+                        <div className="flex items-center gap-2">
+                          <div className="text-[11px] text-[var(--bos-text-primary)] leading-snug">{e.label}</div>
+                          {typeof e.meta?.questionId === "string" && (
+                            <MicroButton onClick={() => setViewQuestionId(String(e.meta.questionId))}>
+                              <Eye className="w-3 h-3" aria-hidden="true" /> View
+                            </MicroButton>
+                          )}
+                        </div>
+                        <div className="text-[9px] text-[var(--bos-text-tertiary)] tabular-nums">
+                          {new Date(e.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ·{" "}
+                          {new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
+                        </div>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
     </div>
   );
 }
@@ -976,19 +910,19 @@ export function RequirementCommandCenter({
 
 function IntelCard({ label, value, sub, tone }: { label: string; value: string; sub: string; tone: "good" | "warn" | "neutral" }) {
   return (
-    <div className="rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] p-3.5 shadow-2xs">
-      <div className="text-[11px] font-semibold text-[var(--bos-text-secondary)]">{label}</div>
+    <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 px-3.5 py-3">
+      <div className="text-[9px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-tertiary)]">{label}</div>
       <div className="mt-1.5 flex items-center gap-2">
         <span className={cn(
-          "text-[18px] font-bold tracking-tight tabular-nums",
+          "text-[17px] font-semibold tracking-tight",
           tone === "good" ? "text-[var(--bos-success)]" : tone === "warn" ? "text-[var(--bos-warning)]" : "text-[var(--bos-text-primary)]",
         )}>
           {value}
         </span>
-        {tone === "good" && <Check className="w-4 h-4 text-[var(--bos-success)]" aria-hidden="true" />}
-        {tone === "warn" && <AlertTriangle className="w-4 h-4 text-[var(--bos-warning)]" aria-hidden="true" />}
+        {tone === "good" && <Check className="w-3.5 h-3.5 text-[var(--bos-success)]" aria-hidden="true" />}
+        {tone === "warn" && <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-warning)]" aria-hidden="true" />}
       </div>
-      <div className="mt-0.5 text-[11px] text-[var(--bos-text-tertiary)]">{sub}</div>
+      <div className="mt-0.5 text-[10px] text-[var(--bos-text-tertiary)]">{sub}</div>
     </div>
   );
 }
@@ -1018,9 +952,9 @@ function NavItem({
       onClick={onClick}
       aria-current={active ? "true" : undefined}
       className={cn(
-        "w-full flex items-center gap-2 h-8 px-2.5 rounded-lg text-[12px] transition-colors duration-150 cursor-pointer",
+        "w-full flex items-center gap-2 h-8 px-2 rounded-sm text-[12px] transition-colors duration-150",
         active
-          ? "bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-semibold"
+          ? "bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
           : tone === "warn"
             ? "text-[var(--bos-warning)] hover:bg-[var(--bos-overlay)]"
             : tone === "good"
@@ -1042,10 +976,10 @@ function MobileChip({ active, onClick, children }: { active: boolean; onClick: (
       type="button"
       onClick={onClick}
       className={cn(
-        "shrink-0 h-7 px-2.5 rounded-lg text-[11px] border transition-colors duration-150 cursor-pointer",
+        "shrink-0 h-7 px-2.5 rounded-sm text-[11px] border transition-colors duration-150",
         active
           ? "border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
-          : "border-[var(--bos-border)] text-[var(--bos-text-tertiary)] hover:border-[var(--bos-border-strong)]",
+          : "border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:border-[var(--bos-border-strong)]",
       )}
     >
       {children}
@@ -1053,7 +987,11 @@ function MobileChip({ active, onClick, children }: { active: boolean; onClick: (
   );
 }
 
-/* ═══ CENTER — Decision Center ═══ */
+/* ═══ CENTER — Decision Center ═══
+   The intelligence overview (spec 77/95): real stats, what we know,
+   what needs attention, what we're waiting for, optional items, the
+   proposal readiness check and the next best action — every value
+   derived from stored data, with honest empty states. */
 
 function DecisionCenterView({
   bundle,
@@ -1064,7 +1002,8 @@ function DecisionCenterView({
   onProposal,
   onSend,
   onViewClarifications,
-  onSelectSection,
+  onViewActivity,
+  onViewSection,
 }: {
   bundle: AdminBundle;
   onAskClient: (section?: string | null) => void;
@@ -1074,17 +1013,13 @@ function DecisionCenterView({
   onProposal: () => void;
   onSend: () => void;
   onViewClarifications: () => void;
-  onSelectSection?: (sectionKey: string) => void;
+  onViewActivity: () => void;
+  onViewSection: (key: string) => void;
 }) {
   const intel = bundle.intel;
   const r = bundle.request;
   const health = intel.health;
   const openClarifications = intel.waitingOnClient.length + intel.needsReview.length;
-  const weightSections = SECTIONS.filter((s) => s.weight > 0);
-  const completeWeight = weightSections.filter((s) => bundle.states[s.key]).length;
-  const scopeSig = scopeSignal(bundle);
-  const intent = intentSignal(bundle);
-  const readiness = readinessSignal(r.readiness);
 
   const healthTone =
     health.level === "GOOD" ? "good"
@@ -1094,538 +1029,378 @@ function DecisionCenterView({
 
   const nextActionButton = (next: NextAction) => {
     switch (next.kind) {
-      case "send": return { label: "Send link", icon: <Send className="w-3.5 h-3.5" aria-hidden="true" />, onClick: onSend };
-      case "review-question": return { label: "Review response", icon: <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />, onClick: () => onViewQuestion(next.questionId) };
-      case "waiting": return { label: "View clarifications", icon: <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />, onClick: onViewClarifications };
-      case "ask": return { label: "Ask client", icon: <Mail className="w-3.5 h-3.5" aria-hidden="true" />, onClick: () => onAskClient(next.section) };
-      case "resolve-conflict": return { label: "Resolve conflict", icon: <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />, onClick: onViewClarifications };
-      case "review": return { label: "Review requirement", icon: <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />, onClick: onReview };
-      case "approve": return { label: "Approve requirement", icon: <Check className="w-3.5 h-3.5" aria-hidden="true" />, onClick: onApprove };
-      case "proposal": return { label: "Create proposal", icon: <Banknote className="w-3.5 h-3.5" aria-hidden="true" />, onClick: onProposal };
+      case "send": return { label: "Send link", icon: <Send className="w-3 h-3" aria-hidden="true" />, onClick: onSend };
+      case "review-question": return { label: "Review response", icon: <BadgeCheck className="w-3 h-3" aria-hidden="true" />, onClick: () => onViewQuestion(next.questionId) };
+      case "waiting": return { label: "View clarifications", icon: <MessageCircle className="w-3 h-3" aria-hidden="true" />, onClick: onViewClarifications };
+      case "ask": return { label: "Ask client", icon: <Mail className="w-3 h-3" aria-hidden="true" />, onClick: () => onAskClient(next.section) };
+      case "resolve-conflict": return { label: "Resolve conflict", icon: <AlertTriangle className="w-3 h-3" aria-hidden="true" />, onClick: onViewClarifications };
+      case "review": return { label: "Review requirement", icon: <BadgeCheck className="w-3 h-3" aria-hidden="true" />, onClick: onReview };
+      case "approve": return { label: "Approve requirement", icon: <Check className="w-3 h-3" aria-hidden="true" />, onClick: onApprove };
+      case "proposal": return { label: "Create proposal", icon: <Banknote className="w-3 h-3" aria-hidden="true" />, onClick: onProposal };
       default: return null;
     }
   };
   const nextButton = nextActionButton(intel.nextAction);
 
-  const getKnownCategoryIcon = (label: string) => {
-    const l = label.toLowerCase();
-    if (l.includes("business") || l.includes("company")) return Briefcase;
-    if (l.includes("goal") || l.includes("vision")) return Target;
-    if (l.includes("timeline")) return Calendar;
-    if (l.includes("budget") || l.includes("price") || l.includes("commercial")) return DollarSign;
-    if (l.includes("feature")) return Sparkles;
-    if (l.includes("user")) return User;
-    return Layers;
-  };
+  /* Workflow stage for the pipeline banner */
+  const pipelineStage =
+    r.status === "DRAFT" ? 0
+    : r.status === "SENT" || r.status === "IN_PROGRESS" ? 1
+    : r.status === "SUBMITTED" || r.status === "REVISION_SUBMITTED" || r.status === "CHANGES_REQUESTED" ? 2
+    : r.status === "APPROVED" ? 3
+    : bundle.proposals.length > 0 ? 4
+    : 3;
+
+  const pipelineSteps = [
+    { label: "Send link", icon: "→" },
+    { label: "Client fills", icon: "✎" },
+    { label: "Review", icon: "✓" },
+    { label: "Approved", icon: "★" },
+    { label: "Proposal", icon: "📄" },
+  ];
 
   return (
-    <div className="space-y-8 req-enter">
-      {/* ── KPI Stat Cards Strip (Guaranteed zero-overlap responsive grid) ── */}
-      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3.5">
-        <StatCard
-          icon={CheckCircle2}
-          label="Completeness"
-          value={`${r.completeness}%`}
-          subtitle={`${completeWeight} of ${weightSections.length} critical areas`}
-          tone={r.completeness >= 90 ? "good" : r.completeness >= 60 ? "warn" : "neutral"}
-        />
-        <StatCard
-          icon={Gauge}
-          label="Proposal Readiness"
-          value={`${intel.readiness.percent}%`}
-          subtitle={intel.readiness.ok ? "Ready for studio" : "Missing key items"}
-          tone={intel.readiness.percent >= 90 ? "good" : intel.readiness.percent >= 60 ? "warn" : "neutral"}
-        />
-        <StatCard
-          icon={AlertTriangle}
-          label="Blockers"
-          value={String(intel.pendingCount)}
-          subtitle={intel.pendingCount > 0 ? `${intel.pendingCount} action items` : "Zero blockers"}
-          tone={intel.pendingCount > 0 ? "danger" : "good"}
-        />
-        <StatCard
-          icon={MessageCircle}
-          label="Clarifications"
-          value={String(openClarifications)}
-          subtitle={openClarifications > 0 ? `${openClarifications} open questions` : "All resolved"}
-          tone={openClarifications > 0 ? "warn" : "neutral"}
-        />
-        <StatCard
-          icon={ShieldAlert}
-          label="Conflicts"
-          value={String(bundle.conflicts.length)}
-          subtitle={bundle.conflicts.length > 0 ? `${bundle.conflicts.length} unresolved` : "Zero conflicts"}
-          tone={bundle.conflicts.length > 0 ? "danger" : "neutral"}
-        />
-      </div>
-
-      {/* ── Main 2-Column Responsive Split ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: Main Editorial Content (62%) */}
-        <div className="lg:col-span-7 xl:col-span-8 space-y-6 min-w-0">
-          {/* Executive Health Banner */}
-          <div
-            className={cn(
-              "rounded-2xl border p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all shadow-xs",
-              healthTone === "good" && "border-[var(--bos-success)]/30 bg-[var(--bos-success)]/8",
-              healthTone === "warn" && "border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/8",
-              healthTone === "danger" && "border-[var(--bos-error)]/30 bg-[var(--bos-error)]/8",
-            )}
-          >
-            <div className="flex items-start gap-3.5">
-              <span
-                className={cn(
-                  "flex items-center justify-center w-10 h-10 rounded-xl shrink-0 shadow-2xs",
-                  healthTone === "good" && "bg-[var(--bos-success)]/15 text-[var(--bos-success)]",
-                  healthTone === "warn" && "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]",
-                  healthTone === "danger" && "bg-[var(--bos-error)]/15 text-[var(--bos-error)]",
-                )}
-              >
-                {healthTone === "good" ? <Check className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
-              </span>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[13px] font-bold text-[var(--bos-text-primary)]">
-                    Requirement Health
-                  </span>
-                  <span
-                    className={cn(
-                      "px-2 py-0.5 rounded-full text-[10px] font-mono uppercase tracking-wider font-semibold",
-                      healthTone === "good" && "bg-[var(--bos-success)]/20 text-[var(--bos-success)]",
-                      healthTone === "warn" && "bg-[var(--bos-warning)]/20 text-[var(--bos-warning)]",
-                      healthTone === "danger" && "bg-[var(--bos-error)]/20 text-[var(--bos-error)]",
-                    )}
-                  >
-                    {health.level.replace(/_/g, " ")}
-                  </span>
-                </div>
-                <p className="mt-1 text-[13px] text-[var(--bos-text-secondary)] leading-relaxed">
-                  {health.reason}
-                </p>
-              </div>
-            </div>
-            {nextButton && (
-              <button
-                type="button"
-                onClick={nextButton.onClick}
-                className="shrink-0 inline-flex items-center justify-center gap-2 h-9 px-4 rounded-xl bg-[var(--bos-accent)] text-white text-[12px] font-semibold hover:bg-[var(--bos-accent-hover)] transition-all shadow-xs cursor-pointer"
-              >
-                {nextButton.icon} {nextButton.label}
-              </button>
-            )}
-          </div>
-
-          {/* What We Know — Bento Grid */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">What We Know</h3>
-                <p className="text-[12px] text-[var(--bos-text-tertiary)]">Verified information provided by the client</p>
-              </div>
-              <span className="px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-[var(--bos-surface-sunken)] text-[var(--bos-text-secondary)]">
-                {intel.known.length} confirmed facts
-              </span>
-            </div>
-
-            {intel.known.length === 0 ? (
-              <EmptyState title="No information provided yet" hint="The client has not submitted answers. Send the link to get started." />
-            ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {intel.known.map((k) => {
-                  const CatIcon = getKnownCategoryIcon(k.label);
-                  return (
-                    <div
-                      key={k.label}
-                      className="group rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] p-4 hover:border-[var(--bos-border-strong)] hover:shadow-2xs transition-all duration-150 flex flex-col justify-between"
-                    >
-                      <div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[var(--bos-text-secondary)] uppercase tracking-wider">
-                            <CatIcon className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
-                            {k.label}
-                          </span>
-                          <span className="text-[10px] font-medium text-[var(--bos-text-tertiary)] bg-[var(--bos-surface-sunken)] px-2 py-0.5 rounded-full">
-                            {k.source}
-                          </span>
-                        </div>
-                        <p className="mt-2.5 text-[13px] text-[var(--bos-text-primary)] leading-relaxed font-normal">
-                          {k.value}
-                        </p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-
-          {/* What Needs Attention — Actionable Blockers */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">Action Required & Blockers</h3>
-                <p className="text-[12px] text-[var(--bos-text-tertiary)]">Items preventing proposal generation or requirement approval</p>
-              </div>
-              {intel.blockers.length > 0 && (
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--bos-error)]/15 text-[var(--bos-error)]">
-                  {intel.blockers.length} blockers
-                </span>
-              )}
-            </div>
-
-            {intel.blockers.length === 0 && intel.needsReview.length === 0 ? (
-              <div className="p-4 rounded-xl border border-[var(--bos-success)]/30 bg-[var(--bos-success)]/8 flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-[var(--bos-success)] shrink-0" />
-                <div className="text-[13px] text-[var(--bos-text-primary)]">
-                  <span className="font-semibold">All clear!</span> Every required section is confirmed and no blocking clarification is pending.
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-2.5">
-                {intel.blockers.map((b) => (
-                  <div
-                    key={b.id}
-                    className="rounded-xl border border-[var(--bos-error)]/30 bg-[var(--bos-error)]/6 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition-all hover:border-[var(--bos-error)]/50"
-                  >
-                    <div className="flex items-start gap-3">
-                      <AlertTriangle className="w-4 h-4 text-[var(--bos-error)] mt-0.5 shrink-0" />
-                      <div>
-                        <div className="text-[13px] font-bold text-[var(--bos-text-primary)]">{b.label}</div>
-                        <div className="text-[11px] text-[var(--bos-text-secondary)] mt-0.5">
-                          {b.kind === "clarification" ? "Blocking clarification question" : "Required specification section"}
-                          {b.section && ` · ${sectionLabel(b.section)}`}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-center gap-2 self-end sm:self-auto">
-                      {b.section && onSelectSection && (
-                        <button
-                          type="button"
-                          onClick={() => onSelectSection(b.section!)}
-                          className="h-8 px-3 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-medium text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all shadow-2xs cursor-pointer"
-                        >
-                          View section
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (b.questionId) onViewQuestion(String(b.questionId));
-                          else onAskClient(b.section ?? null);
-                        }}
-                        className="h-8 px-3 rounded-lg bg-[var(--bos-accent)] text-white text-[12px] font-semibold hover:bg-[var(--bos-accent-hover)] transition-all shadow-2xs inline-flex items-center gap-1.5 cursor-pointer"
-                      >
-                        <Mail className="w-3 h-3" />
-                        {b.questionId ? "View question" : "Ask client"}
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {intel.needsReview.map((n) => (
-                  <div
-                    key={n.questionId}
-                    className="rounded-xl border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/6 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3"
-                  >
-                    <div className="flex items-start gap-3">
-                      <BadgeCheck className="w-4 h-4 text-[var(--bos-warning)] mt-0.5 shrink-0" />
-                      <div>
-                        <div className="text-[13px] font-bold text-[var(--bos-text-primary)]">Client answered: {n.section}</div>
-                        <div className="text-[11px] text-[var(--bos-text-secondary)] mt-0.5 truncate">{n.label}</div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onViewQuestion(n.questionId)}
-                      className="h-8 px-3 rounded-lg bg-[var(--bos-accent)] text-white text-[12px] font-semibold hover:bg-[var(--bos-accent-hover)] transition-all shadow-2xs self-end sm:self-auto inline-flex items-center gap-1.5 cursor-pointer"
-                    >
-                      <BadgeCheck className="w-3.5 h-3.5" /> Review response
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-
-          {/* Proposal Readiness Check */}
-          <section className="space-y-3 p-5 rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] shadow-xs">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">Proposal Readiness Checklist</h3>
-                <p className="text-[12px] text-[var(--bos-text-tertiary)]">System validation of prerequisites required for Proposal Generation</p>
-              </div>
-              <span
-                className={cn(
-                  "px-3 py-1 rounded-full text-[11px] font-bold tracking-wide uppercase",
-                  intel.readiness.ok
-                    ? "bg-[var(--bos-success)]/15 text-[var(--bos-success)]"
-                    : "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]",
-                )}
-              >
-                {intel.readiness.ok ? "Ready for Proposal" : "Requirements Incomplete"}
-              </span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2">
-              {intel.readiness.rows.map((row) => (
-                <div
-                  key={row.key}
+    <div className="space-y-6 req-enter">
+      {/* Workflow pipeline strip */}
+      <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 px-4 py-3">
+        <div className="text-[8px] font-mono uppercase tracking-[0.2em] text-[var(--bos-text-tertiary)] mb-2.5">Workflow</div>
+        <div className="flex items-center gap-0">
+          {pipelineSteps.map((step, i) => (
+            <div key={i} className="flex items-center">
+              <div className="flex flex-col items-center min-w-[56px]">
+                <span
                   className={cn(
-                    "flex items-start gap-3 p-3 rounded-xl border transition-all",
-                    row.ok ? "border-[var(--bos-border)] bg-[var(--bos-surface)]/40" : "border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/6",
+                    "flex items-center justify-center w-6 h-6 rounded-full border text-[10px] font-semibold transition-all",
+                    i < pipelineStage
+                      ? "border-[var(--bos-success)] bg-[var(--bos-success)] text-white"
+                      : i === pipelineStage
+                        ? "border-[var(--bos-accent)] bg-[var(--bos-accent)] text-white shadow-[0_0_0_3px_var(--bos-accent-ring)]"
+                        : "border-[var(--bos-line-strong)] text-[var(--bos-text-tertiary)] bg-transparent",
                   )}
                 >
-                  <span
-                    className={cn(
-                      "flex items-center justify-center w-5 h-5 rounded-full shrink-0 mt-0.5",
-                      row.ok ? "bg-[var(--bos-success)] text-white" : "bg-[var(--bos-warning)] text-white",
-                    )}
-                  >
-                    {row.ok ? <Check className="w-3 h-3" /> : <AlertTriangle className="w-3 h-3" />}
-                  </span>
-                  <div className="min-w-0">
-                    <div className={cn("text-[13px] font-medium", row.ok ? "text-[var(--bos-text-primary)]" : "text-[var(--bos-warning)] font-semibold")}>
-                      {row.label}
-                    </div>
-                    {!row.ok && <div className="text-[11px] text-[var(--bos-text-tertiary)] mt-0.5">{row.note}</div>}
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Direct CTA */}
-            <div className="pt-3 border-t border-[var(--bos-border)] flex items-center justify-between gap-3 flex-wrap">
-              <span className="text-[12px] text-[var(--bos-text-secondary)]">
-                {intel.readiness.ok
-                  ? "All prerequisite requirements confirmed. Ready to create proposal."
-                  : "Complete missing items or send clarifications to unlock proposal creation."}
-              </span>
-              {intel.readiness.ok ? (
-                <button
-                  type="button"
-                  onClick={onProposal}
-                  className="h-9 px-4 rounded-xl bg-[var(--bos-accent)] text-white text-[13px] font-semibold hover:bg-[var(--bos-accent-hover)] transition-all shadow-xs inline-flex items-center gap-2 cursor-pointer"
+                  {i < pipelineStage ? <Check className="w-3 h-3" /> : <span className="text-[9px]">{i + 1}</span>}
+                </span>
+                <span
+                  className={cn(
+                    "mt-1 text-[8px] font-mono uppercase tracking-[0.1em] text-center whitespace-nowrap",
+                    i === pipelineStage ? "text-[var(--bos-accent)] font-semibold" : i < pipelineStage ? "text-[var(--bos-success)]" : "text-[var(--bos-text-tertiary)]",
+                  )}
                 >
-                  <Banknote className="w-4 h-4" /> Generate Proposal
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  onClick={onReview}
-                  className="h-9 px-4 rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-semibold text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-all shadow-2xs inline-flex items-center gap-2 cursor-pointer"
-                >
-                  <BadgeCheck className="w-4 h-4 text-[var(--bos-accent)]" /> Open Review Checklist
-                </button>
-              )}
-            </div>
-          </section>
-
-          {/* What We're Waiting For (if any) */}
-          {intel.waitingOnClient.length > 0 && (
-            <section className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-[15px] font-bold text-[var(--bos-text-primary)]">What We&apos;re Waiting For</h3>
-                  <p className="text-[12px] text-[var(--bos-text-tertiary)]">Clarification inquiries sent to client contacts</p>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-[var(--bos-info)]/15 text-[var(--bos-info)]">
-                  {intel.waitingOnClient.length} awaiting response
+                  {step.label}
                 </span>
               </div>
-              <div className="space-y-2">
-                {intel.waitingOnClient.map((w) => (
-                  <div key={w.questionId} className="rounded-xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] p-4 flex items-center justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <Clock className="w-4 h-4 text-[var(--bos-info)] mt-0.5 shrink-0" />
-                      <div>
-                        <div className="text-[13px] font-bold text-[var(--bos-text-primary)]">{w.section}</div>
-                        <div className="text-[11px] text-[var(--bos-text-secondary)] mt-0.5">{w.label}</div>
-                        <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-1">
-                          Sent to {w.recipient} · {formatDateTime(w.since)}
-                        </div>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => onViewQuestion(w.questionId)}
-                      className="h-8 px-3 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] text-[12px] font-medium text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-all cursor-pointer"
-                    >
-                      <Eye className="w-3.5 h-3.5 inline mr-1" /> View
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-        </div>
-
-        {/* RIGHT COLUMN: Intelligence & Activity Rail (38%) */}
-        <div className="lg:col-span-5 xl:col-span-4 space-y-5 min-w-0">
-          {/* Recommended Next Action Card */}
-          <div className="rounded-2xl border-2 border-[var(--bos-accent)]/40 bg-gradient-to-br from-[var(--bos-accent-subtle)]/60 to-[var(--bos-surface-panel)] p-5 shadow-sm">
-            <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-wider text-[var(--bos-accent)]">
-              <Sparkles className="w-3.5 h-3.5" />
-              <span>Recommended Next Step</span>
-            </div>
-            <p className="mt-2 text-[14px] font-medium text-[var(--bos-text-primary)] leading-snug">
-              {intel.nextAction.text}
-            </p>
-            {nextButton && (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  onClick={nextButton.onClick}
-                  className="w-full inline-flex items-center justify-center gap-2 h-10 px-4 rounded-xl bg-[var(--bos-accent)] text-white text-[13px] font-bold hover:bg-[var(--bos-accent-hover)] transition-all shadow-sm cursor-pointer"
-                >
-                  {nextButton.icon} {nextButton.label}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Scope Health & Radar Card */}
-          <div className="rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] p-5 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h4 className="text-[13px] font-bold text-[var(--bos-text-primary)]">Scope Health & Confidence</h4>
-              <span className={cn("px-2.5 py-0.5 rounded-full text-[11px] font-bold", scopeSig.tone === "good" ? "bg-[var(--bos-success)]/15 text-[var(--bos-success)]" : "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]")}>
-                {scopeSig.label}
-              </span>
-            </div>
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-[12px]">
-                <span className="text-[var(--bos-text-secondary)]">Confidence Score</span>
-                <span className="font-semibold text-[var(--bos-text-primary)]">{intent.confidence}%</span>
-              </div>
-              <div className="h-1.5 rounded-full bg-[var(--bos-overlay)] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--bos-accent)] transition-all"
-                  style={{ width: `${intent.confidence}%` }}
+              {i < pipelineSteps.length - 1 && (
+                <span
+                  className={cn(
+                    "h-px w-6 mb-4",
+                    i < pipelineStage ? "bg-[var(--bos-success)]" : "bg-[var(--bos-line-strong)]",
+                  )}
+                  aria-hidden="true"
                 />
-              </div>
+              )}
             </div>
-            <div className="pt-3 border-t border-[var(--bos-border)] flex items-center justify-between text-[12px] text-[var(--bos-text-secondary)]">
-              <span>Open scope questions:</span>
-              <span className="font-bold text-[var(--bos-text-primary)]">{scopeSig.open}</span>
-            </div>
-          </div>
+          ))}
+        </div>
+      </div>
 
-          {/* Proposal Readiness Meter */}
-          <div className="rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-[13px] font-bold text-[var(--bos-text-primary)]">Proposal Progress</h4>
-              <span className="text-[13px] font-bold tabular-nums text-[var(--bos-text-primary)]">{readiness.readiness}%</span>
-            </div>
-            <div className="h-2 rounded-full bg-[var(--bos-overlay)] overflow-hidden">
-              <div
+      {/* Header line — who, what version, what state */}
+      <div className="flex items-center gap-2 flex-wrap text-[11px] text-[var(--bos-text-tertiary)]">
+        <span className="font-medium text-[var(--bos-text-secondary)]">{bundle.client?.companyName ?? "No client"}</span>
+        <span>·</span>
+        <span>v{r.revision}</span>
+        <span>·</span>
+        <StatusChip status={r.status} />
+      </div>
+
+      {/* Real stats strip */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+        <Stat label="Completeness" value={`${r.completeness}%`} tone={r.completeness >= 95 ? "good" : r.completeness >= 60 ? "warn" : "neutral"} />
+        <Stat label="Proposal readiness" value={`${intel.readiness.percent}%`} tone={intel.readiness.percent >= 95 ? "good" : intel.readiness.percent >= 60 ? "warn" : "neutral"} />
+        <Stat label="Blockers" value={String(intel.pendingCount)} tone={intel.pendingCount > 0 ? "danger" : "good"} />
+        <Stat label="Clarifications" value={String(openClarifications)} tone={openClarifications > 0 ? "warn" : "neutral"} />
+        <Stat label="Conflicts" value={String(bundle.conflicts.length)} tone={bundle.conflicts.length > 0 ? "danger" : "neutral"} />
+      </div>
+
+      {/* Section status grid — per-section client info at a glance */}
+      <section>
+        <div className="mb-3 flex items-center gap-2">
+          <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">Sections — client information</span>
+          <span className="h-px flex-1 bg-[var(--bos-line)]" aria-hidden="true" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+          {SECTIONS.filter((s) => s.weight > 0).map((s) => {
+            const hasData = bundle.states[s.key] === true;
+            const openQ = bundle.questions.filter((q) => q.section === s.key && ["READY_TO_SEND", "SENDING", "SENT", "DELIVERED", "OPENED"].includes(q.status));
+            const answeredQ = bundle.questions.filter((q) => q.section === s.key && ["ANSWERED", "UNDER_REVIEW"].includes(q.status));
+            const resolvedQ = bundle.questions.filter((q) => q.section === s.key && q.status === "RESOLVED");
+            const state = answeredQ.length > 0 ? "review" : openQ.length > 0 ? "waiting" : hasData || resolvedQ.length > 0 ? "confirmed" : "empty";
+            return (
+              <button
+                key={s.key}
+                type="button"
+                onClick={() => onViewSection(s.key)}
                 className={cn(
-                  "h-full rounded-full transition-all",
-                  readiness.readiness >= 90 ? "bg-[var(--bos-success)]" : readiness.readiness >= 60 ? "bg-[var(--bos-accent)]" : "bg-[var(--bos-warning)]",
+                  "flex items-start gap-2.5 rounded-sm border px-2.5 py-2 text-left transition-colors duration-150 hover:bg-[var(--bos-overlay)]",
+                  state === "confirmed" && "border-[var(--bos-success)]/20 bg-[var(--bos-success)]/4",
+                  state === "review" && "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5",
+                  state === "waiting" && "border-[var(--bos-info)]/20 bg-[var(--bos-info)]/5",
+                  state === "empty" && "border-[var(--bos-line)] bg-transparent",
                 )}
-                style={{ width: `${Math.min(100, Math.max(0, readiness.readiness))}%` }}
-              />
-            </div>
-            <p className="text-[11px] text-[var(--bos-text-tertiary)]">{readiness.label}</p>
-          </div>
-
-          {/* Live Activity Feed */}
-          <div className="rounded-2xl border border-[var(--bos-border)] bg-[var(--bos-surface-panel)] p-5 shadow-xs space-y-3">
-            <div className="flex items-center justify-between">
-              <h4 className="text-[13px] font-bold text-[var(--bos-text-primary)]">Live Activity</h4>
-              <span className="text-[11px] text-[var(--bos-text-tertiary)]">{bundle.events.length} events</span>
-            </div>
-            {bundle.events.length === 0 ? (
-              <p className="text-[12px] text-[var(--bos-text-tertiary)]">No activity recorded yet.</p>
-            ) : (
-              <ol className="relative border-l border-[var(--bos-border)] ml-2 space-y-3 pt-1">
-                {bundle.events.slice(0, 5).map((e) => (
-                  <li key={e.id} className="pl-4 relative">
-                    <span className="absolute -left-[5px] top-1.5 w-2.5 h-2.5 rounded-full bg-[var(--bos-accent)] ring-4 ring-[var(--bos-surface-panel)]" />
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-[12px] font-medium text-[var(--bos-text-primary)]">{e.label}</span>
-                      {typeof e.meta?.questionId === "string" && (
-                        <button
-                          type="button"
-                          onClick={() => onViewQuestion(String(e.meta.questionId))}
-                          className="text-[11px] text-[var(--bos-accent)] hover:underline cursor-pointer"
-                        >
-                          View
-                        </button>
-                      )}
-                    </div>
-                    <span className="text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">
-                      {new Date(e.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })} ·{" "}
-                      {new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}
-                    </span>
-                  </li>
-                ))}
-              </ol>
-            )}
-          </div>
+              >
+                <span
+                  className={cn(
+                    "mt-0.5 w-1.5 h-1.5 rounded-full shrink-0",
+                    state === "confirmed" && "bg-[var(--bos-success)]",
+                    state === "review" && "bg-[var(--bos-warning)]",
+                    state === "waiting" && "bg-[var(--bos-info)]",
+                    state === "empty" && "bg-[var(--bos-line-strong)]",
+                  )}
+                  aria-hidden="true"
+                />
+                <div className="min-w-0">
+                  <div className="text-[11px] font-medium text-[var(--bos-text-primary)] truncate">{s.label}</div>
+                  <div className={cn(
+                    "mt-0.5 text-[9px] font-mono uppercase tracking-[0.1em]",
+                    state === "confirmed" && "text-[var(--bos-success)]",
+                    state === "review" && "text-[var(--bos-warning)]",
+                    state === "waiting" && "text-[var(--bos-info)]",
+                    state === "empty" && "text-[var(--bos-text-tertiary)]",
+                  )}>
+                    {state === "confirmed" && "Confirmed"}
+                    {state === "review" && `${answeredQ.length} answer${answeredQ.length === 1 ? "" : "s"} to review`}
+                    {state === "waiting" && `Awaiting client`}
+                    {state === "empty" && "Not provided"}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
         </div>
-      </div>
-    </div>
-  );
-}
+      </section>
 
-function StatCard({
-  icon: Icon,
-  label,
-  value,
-  subtitle,
-  tone,
-}: {
-  icon?: React.ComponentType<{ className?: string }>;
-  label: string;
-  value: string;
-  subtitle?: string;
-  tone: "good" | "warn" | "danger" | "neutral";
-}) {
-  const toneStyles = {
-    good: {
-      bg: "bg-[var(--bos-success)]/6",
-      border: "border-[var(--bos-success)]/25",
-      text: "text-[var(--bos-success)]",
-    },
-    warn: {
-      bg: "bg-[var(--bos-warning)]/6",
-      border: "border-[var(--bos-warning)]/25",
-      text: "text-[var(--bos-warning)]",
-    },
-    danger: {
-      bg: "bg-[var(--bos-error)]/6",
-      border: "border-[var(--bos-error)]/25",
-      text: "text-[var(--bos-error)]",
-    },
-    neutral: {
-      bg: "bg-[var(--bos-surface-panel)]",
-      border: "border-[var(--bos-border)]",
-      text: "text-[var(--bos-text-primary)]",
-    },
-  }[tone];
-
-  return (
-    <div
-      className={cn(
-        "relative rounded-2xl border p-4 transition-all duration-150 hover:shadow-xs flex flex-col justify-between min-w-[130px]",
-        toneStyles.border,
-        toneStyles.bg,
-      )}
-    >
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-[12px] font-semibold text-[var(--bos-text-secondary)] truncate">
-          {label}
+      {/* Requirement health — explainable */}
+      <div
+        className={cn(
+          "rounded-sm border px-4 py-3 flex items-start gap-3",
+          healthTone === "good" && "border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6",
+          healthTone === "warn" && "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6",
+          healthTone === "danger" && "border-[var(--bos-error)]/25 bg-[var(--bos-error)]/6",
+        )}
+      >
+        <span
+          className={cn(
+            "flex items-center justify-center w-7 h-7 rounded-full shrink-0",
+            healthTone === "good" && "bg-[var(--bos-success)]/15 text-[var(--bos-success)]",
+            healthTone === "warn" && "bg-[var(--bos-warning)]/15 text-[var(--bos-warning)]",
+            healthTone === "danger" && "bg-[var(--bos-error)]/15 text-[var(--bos-error)]",
+          )}
+        >
+          {healthTone === "good" ? <Check className="w-3.5 h-3.5" aria-hidden="true" /> : <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />}
         </span>
-        {Icon && <Icon className={cn("w-4 h-4 shrink-0", toneStyles.text)} />}
-      </div>
-      <div className="mt-2.5">
-        <div className={cn("text-2xl font-bold tracking-tight tabular-nums", toneStyles.text)}>
-          {value}
+        <div className="min-w-0">
+          <div className="flex items-center gap-2">
+            <span className={cn("text-[11px] font-mono uppercase tracking-[0.16em]", healthTone === "good" ? "text-[var(--bos-success)]" : healthTone === "warn" ? "text-[var(--bos-warning)]" : "text-[var(--bos-error)]")}>
+              Requirement health — {health.level.replace("_", " ")}
+            </span>
+          </div>
+          <p className="mt-1 text-[12px] text-[var(--bos-text-secondary)] leading-snug">{health.reason}</p>
         </div>
-        {subtitle && (
-          <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)] truncate">
-            {subtitle}
+      </div>
+
+      {/* What we know — only real confirmed information */}
+      <section>
+        <SectionTitle title="What we know" hint="Only information actually provided" />
+        {intel.known.length === 0 ? (
+          <EmptyState title="No information provided yet" hint="The client has not submitted any answers — send the link or wait for the client to begin." />
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {intel.known.map((k) => (
+              <div key={k.label} className="rounded-sm border border-[var(--bos-line)] px-3.5 py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">{k.label}</span>
+                  <span className="text-[9px] text-[var(--bos-text-tertiary)] shrink-0">{k.source}</span>
+                </div>
+                <p className="mt-1 text-[12px] text-[var(--bos-text-primary)] leading-snug">{k.value}</p>
+              </div>
+            ))}
           </div>
         )}
+      </section>
+
+      {/* What needs attention — real blockers and review items */}
+      <section>
+        <SectionTitle title="What needs attention" hint="Only actual action items" />
+        {intel.blockers.length === 0 && intel.needsReview.length === 0 ? (
+          <EmptyState title="Nothing requires attention" hint="Every required item is confirmed and no clarification is waiting." />
+        ) : (
+          <ul className="space-y-1.5">
+            {intel.blockers.map((b) => (
+              <li key={b.id} className="flex items-start gap-2 rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 px-3.5 py-2.5">
+                <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-error)] mt-0.5 shrink-0" aria-hidden="true" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">{b.label}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
+                    {b.kind === "clarification" ? "Blocking clarification — " : "Required information — "}
+                    {b.section ? sectionLabel(b.section) : ""}
+                  </div>
+                </div>
+                {b.questionId && (
+                  <MicroButton onClick={() => onViewQuestion(String(b.questionId))}>
+                    <Eye className="w-3 h-3" aria-hidden="true" /> View
+                  </MicroButton>
+                )}
+              </li>
+            ))}
+            {intel.needsReview.map((n) => (
+              <li key={n.questionId} className="flex items-start gap-2 rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-2.5">
+                <BadgeCheck className="w-3.5 h-3.5 text-[var(--bos-warning)] mt-0.5 shrink-0" aria-hidden="true" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">Client answered — {n.section}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5 truncate">{n.label}</div>
+                </div>
+                <MicroButton variant="accent" onClick={() => onViewQuestion(n.questionId)}>
+                  <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review
+                </MicroButton>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* What we're waiting for — real client clarifications */}
+      <section>
+        <SectionTitle title="What we're waiting for" hint="Clarifications sent to the client" />
+        {intel.waitingOnClient.length === 0 ? (
+          <EmptyState title="Nothing waiting on the client" hint="No clarification questions are awaiting a response." />
+        ) : (
+          <ul className="space-y-1.5">
+            {intel.waitingOnClient.map((w) => (
+              <li key={w.questionId} className="flex items-start gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
+                <Clock className="w-3.5 h-3.5 text-[var(--bos-info)] mt-0.5 shrink-0" aria-hidden="true" />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">{w.section}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5 truncate">{w.label}</div>
+                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
+                    Sent to {w.recipient} · {formatDateTime(w.since)}
+                  </div>
+                </div>
+                <MicroButton onClick={() => onViewQuestion(w.questionId)}>
+                  <Eye className="w-3 h-3" aria-hidden="true" /> View
+                </MicroButton>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Optional — never shown as an error */}
+      <section>
+        <SectionTitle title="Optional" hint="Optional information does not gate approval" />
+        {intel.optional.length === 0 ? (
+          <EmptyState title="No optional items configured" hint="Nothing optional exists for this requirement right now." />
+        ) : (
+          <ul className="space-y-1.5">
+            {intel.optional.map((o) => (
+              <li key={o.id} className="flex items-center gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-text-tertiary)] shrink-0" aria-hidden="true" />
+                <span className="flex-1 text-[12px] text-[var(--bos-text-secondary)]">{o.label}</span>
+                <span className="text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-text-tertiary)]">
+                  {o.status === "CONFIRMED" ? "Provided" : "Optional · not provided"}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Not applicable — never shown as missing */}
+      {intel.notApplicable.length > 0 && (
+        <section>
+          <SectionTitle title="Not applicable" hint="Genuinely irrelevant to this project" />
+          <ul className="space-y-1.5">
+            {intel.notApplicable.map((n) => (
+              <li key={n.id} className="flex items-center gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
+                <span className="text-[12px] text-[var(--bos-text-secondary)]">◇ {n.label}</span>
+                <span className="ml-auto text-[9px] font-mono uppercase tracking-[0.1em] text-[var(--bos-text-tertiary)]">Not applicable</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Proposal readiness check — exact reasons when not ready */}
+      <section>
+        <div className="flex items-center justify-between gap-2">
+          <SectionTitle title="Proposal readiness check" hint="Generated from the current requirement state" />
+          <span
+            className={cn(
+              "inline-flex items-center px-2 py-0.5 rounded-[3px] text-[9px] font-mono uppercase tracking-[0.12em] border",
+              intel.readiness.ok
+                ? "text-[var(--bos-success)] border-[var(--bos-success)]/25 bg-[var(--bos-success)]/6"
+                : "text-[var(--bos-warning)] border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/6",
+            )}
+          >
+            {intel.readiness.ok ? "Ready" : "Not ready"}
+          </span>
+        </div>
+        <ul className="mt-3 space-y-1">
+          {intel.readiness.rows.map((row) => (
+            <li key={row.key} className="flex items-start gap-2.5 py-1">
+              <span
+                className={cn(
+                  "flex items-center justify-center w-4 h-4 rounded-full border shrink-0 mt-px",
+                  row.ok ? "border-[var(--bos-success)] bg-[var(--bos-success)] text-white" : "border-[var(--bos-warning)] bg-[var(--bos-warning)] text-white",
+                )}
+              >
+                {row.ok ? <Check className="w-2.5 h-2.5" aria-hidden="true" /> : <AlertTriangle className="w-2.5 h-2.5" aria-hidden="true" />}
+              </span>
+              <div className="min-w-0">
+                <span className={cn("text-[12px]", row.ok ? "text-[var(--bos-text-primary)]" : "text-[var(--bos-warning)]")}>{row.label}</span>
+                {!row.ok && <span className="ml-2 text-[11px] text-[var(--bos-text-tertiary)]">{row.note}</span>}
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* What changed — from the real revision history */}
+      {intel.changed.length > 0 && (
+        <section>
+          <SectionTitle title="What changed" hint={`Latest revision v${r.revision}`} />
+          <ul className="space-y-1">
+            {intel.changed.map((c, i) => (
+              <li key={i} className="flex items-start gap-2 text-[12px] text-[var(--bos-text-secondary)] leading-snug">
+                <ArrowRight className="w-3 h-3 text-[var(--bos-text-tertiary)] mt-0.5 shrink-0" aria-hidden="true" />
+                {c}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Next best action — computed from real state */}
+      <div className="rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)]/50 p-4">
+        <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-accent)] mb-1.5">
+          Next best action
+        </div>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <p className="text-[13px] text-[var(--bos-text-primary)] leading-snug">{intel.nextAction.text}</p>
+          {nextButton && (
+            <MicroButton variant="accent" onClick={nextButton.onClick}>
+              {nextButton.icon} {nextButton.label}
+            </MicroButton>
+          )}
+        </div>
+      </div>
+
+      {/* Quick links */}
+      <div className="flex items-center gap-2 flex-wrap pt-1">
+        <button type="button" onClick={onViewClarifications} className="text-[10px] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-accent)] transition-colors duration-150">
+          Clarifications ({bundle.questions.length}) →
+        </button>
+        <button type="button" onClick={onViewActivity} className="text-[10px] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-accent)] transition-colors duration-150">
+          Activity log →
+        </button>
       </div>
     </div>
   );
@@ -1634,15 +1409,28 @@ function StatCard({
 function SectionTitle({ title, hint }: { title: string; hint?: string }) {
   return (
     <div className="mb-3">
-      <div className="text-[14px] font-bold text-[var(--bos-text-primary)]">{title}</div>
-      {hint && <div className="text-[11px] text-[var(--bos-text-tertiary)]">{hint}</div>}
+      <div className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">{title}</div>
+      {hint && <div className="mt-0.5 text-[10px] text-[var(--bos-text-tertiary)]">{hint}</div>}
     </div>
   );
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone: "good" | "warn" | "danger" | "neutral" }) {
   return (
-    <StatCard label={label} value={value} tone={tone} />
+    <div className="rounded-sm border border-[var(--bos-line)] px-3.5 py-3 min-w-0 overflow-hidden">
+      <div className="text-[9px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)] truncate" title={label}>{label}</div>
+      <div
+        className={cn(
+          "mt-1.5 text-[20px] font-semibold tracking-tight tabular-nums truncate",
+          tone === "good" ? "text-[var(--bos-success)]"
+          : tone === "warn" ? "text-[var(--bos-warning)]"
+          : tone === "danger" ? "text-[var(--bos-error)]"
+          : "text-[var(--bos-text-primary)]",
+        )}
+      >
+        {value}
+      </div>
+    </div>
   );
 }
 
@@ -2227,14 +2015,14 @@ function ReviewView({
           <StatusChip status={r.status} />
         </div>
         <p className="text-[12px] text-[var(--bos-text-secondary)] leading-relaxed max-w-prose">
-          {r.status === "SUBMITTED" && "The client has submitted their requirements. Review each critical area, request clarification on anything unclear, and approve when ready."}
-          {r.status === "REVISION_SUBMITTED" && "The client responded to your clarification and resubmitted. Review the changes and approve when ready."}
-          {r.status === "CHANGES_REQUESTED" && "You asked for clarification. The client will see it next time they open the workspace."}
-          {r.status === "APPROVED" && "Requirements approved — the proposal can be built from this data automatically."}
-          {r.status === "IN_PROGRESS" && "The client is actively working through the workspace."}
-          {r.status === "SENT" && "The link was sent. Waiting for the client to open it."}
-          {r.status === "DRAFT" && "This request hasn't been sent yet."}
-          {r.status === "REVOKED" && "Access to this request has been revoked."}
+          {r.status === "SUBMITTED" && "The client submitted their requirements. Review each critical section, ask for clarification on anything unclear, then approve to proceed."}
+          {r.status === "REVISION_SUBMITTED" && "The client answered your clarification and resubmitted. Review the updated sections and approve when satisfied."}
+          {r.status === "CHANGES_REQUESTED" && "Clarification was requested from the client. The question has been emailed — waiting for their response."}
+          {r.status === "APPROVED" && "Requirements approved — all data is ready to generate the proposal automatically."}
+          {r.status === "IN_PROGRESS" && "The client is actively filling in the workspace. You can ask clarification questions at any time."}
+          {r.status === "SENT" && "The secure link has been sent. The client has not opened it yet."}
+          {r.status === "DRAFT" && "This requirement has not been sent to the client yet. Send the secure link to begin."}
+          {r.status === "REVOKED" && "Access to this requirement has been revoked. The client can no longer open the workspace link."}
         </p>
 
         {r.status === "APPROVED" ? (
@@ -2249,14 +2037,29 @@ function ReviewView({
               </MicroButton>
             )}
           </div>
+        ) : r.status === "DRAFT" ? (
+          <div className="mt-3 flex items-center gap-2 flex-wrap">
+            <MicroButton variant="accent" onClick={() => bundle.request.canSend && onAskClient()}>
+              <Send className="w-3 h-3" aria-hidden="true" /> Send link to client
+            </MicroButton>
+          </div>
         ) : canReview ? (
           <div className="mt-3 flex items-center gap-2 flex-wrap">
             <MicroButton variant="accent" onClick={() => onAskClient()}>
-              <Pencil className="w-3 h-3" aria-hidden="true" /> Request changes
+              <MessageCircle className="w-3 h-3" aria-hidden="true" /> Ask client
             </MicroButton>
             <MicroButton variant="accent" onClick={onApprove}>
               <Check className="w-3 h-3" aria-hidden="true" /> Approve requirements
             </MicroButton>
+            {bundle.proposals.length === 0 ? (
+              <MicroButton variant="default" onClick={onProposal}>
+                <Banknote className="w-3 h-3" aria-hidden="true" /> Create proposal
+              </MicroButton>
+            ) : (
+              <MicroButton variant="default" onClick={onOpenProposal}>
+                <FileText className="w-3 h-3" aria-hidden="true" /> Proposal studio
+              </MicroButton>
+            )}
           </div>
         ) : null}
       </section>
@@ -2398,6 +2201,7 @@ function ActivityView({
 function NextAction({
   bundle,
   onAskClient,
+  onSend,
   onReview,
   onCreateProposal,
   onViewQuestion,
@@ -2405,6 +2209,7 @@ function NextAction({
 }: {
   bundle: AdminBundle;
   onAskClient: (section?: string | null) => void;
+  onSend: () => void;
   onReview: () => void;
   onCreateProposal: () => void;
   onViewQuestion: (questionId: string) => void;
@@ -2415,22 +2220,6 @@ function NextAction({
   const openQuestions = awaitingClientQuestions(bundle);
   const answeredQuestions = bundle.questions.filter((q) => q.status === "ANSWERED" || q.status === "UNDER_REVIEW");
 
-  // Blocking clarifications gate the proposal — nothing matters more.
-  if (bundle.proposalBlock?.blocked && bundle.proposalBlock.blockers.length > 0) {
-    const b = bundle.proposalBlock.blockers[0];
-    return (
-      <>
-        <p className="text-[11px] text-[var(--bos-error)] leading-snug">
-          Proposal blocked — {bundle.proposalBlock.blockers.length} blocking clarification{bundle.proposalBlock.blockers.length === 1 ? "" : "s"} unresolved ({b.category}).
-        </p>
-        <div className="mt-2 flex items-center gap-1.5">
-          <MicroButton variant="accent" onClick={onViewClarifications}>
-            <AlertTriangle className="w-3 h-3" aria-hidden="true" /> Resolve questions
-          </MicroButton>
-        </div>
-      </>
-    );
-  }
 
   // The client has an open emailed question — the one thing that matters.
   if (openQuestions.length > 0) {
@@ -2466,12 +2255,23 @@ function NextAction({
     );
   }
 
+  if (r.approvedAt || r.status === "APPROVED") {
+    return (
+      <>
+        <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">Requirements approved — everything is ready to flow into the proposal.</p>
+        <MicroButton variant="accent" onClick={onCreateProposal} className="mt-2">
+          <Banknote className="w-3 h-3" aria-hidden="true" /> Create proposal
+        </MicroButton>
+      </>
+    );
+  }
+
   switch (r.status) {
     case "DRAFT":
       return (
         <>
           <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">Send the secure link so the client can start their workspace.</p>
-          <MicroButton variant="accent" onClick={() => onAskClient()} className="mt-2">
+          <MicroButton variant="accent" onClick={onSend} className="mt-2">
             <Send className="w-3 h-3" aria-hidden="true" /> Send link
           </MicroButton>
         </>
@@ -2509,9 +2309,14 @@ function NextAction({
           <p className="text-[11px] text-[var(--bos-text-secondary)] leading-snug">
             The submission is ready for review — {attention.length} item{attention.length === 1 ? "" : "s"} to work through.
           </p>
-          <MicroButton variant="accent" onClick={onReview} className="mt-2">
-            <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review requirement
-          </MicroButton>
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <MicroButton variant="accent" onClick={onReview}>
+              <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review requirement
+            </MicroButton>
+            <MicroButton onClick={onCreateProposal}>
+              <Banknote className="w-3 h-3" aria-hidden="true" /> Create proposal
+            </MicroButton>
+          </div>
         </>
       );
     case "CHANGES_REQUESTED": {
@@ -3000,50 +2805,21 @@ function Dialog({
           </div>
         ) : (
           <div className="space-y-3 max-w-xl">
-            {bundle.proposalBlock?.blocked && bundle.proposalBlock.blockers.length > 0 ? (
-              <div className="rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 px-3.5 py-3">
-                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-error)]">
-                  <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" /> Proposal blocked
-                </div>
-                <p className="mt-1.5 text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
-                  A proposal cannot be created until {bundle.proposalBlock.blockers.length} blocking clarification{bundle.proposalBlock.blockers.length === 1 ? "" : "s"} {bundle.proposalBlock.blockers.length === 1 ? "is" : "are"} resolved:
-                </p>
-                <ul className="mt-2 space-y-1.5">
-                  {bundle.proposalBlock.blockers.slice(0, 4).map((b) => (
-                    <li key={b.id} className="flex items-start gap-2 text-[11px] text-[var(--bos-text-secondary)] leading-snug">
-                      <AlertTriangle className="w-3 h-3 text-[var(--bos-error)] mt-0.5 shrink-0" aria-hidden="true" />
-                      <span>
-                        {b.label} <span className="text-[var(--bos-text-tertiary)]">({b.category})</span>
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+            <p className="text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
+              Create a draft proposal from these approved requirements. The client, project name, scope, features, stakeholders, commercial range, materials and design direction are carried over automatically — nothing is re-entered.
+            </p>
+            <div className="rounded-sm border border-[var(--bos-line)] p-3">
+              <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] mb-1">Will be created</div>
+              <div className="text-[13px] font-medium text-[var(--bos-text-primary)]">{bundle.request.title} — Proposal</div>
+              <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">
+                {bundle.features.length} features · {bundle.attachments.length} files · {bundle.request.completeness}% completeness carried over
               </div>
-            ) : (
-              <>
-                <p className="text-[12px] text-[var(--bos-text-secondary)] leading-relaxed">
-                  Create a draft proposal from these approved requirements. The client, project name, scope, features, stakeholders, commercial range, materials and design direction are carried over automatically — nothing is re-entered.
-                </p>
-                <div className="rounded-sm border border-[var(--bos-line)] p-3">
-                  <div className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] mb-1">Will be created</div>
-                  <div className="text-[13px] font-medium text-[var(--bos-text-primary)]">{bundle.request.title} — Proposal</div>
-                  <div className="mt-1 text-[11px] text-[var(--bos-text-tertiary)]">
-                    {bundle.features.length} features · {bundle.attachments.length} files · {bundle.request.completeness}% completeness carried over
-                  </div>
-                </div>
-              </>
-            )}
+            </div>
             <div className="flex justify-end gap-2">
               <MicroButton onClick={onClose}>Cancel</MicroButton>
-              {bundle.proposalBlock?.blocked && bundle.proposalBlock.blockers.length > 0 ? (
-                <MicroButton variant="accent" onClick={onOpenClarifications}>
-                  <AlertTriangle className="w-3 h-3" aria-hidden="true" /> View in Clarifications
-                </MicroButton>
-              ) : (
-                <MicroButton variant="accent" disabled={busy} onClick={onProposal}>
-                  {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Banknote className="w-3 h-3" aria-hidden="true" />} Create proposal
-                </MicroButton>
-              )}
+              <MicroButton variant="accent" disabled={busy} onClick={onProposal}>
+                {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Banknote className="w-3 h-3" aria-hidden="true" />} Create proposal
+              </MicroButton>
             </div>
           </div>
         )}

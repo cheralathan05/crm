@@ -81,24 +81,31 @@ export async function deriveProductModelForProject(projectId: string): Promise<P
     `Approved client software delivery for ${project.client?.companyName || "Client"}.`;
 
   // 2. Discover authentic Product Areas from approved proposal sections
-  // Section 6 contains Module Cards:
-  // MVP: Pages & content, Contact forms, Blog / news, SEO
-  // Phase 2: Gallery / portfolio, Newsletter, Analytics, CMS, Multilingual
-  const rawModules: Array<{ title: string; purpose?: string; phase: "MVP" | "PHASE_2" }> = [];
-
-  const mvpNames = ["pages & content", "contact forms", "blog / news", "seo"];
-  const phase2Names = ["gallery / portfolio", "newsletter", "analytics", "cms", "multilingual"];
+  const rawModules: Array<{ title: string; purpose?: string; phase: "MVP" | "PHASE_2"; userActions?: string[]; businessRules?: string[] }> = [];
 
   (doc.sections || []).forEach((s: any) => {
     (s.blocks || []).forEach((b: any) => {
-      if (b.type === "module_card" && b.title) {
-        const titleLower = b.title.toLowerCase();
-        const isPhase2 = phase2Names.some((p2) => titleLower.includes(p2));
-        rawModules.push({
-          title: b.title,
-          purpose: b.description || b.purpose || `Approved product capability: ${b.title}`,
-          phase: isPhase2 ? "PHASE_2" : "MVP",
-        });
+      if (b.type === "module_card" && (b.name || b.title)) {
+        const title = (b.name || b.title).trim();
+        if (!rawModules.some((rm) => rm.title.toLowerCase() === title.toLowerCase())) {
+          rawModules.push({
+            title,
+            purpose: b.purpose || b.description || `Approved capability for ${title}`,
+            phase: "MVP",
+            userActions: b.userActions,
+            businessRules: b.businessRules,
+          });
+        }
+      } else if (b.type === "feature_card" && b.title) {
+        const title = b.title.trim();
+        if (!rawModules.some((rm) => rm.title.toLowerCase() === title.toLowerCase())) {
+          rawModules.push({
+            title,
+            purpose: b.purpose || b.businessNeed || `Approved capability for ${title}`,
+            phase: "MVP",
+            userActions: b.capabilities,
+          });
+        }
       }
     });
   });
@@ -111,12 +118,10 @@ export async function deriveProductModelForProject(projectId: string): Promise<P
     });
 
     features.forEach((f) => {
-      const titleLower = f.name.toLowerCase();
-      const isPhase2 = phase2Names.some((p2) => titleLower.includes(p2));
       rawModules.push({
         title: f.name,
         purpose: f.description || `Core capability: ${f.name}`,
-        phase: isPhase2 ? "PHASE_2" : "MVP",
+        phase: "MVP",
       });
     });
   }
@@ -125,7 +130,7 @@ export async function deriveProductModelForProject(projectId: string): Promise<P
   if (rawModules.length === 0 && project.deliverables.length > 0) {
     project.deliverables.forEach((d) => {
       rawModules.push({
-        title: d.title,
+        title: d.proposalFeatureName || d.title,
         purpose: d.description || "Approved project deliverable",
         phase: "MVP",
       });
@@ -138,7 +143,7 @@ export async function deriveProductModelForProject(projectId: string): Promise<P
     deliverableMap.set(d.title.toLowerCase(), d);
   });
 
-  // 3. Build authentic Product Area definitions with distinct technical responsibilities
+  // 3. Build authentic Product Area definitions with distinct technical responsibilities (DATABASE, BACKEND, FRONTEND)
   const mvpAreas: ProductAreaDefinition[] = [];
   const phase2Areas: ProductAreaDefinition[] = [];
 
@@ -152,168 +157,48 @@ export async function deriveProductModelForProject(projectId: string): Promise<P
     const code = `PA-${String(idx + 1).padStart(2, "0")}`;
     const responsibilities: WorkResponsibilityDefinition[] = [];
 
-    // Derive authentic technical responsibilities based on product area semantics
-    if (titleLower.includes("pages & content")) {
-      responsibilities.push({
-        workstream: "FRONTEND",
-        title: "Responsive layout & presentation interface for Pages & Content",
-        description: "Implement the approved pages structure, responsive layout containers, content sections, and mobile navigation.",
-        requiredRole: "Frontend Developer",
-        deliverableOutcome: "Verified Pages & Content interface components with interactive states.",
-        proofTypeRequired: "PREVIEW",
-        order: 1,
-      });
-      responsibilities.push({
-        workstream: "BACKEND",
-        title: "Content retrieval & persistence API service",
-        description: "Develop validated REST endpoints for dynamic page content retrieval, caching, and secure data delivery.",
-        requiredRole: "Lead Backend Engineer",
-        deliverableOutcome: "Clean API contract and passing automated integration tests.",
-        proofTypeRequired: "API_CONTRACT",
-        order: 2,
-      });
-      responsibilities.push({
-        workstream: "DATABASE",
-        title: "Page metadata & content structure relational schema",
-        description: "Implement relational tables, indexing, and migration scripts for page versions and assets.",
-        requiredRole: "Database Architect",
-        deliverableOutcome: "Tested Prisma migration and verified schema constraints.",
-        proofTypeRequired: "MIGRATION_SCRIPT",
-        order: 3,
-      });
-      responsibilities.push({
-        workstream: "QA",
-        title: "Acceptance criteria & responsive layout verification",
-        description: "Execute end-to-end verification across desktop/mobile breakpoints and validate content contract conformance.",
-        requiredRole: "QA Lead",
-        deliverableOutcome: "Executed test suite report and zero blocking defects sign-off.",
-        proofTypeRequired: "TEST_REPORT",
-        order: 4,
-      });
-    } else if (titleLower.includes("contact forms")) {
-      responsibilities.push({
-        workstream: "FRONTEND",
-        title: "Interactive contact submission interface & form validation",
-        description: "Build client-side form controls, real-time input validation, error messaging, and submission loading states.",
-        requiredRole: "Frontend Developer",
-        deliverableOutcome: "Accessible form component with responsive feedback and CSRF token protection.",
-        proofTypeRequired: "SCREENSHOT",
-        order: 1,
-      });
-      responsibilities.push({
-        workstream: "BACKEND",
-        title: "Contact form submission, validation & notification service",
-        description: "Build secure endpoint for payload validation, rate-limiting, sanitization, and team email dispatch.",
-        requiredRole: "Lead Backend Engineer",
-        deliverableOutcome: "API endpoint test results showing validation, rate-limiting, and error handling.",
-        proofTypeRequired: "API_CONTRACT",
-        order: 2,
-      });
-      responsibilities.push({
-        workstream: "DATABASE",
-        title: "Inquiries & leads persistence entity model",
-        description: "Define database entity for lead capture with timestamp, status, and referential integrity constraints.",
-        requiredRole: "Database Architect",
-        deliverableOutcome: "Database schema migration applied and verified.",
-        proofTypeRequired: "MIGRATION_SCRIPT",
-        order: 3,
-      });
-      responsibilities.push({
-        workstream: "QA",
-        title: "Form submission pipeline, edge cases & validation testing",
-        description: "Verify form validation rules, network timeout resilience, spam mitigation, and notification delivery.",
-        requiredRole: "QA Lead",
-        deliverableOutcome: "Complete test pass verification log with zero security findings.",
-        proofTypeRequired: "TEST_REPORT",
-        order: 4,
-      });
-    } else if (titleLower.includes("blog / news")) {
-      responsibilities.push({
-        workstream: "FRONTEND",
-        title: "Article listing, detail reading & pagination interface",
-        description: "Build responsive news feed, article card layouts, markdown rendering view, and share actions.",
-        requiredRole: "Frontend Developer",
-        deliverableOutcome: "Tested blog layout components with verified dynamic routing.",
-        proofTypeRequired: "PREVIEW",
-        order: 1,
-      });
-      responsibilities.push({
-        workstream: "BACKEND",
-        title: "Article publishing & query REST API",
-        description: "Implement query filters, pagination, slug resolution, and publishing lifecycle endpoints.",
-        requiredRole: "Lead Backend Engineer",
-        deliverableOutcome: "Passing automated endpoint test suite.",
-        proofTypeRequired: "API_CONTRACT",
-        order: 2,
-      });
-      responsibilities.push({
-        workstream: "QA",
-        title: "Article readability, search & routing acceptance test",
-        description: "Validate article query accuracy, pagination boundaries, and cross-browser rendering.",
-        requiredRole: "QA Lead",
-        deliverableOutcome: "Verified test execution log.",
-        proofTypeRequired: "TEST_REPORT",
-        order: 3,
-      });
-    } else if (titleLower.includes("seo")) {
-      responsibilities.push({
-        workstream: "FRONTEND",
-        title: "Structured metadata, OpenGraph tags & sitemap generator",
-        description: "Integrate canonical meta tags, OpenGraph preview cards, JSON-LD schema, and automated sitemap.xml.",
-        requiredRole: "Frontend Developer",
-        deliverableOutcome: "Verified search engine crawler preview with zero metadata omissions.",
-        proofTypeRequired: "SCREENSHOT",
-        order: 1,
-      });
-      responsibilities.push({
-        workstream: "QA",
-        title: "SEO audit, lighthouse score & tag conformance verification",
-        description: "Perform automated audit of metadata conformance, social sharing previews, and performance scores.",
-        requiredRole: "QA Lead",
-        deliverableOutcome: "SEO audit report with >90 score confirmation.",
-        proofTypeRequired: "TEST_REPORT",
-        order: 2,
-      });
-    } else {
-      // General authentic module responsibility
-      responsibilities.push({
-        workstream: "FRONTEND",
-        title: `Client interface for ${m.title}`,
-        description: `Implement the approved presentation and interactive controls for ${m.title}.`,
-        requiredRole: "Frontend Developer",
-        deliverableOutcome: `Verified UI components for ${m.title}.`,
-        proofTypeRequired: "PREVIEW",
-        order: 1,
-      });
-      responsibilities.push({
-        workstream: "BACKEND",
-        title: `Backend service & data contract for ${m.title}`,
-        description: `Provide server endpoints and business logic for ${m.title}.`,
-        requiredRole: "Lead Backend Engineer",
-        deliverableOutcome: `API endpoints for ${m.title}.`,
-        proofTypeRequired: "API_CONTRACT",
-        order: 2,
-      });
-      responsibilities.push({
-        workstream: "QA",
-        title: `Verification & acceptance test for ${m.title}`,
-        description: `Verify expected behavior and criteria conformance for ${m.title}.`,
-        requiredRole: "QA Lead",
-        deliverableOutcome: `Test verification report for ${m.title}.`,
-        proofTypeRequired: "TEST_REPORT",
-        order: 3,
-      });
-    }
+    // DATABASE Responsibility
+    responsibilities.push({
+      workstream: "DATABASE",
+      title: `${m.title} Relational Schema & Persistence`,
+      description: `Implement relational database schemas, tables, referential integrity constraints, and indexes for ${m.title}.`,
+      requiredRole: "Database Architect",
+      deliverableOutcome: `Verified schema migration and integrity constraints for ${m.title}.`,
+      proofTypeRequired: "MIGRATION_SCRIPT",
+      order: 1,
+    });
+
+    // BACKEND Responsibility
+    responsibilities.push({
+      workstream: "BACKEND",
+      title: `${m.title} API Endpoints & Business Logic`,
+      description: `Develop validated REST endpoints, service validation, business logic, and authorization guardrails for ${m.title}.\nRules: ${(m.businessRules || []).join("; ") || "Enforce RBAC."}`,
+      requiredRole: "Lead Backend Engineer",
+      deliverableOutcome: `Passing API contract and operational endpoints for ${m.title}.`,
+      proofTypeRequired: "API_CONTRACT",
+      order: 2,
+    });
+
+    // FRONTEND Responsibility
+    responsibilities.push({
+      workstream: "FRONTEND",
+      title: `${m.title} User Interface & Workflows`,
+      description: `Implement interactive UI components, form validation, state management, and user controls for ${m.title}.\nActions: ${(m.userActions || []).join("; ") || "Primary operational workflows."}`,
+      requiredRole: "Frontend Developer",
+      deliverableOutcome: `Responsive interface with active, empty, error, and loading states for ${m.title}.`,
+      proofTypeRequired: "PREVIEW",
+      order: 3,
+    });
 
     const areaDef: ProductAreaDefinition = {
       name: m.title,
       code,
-      description: m.purpose || `Approved product area: ${m.title}`,
+      description: m.purpose || `Approved product capability: ${m.title}`,
       phase: m.phase,
       deliverableId: matchingDeliv?.id,
       acceptanceCriteria: [
         `All defined capability specifications for ${m.title} must be fulfilled.`,
-        `Technical responsibilities must pass formal verification before phase gate sign-off.`,
+        `Database schemas, backend APIs, and frontend interfaces must pass formal verification before phase gate sign-off.`,
       ],
       responsibilities,
     };

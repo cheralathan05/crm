@@ -8,6 +8,7 @@ import {
   type ProposalBlock,
 } from "./proposal-doc";
 import { buildPremiumProposalDocument } from "./proposal-engine";
+import { buildProposalPdfDefinition } from "./proposal-pdf/builder";
 import type { Client, ClientProposal, Contact, Workspace } from "@/generated/prisma/client";
 
 /* ────────────────────────────────────────────────────────────────
@@ -864,144 +865,9 @@ function pdfBlocks(blocks: ProposalBlock[]): unknown[] {
   return out;
 }
 
-/** Build the pdfmake document definition from a ProposalDoc. */
+/** Build the pdfmake document definition from a ProposalDoc using the new publication-grade design system. */
 export function proposalToPdfDefinition(doc: ProposalDoc): unknown {
-  const visible = doc.sections.filter((s) => s.visible);
-  const date = new Date(doc.meta.date);
-  const dateLabel = date.toLocaleDateString("en-IN", { day: "numeric", month: "long", year: "numeric" });
-
-  const header = (_currentPage: number, _pageCount: number) => ({
-    columns: [
-      { text: doc.meta.reference.toUpperCase(), style: "micro", color: FAINT },
-      { text: doc.meta.title, style: "micro", color: MUTED, alignment: "center" },
-      { text: `${_currentPage} / ${_pageCount}`, style: "micro", color: FAINT, alignment: "right" },
-    ],
-    margin: [0, 0, 0, 12],
-  });
-
-  const content: unknown[] = [];
-
-  // Cover
-  const cover = visible.find((s) => s.id === "cover");
-  if (cover) {
-    content.push({
-      stack: [
-        { text: doc.meta.preparedBy.toUpperCase(), style: "micro", color: FAINT },
-        { text: "", margin: [0, 0, 0, 90] },
-        { text: "PROPOSAL", style: "coverKicker" },
-        { text: doc.meta.title, style: "coverTitle" },
-        { text: "", margin: [0, 0, 0, 10] },
-        { text: `Prepared for ${doc.meta.clientName}`, style: "coverMeta" },
-        { text: dateLabel, style: "coverMeta", color: FAINT },
-        { text: "", margin: [0, 0, 0, 60] },
-        { canvas: [{ type: "rect", x: 0, y: 0, w: 520, h: 3, color: ACCENT }] },
-        { text: "", margin: [0, 0, 0, 26] },
-        {
-          columns: [
-            { width: "*", stack: [{ text: "INVESTMENT", style: "micro", color: FAINT }, { text: doc.meta.amountLabel, style: "coverValue" }] },
-            { width: "*", stack: [{ text: "TIMELINE", style: "micro", color: FAINT }, { text: doc.meta.timelineLabel, style: "coverValue" }] },
-            { width: "*", stack: [{ text: "REFERENCE", style: "micro", color: FAINT }, { text: doc.meta.reference, style: "coverValue" }] },
-          ],
-        },
-        { text: "", margin: [0, 0, 0, 60] },
-        {
-          canvas: [
-            { type: "rect", x: 0, y: 0, w: 520, h: 10, color: "#f5edea" },
-            { type: "rect", x: 0, y: 0, w: 170, h: 10, color: ACCENT },
-          ],
-        },
-      ],
-      margin: [0, 40, 0, 0],
-    });
-  }
-
-  // Contents
-  const contents = visible.find((s) => s.id === "contents");
-  if (contents) {
-    const bodySections = visible.filter((s) => s.id !== "cover" && s.id !== "contents");
-    content.push({
-      stack: [
-        { text: "THIS PROPOSAL", style: "kicker" },
-        { text: "Contents", style: "sectionTitle" },
-        { text: "", margin: [0, 0, 0, 16] },
-        {
-          table: {
-            widths: [28, "*", "auto"],
-            body: bodySections.map((s, idx) => {
-              const pageNum = (cover ? 1 : 0) + 1 + idx + 1;
-              return [
-                { text: String(idx + 1).padStart(2, "0"), color: ACCENT, bold: true, fontSize: 10 },
-                {
-                  stack: [
-                    { text: s.title, bold: true, fontSize: 11, color: INK },
-                    { text: (s.kicker || "SECTION").toUpperCase(), fontSize: 8, color: FAINT, characterSpacing: 0.8, margin: [0, 1, 0, 0] },
-                  ],
-                },
-                { text: `Page ${pageNum}`, color: MUTED, fontSize: 9.5, alignment: "right" },
-              ];
-            }),
-          },
-          layout: {
-            hLineWidth: (i: number, node: { table: { body: unknown[] } }) => (i === 0 || i === node.table.body.length ? 0 : 0.5),
-            vLineWidth: () => 0,
-            hLineColor: () => RULE,
-            paddingTop: () => 8,
-            paddingBottom: () => 8,
-            paddingLeft: () => 0,
-            paddingRight: () => 0,
-          },
-        },
-      ],
-      pageBreak: cover ? "before" : undefined,
-    });
-  }
-
-  // Body sections
-  for (const s of visible) {
-    if (s.id === "cover" || s.id === "contents") continue;
-    content.push({
-      stack: [
-        { text: `${s.number}  ·  ${s.kicker.toUpperCase()}`, style: "kicker" },
-        { text: s.title, style: "sectionTitle" },
-        { text: "", margin: [0, 0, 0, 6] },
-        ...pdfBlocks(s.blocks),
-      ],
-      pageBreak: "before",
-    });
-  }
-
-  return {
-    pageSize: "A4",
-    pageMargins: [52, 64, 52, 56],
-    info: {
-      title: doc.meta.title,
-      author: doc.meta.preparedBy,
-      subject: `${doc.meta.reference} — ${doc.meta.clientName}`,
-    },
-    defaultStyle: { font: "Roboto", fontSize: 10, lineHeight: 1.55, color: INK },
-    styles: {
-      micro: { fontSize: 7.5, characterSpacing: 1.2, margin: [0, 2, 0, 2] },
-      kicker: { fontSize: 8, characterSpacing: 1.6, color: ACCENT, bold: true, margin: [0, 0, 0, 4] },
-      sectionTitle: { fontSize: 21, bold: true, color: INK, margin: [0, 2, 0, 14] },
-      cardTitle: { fontSize: 13.5, bold: true, color: INK, margin: [0, 2, 0, 4] },
-      body: { fontSize: 10, color: INK, lineHeight: 1.6 },
-      tableHeader: { color: "#ffffff", fontSize: 9, bold: true, characterSpacing: 0.4 },
-      tableCell: { fontSize: 9.5, color: INK },
-      coverKicker: { fontSize: 11, characterSpacing: 4, color: ACCENT, bold: true, margin: [0, 0, 0, 10] },
-      coverTitle: { fontSize: 34, bold: true, color: INK, lineHeight: 1.15, margin: [0, 0, 0, 22] },
-      coverMeta: { fontSize: 12, color: MUTED, margin: [0, 2, 0, 2] },
-      coverValue: { fontSize: 13, bold: true, color: INK, margin: [2, 0, 0, 0] },
-    },
-    header: (currentPage: number, pageCount: number) => (currentPage <= 1 ? null : header(currentPage, pageCount)),
-    footer: () => ({
-      columns: [
-        { text: doc.meta.clientName.toUpperCase(), style: "micro", color: FAINT },
-        { text: doc.meta.reference, style: "micro", color: FAINT, alignment: "right" },
-      ],
-      margin: [52, 0, 52, 24],
-    }),
-    content,
-  };
+  return buildProposalPdfDefinition(doc);
 }
 
 export async function generateProposalPdf(doc: ProposalDoc): Promise<{ buffer: Buffer; pages: number }> {

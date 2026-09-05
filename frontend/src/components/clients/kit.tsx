@@ -125,6 +125,7 @@ export function MicroButton({
   className,
   type = "button",
   disabled,
+  title,
 }: {
   children: React.ReactNode;
   onClick?: () => void;
@@ -132,12 +133,14 @@ export function MicroButton({
   className?: string;
   type?: "button" | "submit";
   disabled?: boolean;
+  title?: string;
 }) {
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
+      title={title}
       className={cn(
         "inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm text-[11px] font-medium transition-colors duration-150",
         variant === "accent" && "bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)]",

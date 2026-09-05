@@ -49,7 +49,7 @@ import {
   type ProjectUnderstandingState,
   type ProposalGateStatus,
   type VisualDiffChunk,
-} from "@/lib/requirement-collaboration";
+} from "@/lib/requirement-collaboration-types";
 
 /* ────────────────────────────────────────────────────────────────
    REQUIREMENT COLLABORATION & APPROVAL STUDIO — ADMIN WORKSPACE

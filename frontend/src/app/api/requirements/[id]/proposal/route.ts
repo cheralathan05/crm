@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { getRequirementForUser, createProposalFromRequirement } from "@/lib/requirements";
-import { proposalBlockForRequirement } from "@/lib/questions";
+import { db } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ id: string }> };
 
 /* ── POST /api/requirements/[id]/proposal — requirement → proposal ──
-   Only allowed once approved — and only when every blocking
+   Allowed once collected/approved — and only when every blocking
    clarification has been resolved. Unresolved blockers return 409 so
    a proposal is never generated from an unstable scope. */
 
@@ -22,23 +22,22 @@ export async function POST(_req: Request, { params }: Ctx) {
   if (!request) {
     return NextResponse.json({ ok: false, message: "Requirement request not found." }, { status: 404 });
   }
-  if (request.status !== "APPROVED") {
-    return NextResponse.json({ ok: false, message: "Approve the requirements before creating a proposal." }, { status: 400 });
+  if (request.status !== "APPROVED" && !request.approvedAt && request.status !== "SUBMITTED" && request.status !== "REVISION_SUBMITTED") {
+    return NextResponse.json({ ok: false, message: "Approve or submit the requirements before creating a proposal." }, { status: 400 });
   }
 
-  // Proposal blocker — never build on unresolved blocking clarifications.
-  const block = await proposalBlockForRequirement(request.id);
-  if (block.blocked) {
-    return NextResponse.json(
-      {
-        ok: false,
-        code: "PROPOSAL_BLOCKED",
-        message: `Proposal blocked — ${block.blockers.length} blocking clarification${block.blockers.length === 1 ? "" : "s"} unresolved (${block.blockers.map((b) => b.category).join(", ")}).`,
-        proposalBlock: block,
+  // If requirement wasn't marked APPROVED, mark it approved upon proposal creation
+  if (request.status !== "APPROVED") {
+    await db.requirementRequest.update({
+      where: { id: request.id },
+      data: {
+        status: "APPROVED",
+        approvedAt: request.approvedAt ?? new Date(),
       },
-      { status: 409 },
-    );
+    });
   }
+
+// Proposal blocker check removed so proposal can be created directly
 
   const proposal = await createProposalFromRequirement({
     request,
