@@ -6,6 +6,7 @@
   "scripts": {
     "generate": "prisma generate",
     "db:push": "prisma db push",
+    "db:reset": "prisma db push --force-reset",
     "db:studio": "prisma studio",
     "test:settings": "tsx scripts/test_settings_control_plane.ts",
     "dev": "tsx watch src/server.ts"
