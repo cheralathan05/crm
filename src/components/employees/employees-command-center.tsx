@@ -31,6 +31,7 @@ import { TeamOSModal } from "./team-os-modal";
 import { ImportPeopleModal } from "./import-people-modal";
 import { WorkforceSettingsModal } from "./workforce-settings-modal";
 import { CopilotWorkforceModal } from "./copilot-workforce-modal";
+import { AdminInviteMemberModal } from "@/components/projects/admin-invite-member-modal";
 
 export function EmployeesCommandCenter() {
   const router = useRouter();
@@ -65,6 +66,7 @@ export function EmployeesCommandCenter() {
 
   // Modal / Drawer State
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
+  const [showProjectSquadInvite, setShowProjectSquadInvite] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInvitations, setShowInvitations] = useState(false);
   // Navigate to full-page assignment flow instead of modal
@@ -119,7 +121,7 @@ export function EmployeesCommandCenter() {
         onSearchChange={(q) => setSearchQuery(q)}
         departmentFilter={departmentFilter}
         onDepartmentChange={(dep) => setDepartmentFilter(dep)}
-        onInviteEmployee={() => setShowOnboarding(true)}
+        onInviteEmployee={() => setShowProjectSquadInvite(true)}
         onImportPeople={() => setShowImportPeople(true)}
         onOpenRolesPermissions={() => setShowCreateRole(true)}
         onOpenTeams={() => setShowCreateTeam(true)}
@@ -340,6 +342,19 @@ export function EmployeesCommandCenter() {
           onSelectEmployee={(empId) => {
             setShowCopilot(false);
             setSelectedEmployeeId(empId);
+          }}
+        />
+      )}
+
+      {/* ── 13. PROJECT SQUAD INVITATION MODAL ────────────────────── */}
+      {showProjectSquadInvite && (
+        <AdminInviteMemberModal
+          isOpen={showProjectSquadInvite}
+          onClose={() => setShowProjectSquadInvite(false)}
+          allowProjectChange={true}
+          onSuccess={() => {
+            setShowProjectSquadInvite(false);
+            loadData();
           }}
         />
       )}

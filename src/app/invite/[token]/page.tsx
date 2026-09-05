@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useState, use, FormEvent } from "react";
 import { useRouter } from "next/navigation";
@@ -167,18 +167,64 @@ export default function InviteActivationPage({
           </div>
 
           {/* Invitation Specs Strip */}
-          <div className="grid grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-slate-800/80 text-center font-mono">
-            <div className="space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">PROJECT</span>
-              <span className="text-xs font-bold text-slate-200 truncate block">{invitation.projectName}</span>
+          <div className="p-5 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-4 font-mono">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+              <div className="space-y-1">
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider block">PROJECT</span>
+                <span className="text-xs font-bold text-slate-200 truncate block">{invitation.projectName}</span>
+                {invitation.projectCode && (
+                  <span className="text-[10px] text-blue-400 block">{invitation.projectCode}</span>
+                )}
+              </div>
+              <div className="space-y-1 border-l border-slate-800/80 px-2">
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider block">CLIENT</span>
+                <span className="text-xs font-bold text-slate-300 truncate block">
+                  {invitation.clientCompany || "Enterprise Client"}
+                </span>
+              </div>
+              <div className="space-y-1 border-l border-slate-800/80 px-2">
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider block">SQUAD</span>
+                <span className="text-xs font-bold text-blue-400 block">{invitation.teamName} TEAM</span>
+              </div>
+              <div className="space-y-1 border-l border-slate-800/80 px-2">
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider block">ROLE</span>
+                <span className="text-xs font-bold text-emerald-400 truncate block">{invitation.projectRole}</span>
+              </div>
             </div>
-            <div className="space-y-1 border-x border-slate-800/80 px-2">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">TEAM</span>
-              <span className="text-xs font-bold text-blue-400 block">{invitation.teamName}</span>
-            </div>
-            <div className="space-y-1">
-              <span className="text-[10px] text-slate-500 uppercase tracking-wider block">ROLE</span>
-              <span className="text-xs font-bold text-emerald-400 truncate block">{invitation.projectRole}</span>
+
+            {/* Product Scope & Boundaries */}
+            <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800/80 text-[11px] space-y-2 text-left">
+              <div>
+                <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">
+                  SQUAD RESPONSIBILITY
+                </span>
+                <p className="text-slate-300 text-xs mt-0.5 leading-relaxed">
+                  {invitation.responsibility}
+                </p>
+              </div>
+
+              {invitation.approvedProductAreas && invitation.approvedProductAreas.length > 0 && (
+                <div className="pt-2 border-t border-slate-800">
+                  <span className="text-[10px] text-slate-500 uppercase tracking-wider block font-bold">
+                    APPROVED MVP PRODUCT SCOPE
+                  </span>
+                  <div className="flex flex-wrap gap-1.5 mt-1">
+                    {invitation.approvedProductAreas.map((area: string) => (
+                      <span
+                        key={area}
+                        className="px-2 py-0.5 rounded-md bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[10px]"
+                      >
+                        {area}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="pt-2 border-t border-slate-800 text-[10px] text-emerald-400 flex items-center gap-1.5">
+                <Check className="w-3.5 h-3.5 shrink-0" />
+                <span>Strict Role Boundary Active: You receive only verified {invitation.teamName.toLowerCase()} responsibilities. Zero task pollution.</span>
+              </div>
             </div>
           </div>
 

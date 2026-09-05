@@ -121,7 +121,7 @@ export function EmployeeOSProductExplorerView({
               deviceFrame === "MOBILE" && "max-w-xs"
             )}
           >
-            {/* Fake browser bar */}
+            {/* Browser chrome header */}
             <div className="flex items-center justify-between pb-3 border-b border-[var(--bos-border)] text-[11px] font-mono text-[var(--bos-text-tertiary)]">
               <div className="flex items-center gap-1.5">
                 <span className="w-2.5 h-2.5 rounded-full bg-rose-500/50" />

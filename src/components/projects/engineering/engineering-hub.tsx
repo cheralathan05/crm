@@ -40,6 +40,7 @@ import { WorkPlanModal } from "./work-plan-modal";
 import { EvidenceModal } from "./evidence-modal";
 import { AIAssistantModal } from "./ai-assistant-modal";
 import { AdminBuildReviewModal } from "./admin-build-review-modal";
+import { ProductDeliveryGraph } from "./product-delivery-graph";
 
 export type EngineeringHubProps = {
   projectId: string;
@@ -50,6 +51,7 @@ export type EngineeringHubProps = {
 
 export type EngineeringTab =
   | "overview"
+  | "product-graph"
   | "reviews"
   | "map"
   | "frontend"
@@ -250,6 +252,7 @@ export function EngineeringHub({
       <div className="flex items-center gap-1 border-b border-[var(--bos-border-subtle)] overflow-x-auto pb-1">
         {[
           { id: "overview", label: "Blueprint Spec", icon: Layers },
+          { id: "product-graph", label: "Product Graph", icon: GitBranch },
           { id: "reviews", label: `Build Reviews (${reviews.length})`, icon: Sparkles },
           { id: "map", label: "Capability Map", icon: GitBranch },
           { id: "frontend", label: `Frontend (${blueprint?.frontendCapabilities?.length || 0})`, icon: Globe },
@@ -303,6 +306,13 @@ export function EngineeringHub({
               onGenerate={handleGenerateBlueprint}
               onSelectNode={(node) => setSelectedNode(node)}
             />
+          )}
+
+          {/* TAB 0: PRODUCT GRAPH */}
+          {tab === "product-graph" && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              <ProductDeliveryGraph projectId={projectId} />
+            </div>
           )}
 
           {/* TAB 1B: BUILD REVIEWS & VERIFICATION */}

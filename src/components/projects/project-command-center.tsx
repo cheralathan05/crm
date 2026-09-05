@@ -1,5 +1,6 @@
-import { AdminProjectTeamView } from "./admin-project-team-view";
 "use client";
+
+import { AdminProjectTeamView } from "./admin-project-team-view";
 
 import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";

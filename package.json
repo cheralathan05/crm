@@ -2,15 +2,24 @@
   "name": "mainproject",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "frontend",
+    "backend"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
+    "dev": "npm run dev --workspace=@mainproject/frontend",
+    "dev:frontend": "npm run dev --workspace=@mainproject/frontend",
+    "dev:backend": "npm run dev --workspace=@mainproject/backend",
+    "build": "npm run build --workspace=@mainproject/frontend",
+    "db:generate": "npm run generate --workspace=@mainproject/backend",
+    "db:push": "npm run db:push --workspace=@mainproject/backend",
+    "test:settings": "npm run test:settings --workspace=@mainproject/backend",
     "lint": "eslint"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.1",
     "@prisma/client": "^7.9.1",
+    "@types/qrcode": "^1.5.6",
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.0.3",
     "class-variance-authority": "^0.7.1",
@@ -23,6 +32,7 @@
     "nodemailer": "^8.0.11",
     "pdf-lib": "^1.17.1",
     "pdfmake": "^0.3.11",
+    "qrcode": "^1.5.4",
     "resend": "^6.19.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"

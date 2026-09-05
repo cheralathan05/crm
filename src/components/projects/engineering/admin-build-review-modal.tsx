@@ -473,9 +473,30 @@ export function AdminBuildReviewModal({
                   </div>
 
                   {selectedProof.evidenceUrl && (
-                    <div className="p-3.5 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] flex items-center justify-between font-mono text-xs">
-                      <span className="text-[var(--bos-text-secondary)]">External Reference / URL:</span>
-                      <span className="text-blue-400 truncate max-w-xs">{selectedProof.evidenceUrl}</span>
+                    <div className="p-3.5 rounded-2xl bg-[var(--bos-surface-panel)] border border-[var(--bos-border)] space-y-2 font-mono text-xs">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[var(--bos-text-secondary)]">Proof Attachment / URL:</span>
+                        <a
+                          href={selectedProof.evidenceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-blue-400 hover:underline truncate max-w-xs flex items-center gap-1"
+                        >
+                          <span className="truncate">{selectedProof.evidenceUrl}</span>
+                          <ExternalLink className="w-3 h-3 shrink-0" />
+                        </a>
+                      </div>
+                      {(selectedProof.type === "SCREENSHOT" ||
+                        selectedProof.evidenceUrl.match(/\.(png|jpg|jpeg|webp|gif|svg)($|\?)/i) ||
+                        selectedProof.evidenceUrl.includes("/api/tasks/proofs/")) && (
+                        <div className="rounded-xl overflow-hidden border border-[var(--bos-border)] bg-black/40 max-h-72 flex items-center justify-center p-1">
+                          <img
+                            src={selectedProof.evidenceUrl}
+                            alt="Attached Proof"
+                            className="max-h-68 w-auto object-contain rounded-lg"
+                          />
+                        </div>
+                      )}
                     </div>
                   )}
 

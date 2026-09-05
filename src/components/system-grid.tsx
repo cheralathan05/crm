@@ -2,12 +2,17 @@
 
 import { useEffect, useRef } from "react";
 
+export interface SystemGridProps {
+  showMarkers?: boolean;
+}
+
 /**
  * Architectural system grid background.
  *
- * Renders the structural grid pattern with accent lines and section markers.
+ * Renders the structural grid pattern with accent lines.
+ * Markers are disabled by default to prevent overlapping page typography.
  */
-export function SystemGrid() {
+export function SystemGrid({ showMarkers = false }: SystemGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,49 +55,35 @@ export function SystemGrid() {
         style={{ top: "75%", opacity: 0.08 }}
       />
 
-      {/* Section coordinate markers */}
-      <div
-        className="section-number"
-        style={{
-          position: "absolute",
-          top: 32,
-          left: 32,
-        }}
-      >
-        <span className="opacity-30">—</span> 01 / ACCESS
-      </div>
-      <div
-        className="section-number"
-        style={{
-          position: "absolute",
-          top: 32,
-          right: 32,
-          textAlign: "right",
-        }}
-      >
-        ENTER YOUR OS <span className="opacity-30">—</span>
-      </div>
-      <div
-        className="section-number"
-        style={{
-          position: "absolute",
-          bottom: 32,
-          left: 32,
-        }}
-      >
-        <span className="opacity-30">—</span> BUSINESS OPERATING SYSTEM
-      </div>
-      <div
-        className="section-number"
-        style={{
-          position: "absolute",
-          bottom: 32,
-          right: 32,
-          textAlign: "right",
-        }}
-      >
-        SECURE WORKSPACE <span className="opacity-30">—</span>
-      </div>
+      {/* Section coordinate markers — only rendered if explicitly requested */}
+      {showMarkers && (
+        <>
+          <div
+            className="section-number opacity-40 select-none"
+            style={{ position: "absolute", top: 24, left: 24 }}
+          >
+            <span className="opacity-30">—</span> SYS.01
+          </div>
+          <div
+            className="section-number opacity-40 select-none"
+            style={{ position: "absolute", top: 24, right: 24, textAlign: "right" }}
+          >
+            SYS.02 <span className="opacity-30">—</span>
+          </div>
+          <div
+            className="section-number opacity-40 select-none"
+            style={{ position: "absolute", bottom: 24, left: 24 }}
+          >
+            <span className="opacity-30">—</span> SYS.03
+          </div>
+          <div
+            className="section-number opacity-40 select-none"
+            style={{ position: "absolute", bottom: 24, right: 24, textAlign: "right" }}
+          >
+            SYS.04 <span className="opacity-30">—</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }

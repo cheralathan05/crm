@@ -24,42 +24,44 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       <AmbientBackground />
 
       {/* ── Desktop Brand Zone ───────────────────────── */}
-      <div className="hidden lg:flex lg:w-[55%] xl:w-[58%] flex-col justify-between p-10 xl:p-14 relative z-10 border-r border-[var(--bos-line)]">
+      <div className="hidden lg:flex lg:w-[55%] xl:w-[58%] flex-col justify-between p-8 xl:p-12 relative z-10 border-r border-[var(--bos-line)] overflow-y-auto">
         {/* Top */}
-        <div>
+        <div className="shrink-0 mb-6">
           <BusinessOSLogo size="lg" showTagline />
         </div>
 
         {/* Center — editorial statement + system visualization */}
-        <div className="flex-1 flex flex-col justify-center -mt-16">
+        <div className="flex-1 flex flex-col justify-center my-4">
           <div className="max-w-md">
-            <div className="section-number mb-6">
+            <div className="section-number mb-4">
               <span className="opacity-30">—</span> ENTER YOUR OS
             </div>
-            <h2 className="text-[44px] xl:text-[52px] font-semibold tracking-tight leading-[1.05] text-[var(--bos-text-primary)]">
+            <h2 className="text-[36px] xl:text-[44px] font-semibold tracking-tight leading-[1.08] text-[var(--bos-text-primary)]">
               BUSINESS
               <br />
               OPERATIONS
             </h2>
-            <div className="flex items-center gap-3 mt-3 mb-8">
+            <div className="flex items-center gap-3 mt-3 mb-6">
               <div className="h-px flex-1 max-w-[80px] bg-[var(--bos-accent)]" />
-              <span className="text-[15px] font-medium text-[var(--bos-text-secondary)] tracking-wide">
+              <span className="text-[14px] font-medium text-[var(--bos-text-secondary)] tracking-wide">
                 CONNECTED.
               </span>
             </div>
-            <p className="text-sm text-[var(--bos-text-secondary)] leading-relaxed max-w-xs">
+            <p className="text-sm text-[var(--bos-text-secondary)] leading-relaxed max-w-sm">
               A structured environment for managing clients, requirements, projects, and delivery.
             </p>
           </div>
 
           {/* System flow visualization */}
-          <div className="mt-12">
+          <div className="mt-8">
             <SystemFlow />
           </div>
         </div>
 
         {/* Bottom */}
-        <SystemFooter />
+        <div className="shrink-0 pt-6">
+          <SystemFooter />
+        </div>
       </div>
 
       {/* ── Auth Panel ──────────────────────────────── */}

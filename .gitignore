@@ -1,13 +1,29 @@
-node_modules
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
 
+# Next.js build outputs
 .next/
+out/
+build/
+dist/
 
-.next/
+# Local databases and backups
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.bak*
+backup_pre_separation/
 
-.next/
+# Local environment files
+.env*.local
 
+# TypeScript cache
 tsconfig.tsbuildinfo
+*.tsbuildinfo
 
-.next/
-
-tsconfig.tsbuildinfo
+# Uploads & local generated media
+uploads/
+*.pdf

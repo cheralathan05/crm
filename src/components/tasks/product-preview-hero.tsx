@@ -314,7 +314,7 @@ export function ProductPreviewHero({
                 <Loader2 className="w-8 h-8 animate-spin text-[var(--bos-accent)]" />
                 <div className="space-y-1">
                   <p className="text-xs font-mono font-bold text-[var(--bos-text-primary)]">
-                    Generating Realistic Product UI Mockup...
+                    Generating Realistic Product UI Preview...
                   </p>
                   <p className="text-[11px] text-[var(--bos-text-muted)] font-mono">
                     Calling Cloudflare Workers AI with live project context & schema

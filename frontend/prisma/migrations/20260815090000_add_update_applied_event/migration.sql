@@ -1,0 +1,4 @@
+-- Add UPDATE_APPLIED to RequirementEventType.
+-- The RequirementEvent.type column is TEXT without a CHECK constraint
+-- (created before enums were applied), so no table change is needed —
+-- this migration records the schema change for Prisma's history.

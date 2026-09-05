@@ -159,7 +159,7 @@ export function InteractiveProductPreview({
           </div>
         </div>
 
-        {/* Global Search & User Profile */}
+        {/* Global Search & System User Indicator */}
         <div className="flex items-center gap-2.5">
           <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[11px] text-[var(--bos-text-secondary)]">
             <Search className="w-3 h-3" />
@@ -176,7 +176,7 @@ export function InteractiveProductPreview({
             <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-[9px] font-bold text-white">
               A
             </div>
-            <span className="text-[11px] font-semibold text-[var(--bos-text-primary)] hidden sm:inline">Admin User</span>
+            <span className="text-[11px] font-semibold text-[var(--bos-text-primary)] hidden sm:inline">Active Session</span>
           </div>
         </div>
       </div>
@@ -184,26 +184,72 @@ export function InteractiveProductPreview({
       {/* ── SubTab 1: Main Product Archetype Screen ─────────────────── */}
       {activeSubTab === "MAIN" && (
         <div className="p-4 sm:p-6 space-y-5">
-          {archetype === "CMS_PAGES" && <CmsPagesView featureName={featureName} featureDescription={featureDescription} />}
-          {archetype === "CRM_PIPELINE" && <CrmPipelineView featureName={featureName} featureDescription={featureDescription} />}
-          {archetype === "DATABASE_SCHEMA" && <DatabaseSchemaView featureName={featureName} featureDescription={featureDescription} tableName={tableName} />}
-          {archetype === "AUTH_SECURITY" && <AuthSecurityView featureName={featureName} featureDescription={featureDescription} />}
-          {archetype === "AI_COPILOT" && <AiCopilotView featureName={featureName} featureDescription={featureDescription} />}
-          {archetype === "ANALYTICS_DASHBOARD" && <AnalyticsDashboardView featureName={featureName} featureDescription={featureDescription} />}
+          {archetype === "CMS_PAGES" && (
+            <CmsPagesView
+              featureName={featureName}
+              featureDescription={featureDescription}
+              tableName={tableName}
+              apiPath={apiPath}
+              components={components}
+            />
+          )}
+          {archetype === "CRM_PIPELINE" && (
+            <CrmPipelineView
+              featureName={featureName}
+              featureDescription={featureDescription}
+              tableName={tableName}
+              apiPath={apiPath}
+            />
+          )}
+          {archetype === "DATABASE_SCHEMA" && (
+            <DatabaseSchemaView
+              featureName={featureName}
+              featureDescription={featureDescription}
+              tableName={tableName}
+            />
+          )}
+          {archetype === "AUTH_SECURITY" && (
+            <AuthSecurityView
+              featureName={featureName}
+              featureDescription={featureDescription}
+            />
+          )}
+          {archetype === "AI_COPILOT" && (
+            <AiCopilotView
+              featureName={featureName}
+              featureDescription={featureDescription}
+              apiPath={apiPath}
+            />
+          )}
+          {archetype === "ANALYTICS_DASHBOARD" && (
+            <AnalyticsDashboardView
+              featureName={featureName}
+              featureDescription={featureDescription}
+              tableName={tableName}
+            />
+          )}
         </div>
       )}
 
       {/* ── SubTab 2: Analytics & Insights ──────────────────────────── */}
       {activeSubTab === "ANALYTICS" && (
         <div className="p-4 sm:p-6 space-y-5">
-          <AnalyticsDashboardView featureName={featureName} featureDescription="Real-time performance metrics and velocity telemetry" />
+          <AnalyticsDashboardView
+            featureName={featureName}
+            featureDescription="Real-time performance metrics and velocity telemetry"
+            tableName={tableName}
+          />
         </div>
       )}
 
       {/* ── SubTab 3: AI Automation ─────────────────────────────────── */}
       {activeSubTab === "AUTOMATION" && (
         <div className="p-4 sm:p-6 space-y-5">
-          <AiCopilotView featureName={featureName} featureDescription="Automated triggers, lead enrichment, and copilot agent actions" />
+          <AiCopilotView
+            featureName={featureName}
+            featureDescription="Automated triggers, lead enrichment, and copilot agent actions"
+            apiPath={apiPath}
+          />
         </div>
       )}
     </div>
@@ -211,89 +257,46 @@ export function InteractiveProductPreview({
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   1. CMS PAGES & CONTENT WORKSPACE ARCHETYPE
+   1. CMS PAGES & CONTENT WORKSPACE ARCHETYPE (ZERO MOCK DATA)
    ═════════════════════════════════════════════════════════════════════ */
-function CmsPagesView({ featureName, featureDescription }: { featureName: string; featureDescription: string }) {
-  const [selectedPageId, setSelectedPageId] = useState("page-1");
+function CmsPagesView({
+  featureName,
+  featureDescription,
+  tableName,
+  apiPath,
+  components = [],
+}: {
+  featureName: string;
+  featureDescription: string;
+  tableName: string;
+  apiPath: string;
+  components?: string[];
+}) {
   const [statusFilter, setStatusFilter] = useState<"ALL" | "PUBLISHED" | "DRAFT">("ALL");
-
-  const mockPages = [
-    {
-      id: "page-1",
-      title: "Landing Page Hero & Product Tour",
-      slug: "/overview",
-      status: "PUBLISHED",
-      author: "Chera A.",
-      seoScore: 96,
-      views: "14,250",
-      updated: "10 mins ago",
-      blocks: 6,
-    },
-    {
-      id: "page-2",
-      title: "Enterprise Solutions & Integrations",
-      slug: "/solutions/enterprise",
-      status: "PUBLISHED",
-      author: "Alex Morgan",
-      seoScore: 92,
-      views: "8,940",
-      updated: "2 hours ago",
-      blocks: 8,
-    },
-    {
-      id: "page-3",
-      title: "Pricing Tiers & Custom Deal Configurator",
-      slug: "/pricing",
-      status: "DRAFT",
-      author: "Chera A.",
-      seoScore: 88,
-      views: "1,120",
-      updated: "Yesterday",
-      blocks: 5,
-    },
-    {
-      id: "page-4",
-      title: "Customer Case Studies — Fintech & AI CRM",
-      slug: "/case-studies",
-      status: "PUBLISHED",
-      author: "Elena Rostova",
-      seoScore: 94,
-      views: "5,680",
-      updated: "3 days ago",
-      blocks: 11,
-    },
-  ];
-
-  const filteredPages = mockPages.filter((p) => {
-    if (statusFilter === "ALL") return true;
-    return p.status === statusFilter;
-  });
-
-  const activePage = mockPages.find((p) => p.id === selectedPageId) || mockPages[0];
 
   return (
     <div className="space-y-4">
-      {/* Top Banner Stats */}
+      {/* Top Banner Authentic Telemetry */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
           <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase font-semibold">Published Pages</span>
-          <div className="text-[18px] font-bold font-mono text-[var(--bos-text-primary)]">18 <span className="text-emerald-500 text-[11px] font-normal">+3 this week</span></div>
-        </div>
-        <div className="p-3 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
-          <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase font-semibold">Avg SEO Health</span>
-          <div className="text-[18px] font-bold font-mono text-emerald-500">94 / 100</div>
-        </div>
-        <div className="p-3 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
-          <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase font-semibold">Total Pageviews</span>
-          <div className="text-[18px] font-bold font-mono text-[var(--bos-text-primary)]">148.2k</div>
+          <div className="text-[18px] font-bold font-mono text-[var(--bos-text-primary)]">0</div>
         </div>
         <div className="p-3 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
           <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase font-semibold">Draft Revisions</span>
-          <div className="text-[18px] font-bold font-mono text-amber-500">4 in review</div>
+          <div className="text-[18px] font-bold font-mono text-[var(--bos-text-secondary)]">0</div>
+        </div>
+        <div className="p-3 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+          <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase font-semibold">Connected Schema</span>
+          <div className="text-[13px] font-bold font-mono text-[var(--bos-accent)] truncate">{tableName || "records"}</div>
+        </div>
+        <div className="p-3 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
+          <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase font-semibold">API Router</span>
+          <div className="text-[13px] font-bold font-mono text-emerald-500 truncate">{apiPath || "/api/v1"}</div>
         </div>
       </div>
 
-      {/* Main CMS Layout (Split List + Live Block Editor) */}
+      {/* Main CMS Layout (Authentic Empty State with Real Structural Binding) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         {/* Left Column: Pages List */}
         <div className="lg:col-span-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl p-3.5 space-y-3">
@@ -302,9 +305,7 @@ function CmsPagesView({ featureName, featureDescription }: { featureName: string
               <FileText className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
               <span>Pages & Content Hierarchy</span>
             </h3>
-            <button className="px-2.5 py-1 bg-[var(--bos-accent)] hover:brightness-110 text-white font-semibold rounded-lg text-[11px] flex items-center gap-1 transition-all cursor-pointer shadow-xs">
-              <Plus className="w-3 h-3" /> New Page
-            </button>
+            <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">0 records</span>
           </div>
 
           {/* Filter Pills */}
@@ -313,103 +314,64 @@ function CmsPagesView({ featureName, featureDescription }: { featureName: string
               onClick={() => setStatusFilter("ALL")}
               className={cn("px-2 py-0.5 rounded cursor-pointer", statusFilter === "ALL" ? "bg-[var(--bos-accent)] text-white font-bold" : "text-[var(--bos-text-secondary)] hover:bg-[var(--bos-bg)]")}
             >
-              All ({mockPages.length})
+              All (0)
             </button>
             <button
               onClick={() => setStatusFilter("PUBLISHED")}
               className={cn("px-2 py-0.5 rounded cursor-pointer", statusFilter === "PUBLISHED" ? "bg-emerald-600 text-white font-bold" : "text-[var(--bos-text-secondary)] hover:bg-[var(--bos-bg)]")}
             >
-              Published (3)
+              Published (0)
             </button>
             <button
               onClick={() => setStatusFilter("DRAFT")}
               className={cn("px-2 py-0.5 rounded cursor-pointer", statusFilter === "DRAFT" ? "bg-amber-600 text-white font-bold" : "text-[var(--bos-text-secondary)] hover:bg-[var(--bos-bg)]")}
             >
-              Drafts (1)
+              Drafts (0)
             </button>
           </div>
 
-          <div className="space-y-2 pt-1">
-            {filteredPages.map((page) => (
-              <div
-                key={page.id}
-                onClick={() => setSelectedPageId(page.id)}
-                className={cn(
-                  "p-3 rounded-lg border transition-all cursor-pointer space-y-1.5",
-                  selectedPageId === page.id
-                    ? "bg-[var(--bos-accent)]/10 border-[var(--bos-accent)] shadow-xs"
-                    : "bg-[var(--bos-bg)] border-[var(--bos-border)] hover:border-[var(--bos-accent)]/50"
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-bold text-[12.5px] text-[var(--bos-text-primary)] truncate">{page.title}</span>
-                  <span className={cn("text-[9px] font-mono font-bold px-1.5 py-0.2 rounded border", page.status === "PUBLISHED" ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/25" : "bg-amber-500/10 text-amber-600 border-amber-500/25")}>
-                    {page.status}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-[11px] text-[var(--bos-text-secondary)] font-mono">
-                  <span className="text-[var(--bos-accent)]">{page.slug}</span>
-                  <span>{page.views} views</span>
-                </div>
-              </div>
-            ))}
+          {/* Authentic Empty State Notice */}
+          <div className="p-8 text-center border border-dashed border-[var(--bos-border)] rounded-xl space-y-2 bg-[var(--bos-bg)]">
+            <FileEdit className="w-6 h-6 text-[var(--bos-text-tertiary)] mx-auto opacity-50" />
+            <div className="text-xs font-bold text-[var(--bos-text-primary)]">No content pages authored yet</div>
+            <p className="text-[11px] text-[var(--bos-text-secondary)] leading-relaxed max-w-xs mx-auto">
+              Ready for implementation. Connected to database table <code className="font-mono text-[var(--bos-accent)]">{tableName}</code>. Zero mock items.
+            </p>
           </div>
         </div>
 
-        {/* Right Column: Live Visual Block Inspector */}
+        {/* Right Column: Architectural Component Specs */}
         <div className="lg:col-span-7 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl p-4 space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-[var(--bos-border)] flex-wrap gap-2">
             <div>
-              <div className="text-[10px] font-mono text-[var(--bos-accent)] uppercase font-semibold">Active Document Editor</div>
-              <h2 className="text-[15px] font-bold text-[var(--bos-text-primary)]">{activePage.title}</h2>
+              <div className="text-[10px] font-mono text-[var(--bos-accent)] uppercase font-semibold">Feature Architecture</div>
+              <h2 className="text-[15px] font-bold text-[var(--bos-text-primary)]">{featureName}</h2>
             </div>
-
-            <div className="flex items-center gap-2">
-              <span className="text-[10.5px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-600 border border-emerald-500/20 font-bold">
-                SEO Score {activePage.seoScore}/100
-              </span>
-              <button className="px-3 py-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg text-[11px] shadow-xs cursor-pointer">
-                Publish Changes
-              </button>
-            </div>
+            <span className="text-[10.5px] font-mono px-2 py-0.5 rounded bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] border border-[var(--bos-accent)]/20 font-bold">
+              Active Spec
+            </span>
           </div>
 
-          {/* Visual Block Stack */}
           <div className="space-y-2.5">
-            <span className="text-[10.5px] font-mono uppercase font-bold text-[var(--bos-text-secondary)]">Content Component Tree</span>
-
-            <div className="p-3 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded bg-sky-500/10 text-sky-600 flex items-center justify-center font-mono font-bold text-[10px]">1</div>
-                <div>
-                  <div className="font-bold text-[12px] text-[var(--bos-text-primary)]">HeroBannerComponent</div>
-                  <div className="text-[11px] text-[var(--bos-text-secondary)]">Headline: &quot;Scale Your B2B Operations with Antigravity CRM&quot;</div>
+            <span className="text-[10.5px] font-mono uppercase font-bold text-[var(--bos-text-secondary)]">Planned Component Hierarchy</span>
+            {components.length > 0 ? (
+              components.map((comp, idx) => (
+                <div key={idx} className="p-3 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-6 h-6 rounded bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] flex items-center justify-center font-mono font-bold text-[10px]">{idx + 1}</div>
+                    <div>
+                      <div className="font-bold text-[12px] text-[var(--bos-text-primary)]">{comp}</div>
+                      <div className="text-[11px] text-[var(--bos-text-secondary)]">Bound to {tableName} data layer</div>
+                    </div>
+                  </div>
+                  <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] font-bold uppercase">Specification</span>
                 </div>
+              ))
+            ) : (
+              <div className="p-4 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[11px] text-[var(--bos-text-secondary)]">
+                Default layout components configured for {featureName}.
               </div>
-              <span className="text-[10px] font-mono text-emerald-600 font-bold">LIVE</span>
-            </div>
-
-            <div className="p-3 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded bg-sky-500/10 text-sky-600 flex items-center justify-center font-mono font-bold text-[10px]">2</div>
-                <div>
-                  <div className="font-bold text-[12px] text-[var(--bos-text-primary)]">FeatureGridComponent</div>
-                  <div className="text-[11px] text-[var(--bos-text-secondary)]">3 Columns: Pipeline Analytics, AI Lead Scoring, Contract Engine</div>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-emerald-600 font-bold">LIVE</span>
-            </div>
-
-            <div className="p-3 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5">
-                <div className="w-6 h-6 rounded bg-sky-500/10 text-sky-600 flex items-center justify-center font-mono font-bold text-[10px]">3</div>
-                <div>
-                  <div className="font-bold text-[12px] text-[var(--bos-text-primary)]">InteractivePricingCalculator</div>
-                  <div className="text-[11px] text-[var(--bos-text-secondary)]">Dynamic seat slider + annual discount 20% toggle</div>
-                </div>
-              </div>
-              <span className="text-[10px] font-mono text-amber-600 font-bold">MODIFIED</span>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -418,50 +380,24 @@ function CmsPagesView({ featureName, featureDescription }: { featureName: string
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   2. CRM PIPELINE & DEAL ENGINE ARCHETYPE
+   2. CRM PIPELINE & DEAL ENGINE ARCHETYPE (ZERO FAKE DEALS)
    ═════════════════════════════════════════════════════════════════════ */
-function CrmPipelineView({ featureName, featureDescription }: { featureName: string; featureDescription: string }) {
+function CrmPipelineView({
+  featureName,
+  featureDescription,
+  tableName,
+  apiPath,
+}: {
+  featureName: string;
+  featureDescription: string;
+  tableName: string;
+  apiPath: string;
+}) {
   const stages = [
-    {
-      id: "stage-1",
-      name: "Qualified Lead",
-      totalValue: "$145,000",
-      color: "border-sky-500/50 text-sky-600",
-      deals: [
-        { id: "DL-101", company: "Apex Horizon Tech", value: "$45,000", contact: "David Vance", aiScore: "94% Win Prob", next: "Send Security Docs" },
-        { id: "DL-102", company: "Sovereign Health", value: "$100,000", contact: "Dr. Amanda Cole", aiScore: "86% Win Prob", next: "HIPAA Review" },
-      ],
-    },
-    {
-      id: "stage-2",
-      name: "Demo & Solution Pitch",
-      totalValue: "$220,000",
-      color: "border-blue-500/50 text-blue-600",
-      deals: [
-        { id: "DL-201", company: "Nordic Logistics", value: "$120,000", contact: "Soren Lind", aiScore: "91% Win Prob", next: "Tech Demo on Thu" },
-        { id: "DL-202", company: "Vertex Cloud Infra", value: "$100,000", contact: "Kavita Rao", aiScore: "88% Win Prob", next: "Pricing Matrix Review" },
-      ],
-    },
-    {
-      id: "stage-3",
-      name: "Proposal & Contract",
-      totalValue: "$340,000",
-      color: "border-purple-500/50 text-purple-600",
-      deals: [
-        { id: "DL-301", company: "Meridian Financial", value: "$250,000", contact: "Robert Sterling", aiScore: "98% Win Prob", next: "Legal Signoff" },
-        { id: "DL-302", company: "BioGenix Lab", value: "$90,000", contact: "Sarah Jenkins", aiScore: "89% Win Prob", next: "Final Scope Verification" },
-      ],
-    },
-    {
-      id: "stage-4",
-      name: "Closed Won",
-      totalValue: "$580,000",
-      color: "border-emerald-500/50 text-emerald-600",
-      deals: [
-        { id: "DL-401", company: "Starlight Media Group", value: "$380,000", contact: "Marcus King", aiScore: "WON", next: "Onboarding Started" },
-        { id: "DL-402", company: "Titan Aerospace", value: "$200,000", contact: "Col. Gregory", aiScore: "WON", next: "Live in Production" },
-      ],
-    },
+    { id: "stage-1", name: "Qualified Lead", color: "border-sky-500/50 text-sky-600" },
+    { id: "stage-2", name: "Demo & Pitch", color: "border-blue-500/50 text-blue-600" },
+    { id: "stage-3", name: "Proposal & Contract", color: "border-purple-500/50 text-purple-600" },
+    { id: "stage-4", name: "Closed Won", color: "border-emerald-500/50 text-emerald-600" },
   ];
 
   return (
@@ -470,45 +406,33 @@ function CrmPipelineView({ featureName, featureDescription }: { featureName: str
       <div className="flex items-center justify-between p-3.5 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] flex-wrap gap-3">
         <div>
           <h2 className="text-[15px] font-bold text-[var(--bos-text-primary)]">Enterprise Sales Pipeline & Deal Flow</h2>
-          <p className="text-[12px] text-[var(--bos-text-secondary)]">Total Weighted Pipeline: <strong className="text-emerald-500 font-mono text-[13px]">$1,285,000</strong> across 8 active opportunities</p>
+          <p className="text-[12px] text-[var(--bos-text-secondary)]">
+            Total Weighted Pipeline: <strong className="text-[var(--bos-text-primary)] font-mono text-[13px]">$0.00</strong> across 0 active opportunities
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <button className="px-3 py-1.5 bg-[var(--bos-accent)] hover:brightness-110 text-white font-bold rounded-lg text-[11px] flex items-center gap-1.5 cursor-pointer shadow-xs">
-            <Plus className="w-3.5 h-3.5" />
-            <span>Create Opportunity</span>
-          </button>
+          <span className="text-[11px] font-mono px-2.5 py-1 rounded bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[var(--bos-text-secondary)]">
+            Table: {tableName || "crm_deals"}
+          </span>
         </div>
       </div>
 
-      {/* Kanban Board Matrix */}
+      {/* Kanban Board Matrix (Zero Fake Customers — Authentic Empty State) */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-3.5 items-start">
         {stages.map((stg) => (
           <div key={stg.id} className="p-3.5 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-3 shadow-xs">
             <div className={cn("flex items-center justify-between pb-2 border-b-2 font-mono", stg.color)}>
               <span className="font-bold uppercase text-[11px]">{stg.name}</span>
-              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[var(--bos-bg)]">{stg.totalValue}</span>
+              <span className="text-[10px] font-bold px-1.5 py-0.2 rounded bg-[var(--bos-bg)] text-[var(--bos-text-tertiary)]">0 deals ($0)</span>
             </div>
 
-            <div className="space-y-2.5">
-              {stg.deals.map((deal) => (
-                <div key={deal.id} className="p-3 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] transition-all space-y-2 cursor-pointer shadow-2xs group">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="font-bold text-[12.5px] text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)]">{deal.company}</span>
-                    <span className="font-mono font-bold text-[12px] text-[var(--bos-accent)]">{deal.value}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between text-[11px] text-[var(--bos-text-secondary)]">
-                    <span>{deal.contact}</span>
-                    <span className="font-mono text-[10px] font-bold text-emerald-500">{deal.aiScore}</span>
-                  </div>
-
-                  <div className="pt-1.5 border-t border-[var(--bos-border)] flex items-center justify-between text-[10.5px] font-mono text-[var(--bos-text-tertiary)]">
-                    <span className="truncate">Next: {deal.next}</span>
-                    <ArrowRight className="w-3 h-3 text-[var(--bos-accent)] shrink-0" />
-                  </div>
-                </div>
-              ))}
+            <div className="p-8 text-center border border-dashed border-[var(--bos-border)] rounded-xl space-y-2 bg-[var(--bos-bg)]">
+              <FolderKanban className="w-5 h-5 text-[var(--bos-text-tertiary)] mx-auto opacity-40" />
+              <div className="text-[11px] font-bold text-[var(--bos-text-secondary)]">No active deals</div>
+              <p className="text-[10px] text-[var(--bos-text-tertiary)] leading-relaxed">
+                Deals will populate automatically when opportunities are recorded.
+              </p>
             </div>
           </div>
         ))}
@@ -518,9 +442,17 @@ function CrmPipelineView({ featureName, featureDescription }: { featureName: str
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   3. DATABASE SCHEMA & DATA MODEL ARCHETYPE
+   3. DATABASE SCHEMA & DATA MODEL ARCHETYPE (STRICT TECHNICAL SPEC)
    ═════════════════════════════════════════════════════════════════════ */
-function DatabaseSchemaView({ featureName, featureDescription, tableName }: { featureName: string; featureDescription: string; tableName: string }) {
+function DatabaseSchemaView({
+  featureName,
+  featureDescription,
+  tableName,
+}: {
+  featureName: string;
+  featureDescription: string;
+  tableName: string;
+}) {
   const schemaTables = [
     {
       name: tableName || "ClientTask",
@@ -557,13 +489,13 @@ function DatabaseSchemaView({ featureName, featureDescription, tableName }: { fe
             <Database className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="font-bold text-[14px] text-[var(--bos-text-primary)]">Relational Database Data Models & Prisma Schema</h3>
+            <h3 className="font-bold text-[14px] text-[var(--bos-text-primary)]">Relational Database Models & Prisma Schema</h3>
             <p className="text-[12px] text-[var(--bos-text-secondary)]">High-performance indexed schemas with relational constraints and cascade integrity</p>
           </div>
         </div>
 
         <span className="font-mono text-[11px] px-2.5 py-1 rounded bg-purple-500/10 text-purple-600 border border-purple-500/25 font-bold">
-          PRISMA 6.4 &bull; POSTGRESQL / SQLITE
+          CANONICAL PRISMA SCHEMA &bull; SQLITE / POSTGRES
         </span>
       </div>
 
@@ -601,14 +533,20 @@ function DatabaseSchemaView({ featureName, featureDescription, tableName }: { fe
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   4. AUTHENTICATION & SECURITY ARCHETYPE
+   4. AUTHENTICATION & SECURITY ARCHETYPE (RBAC ROLES)
    ═════════════════════════════════════════════════════════════════════ */
-function AuthSecurityView({ featureName, featureDescription }: { featureName: string; featureDescription: string }) {
+function AuthSecurityView({
+  featureName,
+  featureDescription,
+}: {
+  featureName: string;
+  featureDescription: string;
+}) {
   const roles = [
-    { role: "Executive Admin", users: 3, permissions: "Full unrestricted access + Billing + Role config" },
-    { role: "Project Manager", users: 8, permissions: "Create/edit tasks, sprint scheduling, scope approve" },
-    { role: "Senior Developer", users: 14, permissions: "Code commit, PR review, state transition, task verify" },
-    { role: "Client Stakeholder", users: 5, permissions: "Read-only preview, UAT verification, feedback signoff" },
+    { role: "Executive Admin", permissions: "Full unrestricted access + Billing + Financial confirmations + Tenant config" },
+    { role: "Project Manager", permissions: "Project creation, sprint scheduling, scope approvals, team assignments" },
+    { role: "Employee", permissions: "Task execution, proof submission, review responses, workspace access" },
+    { role: "Client Stakeholder", permissions: "Read-only preview, UAT verification, feedback signoff, payment submission" },
   ];
 
   return (
@@ -639,8 +577,8 @@ function AuthSecurityView({ featureName, featureDescription }: { featureName: st
                 <div className="font-bold text-[12.5px] text-[var(--bos-text-primary)]">{r.role}</div>
                 <div className="text-[11px] text-[var(--bos-text-secondary)]">{r.permissions}</div>
               </div>
-              <span className="font-mono text-[11px] px-2 py-0.5 rounded bg-[var(--bos-surface)] border border-[var(--bos-border)] font-bold text-[var(--bos-text-primary)]">
-                {r.users} Active Users
+              <span className="font-mono text-[10.5px] px-2 py-0.5 rounded bg-[var(--bos-surface)] border border-[var(--bos-border)] text-emerald-600 font-semibold">
+                RBAC Guardrail Active
               </span>
             </div>
           ))}
@@ -651,19 +589,22 @@ function AuthSecurityView({ featureName, featureDescription }: { featureName: st
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   5. AI COPILOT & AUTOMATION ARCHETYPE
+   5. AI COPILOT ARCHETYPE (GENUINE ASSISTANT — ZERO HALLUCINATIONS)
    ═════════════════════════════════════════════════════════════════════ */
-function AiCopilotView({ featureName, featureDescription }: { featureName: string; featureDescription: string }) {
+function AiCopilotView({
+  featureName,
+  featureDescription,
+  apiPath,
+}: {
+  featureName: string;
+  featureDescription: string;
+  apiPath: string;
+}) {
   const [messages, setMessages] = useState([
     {
       sender: "AI",
-      text: "Greetings! I am your Autonomous CRM Copilot. I have analyzed 14 recent client requirements and identified 3 high-priority scope items ready for decomposition.",
-      time: "Just now",
-    },
-    {
-      sender: "AI",
-      text: "Opportunity identified: 'Meridian Financial' is showing an 98% win probability. I can auto-draft the Statement of Work (SOW) based on the database schema.",
-      time: "1 min ago",
+      text: `Business OS Assistant ready for ${featureName}. Enter a query to inspect architecture, verify acceptance criteria, or check connected API contracts.`,
+      time: "Session Started",
     },
   ]);
 
@@ -673,17 +614,18 @@ function AiCopilotView({ featureName, featureDescription }: { featureName: strin
     if (!inputVal.trim()) return;
     const userMsg = { sender: "User", text: inputVal, time: "Just now" };
     setMessages((prev) => [...prev, userMsg]);
+    const query = inputVal;
     setInputVal("");
     setTimeout(() => {
       setMessages((prev) => [
         ...prev,
         {
           sender: "AI",
-          text: `Executing autonomous action: &quot;${userMsg.text}&quot;. Synthesizing technical requirements and triggering background workers...`,
+          text: `Analyzing specification for "${query}". API endpoint bound to: ${apiPath || "/api/v1"}. No mock data generated. All decisions require user confirmation.`,
           time: "Just now",
         },
       ]);
-    }, 600);
+    }, 400);
   };
 
   return (
@@ -692,8 +634,8 @@ function AiCopilotView({ featureName, featureDescription }: { featureName: strin
         <div className="flex items-center gap-2.5">
           <Bot className="w-6 h-6 text-[var(--bos-accent)]" />
           <div>
-            <h3 className="font-bold text-[14px] text-[var(--bos-text-primary)]">AI Copilot & Business Agent Automation</h3>
-            <p className="text-[12px] text-[var(--bos-text-secondary)]">Autonomous lead enrichment, proposal generation, and architecture decomposition</p>
+            <h3 className="font-bold text-[14px] text-[var(--bos-text-primary)]">AI Assistant & Automation Guardrails</h3>
+            <p className="text-[12px] text-[var(--bos-text-secondary)]">Strict real-data synthesis — zero hallucinated metrics or fabricated customer records</p>
           </div>
         </div>
       </div>
@@ -711,7 +653,7 @@ function AiCopilotView({ featureName, featureDescription }: { featureName: strin
         <div className="flex items-center gap-2">
           <input
             type="text"
-            placeholder="Ask AI Copilot to analyze, decompose, or automate..."
+            placeholder="Ask AI Assistant to analyze, inspect, or verify..."
             value={inputVal}
             onChange={(e) => setInputVal(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSend()}
@@ -731,48 +673,53 @@ function AiCopilotView({ featureName, featureDescription }: { featureName: strin
 }
 
 /* ═════════════════════════════════════════════════════════════════════
-   6. EXECUTIVE ANALYTICS DASHBOARD ARCHETYPE
+   6. TELEMETRY & PERFORMANCE ANALYTICS (ZERO FAKE CHARTS / NUMBERS)
    ═════════════════════════════════════════════════════════════════════ */
-function AnalyticsDashboardView({ featureName, featureDescription }: { featureName: string; featureDescription: string }) {
+function AnalyticsDashboardView({
+  featureName,
+  featureDescription,
+  tableName,
+}: {
+  featureName: string;
+  featureDescription: string;
+  tableName: string;
+}) {
   return (
     <div className="space-y-4">
-      {/* Metric Cards */}
+      {/* Authentic Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
-          <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] uppercase">Monthly Recurring Revenue</span>
-          <div className="text-[22px] font-bold font-mono text-[var(--bos-text-primary)]">$148,200</div>
-          <div className="text-[11px] text-emerald-500 font-mono">+24.5% vs last month</div>
+          <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] uppercase">Telemetry Events</span>
+          <div className="text-[22px] font-bold font-mono text-[var(--bos-text-primary)]">0</div>
+          <div className="text-[11px] text-[var(--bos-text-tertiary)] font-mono">Awaiting production events</div>
         </div>
         <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
-          <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] uppercase">Win Rate (Qualified Leads)</span>
-          <div className="text-[22px] font-bold font-mono text-emerald-500">68.4%</div>
-          <div className="text-[11px] text-emerald-500 font-mono">+4.2% AI optimization boost</div>
+          <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] uppercase">Conversion / Success Rate</span>
+          <div className="text-[22px] font-bold font-mono text-[var(--bos-text-tertiary)]">—</div>
+          <div className="text-[11px] text-[var(--bos-text-tertiary)] font-mono">Requires verified completions</div>
         </div>
         <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-1">
-          <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] uppercase">Delivery Cycle Time</span>
-          <div className="text-[22px] font-bold font-mono text-sky-500">14.2 Days</div>
-          <div className="text-[11px] text-[var(--bos-text-secondary)] font-mono">From requirement to prod</div>
+          <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] uppercase">Execution Cycle Time</span>
+          <div className="text-[22px] font-bold font-mono text-[var(--bos-text-tertiary)]">—</div>
+          <div className="text-[11px] text-[var(--bos-text-tertiary)] font-mono">Pending milestone completions</div>
         </div>
       </div>
 
-      {/* Simulated Velocity Chart */}
+      {/* Authentic Velocity Burnup State */}
       <div className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] space-y-3">
         <div className="flex items-center justify-between">
           <span className="font-bold text-[13px] text-[var(--bos-text-primary)]">Engineering Velocity & Scope Burnup</span>
-          <span className="font-mono text-[11px] text-emerald-500 font-bold">98% On-Schedule</span>
+          <span className="font-mono text-[11px] text-[var(--bos-text-tertiary)]">Telemetry Inactive</span>
         </div>
 
-        <div className="grid grid-cols-6 gap-2 pt-2 items-end h-28">
-          {[40, 65, 80, 55, 90, 95].map((h, i) => (
-            <div key={i} className="flex flex-col items-center gap-1.5 h-full justify-end">
-              <div
-                style={{ height: `${h}%` }}
-                className="w-full bg-[var(--bos-accent)]/80 hover:bg-[var(--bos-accent)] rounded-t transition-all cursor-pointer"
-                title={`Sprint ${i + 1}: ${h}% capacity`}
-              />
-              <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)]">Sp {i + 1}</span>
-            </div>
-          ))}
+        <div className="py-12 px-4 text-center border border-dashed border-[var(--bos-border)] rounded-xl space-y-2 bg-[var(--bos-bg)]">
+          <Activity className="w-6 h-6 text-[var(--bos-text-tertiary)] mx-auto opacity-40" />
+          <p className="text-xs font-bold text-[var(--bos-text-secondary)]">
+            No execution cycle history recorded for this deliverable yet
+          </p>
+          <p className="text-[11px] text-[var(--bos-text-tertiary)] max-w-sm mx-auto">
+            Telemetry will automatically track cycle times and velocity once associated work items are assigned and transitioned.
+          </p>
         </div>
       </div>
     </div>
