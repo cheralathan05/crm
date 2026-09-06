@@ -9,6 +9,9 @@ import {
   updateJourneySteps,
   approveProjectUnderstanding,
   serializeDiscoverySession,
+  handleIDontKnowTurn,
+  handleDecideLaterTurn,
+  confirmContradictionRevision,
 } from "@/lib/discovery/discovery.service";
 import { db } from "@/lib/db";
 
@@ -121,6 +124,35 @@ export async function POST(req: Request, { params }: Ctx) {
         data: { mode },
       });
       const updated = await serializeDiscoverySession(sessionId);
+      return NextResponse.json({ ok: true, session: updated });
+    }
+
+    if (action === "I_DONT_KNOW") {
+      const currentQuestion = String(body.currentQuestion || "Current detail").trim();
+      const updated = await handleIDontKnowTurn({
+        sessionId,
+        currentQuestion,
+      });
+      return NextResponse.json({ ok: true, session: updated });
+    }
+
+    if (action === "DECIDE_LATER") {
+      const title = String(body.title || body.currentQuestion || "Deferred item").trim();
+      const reason = body.reason ? String(body.reason) : undefined;
+      const updated = await handleDecideLaterTurn({
+        sessionId,
+        title,
+        reason,
+      });
+      return NextResponse.json({ ok: true, session: updated });
+    }
+
+    if (action === "CONFIRM_CONTRADICTION") {
+      const contradictionId = String(body.contradictionId || "");
+      const updated = await confirmContradictionRevision({
+        sessionId,
+        contradictionId,
+      });
       return NextResponse.json({ ok: true, session: updated });
     }
 

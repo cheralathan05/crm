@@ -82,17 +82,22 @@ export async function getOrCreateDiscoverySession(requirementId: string): Promis
       });
     }
 
-    // Seed welcome greeting message from Business OS Consultant
+    // Seed welcome greeting message from Business OS Consultant (Rule 3)
     const welcomeData: StructuredMessageData = {
+      currentQuestion: {
+        question: "Tell me what you're trying to build, what problem you're trying to solve, and how you want your business to work after the solution is in place.",
+        contextWhy: "Starting in your own words ensures discovery adapts to your authentic business model, terminology, and operational reality without forcing generic templates.",
+      },
       quickReplies: [
-        "Online clothing / retail store",
-        "Client booking & appointment platform",
-        "B2B CRM & sales pipeline",
-        "SaaS / Member portal",
+        "Internal Operations & Workflow Platform",
+        "E-Commerce & Online Store",
+        "Client Booking & Appointment Platform",
+        "B2B CRM & Sales Pipeline",
+        "Other / I'll explain in my own words",
       ],
       whyWeAsk: {
         question: "Tell me what you're trying to build.",
-        rationale: "Understanding your business model and primary objective allows Business OS to dynamically tailor user journeys, features, and operational requirements.",
+        rationale: "Understanding your business model and primary objective in your own words allows Business OS to dynamically map user journeys, capabilities, and operational requirements.",
       },
     };
 
@@ -100,7 +105,7 @@ export async function getOrCreateDiscoverySession(requirementId: string): Promis
       data: {
         sessionId: session.id,
         role: "consultant",
-        content: `Welcome to Business OS Project Discovery Studio. Tell me about what you're trying to build and what problem you want to solve for your business. I'll help turn your explanation into a complete, structured project in real time.`,
+        content: `Welcome to Business OS Project Discovery Studio.\n\nTell me what you're trying to build, what problem you're trying to solve, and how you want your business to work after the solution is in place.\n\nYou can explain it in your own words. It doesn't need to be technical or perfectly organized.\n\nI'll help turn your explanation into a clear project definition.`,
         structuredData: JSON.stringify(welcomeData),
         modelUsed: "system-consultant",
       },
@@ -108,6 +113,112 @@ export async function getOrCreateDiscoverySession(requirementId: string): Promis
   }
 
   return serializeDiscoverySession(session.id);
+}
+
+/**
+ * Compute honest Discovery Coverage Matrix across 12 authentic project dimensions (Rule 36).
+ * Never displays fake progress or "X of 20 questions".
+ */
+export function computeDiscoveryCoverage(data: {
+  facts?: any[];
+  journeys?: any[];
+  capabilities?: any[];
+  businessRules?: any[];
+  scopeItems?: any[];
+}): import("./discovery.types").DiscoveryCoverageItem[] {
+  const facts = data.facts || [];
+  const capabilities = data.capabilities || [];
+  const journeys = data.journeys || [];
+  const rules = data.businessRules || [];
+  const scopeItems = data.scopeItems || [];
+
+  const hasBusiness = facts.some((f) => f.category === "BUSINESS_CONTEXT" || f.category === "BUSINESS_PROBLEM" || f.category === "OUTCOME");
+  const hasProblem = facts.some((f) => f.category === "BUSINESS_PROBLEM");
+  const hasGoal = facts.some((f) => f.category === "GOAL" || f.category === "OUTCOME");
+  const hasUsers = journeys.length > 0 || capabilities.some((c) => c.roleName && c.roleName !== "General");
+  const hasWorkflow = journeys.length > 0 || facts.some((f) => f.category === "PROCESS_CURRENT" || f.category === "PROCESS_FUTURE");
+  const hasRequirements = capabilities.length > 0;
+  const hasInformation = facts.some((f) => f.category === "INFORMATION_RECORD");
+  const hasRules = rules.length > 0;
+  const hasIntegrations = facts.some((f) => f.category === "INTEGRATION");
+  const hasExistingTools = facts.some((f) => f.category === "EXISTING_TOOL");
+  const hasScope = scopeItems.length > 0;
+  const hasSuccessCriteria = facts.some((f) => f.category === "SUCCESS_CRITERIA" || f.category === "OUTCOME");
+
+  return [
+    {
+      dimensionKey: "businessContext",
+      label: "Business Context",
+      status: hasBusiness ? "COMPLETE" : "IN_PROGRESS",
+      summary: hasBusiness ? "Business model and operational nature identified" : "Awaiting initial context",
+    },
+    {
+      dimensionKey: "problem",
+      label: "Business Problem",
+      status: hasProblem ? "COMPLETE" : "NOT_YET_DISCUSSED",
+      summary: hasProblem ? "Core operational pain point documented" : "Not yet clarified",
+    },
+    {
+      dimensionKey: "goals",
+      label: "Project Objectives & Desired Future",
+      status: hasGoal ? "COMPLETE" : "IN_PROGRESS",
+      summary: hasGoal ? "Target operational outcomes defined" : "Exploring target outcomes",
+    },
+    {
+      dimensionKey: "users",
+      label: "Target Users & Responsibilities",
+      status: hasUsers ? "COMPLETE" : "NEEDS_REVIEW",
+      summary: hasUsers ? `${journeys.length || 1} distinct user roles identified` : "Roles and permissions pending",
+    },
+    {
+      dimensionKey: "workflow",
+      label: "Current vs Desired Workflow",
+      status: hasWorkflow ? "COMPLETE" : "IN_PROGRESS",
+      summary: hasWorkflow ? "Key operational lifecycle stages mapped" : "Process stages pending",
+    },
+    {
+      dimensionKey: "requirements",
+      label: "Functional Capabilities",
+      status: hasRequirements ? "COMPLETE" : "NOT_YET_DISCUSSED",
+      summary: hasRequirements ? `${capabilities.length} capabilities structured` : "No specific capabilities confirmed yet",
+    },
+    {
+      dimensionKey: "information",
+      label: "Information & Records Managed",
+      status: hasInformation ? "COMPLETE" : "NEEDS_REVIEW",
+      summary: hasInformation ? "Core business entities mapped" : "Core data records pending",
+    },
+    {
+      dimensionKey: "businessRules",
+      label: "Business Rules & Logic",
+      status: hasRules ? "COMPLETE" : "IN_PROGRESS",
+      summary: hasRules ? `${rules.length} business rules documented` : "Approval gates and conditions pending",
+    },
+    {
+      dimensionKey: "tools",
+      label: "Existing Tools & Migration",
+      status: hasExistingTools ? "COMPLETE" : "NOT_YET_DISCUSSED",
+      summary: hasExistingTools ? "Current tools and data migration noted" : "Not yet discussed",
+    },
+    {
+      dimensionKey: "integrations",
+      label: "System Connections & APIs",
+      status: hasIntegrations ? "COMPLETE" : "NOT_APPLICABLE",
+      summary: hasIntegrations ? "External services identified" : "No external connections required yet",
+    },
+    {
+      dimensionKey: "scope",
+      label: "Scope Boundaries & Radar",
+      status: hasScope ? "COMPLETE" : "IN_PROGRESS",
+      summary: hasScope ? `${scopeItems.length} scope items categorized` : "Scope boundaries being established",
+    },
+    {
+      dimensionKey: "successCriteria",
+      label: "Success Criteria & Deliverables",
+      status: hasSuccessCriteria ? "COMPLETE" : "NEEDS_REVIEW",
+      summary: hasSuccessCriteria ? "Deliverables and success signs mapped" : "To be confirmed before final sign-off",
+    },
+  ];
 }
 
 /**
@@ -253,6 +364,62 @@ export async function serializeDiscoverySession(sessionId: string): Promise<Disc
       createdAt: rf.createdAt.toISOString(),
     })),
     traceability,
+    informationRecords: session.facts
+      .filter((f) => f.category === "INFORMATION_RECORD")
+      .map((f) => ({
+        id: f.id,
+        name: f.title,
+        description: f.description,
+        status: (f.status as "CONFIRMED" | "INFERRED") || "INFERRED",
+      })),
+    reportingVisibility: session.facts
+      .filter((f) => f.category === "REPORTING")
+      .map((f) => {
+        const parts = f.description.split(":");
+        return {
+          id: f.id,
+          audience: (parts[0] || "Management").trim(),
+          whatTheySee: f.title,
+          decisionSupported: parts.slice(1).join(":").trim() || undefined,
+        };
+      }),
+    existingTools: session.facts
+      .filter((f) => f.category === "EXISTING_TOOL")
+      .map((f) => ({
+        id: f.id,
+        toolName: f.title,
+        currentUse: f.description,
+        disposition: f.description.includes("KEEP") ? ("KEEP" as const) : ("REPLACE" as const),
+        migrationNeeded: f.description.toLowerCase().includes("migration") || f.description.toLowerCase().includes("excel"),
+      })),
+    systemConnections: session.facts
+      .filter((f) => f.category === "INTEGRATION")
+      .map((f) => {
+        const parts = f.description.split("->");
+        return {
+          id: f.id,
+          systemName: f.title,
+          reason: (parts[0] || f.description).trim(),
+          dataFlow: (parts[1] || "Bi-directional sync").trim(),
+        };
+      }),
+    contradictions: session.facts
+      .filter((f) => f.category === "CONTRADICTION")
+      .map((f) => ({
+        id: f.id,
+        topic: f.title,
+        previousUnderstanding: f.description.split("||")[0]?.replace("Previous:", "").trim() || "Earlier statement",
+        newUnderstanding: f.description.split("||")[1]?.replace("New:", "").trim() || "Current statement",
+        whatChanged: f.description.split("||")[2]?.replace("Changed:", "").trim() || f.title,
+        status: (f.status === "CONFIRMED" ? "CONFIRMED" : "DETECTED") as "CONFIRMED" | "DETECTED",
+      })),
+    coverage: computeDiscoveryCoverage({
+      facts: session.facts,
+      journeys: session.journeys,
+      capabilities: session.capabilities,
+      businessRules: session.businessRules,
+      scopeItems: session.scopeItems,
+    }),
     health: {
       status: session.healthStatus as any,
       score: session.readinessScore,
@@ -356,50 +523,86 @@ export async function processConsultantTurn(params: {
   };
 
   const systemPrompt = `You are Business OS Intelligent Project Consultant.
-You do NOT act like a generic chatbot or ask questionnaire forms.
-You act like an elite technology & business consultant who understands what the client is building, models the system in real time, and asks ONLY the single highest-value question needed to structure their project.
+This is a real business product, NOT a chatbot demo, questionnaire, form wizard, or generic prompt.
+You behave like an elite senior consultant sitting with a real client to understand exactly what they want to build.
 
-The client just said: "${effectiveInput}".
+Adhere strictly to the 58 Master Rules of Project Discovery Studio:
+1. DO NOT MAKE THIS A QUESTIONNAIRE. Never run a rote list of questions. Every question must have a clear purpose, be connected to what the client said, and define the actual project.
+2. UNDERSTAND BEFORE ASKING. Analyze what is confirmed, what is partially understood, what is unclear, what is missing, what can safely remain unknown.
+3. NEVER ASK FOR INFORMATION THE CLIENT ALREADY PROVIDED. Remember everything the client stated.
+4. NEVER ASSUME THE BUSINESS. Adapt to ANY legitimate business (retail, healthcare, education, construction, SaaS, agency, logistics, internal operations, etc.). Never introduce unrelated concepts (e.g. do not ask about inventory if they want a CRM).
+5. ASK EXACTLY ONE GOOD QUESTION AT A TIME in simple, non-technical business language.
+6. EXPLAIN WHY YOU ARE ASKING. Always explain how this question impacts the real project architecture, scope, or operations.
+7. PROVIDE 3-4 SMART CHOICES + ALWAYS include { "id": "opt_other", "label": "Other / I'll explain", "isRecommended": false }.
+8. DISTINGUISH FACT FROM ASSUMPTION. Explicitly separate confirmed facts from assumptions.
+9. DETECT CONTRADICTIONS & CHANGING REQUIREMENTS. If the client updates an earlier statement, return a contradiction object explaining what changed.
+10. KNOW WHEN TO STOP. When the core problem, objective, roles, workflows, capabilities, and scope are sufficiently clear, set "isReadyForReview": true and invite the client to review the project blueprint.
 
-Analyze the client's input against the current project context:
+Current client input: "${effectiveInput}"
+Current project context:
 ${JSON.stringify(contextSummary, null, 2)}
 
 Return a strict JSON object with this exact schema:
 {
-  "consultantResponse": "Empathic, intelligent response that acknowledges what they said, frames what it means for the project, and smoothly presents the next discovery focus.",
-  "activeTopic": "BUSINESS" | "GOAL" | "USERS" | "CUSTOMER_JOURNEY" | "CORE_FEATURES" | "BUSINESS_RULES" | "CURRENT_PROCESS" | "PAYMENTS" | "INTEGRATIONS" | "SECURITY" | "TIMELINE" | "BUDGET",
-  "discoveredFacts": [
-    { "category": "BUSINESS_PROBLEM" | "GOAL" | "USER_ROLE" | "PROCESS_CURRENT" | "PROCESS_FUTURE" | "OUTCOME", "title": "Short title", "description": "Details" }
-  ],
-  "discoveredRoles": ["Customer", "Order Staff", etc.],
-  "userJourneySteps": ["Step 1", "Step 2", "Step 3", "Step 4"],
-  "discoveredCapabilities": [
-    { "role": "Customer" | "Staff" | "Admin", "title": "Browse catalog", "description": "Customer can search and filter apparel", "category": "Storefront" }
-  ],
-  "businessRules": [
-    { "rule": "Rule title", "condition": "When applicable", "exceptionHandling": "Fallback", "role": "Staff" }
-  ],
-  "scopeItems": [
-    { "title": "Title", "tier": "CORE" | "POSSIBLE" | "OUT_OF_SCOPE", "rationale": "Why included or suggested" }
-  ],
-  "inlineConfirmation": {
-    "needed": true | false,
-    "statement": "I understood: Customers should be able to track their orders. Is that correct?",
-    "suggestedAction": "Confirm or adjust"
+  "consultantResponse": "Professional, conversational response that directly engages with their statement and asks ONE clear next question in business language.",
+  "activeTopic": "PROJECT" | "BUSINESS" | "GOAL" | "USERS" | "CUSTOMER_JOURNEY" | "CORE_FEATURES" | "BUSINESS_RULES" | "CURRENT_PROCESS" | "INTEGRATIONS" | "SECURITY" | "TIMELINE" | "BUDGET",
+  "currentQuestion": {
+    "question": "The single most important focal question to resolve now",
+    "contextWhy": "Why this specific question matters for structuring their project"
+  },
+  "whyWeAsk": {
+    "question": "The question",
+    "rationale": "Detailed explanation of why this answer affects scope, data models, or processes"
   },
   "structuredOptions": [
-    { "id": "opt1", "label": "Short label", "description": "Context", "isRecommended": true | false }
+    { "id": "opt1", "label": "Option label", "description": "Short hint", "isRecommended": true },
+    { "id": "opt_other", "label": "Other / I'll explain", "isRecommended": false }
   ],
-  "whyWeAsk": {
-    "question": "Question text",
-    "rationale": "How this answer changes architecture, data, or project scope"
+  "isReadyForReview": false,
+  "contradiction": {
+    "detected": false,
+    "topic": "Topic if contradiction found",
+    "previousUnderstanding": "What was previously understood",
+    "newUnderstanding": "What the client stated now",
+    "whatChanged": "Summary of what changed"
+  },
+  "discoveredFacts": [
+    { "category": "BUSINESS_PROBLEM" | "GOAL" | "USER_ROLE" | "PROCESS_CURRENT" | "PROCESS_FUTURE" | "OUTCOME" | "SUCCESS_CRITERIA", "title": "Short title", "description": "Details" }
+  ],
+  "discoveredInformationRecords": [
+    { "name": "e.g. Invoices", "description": "e.g. Tracks client billings" }
+  ],
+  "discoveredReporting": [
+    { "audience": "Management", "whatTheySee": "Weekly sales velocity", "decisionSupported": "Resource allocation" }
+  ],
+  "discoveredExistingTools": [
+    { "toolName": "Excel", "currentUse": "Tracking leads manually", "disposition": "REPLACE", "migrationNeeded": true }
+  ],
+  "discoveredIntegrations": [
+    { "systemName": "Stripe", "reason": "Payment processing", "dataFlow": "Checkout payment tokens" }
+  ],
+  "discoveredRoles": ["Role 1", "Role 2"],
+  "userJourneySteps": ["Step 1", "Step 2", "Step 3"],
+  "discoveredCapabilities": [
+    { "role": "Role", "title": "Capability Title", "description": "Description", "category": "Category" }
+  ],
+  "businessRules": [
+    { "rule": "Rule name", "condition": "When condition met", "exceptionHandling": "Fallback", "role": "Role" }
+  ],
+  "scopeItems": [
+    { "title": "Feature Title", "tier": "CORE" | "POSSIBLE" | "OUT_OF_SCOPE", "rationale": "Rationale" }
+  ],
+  "inlineConfirmation": {
+    "needed": false,
+    "statement": "Statement",
+    "suggestedAction": "Confirm or adjust"
   },
   "recommendation": {
-    "hasRecommendation": true | false,
-    "title": "Title",
-    "rationale": "Why we recommend this based on their business goal",
-    "options": ["Option A", "Option B"],
-    "recommendedOption": "Option A"
+    "hasRecommendation": false,
+    "title": "",
+    "rationale": "",
+    "options": [],
+    "recommendedOption": ""
   }
 }`;
 
@@ -412,9 +615,9 @@ Return a strict JSON object with this exact schema:
     try {
       const ollamaRes = await askOllamaJson({
         systemPrompt,
-        userPrompt: `Evaluate input: "${effectiveInput}". Respond in JSON.`,
+        userPrompt: `Evaluate input: "${effectiveInput}". Respond in strict JSON according to the schema.`,
         temperature: 0.15,
-        timeoutMs: 30000,
+        timeoutMs: 35000,
       });
       if (ollamaRes.ok && ollamaRes.content) {
         parsedAi = JSON.parse(ollamaRes.content);
@@ -437,6 +640,10 @@ Return a strict JSON object with this exact schema:
 
   // 4. Save Consultant Response Message
   const structuredPayload: StructuredMessageData = {
+    currentQuestion: parsedAi.currentQuestion || {
+      question: parsedAi.whyWeAsk?.question || "Tell me more about your desired workflow",
+      contextWhy: parsedAi.whyWeAsk?.rationale || "Helps map business processes and user responsibilities",
+    },
     options: parsedAi.structuredOptions || [],
     inlineConfirmation: parsedAi.inlineConfirmation?.needed
       ? {
@@ -448,6 +655,16 @@ Return a strict JSON object with this exact schema:
         }
       : undefined,
     whyWeAsk: parsedAi.whyWeAsk,
+    contradiction: parsedAi.contradiction?.detected
+      ? {
+          id: `contra_${Date.now()}`,
+          topic: parsedAi.contradiction.topic || "Requirement Revision",
+          previousUnderstanding: parsedAi.contradiction.previousUnderstanding || "",
+          newUnderstanding: parsedAi.contradiction.newUnderstanding || "",
+          whatChanged: parsedAi.contradiction.whatChanged || "",
+          status: "DETECTED",
+        }
+      : undefined,
     iDontKnow: {
       helpMeDecide: parsedAi.recommendation?.hasRecommendation
         ? {
@@ -603,10 +820,6 @@ async function applyDiscoveredEntities(sessionId: string, requirementId: string,
             status: "INFERRED",
           },
         });
-      }
-    }
-  }
-
   // Scope Items
   if (Array.isArray(aiOutput.scopeItems)) {
     for (const item of aiOutput.scopeItems) {
@@ -641,11 +854,109 @@ async function applyDiscoveredEntities(sessionId: string, requirementId: string,
           description: r.rationale || "",
           options: JSON.stringify(r.options || []),
           recommendedOption: r.recommendedOption || null,
-          rationale: r.rationale || "",
+          rationale: r.rationale || null,
           status: "PENDING",
         },
       });
     }
+  }
+
+  // Discovered Information Records (Rule 14)
+  if (Array.isArray(aiOutput.discoveredInformationRecords)) {
+    for (const info of aiOutput.discoveredInformationRecords) {
+      if (!info.name) continue;
+      const existing = await db.discoveryFact.findFirst({
+        where: { sessionId, category: "INFORMATION_RECORD", title: info.name },
+      });
+      if (!existing) {
+        await db.discoveryFact.create({
+          data: {
+            sessionId,
+            category: "INFORMATION_RECORD",
+            title: info.name,
+            description: info.description || "",
+            status: "INFERRED",
+          },
+        });
+      }
+    }
+  }
+
+  // Discovered Reporting & Visibility (Rule 17)
+  if (Array.isArray(aiOutput.discoveredReporting)) {
+    for (const rep of aiOutput.discoveredReporting) {
+      if (!rep.whatTheySee) continue;
+      const existing = await db.discoveryFact.findFirst({
+        where: { sessionId, category: "REPORTING", title: rep.whatTheySee },
+      });
+      if (!existing) {
+        await db.discoveryFact.create({
+          data: {
+            sessionId,
+            category: "REPORTING",
+            title: rep.whatTheySee,
+            description: `${rep.audience || "Management"}: ${rep.decisionSupported || ""}`,
+            status: "INFERRED",
+          },
+        });
+      }
+    }
+  }
+
+  // Discovered Existing Tools & Migration (Rule 18)
+  if (Array.isArray(aiOutput.discoveredExistingTools)) {
+    for (const tool of aiOutput.discoveredExistingTools) {
+      if (!tool.toolName) continue;
+      const existing = await db.discoveryFact.findFirst({
+        where: { sessionId, category: "EXISTING_TOOL", title: tool.toolName },
+      });
+      if (!existing) {
+        await db.discoveryFact.create({
+          data: {
+            sessionId,
+            category: "EXISTING_TOOL",
+            title: tool.toolName,
+            description: `${tool.currentUse || ""} [Disposition: ${tool.disposition || "REPLACE"}, Migration: ${tool.migrationNeeded ? "Required" : "None"}]`,
+            status: "INFERRED",
+          },
+        });
+      }
+    }
+  }
+
+  // Discovered System Connections (Rule 19)
+  if (Array.isArray(aiOutput.discoveredIntegrations)) {
+    for (const intg of aiOutput.discoveredIntegrations) {
+      if (!intg.systemName) continue;
+      const existing = await db.discoveryFact.findFirst({
+        where: { sessionId, category: "INTEGRATION", title: intg.systemName },
+      });
+      if (!existing) {
+        await db.discoveryFact.create({
+          data: {
+            sessionId,
+            category: "INTEGRATION",
+            title: intg.systemName,
+            description: `${intg.reason || ""} -> ${intg.dataFlow || "Bi-directional"}`,
+            status: "INFERRED",
+          },
+        });
+      }
+    }
+  }
+
+  // Contradiction / Revision Detected (Rules 28 & 29)
+  if (aiOutput.contradiction?.detected && aiOutput.contradiction.topic) {
+    const contra = aiOutput.contradiction;
+    await db.discoveryFact.create({
+      data: {
+        sessionId,
+        category: "CONTRADICTION",
+        title: contra.topic,
+        description: `Previous: ${contra.previousUnderstanding || ""} || New: ${contra.newUnderstanding || ""} || Changed: ${contra.whatChanged || ""}`,
+        status: "DETECTED",
+      },
+    });
   }
 }
 
@@ -1016,6 +1327,153 @@ export async function calculateChangeImpact(params: {
     estimatedBudgetDeltaPercent: isComplex ? 15 : 5,
     summary: `Adding "${title}" expands frontend views, requires dedicated API endpoints, and adds ~${isComplex ? 7 : 3} business days to delivery.`,
   };
+}
+
+/**
+ * Handle "I don't know" gracefully without pressure (Rule 26).
+ * Records uncertainty under Needs Decision / Assumptions.
+ */
+export async function handleIDontKnowTurn(params: {
+  sessionId: string;
+  currentQuestion: string;
+}): Promise<DiscoverySessionDto> {
+  const { sessionId, currentQuestion } = params;
+
+  // Record assumption / unknown item
+  await db.projectAssumption.create({
+    data: {
+      sessionId,
+      category: "NEEDS_DECISION",
+      title: currentQuestion,
+      status: "UNKNOWN",
+      validationQuestion: "Client stated uncertainty — recommend industry default during technical staging.",
+    },
+  });
+
+  // Record user message
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "user",
+      content: "I don't know yet.",
+    },
+  });
+
+  // Consultant reassuring reply with industry recommendation
+  const replyData: StructuredMessageData = {
+    currentQuestion: {
+      question: "Shall we proceed with a standard industry default for now, or discuss your core team roles?",
+      contextWhy: "Leaving this as an open decision ensures your discovery moves forward without blocking.",
+    },
+    quickReplies: [
+      "Use recommended default for now",
+      "Let's move to user roles & permissions",
+      "We'll decide in technical staging",
+    ],
+    whyWeAsk: {
+      question: "How should we handle this undecided detail?",
+      rationale: "Recording uncertainty explicitly protects your project from false assumptions while keeping discovery progress fluid.",
+    },
+  };
+
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "consultant",
+      content: `No problem at all. We have recorded "${currentQuestion}" under Open Decisions & Assumptions so it remains visible without blocking our momentum. Let's keep moving forward.`,
+      structuredData: JSON.stringify(replyData),
+      modelUsed: "system-consultant",
+    },
+  });
+
+  return serializeDiscoverySession(sessionId);
+}
+
+/**
+ * Handle "Decide later" explicitly (Rule 27).
+ * Records an open decision item with LEAVE_FOR_LATER status.
+ */
+export async function handleDecideLaterTurn(params: {
+  sessionId: string;
+  title: string;
+  reason?: string;
+}): Promise<DiscoverySessionDto> {
+  const { sessionId, title, reason } = params;
+
+  await db.discoveryDecision.create({
+    data: {
+      sessionId,
+      title,
+      options: JSON.stringify(["Decide in technical staging", "Consult internal team"]),
+      selectedOption: "Deferred for later",
+      reason: reason || "Client elected to leave this decision for later review.",
+      status: "LEAVE_FOR_LATER",
+    },
+  });
+
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "user",
+      content: `We'll decide on "${title}" later.`,
+    },
+  });
+
+  const replyData: StructuredMessageData = {
+    currentQuestion: {
+      question: "What is the next key capability or workflow we should model?",
+      contextWhy: "Moving to core workflows ensures we capture what is already clear.",
+    },
+    quickReplies: [
+      "Let's look at user roles & permissions",
+      "Let's review the customer journey",
+      "Let's check reporting and visibility",
+    ],
+  };
+
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "consultant",
+      content: `Recorded "${title}" under Open Decisions. This will remain visible in your project model until explicitly confirmed. What should we explore next?`,
+      structuredData: JSON.stringify(replyData),
+      modelUsed: "system-consultant",
+    },
+  });
+
+  return serializeDiscoverySession(sessionId);
+}
+
+/**
+ * Confirm a detected contradiction / requirement revision (Rules 28 & 29).
+ */
+export async function confirmContradictionRevision(params: {
+  sessionId: string;
+  contradictionId: string;
+}): Promise<DiscoverySessionDto> {
+  const { sessionId, contradictionId } = params;
+
+  const fact = await db.discoveryFact.findUnique({
+    where: { id: contradictionId },
+  });
+
+  if (fact && fact.category === "CONTRADICTION") {
+    await db.discoveryFact.update({
+      where: { id: contradictionId },
+      data: { status: "CONFIRMED" },
+    });
+
+    await db.discoveryMessage.create({
+      data: {
+        sessionId,
+        role: "consultant",
+        content: `✓ Requirement revision confirmed: "${fact.title}". The project model has been updated to reflect your new agreed specification.`,
+        modelUsed: "system-consultant",
+      },
+    });
+  }
+
+  return serializeDiscoverySession(sessionId);
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */
