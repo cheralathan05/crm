@@ -16,6 +16,7 @@ import {
 } from "./requirement-config";
 import { categoryLabel } from "./clarification-rules";
 import { buildRequirementIntel, sectionStatesWithAccepted } from "./requirement-intel";
+import { getOrCreateDiscoverySession } from "./discovery/discovery.service";
 
 /**
  * Recompute the stored readiness/completeness of a requirement request using
@@ -409,7 +410,7 @@ export async function serializePublicRequest(request: RequirementRequest) {
 
 /** Full admin bundle for the Requirement Command Center. */
 export async function serializeAdminRequest(request: RequirementRequest) {
-  const [answers, features, attachments, comments, revisions, events, client, proposals, questions, clientContacts, conflicts] =
+  const [answers, features, attachments, comments, revisions, events, client, proposals, questions, clientContacts, conflicts, discoverySession] =
     await Promise.all([
       loadAnswers(request.id),
       loadFeatures(request.id),
@@ -450,6 +451,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
         orderBy: { createdAt: "desc" },
         take: 20,
       }),
+      getOrCreateDiscoverySession(request.id).catch(() => null),
     ]);
 
   // Section completion with accepted clarifications overlaid — a section is
@@ -511,6 +513,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
     conflicts: conflicts.map((c) => ({ id: c.id, description: c.description, detail: c.detail })),
     proposalBlock,
     revisions: revisions.map((r) => ({ revision: r.revision, changes: safeJsonArray(r.changes) })),
+    discoverySession,
   });
 
   return {
@@ -629,6 +632,7 @@ export async function serializeAdminRequest(request: RequirementRequest) {
       detail: c.detail,
       createdAt: c.createdAt,
     })),
+    discoverySession,
     intel,
   };
 }
@@ -936,20 +940,61 @@ export async function createProposalFromRequirement(input: {
   actorName: string;
 }) {
   const { request } = input;
-  const [answers, features, attachments, client, workspace, contact] = await Promise.all([
+  const [answers, features, attachments, client, workspace, contact, discSession] = await Promise.all([
     loadAnswers(request.id),
     loadFeatures(request.id),
     db.requirementAttachment.findMany({ where: { requestId: request.id }, select: { name: true } }),
     db.client.findUnique({ where: { id: request.clientId } }),
     db.workspace.findUnique({ where: { id: request.workspaceId }, include: { profile: true } }),
     db.contact.findFirst({ where: { clientId: request.clientId, isPrimary: true } }),
+    db.discoverySession.findUnique({
+      where: { requirementId: request.id },
+      include: {
+        facts: true,
+        capabilities: true,
+        journeys: true,
+        businessRules: true,
+        scopeItems: true,
+        assumptions: true,
+      },
+    }),
   ]);
   if (!client || !workspace) throw new Error("Client or workspace not found.");
 
   const commercial = answers.commercial ?? {};
-  const scope = answers.scope ?? {};
+  const scope = { ...(answers.scope ?? {}) };
   const stakeholders = answers.stakeholders ?? {};
   const design = answers.design ?? {};
+
+  // Augment features with confirmed capabilities from Discovery
+  const confirmedFeatures = [...features];
+  if (discSession?.capabilities && discSession.capabilities.length > 0) {
+    discSession.capabilities.forEach((c, idx) => {
+      if (!confirmedFeatures.some((f) => f.name.toLowerCase() === c.title.toLowerCase())) {
+        confirmedFeatures.push({
+          id: `REQ-${String(idx + 1).padStart(3, "0")}`,
+          name: c.title,
+          priority: c.status === "CONFIRMED" ? "MUST_HAVE" : "SHOULD_HAVE",
+          description: c.description || `Capability for ${c.roleName}: ${c.title}`,
+          users: [c.roleName].filter(Boolean),
+          config: {},
+          acceptanceCriteria: [`Verified operational functionality of ${c.title} for ${c.roleName}.`],
+          dependencies: [],
+          order: idx,
+        } as any);
+      }
+    });
+  }
+
+  // Augment scope with Core scope radar items
+  if (discSession?.scopeItems && discSession.scopeItems.length > 0) {
+    const coreItems = discSession.scopeItems.filter((s) => s.tier === "CORE").map((s) => s.title);
+    const outItems = discSession.scopeItems.filter((s) => s.tier === "OUT_OF_SCOPE").map((s) => s.title);
+    const existingInc = Array.isArray(scope.included) ? (scope.included as string[]) : [];
+    const existingExc = Array.isArray(scope.excluded) ? (scope.excluded as string[]) : [];
+    scope.included = Array.from(new Set([...existingInc, ...coreItems]));
+    scope.excluded = Array.from(new Set([...existingExc, ...outItems]));
+  }
 
   const reference = await nextProposalReference(request.workspaceId);
   const estimatedAmount = estimateBudgetAmount(String(commercial.budgetRange ?? ""));
@@ -965,15 +1010,14 @@ export async function createProposalFromRequirement(input: {
     },
   });
 
-  // Build the editable document straight from the approved requirement — the
-  // studio receives a real structure, never an empty form.
+  // Build the editable document straight from the approved requirement and discovery
   const document = buildProposalDocument({
     proposal,
     client,
     workspace,
     contact,
-    answers,
-    features: features.map((f) => ({ name: f.name, priority: f.priority, description: f.description, users: f.users })),
+    answers: { ...answers, scope },
+    features: confirmedFeatures.map((f) => ({ name: f.name, priority: f.priority, description: f.description, users: f.users })),
   });
   await db.clientProposal.update({
     where: { id: proposal.id },

@@ -21,6 +21,10 @@ import {
   Building2,
   Users,
   Activity,
+  Database,
+  BarChart3,
+  RefreshCw,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type {
@@ -31,9 +35,21 @@ import type {
 } from "@/lib/discovery/discovery.types";
 
 /* ────────────────────────────────────────────────────────────────────────────
-   RIGHT PANEL — LIVE PROJECT MODEL (Screens 13, 14, 16, 17, 25, 27, 28, 30, 31, 38)
-   The live-updating project knowledge graph that the client watches build
-   in real time as they talk to the consultant.
+   RIGHT PANEL — LIVE PROJECT MODEL (Rule 34: Live Project Understanding)
+   15 Structured Sections:
+   - What We're Building & Problem
+   - Process Transformation (Today vs Future)
+   - User Roles & Responsibilities
+   - Customer Journey & Workflows (with inline step editing)
+   - Capabilities Map (with REQ-001 Traceability)
+   - Information & Records Managed
+   - Business Rules & Logic
+   - Reporting & Visibility
+   - Existing Tools & Systems
+   - Scope Radar (Core, Possible, Unknown, Out of Scope)
+   - Fact vs Assumption Matrix
+   - Open Decisions ("Decide Later" & "Needs Decision")
+   - Requirement Changes & Contradictions
    ──────────────────────────────────────────────────────────────────────────── */
 
 interface LiveProjectModelProps {
@@ -54,13 +70,16 @@ export function LiveProjectModelView({
     transformation: true,
     journey: true,
     capabilities: true,
+    information: true,
+    rules: true,
+    reporting: false,
+    tools: false,
     scope: true,
     decisions: true,
     assumptions: false,
-    technical: false,
+    contradictions: true,
   });
 
-  const [showTechBlueprint, setShowTechBlueprint] = useState(false);
   const [editingJourneyId, setEditingJourneyId] = useState<string | null>(null);
   const [newStepText, setNewStepText] = useState("");
 
@@ -81,8 +100,8 @@ export function LiveProjectModelView({
           </span>
         </div>
 
-        <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--bos-accent)]">
-          Real-Time Sync
+        <span className="text-[10px] font-mono uppercase tracking-wider text-[var(--bos-accent)] font-medium">
+          Synchronized
         </span>
       </div>
 
@@ -101,7 +120,7 @@ export function LiveProjectModelView({
                 What We&apos;re Building
               </span>
             </div>
-            {expandedSections["building"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)] text-[var(--bos-text-tertiary)]" />}
+            {expandedSections["building"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
           </button>
 
           {expandedSections["building"] && (
@@ -151,144 +170,131 @@ export function LiveProjectModelView({
               <div className="flex items-center gap-2">
                 <Activity className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
                 <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
-                  Process Transformation
+                  Current vs. Future Process
                 </span>
               </div>
               {expandedSections["transformation"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
             </button>
 
             {expandedSections["transformation"] && (
-              <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] text-[12px]">
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-sm border border-rose-500/20 bg-rose-500/5 p-2">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-rose-600 font-semibold block mb-1">
-                      Today (Current)
-                    </span>
-                    <ul className="space-y-1 text-[11px] text-[var(--bos-text-secondary)]">
-                      {model.processTransformation.todayProcess.map((p, i) => (
-                        <li key={i} className="flex items-start gap-1">
-                          <span>•</span>
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+              <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                <div className="rounded-xs border border-rose-500/20 bg-rose-500/5 p-2.5 space-y-1">
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-rose-600 font-semibold block">
+                    Today&apos;s Process (Manual/Slow)
+                  </span>
+                  <ul className="space-y-1 text-[var(--bos-text-secondary)]">
+                    {model.processTransformation.todayProcess.map((step, idx) => (
+                      <li key={idx} className="flex items-start gap-1">
+                        <span className="text-rose-500 font-bold">•</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
 
-                  <div className="rounded-sm border border-emerald-500/20 bg-emerald-500/5 p-2">
-                    <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-600 font-semibold block mb-1">
-                      Future (Proposed)
-                    </span>
-                    <ul className="space-y-1 text-[11px] text-[var(--bos-text-primary)] font-medium">
-                      {model.processTransformation.futureProcess.map((p, i) => (
-                        <li key={i} className="flex items-start gap-1">
-                          <span>✓</span>
-                          <span>{p}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div className="rounded-xs border border-emerald-500/20 bg-emerald-500/5 p-2.5 space-y-1">
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-emerald-600 font-semibold block">
+                    Future Automated Process
+                  </span>
+                  <ul className="space-y-1 text-[var(--bos-text-primary)]">
+                    {model.processTransformation.futureProcess.map((step, idx) => (
+                      <li key={idx} className="flex items-start gap-1">
+                        <span className="text-emerald-500 font-bold">✓</span>
+                        <span>{step}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
               </div>
             )}
           </div>
         )}
 
-        {/* CARD 3: Customer Experience Journey */}
-        <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => toggleSection("journey")}
-            className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--bos-surface)]/50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Compass className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
-              <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
-                Customer Experience Journey
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              {primaryJourney?.isConfirmed && (
-                <span className="text-[10px] font-mono text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded-sm">
-                  Confirmed
+        {/* CARD 3: Customer Journey Pipeline */}
+        {primaryJourney && (
+          <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
+            <button
+              type="button"
+              onClick={() => toggleSection("journey")}
+              className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--bos-surface)]/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Compass className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+                <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
+                  Customer Journey ({primaryJourney.roleName})
                 </span>
-              )}
+              </div>
               {expandedSections["journey"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
-            </div>
-          </button>
+            </button>
 
-          {expandedSections["journey"] && (
-            <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] text-[12px]">
-              {primaryJourney && primaryJourney.steps.length > 0 ? (
-                <div className="space-y-2">
-                  <div className="space-y-1.5">
-                    {primaryJourney.steps.map((step, sIdx) => (
-                      <div
-                        key={sIdx}
-                        className="flex items-center gap-2 text-[12px] text-[var(--bos-text-primary)]"
-                      >
-                        <span className="w-4 h-4 rounded-full bg-[var(--bos-accent)]/15 text-[var(--bos-accent)] font-mono text-[10px] flex items-center justify-center shrink-0">
-                          {sIdx + 1}
-                        </span>
-                        <span className="truncate">{step}</span>
-                        {sIdx < primaryJourney.steps.length - 1 && (
-                          <span className="text-[10px] text-[var(--bos-text-tertiary)] shrink-0">↓</span>
-                        )}
-                      </div>
-                    ))}
-                  </div>
+            {expandedSections["journey"] && (
+              <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] space-y-2 text-[12px]">
+                <div className="flex items-center justify-between text-[11px] text-[var(--bos-text-tertiary)]">
+                  <span>Sequential Workflow Steps</span>
+                  <button
+                    type="button"
+                    onClick={() => setEditingJourneyId(editingJourneyId ? null : primaryJourney.id)}
+                    className="text-[var(--bos-accent)] hover:underline"
+                  >
+                    {editingJourneyId ? "Done editing" : "Edit steps"}
+                  </button>
+                </div>
 
-                  {editingJourneyId === primaryJourney.id ? (
-                    <div className="mt-3 pt-2 border-t border-[var(--bos-line)] space-y-2">
-                      <input
-                        type="text"
-                        value={newStepText}
-                        onChange={(e) => setNewStepText(e.target.value)}
-                        placeholder="Add step e.g. SMS Delivery Update"
-                        className="w-full h-8 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[12px] text-[var(--bos-text-primary)] outline-none"
-                      />
-                      <div className="flex items-center gap-2">
+                <div className="space-y-1">
+                  {primaryJourney.steps.map((step, sIdx) => (
+                    <div
+                      key={sIdx}
+                      className="flex items-center gap-2 p-1.5 rounded-sm bg-[var(--bos-surface)]/60 border border-[var(--bos-line)] text-[11px]"
+                    >
+                      <span className="w-4 h-4 rounded-full bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] font-mono text-[9px] font-bold flex items-center justify-center shrink-0">
+                        {sIdx + 1}
+                      </span>
+                      <span className="text-[var(--bos-text-primary)] font-medium flex-1">{step}</span>
+                      {editingJourneyId && (
                         <button
                           type="button"
                           onClick={() => {
-                            if (newStepText.trim()) {
-                              void onEditJourney(primaryJourney.id, [...primaryJourney.steps, newStepText.trim()]);
-                              setNewStepText("");
-                              setEditingJourneyId(null);
-                            }
+                            const updated = primaryJourney.steps.filter((_, idx) => idx !== sIdx);
+                            void onEditJourney(primaryJourney.id, updated);
                           }}
-                          className="h-7 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[11px] font-medium hover:bg-[var(--bos-accent-hover)]"
+                          className="text-[10px] text-rose-500 hover:text-rose-700 font-mono"
                         >
-                          Add Step
+                          Remove
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => setEditingJourneyId(null)}
-                          className="h-7 px-2 text-[11px] text-[var(--bos-text-secondary)]"
-                        >
-                          Cancel
-                        </button>
-                      </div>
+                      )}
                     </div>
-                  ) : (
+                  ))}
+                </div>
+
+                {editingJourneyId && (
+                  <div className="pt-2 flex items-center gap-1.5">
+                    <input
+                      type="text"
+                      value={newStepText}
+                      onChange={(e) => setNewStepText(e.target.value)}
+                      placeholder="Add next step..."
+                      className="flex-1 h-7 px-2 rounded-sm border border-[var(--bos-line-strong)] bg-[var(--bos-bg)] text-[11px] text-[var(--bos-text-primary)] outline-none focus:border-[var(--bos-accent)]"
+                    />
                     <button
                       type="button"
-                      onClick={() => setEditingJourneyId(primaryJourney.id)}
-                      className="mt-2 text-[11px] text-[var(--bos-accent)] hover:underline inline-flex items-center gap-1"
+                      onClick={() => {
+                        if (!newStepText.trim()) return;
+                        const updated = [...primaryJourney.steps, newStepText.trim()];
+                        void onEditJourney(primaryJourney.id, updated);
+                        setNewStepText("");
+                      }}
+                      className="h-7 px-2.5 rounded-sm bg-[var(--bos-accent)] text-white text-[10px] font-medium"
                     >
-                      <Plus className="w-3 h-3" /> Edit / Add Journey Step
+                      Add
                     </button>
-                  )}
-                </div>
-              ) : (
-                <div className="text-[11px] text-[var(--bos-text-tertiary)] italic py-1">
-                  Explaining the purchasing flow will model the journey here.
-                </div>
-              )}
-            </div>
-          )}
-        </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
 
-        {/* CARD 4: System Capabilities */}
+        {/* CARD 4: System Capabilities Map (with REQ Traceability) */}
         <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
           <button
             type="button"
@@ -298,7 +304,7 @@ export function LiveProjectModelView({
             <div className="flex items-center gap-2">
               <Layers className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
               <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
-                System Capabilities Map ({model.capabilities.length})
+                Capabilities Map ({model.capabilities.length})
               </span>
             </div>
             {expandedSections["capabilities"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
@@ -307,13 +313,16 @@ export function LiveProjectModelView({
           {expandedSections["capabilities"] && (
             <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] text-[12px] space-y-2">
               {model.capabilities.length > 0 ? (
-                model.capabilities.map((cap) => (
+                model.capabilities.map((cap, idx) => (
                   <div
                     key={cap.id}
                     className="p-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 flex items-start justify-between gap-2"
                   >
                     <div>
                       <div className="flex items-center gap-1.5 flex-wrap">
+                        <span className="font-mono text-[9px] text-[var(--bos-accent)] font-semibold">
+                          REQ-{String(idx + 1).padStart(3, "0")}
+                        </span>
                         <span className="font-medium text-[var(--bos-text-primary)]">{cap.title}</span>
                         <span className="text-[9px] font-mono px-1 rounded-xs bg-[var(--bos-surface)] border border-[var(--bos-line)] text-[var(--bos-text-secondary)]">
                           {cap.roleName}
@@ -346,7 +355,76 @@ export function LiveProjectModelView({
           )}
         </div>
 
-        {/* CARD 5: Scope Radar (Core, Possible, Unknown, Out of Scope) */}
+        {/* CARD 5: Information & Records Managed (Rule 14) */}
+        {model.informationRecords && model.informationRecords.length > 0 && (
+          <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
+            <button
+              type="button"
+              onClick={() => toggleSection("information")}
+              className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--bos-surface)]/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Database className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+                <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
+                  Information & Records ({model.informationRecords.length})
+                </span>
+              </div>
+              {expandedSections["information"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
+            </button>
+
+            {expandedSections["information"] && (
+              <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] space-y-1.5 text-[11px]">
+                {model.informationRecords.map((info) => (
+                  <div key={info.id} className="p-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40">
+                    <div className="font-medium text-[var(--bos-text-primary)]">{info.name}</div>
+                    <div className="text-[10px] text-[var(--bos-text-secondary)] mt-0.5">{info.description}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CARD 6: Business Rules & Logic (Rule 15) */}
+        {model.businessRules.length > 0 && (
+          <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
+            <button
+              type="button"
+              onClick={() => toggleSection("rules")}
+              className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--bos-surface)]/50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <FileCheck className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+                <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
+                  Business Rules ({model.businessRules.length})
+                </span>
+              </div>
+              {expandedSections["rules"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
+            </button>
+
+            {expandedSections["rules"] && (
+              <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] space-y-1.5 text-[11px]">
+                {model.businessRules.map((br) => (
+                  <div key={br.id} className="p-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40">
+                    <div className="font-medium text-[var(--bos-text-primary)]">{br.rule}</div>
+                    {br.condition && (
+                      <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
+                        Condition: {br.condition}
+                      </div>
+                    )}
+                    {br.exceptionHandling && (
+                      <div className="text-[10px] text-amber-600 mt-0.5">
+                        Fallback: {br.exceptionHandling}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* CARD 7: Scope Radar (Core, Possible, Unknown, Out of Scope) */}
         <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
           <button
             type="button"
@@ -418,7 +496,7 @@ export function LiveProjectModelView({
                 </div>
               )}
 
-              {/* OUT OF SCOPE (Screen 30: What are we NOT building?) */}
+              {/* OUT OF SCOPE */}
               {model.scopeRadar.outOfScope.length > 0 && (
                 <div className="pt-2 border-t border-[var(--bos-line)]">
                   <div className="flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-wider text-rose-600 font-semibold">
@@ -445,7 +523,7 @@ export function LiveProjectModelView({
           )}
         </div>
 
-        {/* CARD 6: Open Decisions & Unknowns */}
+        {/* CARD 8: Open Decisions & Unknowns */}
         <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
           <button
             type="button"
@@ -453,90 +531,35 @@ export function LiveProjectModelView({
             className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--bos-surface)]/50 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <HelpCircle className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
+              <Clock className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
               <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
-                Decisions ({model.openDecisions.length})
+                Open Decisions ({model.openDecisions.length})
               </span>
             </div>
             {expandedSections["decisions"] ? <ChevronDown className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" /> : <ChevronRight className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />}
           </button>
 
           {expandedSections["decisions"] && (
-            <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] space-y-2 text-[12px]">
-              {model.openDecisions.map((dec) => (
-                <div key={dec.id} className="p-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 space-y-1">
-                  <div className="flex items-center justify-between gap-1">
-                    <span className="font-medium text-[var(--bos-text-primary)] text-[12px]">{dec.title}</span>
-                    <span className="text-[9px] font-mono text-[var(--bos-accent)] font-semibold">
-                      {dec.status}
-                    </span>
+            <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] text-[12px] space-y-2">
+              {model.openDecisions.length > 0 ? (
+                model.openDecisions.map((dec) => (
+                  <div key={dec.id} className="p-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 text-[11px]">
+                    <div className="flex items-center justify-between gap-1">
+                      <span className="font-medium text-[var(--bos-text-primary)]">{dec.title}</span>
+                      <span className="text-[9px] font-mono px-1 rounded-xs bg-[var(--bos-overlay)] text-[var(--bos-text-tertiary)]">
+                        {dec.status}
+                      </span>
+                    </div>
+                    {dec.reason && (
+                      <p className="text-[10px] text-[var(--bos-text-secondary)] mt-0.5">{dec.reason}</p>
+                    )}
                   </div>
-                  {dec.selectedOption ? (
-                    <div className="text-[11px] text-emerald-600 font-medium">
-                      Selected: {dec.selectedOption}
-                    </div>
-                  ) : (
-                    <div className="pt-1 flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => void onRecordDecision(dec.title, "Confirmed in Staging")}
-                        className="h-6 px-2 rounded-sm bg-[var(--bos-accent)] text-white text-[10px] font-medium"
-                      >
-                        Decide now
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => void onRecordDecision(dec.title, "UNDECIDED")}
-                        className="h-6 px-2 rounded-sm border border-[var(--bos-line)] text-[10px] text-[var(--bos-text-secondary)]"
-                      >
-                        Leave for later
-                      </button>
-                    </div>
-                  )}
+                ))
+              ) : (
+                <div className="text-[11px] text-[var(--bos-text-tertiary)] italic py-1">
+                  No blocking open decisions.
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Technical Blueprint Toggle (Screen 42) */}
-        <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] overflow-hidden shadow-xs">
-          <button
-            type="button"
-            onClick={() => setShowTechBlueprint(!showTechBlueprint)}
-            className="w-full px-3.5 py-2.5 flex items-center justify-between text-left hover:bg-[var(--bos-surface)]/50 transition-colors"
-          >
-            <div className="flex items-center gap-2">
-              <Code2 className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
-              <span className="text-[12px] font-semibold text-[var(--bos-text-primary)]">
-                Technical Architecture Preview
-              </span>
-            </div>
-            <span className="text-[11px] text-[var(--bos-accent)] font-mono">
-              {showTechBlueprint ? "Hide" : "View Blueprint"}
-            </span>
-          </button>
-
-          {showTechBlueprint && (
-            <div className="px-3.5 pb-3.5 pt-1 border-t border-[var(--bos-line)] space-y-2 text-[11px]">
-              <div className="p-2.5 rounded-sm bg-[var(--bos-surface)]/80 border border-[var(--bos-line)] space-y-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-[var(--bos-text-primary)]">Frontend:</span>
-                  <span className="text-[var(--bos-text-secondary)]">Next.js 16 + Tailwind CSS (Responsive Client Storefront)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-[var(--bos-text-primary)]">Backend:</span>
-                  <span className="text-[var(--bos-text-secondary)]">Node / TypeScript REST Services + Server Actions</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-[var(--bos-text-primary)]">Database:</span>
-                  <span className="text-[var(--bos-text-secondary)]">Prisma ORM with SQLite (dev.db)</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="font-mono font-semibold text-[var(--bos-text-primary)]">External APIs:</span>
-                  <span className="text-[var(--bos-text-secondary)]">Payment Gateway Webhooks + WhatsApp / Email Notifications</span>
-                </div>
-              </div>
+              )}
             </div>
           )}
         </div>

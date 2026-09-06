@@ -146,6 +146,114 @@ export interface StructuredMessageData {
   detectedTopic?: TopicAreaKey;
 }
 
+export interface DiscoveryMessageDto {
+  id: string;
+  role: "user" | "consultant" | "system";
+  content: string;
+  structuredData?: StructuredMessageData;
+  modelUsed?: string | null;
+  latencyMs?: number | null;
+  createdAt: string;
+}
+
+export interface UserJourneyStep {
+  id: string;
+  label: string;
+  actor: string;
+  order: number;
+  description?: string;
+}
+
+export interface UserJourneyData {
+  id: string;
+  roleName: string;
+  title: string;
+  steps: string[];
+  isConfirmed: boolean;
+}
+
+export interface SystemCapabilityData {
+  id: string;
+  roleName: "Customer" | "Staff" | "Admin" | string;
+  title: string;
+  description: string;
+  category: string;
+  priority?: string;
+  status: "CONFIRMED" | "INFERRED" | "POSSIBLE";
+}
+
+export interface BusinessRuleData {
+  id: string;
+  rule: string;
+  condition?: string | null;
+  exceptionHandling?: string | null;
+  appliesToRole?: string | null;
+  severity?: "STANDARD" | "STRICT";
+  status: "CONFIRMED" | "INFERRED";
+}
+
+export interface DecisionRecord {
+  id: string;
+  title: string;
+  options: string[];
+  selectedOption?: string | null;
+  reason?: string | null;
+  source?: string | null;
+  status: "CONFIRMED" | "UNDECIDED" | "LEAVE_FOR_LATER";
+}
+
+export interface AssumptionItem {
+  id: string;
+  title: string;
+  statement?: string;
+  category: string;
+  status: "CONFIRMED" | "ASSUMPTION" | "RECOMMENDATION" | "UNKNOWN";
+  riskLevel?: "Low" | "Medium" | "High";
+  validationQuestion?: string | null;
+}
+
+export interface AiRecommendationDto {
+  id: string;
+  title: string;
+  description: string;
+  options: string[];
+  recommendedOption?: string | null;
+  rationale?: string | null;
+  status: "PENDING" | "ACCEPTED" | "DECLINED";
+}
+
+export interface DiscoveryReferenceDto {
+  id: string;
+  type: "IMAGE" | "SCREENSHOT" | "FILE" | "EXCEL" | "PDF" | "URL";
+  name: string;
+  path?: string | null;
+  observations: string[];
+  clientDecisions: Record<string, "INCLUDE" | "EXCLUDE">;
+  createdAt: string;
+}
+
+export interface ProcessTransformation {
+  todayProcess: string[];
+  futureProcess: string[];
+}
+
+export interface WhatWeAreBuilding {
+  businessType?: string | null;
+  problemStatement?: string | null;
+  coreGoal?: string | null;
+  summary?: string | null;
+  targetOutcome?: string | null;
+  confirmedOutcomes: string[];
+}
+
+export interface TraceabilityItem {
+  reqCode: string;
+  title: string;
+  source: string;
+  status: string;
+  createdAt: string;
+}
+
 export interface LiveProjectModel {
   whatWeAreBuilding: WhatWeAreBuilding;
   processTransformation: ProcessTransformation;

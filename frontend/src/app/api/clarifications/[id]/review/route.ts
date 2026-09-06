@@ -30,16 +30,18 @@ export async function POST(req: Request, { params }: Ctx) {
   } catch {
     return NextResponse.json({ ok: false, message: "Invalid JSON." }, { status: 400 });
   }
-  const decision = String(body.decision ?? "");
-  if (!["accept", "reject"].includes(decision)) {
-    return NextResponse.json({ ok: false, message: "Decision must be accept or reject." }, { status: 400 });
+  const decision = String(body.decision ?? "accept");
+  const ALLOWED_DECISIONS = ["accept", "edit_accept", "internal_decision", "future_consideration", "reject", "follow_up"];
+  if (!ALLOWED_DECISIONS.includes(decision)) {
+    return NextResponse.json({ ok: false, message: `Decision must be one of: ${ALLOWED_DECISIONS.join(", ")}.` }, { status: 400 });
   }
 
   let result;
   try {
     result = await reviewClarificationAnswer({
       question,
-      decision: decision as "accept" | "reject",
+      decision: decision as any,
+      interpretation: body.interpretation ? String(body.interpretation).trim() : undefined,
       note: body.note ? String(body.note).trim() : undefined,
       actorId: session.user.id,
       actorName: session.user.name ?? "Owner",

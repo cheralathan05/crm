@@ -267,25 +267,16 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
         priority: pLabel,
       });
     });
-  } else {
-    // Standard baseline modules strictly anchored in the product archetype
-    const baselineNames =
-      archetype === "CRM"
-        ? ["Client & Account Hub", "Interaction & Pipeline Manager", "Proposal & Document Engine", "Analytics & Audit Center"]
-        : archetype === "E_COMMERCE"
-        ? ["Product Catalog & Inventory", "Cart & Checkout Flow", "Order & Delivery Fulfillment", "Customer Account Portal"]
-        : archetype === "AI_PRODUCT"
-        ? ["Intelligence Engine & Inference Gateway", "Context & Data Ingestion Pipeline", "Review & Evaluation Studio", "Usage, Quota & Audit Control"]
-        : ["Core Platform Foundation", "Operational Workflow Engine", "Data Records & Activity Vault", "Governance & Reporting Console"];
-
-    baselineNames.forEach((name, idx) => {
+  } else if (included.length > 0) {
+    // Derive modules strictly from verified in-scope items
+    included.forEach((incItem, idx) => {
       moduleCards.push({
         id: `MOD-${String(idx + 1).padStart(2, "0")}`,
-        name,
-        purpose: `Provides centralized, automated ${name.toLowerCase()} capabilities tailored for ${companyName}.`,
+        name: incItem,
+        purpose: `Delivers verified ${incItem.toLowerCase()} operational capabilities tailored for ${companyName}.`,
         primaryUsers: verifiedUsers.slice(0, 2),
         userActions: [
-          `Access ${name} console`,
+          `Access ${incItem} console`,
           "Perform authenticated operational tasks",
           "Export verifiable records and reports",
         ],
@@ -299,11 +290,39 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
           "Role-governed data isolation.",
           "Automated validation prior to commit.",
         ],
-        dependencies: idx === 0 ? ["Identity Layer"] : [baselineNames[0]],
-        output: `Active ${name} records and operational status.`,
+        dependencies: idx === 0 ? ["Identity Layer"] : [included[0]],
+        output: `Active ${incItem} records and operational status.`,
         businessValue: `Drives operational leverage and eliminates manual overhead.`,
         priority: "MUST_HAVE",
       });
+    });
+  } else {
+    // Fallback strictly anchored in client's declared project title & business problem
+    const primaryName = projectTitle || "Core Operational Platform";
+    moduleCards.push({
+      id: "MOD-01",
+      name: primaryName,
+      purpose: businessProblem || `Provides centralized, automated operational capabilities tailored for ${companyName}.`,
+      primaryUsers: verifiedUsers.slice(0, 2),
+      userActions: [
+        `Access ${primaryName} console`,
+        "Perform authenticated operational tasks",
+        "Export verifiable records and reports",
+      ],
+      workflowSequence: [
+        "User initiates request",
+        "System verifies policy compliance",
+        "Operation processes and persists",
+        "Confirmation delivered to caller",
+      ],
+      businessRules: [
+        "Role-governed data isolation.",
+        "Automated validation prior to commit.",
+      ],
+      dependencies: ["Identity Layer"],
+      output: `Active ${primaryName} records and operational status.`,
+      businessValue: `Drives operational leverage and eliminates manual overhead.`,
+      priority: "MUST_HAVE",
     });
   }
 
@@ -398,7 +417,10 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
     {
       category: "INTEGRATIONS",
       title: "External Services & Gateways",
-      items: integrationsInput.length > 0 ? integrationsInput : ["Transactional Email Gateway", "Secure Payment Gateway"],
+      items:
+        integrationsInput.length > 0
+          ? integrationsInput
+          : ["Zero External Integrations (Self-Contained Platform)"],
     },
     {
       category: "ADMIN_GOVERNANCE",
@@ -464,9 +486,7 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
 
   /* ── 10. Verified Integrations ── */
   const integrationSpecs: IntegrationSpec[] = (
-    integrationsInput.length > 0
-      ? integrationsInput
-      : ["Transactional Notification Gateway", "Secure Payment Gateway"]
+    integrationsInput.length > 0 ? integrationsInput : []
   ).map((serviceName) => ({
     serviceName,
     category: serviceName.toLowerCase().includes("pay") ? "COMMERCIAL" : "COMMUNICATIONS",
@@ -915,17 +935,27 @@ export function buildPremiumProposalDocument(ctx: ProposalBuildContext): Proposa
   );
 
   // ── 11. EXTERNAL INTEGRATIONS & SERVICE ARCHITECTURE ──
-  const integrationBlocks: ProposalBlock[] = [
-    p(
-      "The platform interfaces with verified external systems via secure, authenticated connectors with automated failure recovery."
-    ),
-  ];
-  integrationSpecs.forEach((spec) => {
-    integrationBlocks.push({
-      type: "integration_spec",
-      ...spec,
-    });
-  });
+  const integrationBlocks: ProposalBlock[] =
+    integrationSpecs.length > 0
+      ? [
+          p(
+            "The platform interfaces with verified external systems via secure, authenticated connectors with automated failure recovery."
+          ),
+          ...integrationSpecs.map((spec) => ({
+            type: "integration_spec" as const,
+            ...spec,
+          })),
+        ]
+      : [
+          p(
+            "Zero third-party external integrations required for MVP scope. The system operates as a self-contained operational platform with zero external dependencies."
+          ),
+          callout(
+            "Self-Contained Architecture",
+            "No third-party payment gateways, external inventory APIs, or external messaging providers are mandated for initial launch scope.",
+            "info"
+          ),
+        ];
 
   sections.push(
     sec({

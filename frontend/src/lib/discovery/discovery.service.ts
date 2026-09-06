@@ -83,22 +83,18 @@ export async function getOrCreateDiscoverySession(requirementId: string): Promis
     }
 
     // Seed welcome greeting message from Business OS Consultant (Rule 3)
+    // CRITICAL: The opening welcome message and Current Question are distinct.
+    // The opening message invites the client to explain what they want in their own words.
+    // The Current Question must NOT duplicate the opening message!
     const welcomeData: StructuredMessageData = {
-      currentQuestion: {
-        question: "Tell me what you're trying to build, what problem you're trying to solve, and how you want your business to work after the solution is in place.",
-        contextWhy: "Starting in your own words ensures discovery adapts to your authentic business model, terminology, and operational reality without forcing generic templates.",
-      },
+      allowCustomInput: true,
       quickReplies: [
         "Internal Operations & Workflow Platform",
-        "E-Commerce & Online Store",
+        "Client Portal & Project Delivery",
         "Client Booking & Appointment Platform",
         "B2B CRM & Sales Pipeline",
         "Other / I'll explain in my own words",
       ],
-      whyWeAsk: {
-        question: "Tell me what you're trying to build.",
-        rationale: "Understanding your business model and primary objective in your own words allows Business OS to dynamically map user journeys, capabilities, and operational requirements.",
-      },
     };
 
     await db.discoveryMessage.create({
@@ -131,6 +127,25 @@ export function computeDiscoveryCoverage(data: {
   const journeys = data.journeys || [];
   const rules = data.businessRules || [];
   const scopeItems = data.scopeItems || [];
+
+  // When client has not provided their explanation yet, honest state is Awaiting Client Response
+  const isInitialState = facts.length === 0 && capabilities.length === 0 && journeys.length === 0;
+  if (isInitialState) {
+    return [
+      { dimensionKey: "businessContext", label: "Business Context", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "problem", label: "Business Problem", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "goals", label: "Project Objectives & Desired Future", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "users", label: "Target Users & Responsibilities", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "workflow", label: "Current vs Desired Workflow", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "requirements", label: "Functional Capabilities", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "information", label: "Information & Records Managed", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "businessRules", label: "Business Rules & Logic", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "tools", label: "Existing Tools & Migration", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "integrations", label: "System Connections & APIs", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "scope", label: "Scope Boundaries & Radar", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+      { dimensionKey: "successCriteria", label: "Success Criteria & Deliverables", status: "NOT_YET_DISCUSSED", summary: "Awaiting client response" },
+    ];
+  }
 
   const hasBusiness = facts.some((f) => f.category === "BUSINESS_CONTEXT" || f.category === "BUSINESS_PROBLEM" || f.category === "OUTCOME");
   const hasProblem = facts.some((f) => f.category === "BUSINESS_PROBLEM");
@@ -267,10 +282,6 @@ export async function serializeDiscoverySession(sessionId: string): Promise<Disc
       userRolesMap.set(j.roleName, j.isConfirmed ? "CONFIRMED" : "INFERRED");
     }
   }
-  if (userRolesMap.size === 0) {
-    userRolesMap.set("Customer", "INFERRED");
-    userRolesMap.set("Admin", "INFERRED");
-  }
 
   // Construct Scope Radar
   const coreScope = session.scopeItems.filter((s) => s.tier === "CORE").map(mapScope);
@@ -289,10 +300,10 @@ export async function serializeDiscoverySession(sessionId: string): Promise<Disc
 
   const model: LiveProjectModel = {
     whatWeAreBuilding: {
-      businessType: businessFact?.title || session.requirement.title || null,
+      businessType: businessFact?.title || null,
       problemStatement: businessFact?.description || null,
       coreGoal: goalFact?.title || null,
-      confirmedOutcomes: outcomes.length > 0 ? outcomes : ["Modernize client ordering and operations centrally"],
+      confirmedOutcomes: outcomes,
     },
     processTransformation: {
       todayProcess: currentProcessFacts.map((f) => f.title),
@@ -537,6 +548,9 @@ Adhere strictly to the 58 Master Rules of Project Discovery Studio:
 8. DISTINGUISH FACT FROM ASSUMPTION. Explicitly separate confirmed facts from assumptions.
 9. DETECT CONTRADICTIONS & CHANGING REQUIREMENTS. If the client updates an earlier statement, return a contradiction object explaining what changed.
 10. KNOW WHEN TO STOP. When the core problem, objective, roles, workflows, capabilities, and scope are sufficiently clear, set "isReadyForReview": true and invite the client to review the project blueprint.
+11. NEVER DUPLICATE THE WELCOME MESSAGE. The opening message already welcomed the client. The currentQuestion must always be a focused, relevant discovery question arising from what the client just told you.
+12. NEVER TURN SYSTEM QUESTIONS INTO BUSINESS DATA. Only extract genuine facts, capabilities, and business rules from what the CLIENT explicitly stated. Never store system questions, prompts, or unanswered topics as project requirements or open decisions.
+13. NEVER INTRODUCE UNRELATED OPERATIONAL QUESTIONS. If the client wants an operations platform, CRM, or project management tool, NEVER ask about inventory or physical order fulfillment! Connect your questions strictly to their stated business domain.
 
 Current client input: "${effectiveInput}"
 Current project context:
@@ -820,6 +834,10 @@ async function applyDiscoveredEntities(sessionId: string, requirementId: string,
             status: "INFERRED",
           },
         });
+      }
+    }
+  }
+
   // Scope Items
   if (Array.isArray(aiOutput.scopeItems)) {
     for (const item of aiOutput.scopeItems) {
@@ -962,144 +980,638 @@ async function applyDiscoveredEntities(sessionId: string, requirementId: string,
 
 /**
  * Intelligent deterministic consultant fallback when Ollama is offline.
- * Implements high-value business logic for e-commerce, CRM, portals, booking.
+ * Adapts dynamically to ANY legitimate business (Operations, CRM, Education, Construction, Healthcare, E-Commerce, Custom).
+ * NEVER assumes retail inventory or physical fulfillment unless explicitly requested! (Rules 6 & 51)
  */
 function generateDeterministicConsultantTurn(input: string, context: any) {
   const lower = input.toLowerCase();
 
-  // 1. E-Commerce / Store / WhatsApp ordering
-  if (lower.includes("whatsapp") || lower.includes("cloth") || lower.includes("store") || lower.includes("shop") || lower.includes("order")) {
+  // 1. Business Operations / CRM / Client Lifecycle / Projects & Workflows (Rule 51 Real-World Example)
+  if (
+    lower.includes("crm") ||
+    lower.includes("proposal") ||
+    lower.includes("project") ||
+    lower.includes("task") ||
+    lower.includes("client") ||
+    lower.includes("sheet") ||
+    lower.includes("spreadsheet") ||
+    lower.includes("lead") ||
+    lower.includes("contract") ||
+    lower.includes("agency") ||
+    lower.includes("operation") ||
+    lower.includes("workstream")
+  ) {
     return {
-      consultantResponse: `I understand. You're currently taking customer orders through WhatsApp and want to transition to a dedicated online system. Before we look at technical details, I want to understand the exact customer experience you want to provide.`,
+      consultantResponse: `I understand completely. You are currently running operations across disconnected spreadsheets and tools, and want to consolidate the entire client-to-project journey into a single platform.\n\nLet's start with how client work begins: after a client submits their requirements and a proposal is generated, who should have authority to approve the proposal before the project is created?`,
+      activeTopic: "BUSINESS_RULES",
+      discoveredFacts: [
+        {
+          category: "BUSINESS_PROBLEM",
+          title: "Operations Across Disconnected Tools",
+          description: "Clients, requirements, proposals, projects, tasks and documents currently managed across spreadsheets and different tools",
+        },
+        {
+          category: "GOAL",
+          title: "Business Operations Management Platform",
+          description: "Centralize client intake, automate proposal-to-project handover, and track project execution progress",
+        },
+        {
+          category: "PROCESS_CURRENT",
+          title: "Manual Spreadsheets & Separate Tools",
+          description: "Data fragmented across sheets, email, and manual communication causing delays and loss of context",
+        },
+        {
+          category: "PROCESS_FUTURE",
+          title: "Unified Business OS Lifecycle",
+          description: "Requirement Request -> Project Discovery -> Proposal -> Client Approval -> Project Creation -> Tasks",
+        },
+        {
+          category: "OUTCOME",
+          title: "Full Project Delivery Visibility",
+          description: "Real-time visibility into project deadlines, task assignments, and approved commercial scope",
+        },
+      ],
+      discoveredRoles: ["Client Stakeholder", "Project Manager", "Operations Admin"],
+      userJourneySteps: [
+        "Client submits requirements",
+        "Discovery structures scope",
+        "Commercial proposal generated",
+        "Client reviews & approves proposal",
+        "Project initialized with work areas",
+        "Tasks assigned & executed",
+        "Milestone delivery & completion",
+      ],
+      discoveredCapabilities: [
+        { role: "Client Stakeholder", title: "Client Requirement Intake Portal", description: "Submit project needs and review discovery models", category: "Intake" },
+        { role: "Operations Admin", title: "Structured Proposal Generation", description: "Generate accurate proposals directly from confirmed requirements", category: "Commercial" },
+        { role: "Client Stakeholder", title: "Proposal Review & Approval", description: "Formal sign-off gating project creation", category: "Commercial" },
+        { role: "Project Manager", title: "Project & Workstream Initialization", description: "Automatically create work areas based on approved scope", category: "Projects" },
+        { role: "Project Manager", title: "Task Assignment & Progress Tracking", description: "Assign tasks with status, priority, and dependencies", category: "Execution" },
+      ],
+      businessRules: [
+        {
+          rule: "Proposal Approval Gate",
+          condition: "Proposal status is APPROVED",
+          exceptionHandling: "Project creation blocked until client signs off",
+          role: "Client Stakeholder",
+        },
+        {
+          rule: "Scope Protection",
+          condition: "Workstreams and tasks generated",
+          exceptionHandling: "Must connect directly to approved requirements",
+          role: "System",
+        },
+      ],
+      scopeItems: [
+        { title: "Client Requirement Intake & Discovery Studio", tier: "CORE", rationale: "Core entry point for all client work" },
+        { title: "Automated Proposal Generator & Approval Flow", tier: "CORE", rationale: "Essential commercial transition gate" },
+        { title: "Project Workspace & Task Command Center", tier: "CORE", rationale: "Execution backbone for team delivery" },
+        { title: "Custom BI Reporting Dashboard", tier: "POSSIBLE", rationale: "Valuable for management, but standard metrics suffice for launch" },
+        { title: "Third-party Accounting ERP Sync", tier: "OUT_OF_SCOPE", rationale: "Phase 2 consideration — standalone tracking for launch" },
+      ],
+      inlineConfirmation: {
+        needed: true,
+        statement: "A project should only be initialized after the client formally reviews and approves the proposal.",
+        suggestedAction: "Confirm approval rule",
+      },
+      structuredOptions: [
+        { id: "opt_client_only", label: "Client stakeholder approval required", isRecommended: true },
+        { id: "opt_co_approval", label: "Client approval + Internal PM sign-off", isRecommended: true },
+        { id: "opt_dept_head", label: "Department head approval" },
+        { id: "opt_other", label: "Other / I'll explain", isRecommended: false },
+      ],
+      whyWeAsk: {
+        question: "Who should approve the proposal before the project begins?",
+        rationale: "Ensures the approval process matches your real business governance so active work is never initiated without agreed commercial sign-off.",
+      },
+      currentQuestion: {
+        question: "Who should have authority to approve a proposal before the project is created?",
+        contextWhy: "Prevents unapproved work from starting and mirrors your real business decision hierarchy.",
+      },
+    };
+  }
+
+  // 2. Education / School / Academy / University
+  if (
+    lower.includes("school") ||
+    lower.includes("student") ||
+    lower.includes("teacher") ||
+    lower.includes("course") ||
+    lower.includes("class") ||
+    lower.includes("academy") ||
+    lower.includes("education") ||
+    lower.includes("learning") ||
+    lower.includes("grade") ||
+    lower.includes("exam")
+  ) {
+    return {
+      consultantResponse: `I understand. You are creating an educational management system to coordinate students, instructors, and courses. Let's look at how student registration and class placement will work. How should student enrollments and fee payments be processed?`,
+      activeTopic: "CURRENT_PROCESS",
+      discoveredFacts: [
+        { category: "BUSINESS_PROBLEM", title: "Academic Administration Management", description: "Student enrollments, schedules, and academic tracking managed manually" },
+        { category: "GOAL", title: "Modern Education Management System", description: "Centralize student records, course scheduling, and teacher gradebooks" },
+      ],
+      discoveredRoles: ["Student", "Instructor", "School Administrator"],
+      userJourneySteps: ["Student applies online", "Admin reviews application", "Fee invoice issued", "Payment verified", "Enrolled into courses", "Student attends & views grades"],
+      discoveredCapabilities: [
+        { role: "Student", title: "Online Application & Course Registration", description: "Browse course catalog and register for classes", category: "Admissions" },
+        { role: "School Administrator", title: "Student Record Management", description: "Maintain enrollment status, fees, and official transcripts", category: "Administration" },
+        { role: "Instructor", title: "Attendance & Gradebook Management", description: "Log student attendance and submit course marks", category: "Academics" },
+      ],
+      businessRules: [
+        { rule: "Course Prerequisite Rule", condition: "Registering for advanced course", exceptionHandling: "Requires passing grade in prerequisite", role: "System" },
+      ],
+      scopeItems: [
+        { title: "Student Portal & Enrollment", tier: "CORE", rationale: "Core student access requirement" },
+        { title: "Instructor Gradebook & Attendance", tier: "CORE", rationale: "Essential academic record keeping" },
+      ],
+      structuredOptions: [
+        { id: "opt_online_pay", label: "Online fee payment with instant enrollment", isRecommended: true },
+        { id: "opt_admin_approval", label: "Admin review and manual enrollment approval", isRecommended: true },
+        { id: "opt_other", label: "Other / I'll explain", isRecommended: false },
+      ],
+      whyWeAsk: {
+        question: "How should student enrollments and fee payments be processed?",
+        rationale: "Defines the administrative onboarding pipeline, payment verification workflows, and student role permissions.",
+      },
+      currentQuestion: {
+        question: "How should student enrollments and fee payments be processed and approved?",
+        contextWhy: "Determines whether enrollment is self-service or requires administrative verification.",
+      },
+    };
+  }
+
+  // 3. Construction / Field Operations / Contractor Projects
+  if (
+    lower.includes("construction") ||
+    lower.includes("contractor") ||
+    lower.includes("site") ||
+    lower.includes("field") ||
+    lower.includes("safety") ||
+    lower.includes("blueprint") ||
+    lower.includes("building") ||
+    lower.includes("inspection")
+  ) {
+    return {
+      consultantResponse: `I understand. You are managing construction projects and field contractors where job-site coordination and milestone verification are critical. Who on the job site will submit daily logs, and who needs to approve completed milestones?`,
+      activeTopic: "USERS",
+      discoveredFacts: [
+        { category: "BUSINESS_PROBLEM", title: "Job-Site Operations Tracking", description: "Field logs, safety checks, and contractor milestone sign-offs managed on paper" },
+        { category: "GOAL", title: "Construction Operations Platform", description: "Real-time field logging, subcontractor milestones, and safety sign-offs" },
+      ],
+      discoveredRoles: ["Field Superintendent", "Subcontractor", "Project Director"],
+      userJourneySteps: ["Superintendent opens daily log", "Subcontractor logs hours & progress", "Safety checklist completed", "Milestone submitted", "Director inspects & approves"],
+      discoveredCapabilities: [
+        { role: "Field Superintendent", title: "Daily Job-Site Progress Logging", description: "Capture photos, weather, and labor counts", category: "Field" },
+        { role: "Project Director", title: "Milestone Approval & Payment Release", description: "Review milestone quality before releasing contractor payment", category: "Management" },
+      ],
+      businessRules: [
+        { rule: "Safety Inspection Gate", condition: "Daily site start", exceptionHandling: "Mandatory safety checklist before work begins", role: "Field Superintendent" },
+      ],
+      scopeItems: [
+        { title: "Mobile Field Logging", tier: "CORE", rationale: "Used directly on job-sites" },
+        { title: "Milestone Approval & Audit Trail", tier: "CORE", rationale: "Required for contractor compliance" },
+      ],
+      structuredOptions: [
+        { id: "opt_super_submits", label: "Field superintendents log daily, PM approves milestones", isRecommended: true },
+        { id: "opt_subcontractor_direct", label: "Subcontractors submit directly from mobile" },
+        { id: "opt_other", label: "Other / I'll explain", isRecommended: false },
+      ],
+      whyWeAsk: {
+        question: "Who will submit daily logs, and who approves completed milestones?",
+        rationale: "Establishes field-to-office accountability and approval checkpoints for contractor billing.",
+      },
+      currentQuestion: {
+        question: "Who on the job site will submit daily logs, and who needs to approve completed milestones?",
+        contextWhy: "Determines mobile field interface permissions versus executive sign-off authority.",
+      },
+    };
+  }
+
+  // 4. Healthcare / Clinic / Patient Booking
+  if (
+    lower.includes("clinic") ||
+    lower.includes("doctor") ||
+    lower.includes("patient") ||
+    lower.includes("hospital") ||
+    lower.includes("medical") ||
+    lower.includes("appointment") ||
+    lower.includes("prescription")
+  ) {
+    return {
+      consultantResponse: `I understand. You are building a patient appointment and clinic management system. Let's look at the scheduling workflow: how should patients book appointments, and who confirms doctor availability?`,
+      activeTopic: "CURRENT_PROCESS",
+      discoveredFacts: [
+        { category: "BUSINESS_PROBLEM", title: "Manual Clinic Appointments & Patient Intake", description: "Scheduling and patient records handled over phone calls and paper forms" },
+        { category: "GOAL", title: "Digital Patient Intake & Clinic Scheduling Hub", description: "Online patient booking, digital intake forms, and automated doctor schedule management" },
+      ],
+      discoveredRoles: ["Patient", "Doctor", "Clinic Receptionist"],
+      userJourneySteps: ["Patient selects doctor & time slot", "Completes medical intake form", "Appointment confirmed", "Reminder sent via SMS", "Consultation conducted"],
+      discoveredCapabilities: [
+        { role: "Patient", title: "Online Appointment Booking", description: "Select clinic location, doctor specialty, and available slot", category: "Booking" },
+        { role: "Clinic Receptionist", title: "Schedule Coordination & Check-in", description: "Manage doctor calendars and mark patient arrivals", category: "Reception" },
+        { role: "Doctor", title: "Consultation Notes & Schedule View", description: "Review patient history and record consultation outcomes", category: "Clinical" },
+      ],
+      businessRules: [
+        { rule: "Advance Booking Notice", condition: "Same-day appointments", exceptionHandling: "Requires receptionist confirmation", role: "System" },
+      ],
+      scopeItems: [
+        { title: "Patient Self-Service Booking Portal", tier: "CORE", rationale: "Solves front-desk phone bottleneck" },
+        { title: "Doctor Schedule Calendar", tier: "CORE", rationale: "Essential for appointment management" },
+      ],
+      structuredOptions: [
+        { id: "opt_instant_book", label: "Instant online booking with automated confirmation", isRecommended: true },
+        { id: "opt_reception_confirms", label: "Patient requests slot, receptionist confirms" },
+        { id: "opt_other", label: "Other / I'll explain", isRecommended: false },
+      ],
+      whyWeAsk: {
+        question: "How should patients schedule appointments, and who confirms availability?",
+        rationale: "Determines calendar synchronization rules, slot reservation locks, and patient SMS reminders.",
+      },
+      currentQuestion: {
+        question: "How should patients schedule appointments, and who confirms doctor availability?",
+        contextWhy: "Establishes whether booking is fully automated or moderated by clinic staff.",
+      },
+    };
+  }
+
+  // 5. Retail / E-Commerce Store (ONLY if explicitly requested by client!)
+  if (
+    lower.includes("apparel") ||
+    lower.includes("clothing") ||
+    lower.includes("storefront") ||
+    (lower.includes("store") && lower.includes("product")) ||
+    (lower.includes("sell") && lower.includes("products"))
+  ) {
+    return {
+      consultantResponse: `I understand. You are building an online retail storefront to display your product catalog and take orders directly from customers. What payment methods and order delivery updates do you want to provide?`,
       activeTopic: "CUSTOMER_JOURNEY",
       discoveredFacts: [
-        { category: "BUSINESS_PROBLEM", title: "Retail Clothing Store", description: "Orders currently handled manually via WhatsApp messages" },
-        { category: "GOAL", title: "Automated Online Ordering", description: "Centralize orders and provide automated customer self-service" },
-        { category: "PROCESS_CURRENT", title: "Manual WhatsApp Messaging", description: "Customer texts order details, staff manually logs in Excel" },
-        { category: "PROCESS_FUTURE", title: "Business OS Customer Storefront", description: "Customer browses online, submits order, and receives tracking" },
-        { category: "OUTCOME", title: "Eliminate Manual Order Entry", description: "Orders sync directly into central order fulfillment system" },
+        { category: "BUSINESS_PROBLEM", title: "Manual Order Processing", description: "Orders currently handled manually through messaging" },
+        { category: "GOAL", title: "Online Retail Storefront", description: "Centralized product catalog, automated cart checkout, and real-time tracking" },
       ],
-      discoveredRoles: ["Customer", "Order Staff", "Admin"],
-      userJourneySteps: ["Browse catalog", "View product details", "Add to bag", "Checkout", "Pay online", "Order confirmation", "Track order"],
+      discoveredRoles: ["Customer", "Order Fulfillment Staff", "Store Manager"],
+      userJourneySteps: ["Browse catalog", "Add to bag", "Checkout", "Pay online", "Order confirmed", "Order dispatch tracking"],
       discoveredCapabilities: [
-        { role: "Customer", title: "Browse & Search Products", description: "Filter apparel by category, size and price", category: "Storefront" },
-        { role: "Customer", title: "Place Orders Online", description: "Submit customer contact and delivery address", category: "Ordering" },
-        { role: "Customer", title: "Real-time Order Tracking", description: "Inspect current delivery stage and order history", category: "Post-Purchase" },
-        { role: "Staff", title: "Manage Incoming Orders", description: "Update fulfillment status from pending to shipped", category: "Fulfillment" },
+        { role: "Customer", title: "Product Catalog & Search", description: "Filter items by category, size and price", category: "Storefront" },
+        { role: "Customer", title: "Online Cart & Checkout", description: "Securely enter shipping address and pay", category: "Checkout" },
+        { role: "Order Fulfillment Staff", title: "Order Fulfillment & Dispatch", description: "Update shipping courier tracking numbers", category: "Operations" },
       ],
       businessRules: [
-        { rule: "Order Confirmation Rule", condition: "Order placed", exceptionHandling: "Send instant SMS/WhatsApp confirmation", role: "System" },
+        { rule: "Order Notification Rule", condition: "Order placed", exceptionHandling: "Send instant SMS/Email confirmation", role: "System" },
       ],
       scopeItems: [
-        { title: "Product Catalog & Search", tier: "CORE", rationale: "Essential for customer discovery" },
-        { title: "Online Cart & Checkout", tier: "CORE", rationale: "Core transactional capability" },
-        { title: "Order Tracking Portal", tier: "CORE", rationale: "Directly solves client's visibility problem" },
-        { title: "Product Reviews & Ratings", tier: "POSSIBLE", rationale: "Can enhance buyer trust, but not required for phase 1 launch" },
-        { title: "Multi-vendor Marketplace", tier: "OUT_OF_SCOPE", rationale: "Excluded — dedicated single-brand store only" },
+        { title: "Online Catalog & Cart Checkout", tier: "CORE", rationale: "Core transactional capability" },
+        { title: "Delivery Tracking Portal", tier: "CORE", rationale: "Direct customer visibility requirement" },
       ],
-      inlineConfirmation: {
-        needed: true,
-        statement: "Customers should be able to browse products, place orders online, and track their delivery status.",
-        suggestedAction: "Confirm customer journey",
-      },
       structuredOptions: [
-        { id: "opt_browse", label: "Browse & filter apparel", isRecommended: true },
-        { id: "opt_pay", label: "Pay online (Cards, UPI)", isRecommended: true },
-        { id: "opt_cod", label: "Cash on delivery support" },
-        { id: "opt_track", label: "SMS / WhatsApp order updates", isRecommended: true },
-        { id: "opt_custom", label: "Something else..." },
+        { id: "opt_cards_upi", label: "Online Cards, UPI & Netbanking", isRecommended: true },
+        { id: "opt_cod_support", label: "Cash on delivery + Online payment" },
+        { id: "opt_other", label: "Other / I'll explain", isRecommended: false },
       ],
       whyWeAsk: {
-        question: "What capabilities should customers have on the storefront?",
-        rationale: "This directly defines the frontend UI pages, cart state, and payment gateway integration architecture.",
+        question: "What payment methods and delivery tracking options do you want to provide?",
+        rationale: "Defines payment gateway webhook integration, refund workflows, and courier notification triggers.",
       },
-      recommendation: {
-        hasRecommendation: true,
-        title: "Customer Accounts vs Guest Checkout",
-        rationale: "For a clothing brand with repeat buyers, offering customer accounts with past order history improves retention, but allowing guest checkout minimizes initial friction.",
-        options: ["Offer both Guest Checkout and Customer Accounts", "Customer Accounts required", "Guest Checkout only"],
-        recommendedOption: "Offer both Guest Checkout and Customer Accounts",
+      currentQuestion: {
+        question: "What payment methods and delivery tracking options do you want to provide for customers?",
+        contextWhy: "Determines checkout payment architecture and shipping update notifications.",
       },
     };
   }
 
-  // 2. Payments / Billing discussion
-  if (lower.includes("pay") || lower.includes("card") || lower.includes("upi") || lower.includes("cash")) {
-    return {
-      consultantResponse: `Got it. Handling payments cleanly is critical for order completion and trust. Let's decide which payment methods you want to support for your customers.`,
-      activeTopic: "PAYMENTS",
-      discoveredFacts: [
-        { category: "PROCESS_FUTURE", title: "Integrated Payment Processing", description: "Automated instant checkout verification" },
-      ],
-      discoveredCapabilities: [
-        { role: "Customer", title: "Online Payment Gateway", description: "Pay securely with instant confirmation", category: "Payments" },
-      ],
-      businessRules: [
-        { rule: "Failed Payment Exception", condition: "Payment fails at gateway", exceptionHandling: "Retain cart items and allow retry", role: "System" },
-      ],
-      scopeItems: [
-        { title: "Automated Payment Receipts", tier: "CORE", rationale: "Required for legal and accounting compliance" },
-      ],
-      inlineConfirmation: {
-        needed: true,
-        statement: "Online payment gateway required with automated transaction confirmation.",
-      },
-      structuredOptions: [
-        { id: "opt_upi_cards", label: "Cards, UPI & Netbanking", isRecommended: true },
-        { id: "opt_cod", label: "Cash on delivery + Online payment" },
-        { id: "opt_decide_later", label: "Select payment provider during technical planning" },
-      ],
-      whyWeAsk: {
-        question: "How should customers pay?",
-        rationale: "Determines payment gateway webhook handlers, refund workflows, and checkout security compliance.",
-      },
-      recommendation: {
-        hasRecommendation: true,
-        title: "Payment Gateway Provider",
-        rationale: "We recommend integrating a proven provider (e.g. Razorpay or Stripe) during technical staging so you can test sandbox transactions.",
-        options: ["Decide provider in technical planning", "Razorpay", "Stripe"],
-        recommendedOption: "Decide provider in technical planning",
-      },
-    };
-  }
-
-  // 3. General Fallback
+  // 6. Universal Semantic Parser — Adapts to ANY custom business (Rule 7)
+  // NEVER mentions inventory or physical orders!
   return {
-    consultantResponse: `I've captured that. Let's look at how your team will manage daily operations once this goes live. Who on your staff will fulfill orders and update inventory?`,
-    activeTopic: "OPERATIONS",
+    consultantResponse: `I understand what you're trying to achieve. To turn your explanation into a clear, buildable project definition, let's look at the primary people who will use this system.\n\nWho will be using this solution day-to-day, and what does each type of user need to accomplish?`,
+    activeTopic: "USERS",
     discoveredFacts: [
-      { category: "USER_ROLE", title: "Fulfillment Operator", description: "Staff responsible for packaging and dispatch" },
+      {
+        category: "BUSINESS_PROBLEM",
+        title: "Operational Modernization",
+        description: input.slice(0, 160),
+      },
+      {
+        category: "GOAL",
+        title: "Tailored Business Platform",
+        description: "Streamline operations, eliminate manual friction, and provide unified visibility",
+      },
     ],
-    discoveredRoles: ["Customer", "Order Fulfillment Staff", "Admin"],
+    discoveredRoles: ["Primary Business User", "Management Administrator"],
+    userJourneySteps: ["User accesses system", "Reviews pending tasks & records", "Performs business action", "System records update & notifies relevant team"],
     discoveredCapabilities: [
-      { role: "Staff", title: "Fulfill & Dispatch Orders", description: "Change status and enter shipping courier tracking numbers", category: "Operations" },
+      { role: "Primary Business User", title: "Core Operations Workspace", description: "Manage day-to-day business records and tasks", category: "Core" },
+      { role: "Management Administrator", title: "Administrative Control & Reporting", description: "Configure system permissions and inspect operational metrics", category: "Administration" },
     ],
     businessRules: [
-      { rule: "Order Cancellation Permission", condition: "Before dispatch", exceptionHandling: "Allowed with instant notification", role: "Staff" },
+      { rule: "Role-Based Access Guard", condition: "Accessing sensitive records", exceptionHandling: "Restricted to authorized roles", role: "System" },
     ],
     scopeItems: [
-      { title: "Staff Operations Portal", tier: "CORE", rationale: "Needed for daily order fulfillment" },
+      { title: "Core Operational Management Platform", tier: "CORE", rationale: "Directly delivers client's primary objective" },
+      { title: "Role-Based Security & Permissions", tier: "CORE", rationale: "Ensures data integrity and governance" },
     ],
-    inlineConfirmation: {
-      needed: false,
-    },
     structuredOptions: [
-      { id: "opt_staff_roles", label: "Staff can manage orders and dispatch", isRecommended: true },
-      { id: "opt_owner_only", label: "Store owner handles all operations" },
-      { id: "opt_skip", label: "Decide operational roles later" },
+      { id: "opt_internal_only", label: "Internal team & administrators only", isRecommended: true },
+      { id: "opt_client_internal", label: "External clients + Internal team", isRecommended: true },
+      { id: "opt_multi_tier", label: "Multi-tier: Admins, Managers, and External Users" },
+      { id: "opt_other", label: "Other / I'll explain", isRecommended: false },
     ],
     whyWeAsk: {
-      question: "Who will manage operations?",
-      rationale: "Defines admin role permissions, authentication gates, and operational dashboard views.",
+      question: "Who will be the primary users of the system?",
+      rationale: "Identifies target user roles, permission boundaries, authentication tiers, and specific feature access.",
     },
-    recommendation: {
-      hasRecommendation: false,
+    currentQuestion: {
+      question: "Who will be the primary users of the system, and what are their main responsibilities?",
+      contextWhy: "Defines access permissions, interface layouts, and security gates for each role.",
     },
   };
 }
 
 /**
- * Confirm or adjust an inline discovered item.
+ * Convert an interrogative question into a clean declarative business decision subject.
+ * CRITICAL RULE: A system question itself must NEVER be recorded as business data or a requirement.
+ * Example:
+ * "Do you want a mobile application at launch?" -> "Whether a mobile application is required at launch"
+ * "How many sales employees will use the system?" -> "Sales employee user count"
+ * "Who should approve proposals before delivery?" -> "Proposal approval authority"
+ */
+export function extractDecisionSubject(question: string): string {
+  if (!question) return "Unresolved specification detail";
+  let q = question.trim().replace(/[?.\s]+$/, "");
+
+  // If question starts with welcome prompt, never treat as decision
+  if (q.toLowerCase().includes("tell me what you're trying to build") || q.toLowerCase().includes("welcome to business os")) {
+    return "Initial project vision & scope";
+  }
+
+  // Remove conversational lead-ins
+  q = q.replace(/^(please\s+tell\s+me|could\s+you\s+clarify|can\s+you\s+explain|i'd\s+like\s+to\s+know|let's\s+decide|we\s+need\s+to\s+know|could\s+you\s+tell\s+me)\s+/i, "");
+
+  // Match: "Do you want/need/require (a/an)? (.+)" -> "Whether $2 is required at launch"
+  // Example: "Do you want a mobile application at launch?" -> "Whether a mobile application is required at launch"
+  const doYouWantMatch = q.match(/^do\s+you\s+(?:want|need|require|plan\s+for)\s+(.+)/i);
+  if (doYouWantMatch) {
+    let target = doYouWantMatch[1].trim();
+    target = target.replace(/\s+at\s+launch$/i, "").trim();
+    return `Whether ${target} is required at launch`;
+  }
+
+  // Match: "Should (.+) be (.+)" -> "Whether $1 should be $2"
+  const shouldMatch = q.match(/^should\s+(.+)/i);
+  if (shouldMatch) {
+    return `Whether ${shouldMatch[1].trim()}`;
+  }
+
+  // Match: "(Once|After|When) (.+), how (should|will|can) (.+) be (started|created|handled|processed|managed|initiated)?"
+  // Example: "Once a proposal is approved, how should the project be started?" -> "Project initiation process after a proposal is approved"
+  const conditionalHowMatch = q.match(/^(?:once|after|when)\s+(.+?),\s*how\s+(?:should|will|can|is)\s+(?:the\s+)?(.+?)\s+(?:be\s+)?(started|created|handled|processed|managed|initiated)/i);
+  if (conditionalHowMatch) {
+    const condition = conditionalHowMatch[1].trim();
+    const entity = conditionalHowMatch[2].trim();
+    const verb = conditionalHowMatch[3].toLowerCase();
+    const verbNoun = verb === "started" || verb === "initiated" ? "initiation" : verb === "created" ? "creation" : verb === "processed" ? "processing" : "handling";
+    return `${capitalizeFirst(entity)} ${verbNoun} process after ${condition}`;
+  }
+
+  // Match: "How (should|will|can) (the\s+)?(.+) be (started|created|handled|processed|managed|initiated)?"
+  const howBeMatch = q.match(/^how\s+(?:should|will|can|is)\s+(?:the\s+)?(.+?)\s+(?:be\s+)?(started|created|handled|processed|managed|initiated)/i);
+  if (howBeMatch) {
+    const entity = howBeMatch[1].trim();
+    const verb = howBeMatch[2].toLowerCase();
+    const verbNoun = verb === "started" || verb === "initiated" ? "initiation" : verb === "created" ? "creation" : verb === "processed" ? "processing" : "workflow";
+    return `${capitalizeFirst(entity)} ${verbNoun} process`;
+  }
+
+  // Match: "How many (.+) will (.+)" -> "$1 volume & scale"
+  const howManyMatch = q.match(/^how\s+many\s+(.+?)\s+(?:will|are|do|should)/i);
+  if (howManyMatch) {
+    return `${capitalizeFirst(howManyMatch[1].trim())} volume & scale`;
+  }
+
+  // Match: "Who (will|should|can) (have authority to)? (approve|manage|handle|access|fulfill|lead) (.+)" -> "$2 authority for $3"
+  const whoActionMatch = q.match(/^who\s+(?:will|should|can|needs\s+to|(?:has|have)\s+authority\s+to)?\s*(?:(?:has|have)\s+authority\s+to\s+)?(approve|manage|handle|access|fulfill|lead|review)\s*(.+)/i);
+  if (whoActionMatch) {
+    const action = whoActionMatch[1].toLowerCase();
+    const actionNoun = action === "approve" ? "Approval" : action === "manage" ? "Management" : action === "fulfill" ? "Fulfillment" : action === "access" ? "Access" : "Operational";
+    return `${actionNoun} authority for ${whoActionMatch[2].trim()}`;
+  }
+
+  // Match: "Who will (.+)" -> "Role assignment for $1"
+  const whoGeneral = q.match(/^who\s+(?:will|should|is|are)\s+(.+)/i);
+  if (whoGeneral) {
+    return `Role assignment for ${whoGeneral[1].trim()}`;
+  }
+
+  // Match: "What (.+) do you (use|prefer|need|want|have)?" -> "$1 selection"
+  const whatDoYouMatch = q.match(/^what\s+(.+?)\s+(?:do\s+you|is|are)\s+(?:use|prefer|need|want|have|require)/i);
+  if (whatDoYouMatch) {
+    return `${capitalizeFirst(whatDoYouMatch[1].trim())} selection & configuration`;
+  }
+
+  // Match: "Which (.+) should (.+)" -> "$1 selection"
+  const whichMatch = q.match(/^which\s+(.+?)\s+should/i);
+  if (whichMatch) {
+    return `${capitalizeFirst(whichMatch[1].trim())} selection`;
+  }
+
+  // Match: "Where will (.+) be (.+)" -> "$1 hosting & deployment location"
+  const whereMatch = q.match(/^where\s+(?:will|should|is)\s+(.+?)\s+(?:be)?/i);
+  if (whereMatch) {
+    return `${capitalizeFirst(whereMatch[1].trim())} environment & hosting`;
+  }
+
+  // Match: "When (should|does|will) (.+)" -> "$2 timing & schedule"
+  const whenMatch = q.match(/^when\s+(?:should|does|will)\s+(.+)/i);
+  if (whenMatch) {
+    return `${capitalizeFirst(whenMatch[1].trim())} timing & schedule`;
+  }
+
+  // Fallback: strip question marks and prepend "Decision regarding" if interrogative
+  if (q.match(/^(how|what|why|who|where|when|which|is|are|can|could|will|would)\s+/i)) {
+    return `Decision regarding ${q.toLowerCase().replace(/^(how|what|why|who|where|when|which|is|are|can|could|will|would)\s+(?:to\s+|should\s+|is\s+|are\s+)?/i, "")}`;
+  }
+
+  return capitalizeFirst(q);
+}
+
+function capitalizeFirst(s: string): string {
+  if (!s) return "";
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+/**
+ * Handle "I don't know" gracefully without pressure (Rule 26).
+ * Records uncertainty under Needs Decision.
+ * CRITICAL RULE: Never store the system question itself as the decision.
+ */
+export async function handleIDontKnowTurn(params: {
+  sessionId: string;
+  currentQuestion: string;
+}): Promise<DiscoverySessionDto> {
+  const { sessionId, currentQuestion } = params;
+
+  // Convert question into clean business decision subject
+  const decisionSubject = extractDecisionSubject(currentQuestion);
+
+  // 1. Record decision under Needs Decision
+  await db.discoveryDecision.create({
+    data: {
+      sessionId,
+      title: decisionSubject,
+      options: JSON.stringify(["Determine during technical staging", "Consult internal team"]),
+      selectedOption: "Needs Decision",
+      reason: "Client stated uncertainty during discovery turn.",
+      status: "UNDECIDED",
+    },
+  });
+
+  // 2. Record under projectAssumption as UNKNOWN / NEEDS_DECISION
+  await db.projectAssumption.create({
+    data: {
+      sessionId,
+      category: "NEEDS_DECISION",
+      title: decisionSubject,
+      status: "UNKNOWN",
+      validationQuestion: `To be determined during technical planning: ${decisionSubject}`,
+    },
+  });
+
+  // 3. Record user message
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "user",
+      content: "I don't know yet.",
+    },
+  });
+
+  // 4. Consultant reassuring reply
+  const replyData: StructuredMessageData = {
+    currentQuestion: {
+      question: "What is the next key capability or workflow we should model?",
+      contextWhy: "Leaving undecided details as open decisions ensures discovery moves forward without blocking.",
+    },
+    quickReplies: [
+      "Let's define user roles & permissions",
+      "Let's map the core workflow steps",
+      "Let's check reporting and visibility",
+    ],
+    whyWeAsk: {
+      question: "How should we proceed?",
+      rationale: "Recording uncertainty under Needs Decision protects your project from false assumptions while keeping discovery progress fluid.",
+    },
+  };
+
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "consultant",
+      content: `Understood. I have recorded "${decisionSubject}" under Needs Decision in your project model so it remains visible without blocking our progress. We can resolve this during technical staging. What should we explore next?`,
+      structuredData: JSON.stringify(replyData),
+      modelUsed: "system-consultant",
+    },
+  });
+
+  return serializeDiscoverySession(sessionId);
+}
+
+/**
+ * Handle "Decide later" explicitly (Rule 27).
+ * Records an open decision item with LEAVE_FOR_LATER status.
+ * CRITICAL RULE: Stores the business subject being decided, not merely the system question.
+ */
+export async function handleDecideLaterTurn(params: {
+  sessionId: string;
+  title: string;
+  reason?: string;
+}): Promise<DiscoverySessionDto> {
+  const { sessionId, title, reason } = params;
+
+  // Convert question/title into clean business decision subject
+  const decisionSubject = extractDecisionSubject(title);
+
+  await db.discoveryDecision.create({
+    data: {
+      sessionId,
+      title: decisionSubject,
+      options: JSON.stringify(["Decide in technical staging", "Consult internal stakeholders"]),
+      selectedOption: "Deferred for later",
+      reason: reason || "Client explicitly deferred this decision for later review.",
+      status: "LEAVE_FOR_LATER",
+    },
+  });
+
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "user",
+      content: `We'll decide on "${decisionSubject}" later.`,
+    },
+  });
+
+  const replyData: StructuredMessageData = {
+    currentQuestion: {
+      question: "What is the next key capability or workflow we should model?",
+      contextWhy: "Focusing on what is already clear ensures we capture verified requirements first.",
+    },
+    quickReplies: [
+      "Let's define user roles & permissions",
+      "Let's map the core workflow steps",
+      "Let's review reporting & visibility",
+    ],
+    whyWeAsk: {
+      question: "What should we explore next?",
+      rationale: "Explicitly deferring decisions protects scope accuracy and keeps discovery momentum high.",
+    },
+  };
+
+  await db.discoveryMessage.create({
+    data: {
+      sessionId,
+      role: "consultant",
+      content: `Recorded "${decisionSubject}" under Open Decisions. This will remain visible in your project model until explicitly confirmed. What should we explore next?`,
+      structuredData: JSON.stringify(replyData),
+      modelUsed: "system-consultant",
+    },
+  });
+
+  return serializeDiscoverySession(sessionId);
+}
+
+/**
+ * Confirm a detected contradiction / requirement revision (Rules 28 & 29).
+ */
+export async function confirmContradictionRevision(params: {
+  sessionId: string;
+  contradictionId: string;
+}): Promise<DiscoverySessionDto> {
+  const { sessionId, contradictionId } = params;
+
+  const fact = await db.discoveryFact.findUnique({
+    where: { id: contradictionId },
+  });
+
+  if (fact && fact.category === "CONTRADICTION") {
+    await db.discoveryFact.update({
+      where: { id: contradictionId },
+      data: { status: "CONFIRMED" },
+    });
+
+    await db.discoveryMessage.create({
+      data: {
+        sessionId,
+        role: "consultant",
+        content: `✓ Requirement revision confirmed: "${fact.title}". The project model has been updated to reflect your new agreed specification.`,
+        modelUsed: "system-consultant",
+      },
+    });
+  }
+
+  return serializeDiscoverySession(sessionId);
+}
+
+/**
+ * Confirm an inline discovery milestone or statement.
  */
 export async function confirmInlineDiscovery(params: {
   sessionId: string;
@@ -1109,7 +1621,6 @@ export async function confirmInlineDiscovery(params: {
 }): Promise<DiscoverySessionDto> {
   const { sessionId, confirmed, statement, changeNote } = params;
 
-  // Record client confirmation event
   const session = await db.discoverySession.findUnique({
     where: { id: sessionId },
     include: { requirement: true },
@@ -1117,7 +1628,6 @@ export async function confirmInlineDiscovery(params: {
   if (!session) throw new Error("Session not found");
 
   if (confirmed) {
-    // Mark journey / capabilities as confirmed
     await db.userJourney.updateMany({
       where: { sessionId },
       data: { isConfirmed: true },
@@ -1135,9 +1645,8 @@ export async function confirmInlineDiscovery(params: {
       data: { status: "CONFIRMED" },
     });
 
-    await recordEvent(session.requirementId, "DISCOVERY_CONFIRMED", "Client confirmed milestone", statement);
+    await recordEvent(session.requirementId, "APPROVED", "Client confirmed milestone", statement);
   } else if (changeNote) {
-    // Client requested adjustment
     await db.discoveryMessage.create({
       data: {
         sessionId,
@@ -1145,7 +1654,7 @@ export async function confirmInlineDiscovery(params: {
         content: `Adjustment requested: "${changeNote}" for statement "${statement}"`,
       },
     });
-    await recordEvent(session.requirementId, "DISCOVERY_CHANGED", "Client adjusted milestone", changeNote);
+    await recordEvent(session.requirementId, "REVISION_REQUESTED", "Client adjusted milestone", changeNote);
   }
 
   return serializeDiscoverySession(sessionId);
@@ -1153,6 +1662,7 @@ export async function confirmInlineDiscovery(params: {
 
 /**
  * Record a formal structured decision.
+ * Subject is cleaned so system questions are never stored as business decisions.
  */
 export async function recordDiscoveryDecision(params: {
   sessionId: string;
@@ -1164,8 +1674,10 @@ export async function recordDiscoveryDecision(params: {
   const session = await db.discoverySession.findUnique({ where: { id: sessionId } });
   if (!session) throw new Error("Session not found");
 
+  const cleanTitle = extractDecisionSubject(decisionTitle);
+
   const existing = await db.discoveryDecision.findFirst({
-    where: { sessionId, title: decisionTitle },
+    where: { sessionId, title: cleanTitle },
   });
 
   if (existing) {
@@ -1181,7 +1693,7 @@ export async function recordDiscoveryDecision(params: {
     await db.discoveryDecision.create({
       data: {
         sessionId,
-        title: decisionTitle,
+        title: cleanTitle,
         selectedOption: choice,
         reason: reason || "Selected by client",
         status: choice === "UNDECIDED" ? "UNDECIDED" : "CONFIRMED",
@@ -1279,7 +1791,7 @@ export async function approveProjectUnderstanding(params: {
 
   await recordEvent(
     session.requirementId,
-    "DISCOVERY_APPROVED",
+    "APPROVED",
     "Project Understanding approved by client",
     `Signed off by ${approverName}. Technical implementation details will be prepared from this approved model.`,
   );
@@ -1296,11 +1808,14 @@ export async function calculateChangeImpact(params: {
 }): Promise<ChangeImpactResult> {
   const { requirementId, newRequirement } = params;
 
-  // Resilient heuristic / AI impact analysis
   const title = newRequirement.trim();
   const lower = title.toLowerCase();
 
-  const isComplex = lower.includes("payment") || lower.includes("inventory") || lower.includes("marketplace") || lower.includes("multi-vendor");
+  const isComplex =
+    lower.includes("payment") ||
+    lower.includes("inventory") ||
+    lower.includes("marketplace") ||
+    lower.includes("multi-vendor");
 
   return {
     newRequirementTitle: title,
@@ -1325,155 +1840,10 @@ export async function calculateChangeImpact(params: {
     ],
     estimatedTimelineAdditionDays: isComplex ? 7 : 3,
     estimatedBudgetDeltaPercent: isComplex ? 15 : 5,
-    summary: `Adding "${title}" expands frontend views, requires dedicated API endpoints, and adds ~${isComplex ? 7 : 3} business days to delivery.`,
+    summary: `Adding "${title}" expands frontend views, requires dedicated API endpoints, and adds ~${
+      isComplex ? 7 : 3
+    } business days to delivery.`,
   };
-}
-
-/**
- * Handle "I don't know" gracefully without pressure (Rule 26).
- * Records uncertainty under Needs Decision / Assumptions.
- */
-export async function handleIDontKnowTurn(params: {
-  sessionId: string;
-  currentQuestion: string;
-}): Promise<DiscoverySessionDto> {
-  const { sessionId, currentQuestion } = params;
-
-  // Record assumption / unknown item
-  await db.projectAssumption.create({
-    data: {
-      sessionId,
-      category: "NEEDS_DECISION",
-      title: currentQuestion,
-      status: "UNKNOWN",
-      validationQuestion: "Client stated uncertainty — recommend industry default during technical staging.",
-    },
-  });
-
-  // Record user message
-  await db.discoveryMessage.create({
-    data: {
-      sessionId,
-      role: "user",
-      content: "I don't know yet.",
-    },
-  });
-
-  // Consultant reassuring reply with industry recommendation
-  const replyData: StructuredMessageData = {
-    currentQuestion: {
-      question: "Shall we proceed with a standard industry default for now, or discuss your core team roles?",
-      contextWhy: "Leaving this as an open decision ensures your discovery moves forward without blocking.",
-    },
-    quickReplies: [
-      "Use recommended default for now",
-      "Let's move to user roles & permissions",
-      "We'll decide in technical staging",
-    ],
-    whyWeAsk: {
-      question: "How should we handle this undecided detail?",
-      rationale: "Recording uncertainty explicitly protects your project from false assumptions while keeping discovery progress fluid.",
-    },
-  };
-
-  await db.discoveryMessage.create({
-    data: {
-      sessionId,
-      role: "consultant",
-      content: `No problem at all. We have recorded "${currentQuestion}" under Open Decisions & Assumptions so it remains visible without blocking our momentum. Let's keep moving forward.`,
-      structuredData: JSON.stringify(replyData),
-      modelUsed: "system-consultant",
-    },
-  });
-
-  return serializeDiscoverySession(sessionId);
-}
-
-/**
- * Handle "Decide later" explicitly (Rule 27).
- * Records an open decision item with LEAVE_FOR_LATER status.
- */
-export async function handleDecideLaterTurn(params: {
-  sessionId: string;
-  title: string;
-  reason?: string;
-}): Promise<DiscoverySessionDto> {
-  const { sessionId, title, reason } = params;
-
-  await db.discoveryDecision.create({
-    data: {
-      sessionId,
-      title,
-      options: JSON.stringify(["Decide in technical staging", "Consult internal team"]),
-      selectedOption: "Deferred for later",
-      reason: reason || "Client elected to leave this decision for later review.",
-      status: "LEAVE_FOR_LATER",
-    },
-  });
-
-  await db.discoveryMessage.create({
-    data: {
-      sessionId,
-      role: "user",
-      content: `We'll decide on "${title}" later.`,
-    },
-  });
-
-  const replyData: StructuredMessageData = {
-    currentQuestion: {
-      question: "What is the next key capability or workflow we should model?",
-      contextWhy: "Moving to core workflows ensures we capture what is already clear.",
-    },
-    quickReplies: [
-      "Let's look at user roles & permissions",
-      "Let's review the customer journey",
-      "Let's check reporting and visibility",
-    ],
-  };
-
-  await db.discoveryMessage.create({
-    data: {
-      sessionId,
-      role: "consultant",
-      content: `Recorded "${title}" under Open Decisions. This will remain visible in your project model until explicitly confirmed. What should we explore next?`,
-      structuredData: JSON.stringify(replyData),
-      modelUsed: "system-consultant",
-    },
-  });
-
-  return serializeDiscoverySession(sessionId);
-}
-
-/**
- * Confirm a detected contradiction / requirement revision (Rules 28 & 29).
- */
-export async function confirmContradictionRevision(params: {
-  sessionId: string;
-  contradictionId: string;
-}): Promise<DiscoverySessionDto> {
-  const { sessionId, contradictionId } = params;
-
-  const fact = await db.discoveryFact.findUnique({
-    where: { id: contradictionId },
-  });
-
-  if (fact && fact.category === "CONTRADICTION") {
-    await db.discoveryFact.update({
-      where: { id: contradictionId },
-      data: { status: "CONFIRMED" },
-    });
-
-    await db.discoveryMessage.create({
-      data: {
-        sessionId,
-        role: "consultant",
-        content: `✓ Requirement revision confirmed: "${fact.title}". The project model has been updated to reflect your new agreed specification.`,
-        modelUsed: "system-consultant",
-      },
-    });
-  }
-
-  return serializeDiscoverySession(sessionId);
 }
 
 /* ── Helpers ────────────────────────────────────────────────────────────── */

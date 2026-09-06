@@ -799,10 +799,20 @@ export async function answerClarification(input: {
 
 /* ── Admin review → resolve → update proposal ────────────────── */
 
+export type ReviewDecision =
+  | "accept"
+  | "edit_accept"
+  | "internal_decision"
+  | "future_consideration"
+  | "reject"
+  | "follow_up";
+
 export async function reviewClarificationAnswer(input: {
   question: RequirementQuestion;
-  decision: "accept" | "reject";
+  decision: ReviewDecision;
+  interpretation?: string;
   note?: string;
+  impact?: Record<string, string>;
   actorId: string;
   actorName: string;
 }) {
@@ -827,7 +837,62 @@ export async function reviewClarificationAnswer(input: {
     return { question: updated, proposal: null as never };
   }
 
-  return resolveClarification(input);
+  if (decision === "future_consideration") {
+    const now = new Date();
+    const updated = await db.requirementQuestion.update({
+      where: { id: question.id },
+      data: { status: "RESOLVED", reviewedAt: now, resolvedAt: now },
+    });
+
+    const disc = await db.discoverySession.findUnique({ where: { requirementId: question.requirementId } });
+    if (disc) {
+      await db.scopeItem.create({
+        data: {
+          sessionId: disc.id,
+          title: question.clientQuestion || question.question,
+          description: input.interpretation || question.response || "Deferred to future consideration / phase 2.",
+          tier: "POSSIBLE",
+          rationale: input.note || "Deferred during internal review for future consideration.",
+        },
+      });
+    }
+
+    await recordEvent(
+      question.requirementId,
+      "CLARIFICATION_RESOLVED",
+      "Clarification deferred to future consideration",
+      `${categoryLabel(question.category) ?? question.section} — marked for future consideration`,
+      { questionId: question.id },
+    );
+    return { question: updated, proposal: null as never };
+  }
+
+  if (decision === "internal_decision") {
+    const now = new Date();
+    const disc = await db.discoverySession.findUnique({ where: { requirementId: question.requirementId } });
+    if (disc) {
+      await db.discoveryDecision.create({
+        data: {
+          sessionId: disc.id,
+          title: question.clientQuestion || question.question,
+          selectedOption: input.interpretation || question.response || "Approved internal technical decision",
+          reason: input.note || "Decided internally by technical team.",
+          status: "CONFIRMED",
+        },
+      });
+    }
+
+    return resolveClarification({
+      ...input,
+      confirmedText: input.interpretation || question.response || "",
+    });
+  }
+
+  const confirmedText = (input.interpretation || question.response || "").trim();
+  return resolveClarification({
+    ...input,
+    confirmedText,
+  });
 }
 
 export async function resolveClarification(input: {
@@ -835,26 +900,127 @@ export async function resolveClarification(input: {
   actorId: string;
   actorName: string;
   note?: string;
+  confirmedText?: string;
+  interpretation?: string;
 }) {
   const { question } = input;
   const now = new Date();
+  const confirmedRequirement = (input.confirmedText || input.interpretation || question.response || "").trim();
 
-  // The accepted answer becomes part of the requirement — it is never left
-  // dangling in a PENDING proposal. The client's answer is recorded on the
-  // section's stored answers (traceable, versioned) and the request metrics
-  // are recomputed immediately, so "accepted" and "still missing" can never
-  // be true at the same time.
+  // The accepted answer becomes part of the requirement
   await applyAcceptedAnswerToRequirement({
     requirementId: question.requirementId,
     section: question.section,
     questionId: question.id,
     questionText: question.clientQuestion ?? question.question,
-    answer: question.response ?? "",
+    answer: confirmedRequirement,
     actorName: input.actorName,
   });
 
-  // The update proposal remains as the audit/traceability record — but it is
-  // created already decided (ACCEPTED), so no second manual step is needed.
+  // Synchronize directly with DiscoverySession and Live Project Model
+  const disc = await db.discoverySession.findUnique({
+    where: { requirementId: question.requirementId },
+    include: { areas: true },
+  });
+
+  if (disc) {
+    const sec = question.section.toLowerCase();
+
+    const areaMapping: Record<string, string> = {
+      users: "USERS",
+      scope: "CORE_FEATURES",
+      features: "CORE_FEATURES",
+      business: "BUSINESS",
+      vision: "GOAL",
+      integrations: "INTEGRATIONS",
+      timeline: "TIMELINE",
+      commercial: "BUDGET",
+      design: "DESIGN",
+      security: "SECURITY",
+    };
+    const targetAreaKey = areaMapping[sec] || "CORE_FEATURES";
+
+    const targetArea = disc.areas.find((a) => a.areaKey === targetAreaKey);
+    if (targetArea) {
+      await db.discoveryTopicArea.update({
+        where: { id: targetArea.id },
+        data: { status: "CONFIRMED" },
+      });
+    }
+
+    if (sec === "users") {
+      await db.systemCapability.create({
+        data: {
+          sessionId: disc.id,
+          roleName: question.subcategory || "Authorized User",
+          title: (question.clientQuestion || question.question).slice(0, 100),
+          description: confirmedRequirement,
+          status: "CONFIRMED",
+        },
+      });
+      await db.discoveryFact.create({
+        data: {
+          sessionId: disc.id,
+          category: "USER_ROLE",
+          title: question.subcategory || "User Role & Permissions",
+          description: confirmedRequirement,
+          status: "CONFIRMED",
+        },
+      });
+    } else if (sec === "scope") {
+      await db.scopeItem.create({
+        data: {
+          sessionId: disc.id,
+          title: (question.clientQuestion || question.question).slice(0, 100),
+          description: confirmedRequirement,
+          tier: "CORE",
+          rationale: "Confirmed through client clarification and internal review.",
+        },
+      });
+    } else if (sec === "features") {
+      await db.systemCapability.create({
+        data: {
+          sessionId: disc.id,
+          roleName: question.subcategory || "System",
+          title: (question.clientQuestion || question.question).slice(0, 100),
+          description: confirmedRequirement,
+          status: "CONFIRMED",
+        },
+      });
+    } else if (sec === "integrations") {
+      await db.discoveryFact.create({
+        data: {
+          sessionId: disc.id,
+          category: "INTEGRATION",
+          title: question.subcategory || "External API Connection",
+          description: confirmedRequirement,
+          status: "CONFIRMED",
+        },
+      });
+    } else {
+      await db.discoveryFact.create({
+        data: {
+          sessionId: disc.id,
+          category: "GOAL",
+          title: (question.clientQuestion || question.question).slice(0, 100),
+          description: confirmedRequirement,
+          status: "CONFIRMED",
+        },
+      });
+    }
+
+    await db.discoverySession.update({
+      where: { id: disc.id },
+      data: {
+        completeness: Math.min(100, (disc.completeness || 0) + 15),
+        readinessScore: Math.min(100, (disc.readinessScore || 20) + 15),
+        healthStatus: "READY",
+        updatedAt: now,
+      },
+    });
+  }
+
+  // The update proposal remains as the audit/traceability record
   const proposal = await db.requirementUpdateProposal.create({
     data: {
       workspaceId: question.workspaceId,
@@ -863,7 +1029,7 @@ export async function resolveClarification(input: {
       questionId: question.id,
       summary: `${categoryLabel(question.category) || question.section} — ${(question.clientQuestion ?? question.question).slice(0, 120)}`,
       currentValue: "Not specified in requirement",
-      proposedValue: question.response?.slice(0, 500) ?? "",
+      proposedValue: confirmedRequirement.slice(0, 500),
       impact: question.impact,
       createdById: input.actorId,
       createdByName: input.actorName,

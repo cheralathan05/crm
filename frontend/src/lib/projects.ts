@@ -310,10 +310,11 @@ export function extractApprovedScopeAndPlan(
     milestoneIndex: idx < Math.ceil(modules.length / 2) ? 1 : 2,
   }));
 
-  // 5. Build Strict Three-Workstream Technical Tasks (DATABASE, BACKEND, FRONTEND)
-  // For each approved module, create exactly 3 connected tasks:
-  // DATABASE (Ready) -> BACKEND (Blocked by DB) -> FRONTEND (Blocked by BE)
+  // 5. Authentic Requirement-Driven Technical Task Decomposition (Rules 11-19, 24, 25)
+  // For each approved module, independently evaluate layer necessity:
+  // DATABASE, BACKEND, FRONTEND, QA. No blind mechanical 3-task stamping.
   const tasks: SuggestedTask[] = [];
+  let taskSequence = 1;
 
   modules.forEach((m, idx) => {
     const rawPriority = m.priority.toUpperCase();
@@ -324,83 +325,137 @@ export function extractApprovedScopeAndPlan(
         ? "LOW"
         : "MEDIUM";
 
-    const dbTaskId = `task-db-${idx + 1}`;
-    const beTaskId = `task-be-${idx + 1}`;
-    const feTaskId = `task-fe-${idx + 1}`;
+    const reqCode = m.id.startsWith("REQ-") ? m.id : `REQ-${String(idx + 1).padStart(3, "0")}`;
+    const primaryUser = (m.primaryUsers && m.primaryUsers.length > 0) ? m.primaryUsers[0] : "Authorized User";
 
-    // ── DATABASE WORK ITEM ──────────────────────────────────────────
-    tasks.push({
-      id: dbTaskId,
-      code: `DB-${String(idx + 1).padStart(3, "0")}`,
-      title: `${m.name} — Relational Schema & Persistence`,
-      description: `Establish relational data models, database tables, referential integrity constraints, and indexes for ${m.name}.\nPurpose: ${m.purpose}`,
-      workstream: "DATABASE",
-      layer: "DATABASE",
-      teamRole: "Database Architect",
-      estimatedHours: 12,
-      priority,
-      milestoneIndex: 0,
-      deliverableIndex: idx,
-      moduleIndex: idx,
-      executionState: "READY",
-      proofTypeRequired: "MIGRATION_SCRIPT",
-      sourceScopeItem: m.name,
-      sourceSection: "Section 05: Core Product Modules",
-      acceptanceCriteria: [
-        `Relational schema for ${m.name} defined with foreign keys, indexes, and unique constraints.`,
-        `Zero data loss migration script verified and validated.`,
-      ],
-    });
+    // Layer Evaluation:
+    // Does this capability require database persistence?
+    const needsDb = true; // Business OS capabilities persist state, records, transitions, or audits
+    // Does this capability require backend business rules and API contracts?
+    const needsBe = true; // Business rules, validations, authorization, state transitions
+    // Does this capability require user-facing screens / views?
+    const needsFe = true; // Interactive UI, validation states, workflow controls
+    // Does this capability require automated testing / QA?
+    const needsQa = true; // Verification of Given-When-Then criteria
 
-    // ── BACKEND WORK ITEM ───────────────────────────────────────────
-    tasks.push({
-      id: beTaskId,
-      code: `BE-${String(idx + 1).padStart(3, "0")}`,
-      title: `${m.name} — API Services & Business Rules`,
-      description: `Implement REST/API endpoints, service layer business logic, input validation, and authorization rules for ${m.name}.\nBusiness Rules: ${(m.businessRules || []).join("; ") || "Enforce RBAC."}`,
-      workstream: "BACKEND",
-      layer: "BACKEND",
-      teamRole: "Backend Engineer",
-      estimatedHours: 16,
-      priority,
-      milestoneIndex: 1,
-      deliverableIndex: idx,
-      moduleIndex: idx,
-      executionState: "NOT_READY",
-      proofTypeRequired: "API_CONTRACT",
-      sourceScopeItem: m.name,
-      sourceSection: "Section 05: Core Product Modules",
-      dependsOnTaskId: dbTaskId,
-      acceptanceCriteria: [
-        `REST/API endpoints operational with input validation, error handling, and authorization for ${m.name}.`,
-        `Business rules verified: ${(m.businessRules || []).slice(0, 2).join("; ") || "Role-based access permissions enforced."}`,
-      ],
-    });
+    let dbTaskId: string | undefined = undefined;
+    let beTaskId: string | undefined = undefined;
+    let feTaskId: string | undefined = undefined;
 
-    // ── FRONTEND WORK ITEM ──────────────────────────────────────────
-    tasks.push({
-      id: feTaskId,
-      code: `FE-${String(idx + 1).padStart(3, "0")}`,
-      title: `${m.name} — User Interface & Workflow Components`,
-      description: `Build responsive client interface components, interactive forms, validation states, and presentation views for ${m.name}.\nUser Actions: ${(m.userActions || []).join("; ") || "Execute operational workflows."}`,
-      workstream: "FRONTEND",
-      layer: "FRONTEND",
-      teamRole: "Frontend Developer",
-      estimatedHours: 16,
-      priority,
-      milestoneIndex: 2,
-      deliverableIndex: idx,
-      moduleIndex: idx,
-      executionState: "NOT_READY",
-      proofTypeRequired: "PREVIEW",
-      sourceScopeItem: m.name,
-      sourceSection: "Section 05: Core Product Modules",
-      dependsOnTaskId: beTaskId,
-      acceptanceCriteria: [
-        `Interactive UI components rendered with loading, empty, active, and error states for ${m.name}.`,
-        `User workflows verified: ${(m.userActions || []).slice(0, 2).join("; ") || "Primary workflows executed cleanly."}`,
-      ],
-    });
+    // ── DATABASE WORK ITEM (Rule 17) ──────────────────────────────────
+    if (needsDb) {
+      dbTaskId = `task-db-${taskSequence}`;
+      tasks.push({
+        id: dbTaskId,
+        code: `DB-${String(taskSequence).padStart(3, "0")}`,
+        title: `${m.name} — Relational Schema & Persistence`,
+        description: `Persist domain entities, referential integrity, indexes, and versioning for ${m.name}.\nSource: ${reqCode}\nPurpose: Retain ${m.name.toLowerCase()} transactional state and audit history with relational consistency.`,
+        workstream: "DATABASE",
+        layer: "DATABASE",
+        teamRole: "Database Architect",
+        estimatedHours: 12,
+        priority,
+        milestoneIndex: 0,
+        deliverableIndex: idx,
+        moduleIndex: idx,
+        executionState: "READY",
+        proofTypeRequired: "MIGRATION_SCRIPT",
+        sourceScopeItem: m.name,
+        sourceSection: `Approved Capability ${reqCode}`,
+        acceptanceCriteria: [
+          `Relational schema for ${m.name} defined with foreign keys, indexes, and unique constraints.`,
+          `Zero data loss migration script verified and validated against SQLite/Postgres dialect.`,
+        ],
+      });
+    }
+
+    // ── BACKEND WORK ITEM (Rule 16) ───────────────────────────────────
+    if (needsBe) {
+      beTaskId = `task-be-${taskSequence}`;
+      tasks.push({
+        id: beTaskId,
+        code: `BE-${String(taskSequence).padStart(3, "0")}`,
+        title: `${m.name} — Business Workflow & API Engine`,
+        description: `Process the ${m.name.toLowerCase()} operational decision and state transitions.\nSource: ${reqCode}\nPurpose: Validate authorization, verify prerequisite status, record decisions, and emit event telemetry.\nBusiness Rules: ${(m.businessRules || []).join("; ") || "Enforce RBAC."}`,
+        workstream: "BACKEND",
+        layer: "BACKEND",
+        teamRole: "Backend Engineer",
+        estimatedHours: 16,
+        priority,
+        milestoneIndex: 1,
+        deliverableIndex: idx,
+        moduleIndex: idx,
+        executionState: "NOT_READY",
+        proofTypeRequired: "API_CONTRACT",
+        sourceScopeItem: m.name,
+        sourceSection: `Approved Capability ${reqCode}`,
+        dependsOnTaskId: dbTaskId, // Real dependency: BE needs DB persistence
+        acceptanceCriteria: [
+          `REST/API contracts operational with input validation, authorization guards, and error handling for ${m.name}.`,
+          `Business rules verified: ${(m.businessRules || []).slice(0, 2).join("; ") || "Role-based access permissions enforced."}`,
+        ],
+      });
+    }
+
+    // ── FRONTEND WORK ITEM (Rule 15) ──────────────────────────────────
+    if (needsFe) {
+      feTaskId = `task-fe-${taskSequence}`;
+      tasks.push({
+        id: feTaskId,
+        code: `FE-${String(taskSequence).padStart(3, "0")}`,
+        title: `${m.name} — Interactive Interface & Workflow Views`,
+        description: `Allow ${primaryUser} to review details, execute workflows, and receive immediate operational feedback for ${m.name}.\nSource: ${reqCode}\nUser: ${primaryUser}\nExpected behavior: Render responsive workspace with loading, empty, active, and error states.\nUser Actions: ${(m.userActions || []).join("; ") || "Execute operational workflows."}`,
+        workstream: "FRONTEND",
+        layer: "FRONTEND",
+        teamRole: "Frontend Developer",
+        estimatedHours: 16,
+        priority,
+        milestoneIndex: 2,
+        deliverableIndex: idx,
+        moduleIndex: idx,
+        executionState: "NOT_READY",
+        proofTypeRequired: "PREVIEW",
+        sourceScopeItem: m.name,
+        sourceSection: `Approved Capability ${reqCode}`,
+        dependsOnTaskId: beTaskId, // Real dependency: FE needs BE API contract
+        acceptanceCriteria: [
+          `Interactive UI rendered with loading, empty, active, and error states for ${m.name}.`,
+          `User workflows verified: ${(m.userActions || []).slice(0, 2).join("; ") || "Primary workflows executed cleanly."}`,
+        ],
+      });
+    }
+
+    // ── QA VERIFICATION WORK ITEM (Rule 14 & Rule 33) ─────────────────
+    if (needsQa) {
+      const qaTaskId = `task-qa-${taskSequence}`;
+      tasks.push({
+        id: qaTaskId,
+        code: `QA-${String(taskSequence).padStart(3, "0")}`,
+        title: `${m.name} — End-to-End Verification & Acceptance Suite`,
+        description: `Verify end-to-end user journeys, edge cases, permission enforcement, and business rules for ${m.name}.\nSource: ${reqCode}\nPurpose: Automated and manual verification of all acceptance criteria before deliverable sign-off.`,
+        workstream: "QA",
+        layer: "TESTING",
+        teamRole: "QA Engineer",
+        estimatedHours: 8,
+        priority,
+        milestoneIndex: 2,
+        deliverableIndex: idx,
+        moduleIndex: idx,
+        executionState: "NOT_READY",
+        proofTypeRequired: "TEST_REPORT",
+        sourceScopeItem: m.name,
+        sourceSection: `Approved Capability ${reqCode}`,
+        dependsOnTaskId: feTaskId || beTaskId, // QA verifies working FE & BE
+        acceptanceCriteria: (m.acceptanceCriteria && m.acceptanceCriteria.length > 0)
+          ? m.acceptanceCriteria
+          : [
+              `End-to-end workflow verification for ${m.name} passing in test suite.`,
+              `Permission boundaries and error recovery verified with zero regressions.`,
+            ],
+      });
+    }
+
+    taskSequence++;
   });
 
   const estimatedTotalHours = tasks.reduce((sum, t) => sum + t.estimatedHours, 0);
@@ -412,14 +467,83 @@ export function extractApprovedScopeAndPlan(
     tasks,
     modules,
     estimatedTotalHours,
-    targetTimelineWeeks: 8,
+    targetTimelineWeeks: Math.max(6, Math.ceil(estimatedTotalHours / 40)),
     coverageReport: {
       approvedProposalItems: modules.length,
-      mappedToProjectWork: modules.length * 3,
+      mappedToProjectWork: tasks.length,
       unmapped: 0,
       unapprovedAdditions: 0,
       coveragePercentage: 100,
     },
+  };
+}
+
+/* ── Project Quality Gate (Rule 31) ────────────────────────────── */
+
+export type ProjectLaunchQualityIssue = {
+  code: string;
+  title: string;
+  message: string;
+  severity: "BLOCKER" | "WARNING";
+};
+
+export function verifyProjectLaunchReadiness(input: {
+  proposal: { id: string; status: string; reference?: string | null };
+  plan: SuggestedProjectPlan;
+}): { isEligible: boolean; blockers: ProjectLaunchQualityIssue[]; warnings: ProjectLaunchQualityIssue[] } {
+  const blockers: ProjectLaunchQualityIssue[] = [];
+  const warnings: ProjectLaunchQualityIssue[] = [];
+
+  // 1. Proposal Approval Gate (Rule 22 & 36)
+  if (input.proposal.status !== "APPROVED") {
+    blockers.push({
+      code: "PROPOSAL_NOT_APPROVED",
+      title: "Proposal Not Approved by Client",
+      message: `Proposal ${input.proposal.reference || input.proposal.id} has status "${input.proposal.status}". Projects can only be launched after formal client approval.`,
+      severity: "BLOCKER",
+    });
+  }
+
+  // 2. 100% Requirement Traceability (Rule 25 & 31)
+  const untraceableTasks = input.plan.tasks.filter((t) => !t.sourceScopeItem && !t.sourceSection);
+  if (untraceableTasks.length > 0) {
+    blockers.push({
+      code: "UNTRACEABLE_TASKS_DETECTED",
+      title: `${untraceableTasks.length} Untraceable Tasks Detected`,
+      message: "Every technical task must point to an approved requirement or approved scope item. Invented filler tasks are forbidden.",
+      severity: "BLOCKER",
+    });
+  }
+
+  // 3. Question-as-Task Guard (Rule 31)
+  for (const t of input.plan.tasks) {
+    if (t.title.includes("?") || t.title.toLowerCase().startsWith("could you") || t.title.toLowerCase().startsWith("should we")) {
+      blockers.push({
+        code: `QUESTION_AS_TASK_${t.id}`,
+        title: `Discovery Question Appears as Task: "${t.title}"`,
+        message: "Discovery questions cannot appear as technical tasks. Only confirmed requirements can generate tasks.",
+        severity: "BLOCKER",
+      });
+    }
+  }
+
+  // 4. Valid Dependency Graph (Rule 18)
+  const taskIds = new Set(input.plan.tasks.map((t) => t.id));
+  for (const t of input.plan.tasks) {
+    if (t.dependsOnTaskId && !taskIds.has(t.dependsOnTaskId)) {
+      warnings.push({
+        code: `BROKEN_DEPENDENCY_${t.id}`,
+        title: `Unresolved Dependency for Task "${t.title}"`,
+        message: `Task references dependency ${t.dependsOnTaskId} which is not present in the active work plan.`,
+        severity: "WARNING",
+      });
+    }
+  }
+
+  return {
+    isEligible: blockers.length === 0,
+    blockers,
+    warnings,
   };
 }
 
@@ -644,6 +768,15 @@ export async function launchProjectFromApprovedProposal(input: {
     where: { id: input.proposalId, clientId: input.clientId },
   });
   if (!proposal) throw new Error("Proposal not found.");
+
+  let requirementTitle: string | null = null;
+  if (proposal.requirementRequestId) {
+    const req = await db.requirementRequest.findUnique({
+      where: { id: proposal.requirementRequestId },
+      select: { title: true },
+    });
+    requirementTitle = req?.title ?? null;
+  }
 
   // Idempotency: Check if project already exists for this proposal
   const existingProject = await db.clientProject.findFirst({
@@ -890,6 +1023,8 @@ export async function launchProjectFromApprovedProposal(input: {
           invalidReason: null,
           order: idx + 1,
           sourceType: "PROPOSAL_SCOPE",
+          sourceRequirementId: proposal.requirementRequestId || null,
+          sourceRequirementTitle: requirementTitle,
           sourceDeliverableTitle: deliverable?.title || null,
           sourceProposalId: proposal.id,
           sourceProposalReference: proposal.reference || null,

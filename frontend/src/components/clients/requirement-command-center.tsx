@@ -36,6 +36,8 @@ import { cn } from "@/lib/utils";
 import { SECTIONS, getSection, type SectionDef } from "@/lib/requirement-config";
 import type { Intel, NextAction } from "@/lib/requirement-intel";
 import { acceptedClarificationKeys, sectionLabel } from "@/lib/requirement-intel";
+import type { DiscoverySessionDto } from "@/lib/discovery/discovery.types";
+import { DiscoveryStudio } from "@/components/discovery-studio/discovery-studio";
 import { StatusChip, MicroButton, EmptyState } from "./kit";
 
 /* ────────────────────────────────────────────────────────────────
@@ -89,10 +91,11 @@ type AdminBundle = {
   clientContacts: { id: string; name: string; role: string | null; email: string | null; isPrimary: boolean }[];
   proposalBlock: { blocked: boolean; blockers: { id: string; label: string; category: string }[] };
   conflicts: { id: string; description: string; detail: string | null; createdAt: string }[];
+  discoverySession?: DiscoverySessionDto | null;
   intel: Intel;
 };
 
-type ViewId = "overview" | "review" | "activity" | string; // section keys included
+type ViewId = "overview" | "review" | "discovery" | "clarifications" | "activity" | string; // section keys included
 
 type Ceremony =
   | { phase: "approved" }
@@ -684,6 +687,19 @@ export function RequirementCommandCenter({
                 right={r.status === "APPROVED" ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : undefined}
               />
               <NavItem
+                active={view === "discovery"}
+                onClick={() => setView("discovery")}
+                icon={<Sparkles className="w-3.5 h-3.5" aria-hidden="true" />}
+                label="Discovery Studio"
+                right={
+                  bundle.discoverySession ? (
+                    <span className="flex items-center justify-center min-w-[20px] h-4 px-1 rounded-full bg-[var(--bos-accent)]/15 text-[9px] font-mono text-[var(--bos-accent)]">
+                      {bundle.discoverySession.completeness}%
+                    </span>
+                  ) : undefined
+                }
+              />
+              <NavItem
                 active={view === "review"}
                 onClick={() => { setView("review"); setReviewMode(canReview); }}
                 icon={<BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />}
@@ -762,6 +778,7 @@ export function RequirementCommandCenter({
           {/* Mobile section picker */}
           <div className="lg:hidden border-b border-[var(--bos-line)] px-3 py-2 flex gap-1 overflow-x-auto no-scrollbar">
             <MobileChip active={view === "overview"} onClick={() => setView("overview")}>Overview</MobileChip>
+            <MobileChip active={view === "discovery"} onClick={() => setView("discovery")}>Discovery</MobileChip>
             <MobileChip active={view === "review"} onClick={() => setView("review")}>Review</MobileChip>
             <MobileChip active={view === "clarifications"} onClick={() => setView("clarifications")}>Clarifications</MobileChip>
             <MobileChip active={view === "activity"} onClick={() => setView("activity")}>Activity</MobileChip>
@@ -802,6 +819,21 @@ export function RequirementCommandCenter({
                     onViewActivity={() => setView("activity")}
                     onViewSection={(key) => setView(key)}
                   />
+                )}
+                {view === "discovery" && (
+                  <div className="h-[calc(100vh-140px)] min-h-[640px] border border-[var(--bos-line)] rounded-sm overflow-hidden bg-[var(--bos-bg)]">
+                    {bundle.discoverySession ? (
+                      <DiscoveryStudio
+                        requirementId={r.id}
+                        initialSession={bundle.discoverySession}
+                      />
+                    ) : (
+                      <EmptyState
+                        title="Discovery Session Initializing"
+                        hint="A discovery session is being initialized for this requirement request."
+                      />
+                    )}
+                  </div>
                 )}
                 {view === "review" && (
                   <ReviewView
@@ -1238,69 +1270,194 @@ function DecisionCenterView({
         )}
       </section>
 
-      {/* What needs attention — real blockers and review items */}
-      <section>
-        <SectionTitle title="What needs attention" hint="Only actual action items" />
+      {/* What needs attention — real action center explaining What, Why, Who, After Resolution */}
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <SectionTitle title="What needs attention" hint="Action items requiring client response or internal review" />
+          <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase tracking-wider">
+            {intel.blockers.length + intel.needsReview.length} item{(intel.blockers.length + intel.needsReview.length) === 1 ? "" : "s"}
+          </span>
+        </div>
         {intel.blockers.length === 0 && intel.needsReview.length === 0 ? (
           <EmptyState title="Nothing requires attention" hint="Every required item is confirmed and no clarification is waiting." />
         ) : (
-          <ul className="space-y-1.5">
-            {intel.blockers.map((b) => (
-              <li key={b.id} className="flex items-start gap-2 rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 px-3.5 py-2.5">
-                <AlertTriangle className="w-3.5 h-3.5 text-[var(--bos-error)] mt-0.5 shrink-0" aria-hidden="true" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">{b.label}</div>
-                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
-                    {b.kind === "clarification" ? "Blocking clarification — " : "Required information — "}
-                    {b.section ? sectionLabel(b.section) : ""}
+          <div className="space-y-3">
+            {intel.needsReview.map((n) => (
+              <div
+                key={n.questionId}
+                className="rounded-sm border border-[var(--bos-warning)]/35 bg-[var(--bos-warning)]/[0.04] p-3.5 transition-all shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--bos-warning)]/15 text-[var(--bos-warning)] shrink-0">
+                      <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" />
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-warning)] font-semibold">
+                      Client Answer Awaiting Internal Review
+                    </span>
+                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border border-[var(--bos-warning)]/30 text-[var(--bos-warning)]">
+                      {n.section}
+                    </span>
+                  </div>
+                  <span className="text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--bos-overlay)] text-[var(--bos-text-secondary)] border border-[var(--bos-line)] shrink-0">
+                    Action: Internal Team
+                  </span>
+                </div>
+
+                <div className="mt-2 text-[13px] font-medium text-[var(--bos-text-primary)] leading-snug">
+                  {n.label}
+                </div>
+
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-2.5 border-t border-[var(--bos-warning)]/15 text-[11px]">
+                  <div>
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] mb-0.5">What is missing</span>
+                    <p className="text-[var(--bos-text-secondary)] leading-relaxed">{n.whatMissing || "Clarification response needs internal interpretation and sign-off."}</p>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] mb-0.5">Why it matters</span>
+                    <p className="text-[var(--bos-text-secondary)] leading-relaxed">{n.whyItMatters || "Raw client answers must be confirmed and interpreted into project deliverables."}</p>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] mb-0.5">After resolution</span>
+                    <p className="text-[var(--bos-text-secondary)] leading-relaxed">{n.afterResolution || "Immediately updates discovery baseline and proposal readiness."}</p>
                   </div>
                 </div>
-                {b.questionId && (
-                  <MicroButton onClick={() => onViewQuestion(String(b.questionId))}>
-                    <Eye className="w-3 h-3" aria-hidden="true" /> View
-                  </MicroButton>
-                )}
-              </li>
-            ))}
-            {intel.needsReview.map((n) => (
-              <li key={n.questionId} className="flex items-start gap-2 rounded-sm border border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 px-3.5 py-2.5">
-                <BadgeCheck className="w-3.5 h-3.5 text-[var(--bos-warning)] mt-0.5 shrink-0" aria-hidden="true" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">Client answered — {n.section}</div>
-                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5 truncate">{n.label}</div>
+
+                <div className="mt-3 pt-2.5 border-t border-[var(--bos-warning)]/15 flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[10px] text-[var(--bos-text-tertiary)]">
+                    Answered {formatDateTime(n.answeredAt)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <MicroButton variant="accent" onClick={() => onViewQuestion(n.questionId)}>
+                      <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review &amp; Interpret
+                    </MicroButton>
+                  </div>
                 </div>
-                <MicroButton variant="accent" onClick={() => onViewQuestion(n.questionId)}>
-                  <BadgeCheck className="w-3 h-3" aria-hidden="true" /> Review
-                </MicroButton>
-              </li>
+              </div>
             ))}
-          </ul>
+
+            {intel.blockers.map((b) => (
+              <div
+                key={b.id}
+                className="rounded-sm border border-[var(--bos-error)]/35 bg-[var(--bos-error)]/[0.04] p-3.5 transition-all shadow-sm"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="flex items-center justify-center w-5 h-5 rounded-full bg-[var(--bos-error)]/15 text-[var(--bos-error)] shrink-0">
+                      <AlertTriangle className="w-3.5 h-3.5" aria-hidden="true" />
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-error)] font-semibold">
+                      {b.kind === "clarification" ? "Blocking Clarification" : b.kind === "conflict" ? "Specification Conflict" : "Missing Project Definition"}
+                    </span>
+                    {b.section && (
+                      <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border border-[var(--bos-error)]/30 text-[var(--bos-error)]">
+                        {sectionLabel(b.section)}
+                      </span>
+                    )}
+                  </div>
+                  <span className={cn(
+                    "text-[9px] font-mono uppercase tracking-wider px-2 py-0.5 rounded border shrink-0",
+                    b.whoNeedsToAct === "CLIENT"
+                      ? "bg-[var(--bos-info)]/10 text-[var(--bos-info)] border-[var(--bos-info)]/20"
+                      : "bg-[var(--bos-accent)]/10 text-[var(--bos-accent)] border-[var(--bos-accent)]/20"
+                  )}>
+                    Action: {b.whoNeedsToAct === "CLIENT" ? "Client" : "Internal Team"}
+                  </span>
+                </div>
+
+                <div className="mt-2 text-[13px] font-medium text-[var(--bos-text-primary)] leading-snug">
+                  {b.label}
+                </div>
+
+                <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-2.5 border-t border-[var(--bos-error)]/15 text-[11px]">
+                  <div>
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] mb-0.5">What is missing</span>
+                    <p className="text-[var(--bos-text-secondary)] leading-relaxed">{b.whatMissing || "Information required to scope the project baseline."}</p>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] mb-0.5">Why it matters</span>
+                    <p className="text-[var(--bos-text-secondary)] leading-relaxed">{b.whyItMatters || "Required to prevent inaccurate estimates and delivery delays."}</p>
+                  </div>
+                  <div>
+                    <span className="block text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] mb-0.5">After resolution</span>
+                    <p className="text-[var(--bos-text-secondary)] leading-relaxed">{b.afterResolution || "Unlocks proposal readiness and engineering breakdown."}</p>
+                  </div>
+                </div>
+
+                <div className="mt-3 pt-2.5 border-t border-[var(--bos-error)]/15 flex items-center justify-between gap-2 flex-wrap">
+                  <span className="text-[10px] text-[var(--bos-text-tertiary)]">
+                    {b.status ? `Status: ${b.status}` : "Blocking"}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {b.questionId ? (
+                      <MicroButton variant="accent" onClick={() => onViewQuestion(String(b.questionId))}>
+                        <Eye className="w-3 h-3" aria-hidden="true" /> View Question
+                      </MicroButton>
+                    ) : b.section ? (
+                      <>
+                        <MicroButton variant="accent" onClick={() => onAskClient(b.section)}>
+                          <Mail className="w-3 h-3" aria-hidden="true" /> Request Clarification
+                        </MicroButton>
+                        <MicroButton onClick={() => onViewSection(b.section!)}>
+                          <Eye className="w-3 h-3" aria-hidden="true" /> View Section
+                        </MicroButton>
+                      </>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         )}
       </section>
 
       {/* What we're waiting for — real client clarifications */}
-      <section>
-        <SectionTitle title="What we're waiting for" hint="Clarifications sent to the client" />
+      <section className="space-y-3">
+        <div className="flex items-center justify-between">
+          <SectionTitle title="What we're waiting for" hint="Clarifications dispatched to the client" />
+          <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] uppercase tracking-wider">
+            {intel.waitingOnClient.length} pending
+          </span>
+        </div>
         {intel.waitingOnClient.length === 0 ? (
           <EmptyState title="Nothing waiting on the client" hint="No clarification questions are awaiting a response." />
         ) : (
-          <ul className="space-y-1.5">
+          <div className="space-y-2.5">
             {intel.waitingOnClient.map((w) => (
-              <li key={w.questionId} className="flex items-start gap-2 rounded-sm border border-[var(--bos-line)] px-3.5 py-2.5">
-                <Clock className="w-3.5 h-3.5 text-[var(--bos-info)] mt-0.5 shrink-0" aria-hidden="true" />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[12px] text-[var(--bos-text-primary)] leading-snug">{w.section}</div>
-                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5 truncate">{w.label}</div>
-                  <div className="text-[10px] text-[var(--bos-text-tertiary)] mt-0.5">
-                    Sent to {w.recipient} · {formatDateTime(w.since)}
+              <div key={w.questionId} className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 p-3.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Clock className="w-3.5 h-3.5 text-[var(--bos-info)] shrink-0" aria-hidden="true" />
+                    <span className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-info)] font-semibold">
+                      Awaiting Client Response
+                    </span>
+                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded border border-[var(--bos-line)] text-[var(--bos-text-tertiary)]">
+                      {w.section}
+                    </span>
                   </div>
+                  <span className="text-[9px] font-mono text-[var(--bos-text-tertiary)] shrink-0">
+                    Dispatched {formatDateTime(w.since)}
+                  </span>
                 </div>
-                <MicroButton onClick={() => onViewQuestion(w.questionId)}>
-                  <Eye className="w-3 h-3" aria-hidden="true" /> View
-                </MicroButton>
-              </li>
+
+                <div className="mt-2 text-[12px] font-medium text-[var(--bos-text-primary)] leading-snug">
+                  {w.label}
+                </div>
+
+                <div className="mt-2 text-[11px] text-[var(--bos-text-secondary)] leading-relaxed">
+                  <span className="font-mono text-[9px] uppercase tracking-wider text-[var(--bos-text-tertiary)]">Why it matters: </span>
+                  {w.whyItMatters || "Scope definition cannot be locked without direct client confirmation."}
+                </div>
+
+                <div className="mt-3 pt-2 border-t border-[var(--bos-line)] flex items-center justify-between gap-2 flex-wrap text-[10px] text-[var(--bos-text-tertiary)]">
+                  <span>Sent to {w.recipient}</span>
+                  <MicroButton onClick={() => onViewQuestion(w.questionId)}>
+                    <Eye className="w-3 h-3" aria-hidden="true" /> View Question
+                  </MicroButton>
+                </div>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </section>
 
@@ -3370,8 +3527,16 @@ function QuestionDetailPanel({
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
+  const [interpretation, setInterpretation] = useState<string>("");
+  const [editingInterpretation, setEditingInterpretation] = useState(false);
 
   const summary = bundle.questions.find((q) => q.id === questionId) ?? null;
+
+  useEffect(() => {
+    if (summary?.response) {
+      setInterpretation(summary.response);
+    }
+  }, [summary?.response]);
 
   const loadDetail = useCallback(async () => {
     const res = await fetch(`/api/clarifications/${questionId}`);
@@ -3507,43 +3672,159 @@ function QuestionDetailPanel({
         </div>
       )}
 
-      {/* Response — the reason this question exists */}
+      {/* Response — the comprehensive clarification review workspace */}
       {summary && isAnswered ? (
-        <div className="rounded-sm border border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 p-4">
-          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-success)]">
-            <CheckCircle2 className="w-3.5 h-3.5" aria-hidden="true" /> Client response{summary.respondedByName ? ` · ${summary.respondedByName}` : ""}
+        <div className="rounded-sm border border-[var(--bos-warning)]/35 bg-[var(--bos-surface)]/60 p-4 space-y-4 shadow-sm">
+          <div className="flex items-center justify-between gap-2 border-b border-[var(--bos-line)] pb-3">
+            <div className="flex items-center gap-2 text-[11px] font-mono uppercase tracking-[0.14em] text-[var(--bos-warning)] font-semibold">
+              <BadgeCheck className="w-4 h-4" aria-hidden="true" /> Internal Clarification Review
+            </div>
+            <span className="text-[10px] font-mono uppercase tracking-wider px-2 py-0.5 rounded bg-[var(--bos-warning)]/10 text-[var(--bos-warning)] border border-[var(--bos-warning)]/20">
+              Awaiting Internal Team Decision
+            </span>
           </div>
-          <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-primary)]">{summary.response}</p>
-          {summary.respondedAt && (
-            <div className="mt-2 text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">{formatDateTime(summary.respondedAt)}</div>
-          )}
-          {/* The admin's explicit review — nothing is confirmed without it */}
-          <div className="mt-3 pt-3 border-t border-[var(--bos-success)]/15 flex items-center gap-2 flex-wrap">
-            <span className="text-[10px] text-[var(--bos-text-tertiary)]">Nothing is confirmed until you review it:</span>
-            <MicroButton
-              variant="accent"
-              disabled={busy}
-              onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "accept" })}
-            >
-              {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <BadgeCheck className="w-3 h-3" aria-hidden="true" />} Accept answer
-            </MicroButton>
-            <MicroButton
-              disabled={busy}
-              onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "reject" })}
-            >
-              <Ban className="w-3 h-3" aria-hidden="true" /> Reject &amp; re-ask
-            </MicroButton>
+
+          {/* Comparative Baseline Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[12px]">
+            {/* What we previously understood */}
+            <div className="p-3 rounded bg-[var(--bos-overlay)] border border-[var(--bos-line)]">
+              <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] block mb-1">
+                What We Previously Understood
+              </span>
+              <p className="text-[var(--bos-text-secondary)] leading-relaxed">
+                {summary.currentUnderstanding || "No previous baseline documented before this inquiry."}
+              </p>
+            </div>
+
+            {/* What the client said */}
+            <div className="p-3 rounded bg-[var(--bos-success)]/[0.04] border border-[var(--bos-success)]/25">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--bos-success)] font-semibold">
+                  What The Client Said
+                </span>
+                {summary.respondedByName && (
+                  <span className="text-[9px] text-[var(--bos-text-tertiary)]">
+                    by {summary.respondedByName}
+                  </span>
+                )}
+              </div>
+              <p className="text-[var(--bos-text-primary)] font-medium leading-relaxed">
+                {summary.response}
+              </p>
+              {summary.answerData && typeof summary.answerData === "object" && "additionalRemarks" in summary.answerData && Boolean((summary.answerData as Record<string, unknown>).additionalRemarks) && (
+                <div className="mt-2 pt-2 border-t border-[var(--bos-success)]/15 text-[11px] text-[var(--bos-text-secondary)]">
+                  <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] block">Client Remarks:</span>
+                  {String((summary.answerData as Record<string, unknown>).additionalRemarks)}
+                </div>
+              )}
+              {summary.respondedAt && (
+                <div className="mt-2 text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">
+                  Received {formatDateTime(summary.respondedAt)}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* What Changed / Scope Impact */}
+          <div className="p-3 rounded bg-[var(--bos-overlay)] border border-[var(--bos-line)] space-y-1.5 text-[12px]">
+            <span className="text-[9px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)] block">
+              Delta / What Changed
+            </span>
+            <p className="text-[var(--bos-text-secondary)] leading-relaxed">
+              {summary.response
+                ? `Client clarifies requirements for ${summary.sectionLabel}. Baseline transitions from unconfirmed assumption to confirmed technical scope.`
+                : "Clarification received from client stakeholder."}
+            </p>
+            <div className="flex items-center gap-3 pt-1 text-[10px] font-mono text-[var(--bos-text-tertiary)] flex-wrap">
+              <span>Scope: {summary.categoryLabel || "Core Module"}</span>
+              <span>·</span>
+              <span>Priority: {summary.priority || "Medium"}</span>
+              <span>·</span>
+              <span>Impact: {impact.map(([k, v]) => `${IMPACT_LABELS[k] ?? k}: ${String(v)}`).join(" | ") || "Baseline update"}</span>
+            </div>
+          </div>
+
+          {/* Potential System Interpretation (Editable) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label className="text-[10px] font-mono uppercase tracking-wider text-[var(--bos-accent)] font-semibold">
+                System Technical Interpretation &amp; Scope Specification
+              </label>
+              <button
+                type="button"
+                onClick={() => setEditingInterpretation(!editingInterpretation)}
+                className="text-[10px] text-[var(--bos-accent)] hover:underline flex items-center gap-1"
+              >
+                <Pencil className="w-2.5 h-2.5" /> {editingInterpretation ? "Lock field" : "Edit interpretation"}
+              </button>
+            </div>
+            <textarea
+              value={interpretation}
+              onChange={(e) => setInterpretation(e.target.value)}
+              rows={3}
+              placeholder="Refine technical requirement statement before confirming..."
+              className="w-full rounded border border-[var(--bos-line)] bg-[var(--bos-surface)] p-2.5 text-[12px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] focus:border-[var(--bos-accent)] focus:outline-none leading-relaxed"
+            />
+            <p className="text-[10px] text-[var(--bos-text-tertiary)]">
+              This interpretation will become the confirmed requirement in Discovery Studio and proposal deliverables.
+            </p>
+          </div>
+
+          {/* Action Buttons: 5 Decisions */}
+          <div className="pt-3 border-t border-[var(--bos-line)] space-y-2">
+            <div className="text-[10px] text-[var(--bos-text-tertiary)] uppercase font-mono tracking-wider">
+              Internal Team Decision:
+            </div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <MicroButton
+                variant="accent"
+                disabled={busy}
+                onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "accept", interpretation })}
+              >
+                {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <BadgeCheck className="w-3 h-3" aria-hidden="true" />}
+                Accept Interpretation
+              </MicroButton>
+              <MicroButton
+                disabled={busy}
+                onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "edit_accept", interpretation })}
+              >
+                <Pencil className="w-3 h-3" aria-hidden="true" /> Edit &amp; Accept
+              </MicroButton>
+              <MicroButton
+                disabled={busy}
+                onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "internal_decision", interpretation })}
+              >
+                <Lightbulb className="w-3 h-3" aria-hidden="true" /> Internal Decision
+              </MicroButton>
+              <MicroButton
+                disabled={busy}
+                onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "future_consideration", interpretation })}
+              >
+                <Clock className="w-3 h-3" aria-hidden="true" /> Future Consideration
+              </MicroButton>
+              <MicroButton
+                disabled={busy}
+                onClick={() => void doAction(`/api/clarifications/${questionId}/review`, { decision: "reject" })}
+              >
+                <Ban className="w-3 h-3" aria-hidden="true" /> Reject &amp; Re-ask
+              </MicroButton>
+            </div>
           </div>
         </div>
       ) : isResolved ? (
-        <div className="rounded-sm border border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 p-4">
-          <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-success)]">
-            <BadgeCheck className="w-3.5 h-3.5" aria-hidden="true" /> Answer accepted
+        <div className="rounded-sm border border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 p-4 space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-success)] font-semibold">
+              <BadgeCheck className="w-4 h-4" aria-hidden="true" /> Requirement Confirmed &amp; Ingested
+            </div>
+            {summary?.resolvedAt && (
+              <span className="text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">Resolved {formatDateTime(summary.resolvedAt)}</span>
+            )}
           </div>
-          <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-primary)]">{summary?.response}</p>
-          {summary?.resolvedAt && (
-            <div className="mt-2 text-[10px] text-[var(--bos-text-tertiary)] tabular-nums">Resolved {formatDateTime(summary.resolvedAt)}</div>
-          )}
+          <p className="text-[13px] leading-relaxed text-[var(--bos-text-primary)] font-medium">{summary?.response}</p>
+          <div className="text-[11px] text-[var(--bos-text-secondary)]">
+            Ingested into Discovery Session baseline and scope radar.
+          </div>
         </div>
       ) : summary?.status === "FAILED" ? (
         <div className="rounded-sm border border-[var(--bos-error)]/25 bg-[var(--bos-error)]/5 p-4">

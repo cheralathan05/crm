@@ -20,13 +20,17 @@ import { Loader2 } from "lucide-react";
    ──────────────────────────────────────────────────────────────────────────── */
 
 interface DiscoveryStudioProps {
-  token: string;
+  token?: string;
+  requirementId?: string;
+  apiBase?: string;
   initialSession: DiscoverySessionDto;
-  onSwitchToTechnical: () => void;
+  onSwitchToTechnical?: () => void;
 }
 
 export function DiscoveryStudio({
   token,
+  requirementId,
+  apiBase,
   initialSession,
   onSwitchToTechnical,
 }: DiscoveryStudioProps) {
@@ -37,10 +41,12 @@ export function DiscoveryStudio({
   const [mobileTab, setMobileTab] = useState<"map" | "consultant" | "model">("consultant");
   const [changeImpactOpen, setChangeImpactOpen] = useState(false);
 
+  const endpoint = apiBase || (requirementId ? `/api/requirements/${requirementId}/discovery` : `/api/public/requirements/${encodeURIComponent(token || "")}/discovery`);
+
   // Poll / refresh session if needed or on focus
   const refreshSession = useCallback(async () => {
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`);
+      const res = await fetch(endpoint);
       const data = await res.json();
       if (res.ok && data.ok) {
         setSession(data.session);
@@ -48,13 +54,13 @@ export function DiscoveryStudio({
     } catch {
       /* ignore transient network issues */
     }
-  }, [token]);
+  }, [endpoint]);
 
   // Send message or quick choice to consultant turn engine
   const handleSendMessage = async (message: string, selectedOption?: string) => {
     setIsSending(true);
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -78,7 +84,7 @@ export function DiscoveryStudio({
   // Confirm or adjust inline discovery statement
   const handleConfirmInline = async (confirmed: boolean, statement: string, changeNote?: string) => {
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -97,13 +103,81 @@ export function DiscoveryStudio({
     }
   };
 
+  // Handle "I don't know" turn (Rule 26)
+  const handleIDontKnow = async (currentQuestion: string) => {
+    setIsSending(true);
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "I_DONT_KNOW",
+          currentQuestion,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setSession(data.session);
+        setActiveAreaKey(data.session.currentArea);
+      }
+    } catch (err) {
+      console.error("[DiscoveryStudio] I don't know failed:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Handle "Decide later" turn (Rule 27)
+  const handleDecideLater = async (currentQuestion: string) => {
+    setIsSending(true);
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "DECIDE_LATER",
+          title: currentQuestion,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setSession(data.session);
+        setActiveAreaKey(data.session.currentArea);
+      }
+    } catch (err) {
+      console.error("[DiscoveryStudio] Decide later failed:", err);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  // Confirm contradiction revision (Rules 28 & 29)
+  const handleConfirmContradiction = async (contradictionId: string) => {
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "CONFIRM_CONTRADICTION",
+          contradictionId,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setSession(data.session);
+      }
+    } catch (err) {
+      console.error("[DiscoveryStudio] Confirm contradiction failed:", err);
+    }
+  };
+
   // Upload reference screenshot, Excel, or PDF
   const handleUploadReference = async (file: File) => {
     setIsSending(true);
     try {
       const formData = new FormData();
       formData.append("file", file);
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery/upload`, {
+      const res = await fetch(`${endpoint}/upload`, {
         method: "POST",
         body: formData,
       });
@@ -121,7 +195,7 @@ export function DiscoveryStudio({
   // Toggle scope item tier in Scope Radar (Core, Out of scope, etc.)
   const handleToggleScope = async (scopeItemId: string, targetTier: ScopeTier) => {
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -142,7 +216,7 @@ export function DiscoveryStudio({
   // Record a formal decision
   const handleRecordDecision = async (title: string, choice: string) => {
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -163,7 +237,7 @@ export function DiscoveryStudio({
   // Edit journey steps
   const handleEditJourney = async (journeyId: string, steps: string[]) => {
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -184,7 +258,7 @@ export function DiscoveryStudio({
   // Switch between Discovery Mode and Review Mode
   const handleSwitchMode = async (mode: "DISCOVERY" | "REVIEW") => {
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -205,7 +279,7 @@ export function DiscoveryStudio({
   const handleApprove = async (approverName: string, approverEmail?: string) => {
     setIsApproving(true);
     try {
-      const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -230,8 +304,11 @@ export function DiscoveryStudio({
     return (
       <ProjectBlueprintReview
         session={session}
+        token={token}
         onBackToDiscovery={() => void handleSwitchMode("DISCOVERY")}
         onApprove={handleApprove}
+        onSendMessage={handleSendMessage}
+        onSwitchToTechnical={onSwitchToTechnical}
         isApproving={isApproving}
       />
     );
@@ -289,6 +366,7 @@ export function DiscoveryStudio({
         >
           <DiscoveryMap
             areas={session.areas}
+            coverage={session.model.coverage}
             activeAreaKey={activeAreaKey}
             onSelectArea={(key) => {
               setActiveAreaKey(key);
@@ -308,6 +386,9 @@ export function DiscoveryStudio({
             messages={session.messages}
             onSendMessage={handleSendMessage}
             onConfirmInline={handleConfirmInline}
+            onIDontKnow={handleIDontKnow}
+            onDecideLater={handleDecideLater}
+            onConfirmContradiction={handleConfirmContradiction}
             onUploadReference={handleUploadReference}
             onSwitchToReview={() => void handleSwitchMode("REVIEW")}
             onSwitchToTechnical={onSwitchToTechnical}

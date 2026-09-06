@@ -241,7 +241,13 @@ export function ClarificationFlow({ token }: { token: string }) {
         </div>
         <h1 className="mt-5 text-[24px] font-semibold tracking-tight text-[var(--bos-text-primary)]">Responses submitted</h1>
         <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-secondary)] max-w-sm mx-auto">
-          Thank you. Your clarifications have been sent to the project team. You may close this page.
+          Thank you. Your clarifications have been recorded and sent to the project team.
+        </p>
+        <div className="mt-3 inline-flex items-center gap-1.5 px-3 py-1 rounded-sm border border-[var(--bos-warning)]/30 bg-[var(--bos-warning)]/10 text-[var(--bos-warning)] text-[11px] font-mono uppercase tracking-[0.1em]">
+          Status: Under internal team review
+        </div>
+        <p className="mt-3 text-[12px] text-[var(--bos-text-tertiary)] max-w-md mx-auto">
+          The team will review your responses, interpret the requirement adjustments, and update the live project definition.
         </p>
         <div className="mt-8 h-px w-24 mx-auto bg-[var(--bos-line-strong)]" aria-hidden="true" />
         <p className="mt-6 text-[10px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">
@@ -417,6 +423,56 @@ export function ClarificationFlow({ token }: { token: string }) {
             onChange={(d) => setDraft(current, d)}
             onUpload={(file) => void upload(current, file)}
             uploading={uploading}
+          />
+        </div>
+
+        {/* Natural response shortcuts */}
+        <div className="mt-3.5 pt-3 border-t border-[var(--bos-line)]/50">
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <span className="text-[10px] font-mono uppercase tracking-[0.1em] text-[var(--bos-text-tertiary)] mr-1">
+              Options:
+            </span>
+            <button
+              type="button"
+              onClick={() => setDraft(current, { answer: "I don't know yet — please suggest best practice or advise.", answerData: "DONT_KNOW" })}
+              className="text-[11px] px-2.5 py-1 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors"
+            >
+              I don&apos;t know / Need guidance
+            </button>
+            <button
+              type="button"
+              onClick={() => setDraft(current, { answer: "We'll decide later / Defer to future release.", answerData: "DECIDE_LATER" })}
+              className="text-[11px] px-2.5 py-1 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors"
+            >
+              We&apos;ll decide later
+            </button>
+            <button
+              type="button"
+              onClick={() => setDraft(current, { answer: "Request discussion — let's review this on a call.", answerData: "REQUEST_DISCUSSION" })}
+              className="text-[11px] px-2.5 py-1 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors"
+            >
+              Request discussion
+            </button>
+          </div>
+        </div>
+
+        {/* Additional information / Context area */}
+        <div className="mt-3.5 pt-3 border-t border-[var(--bos-line)]/50">
+          <label className="block text-[10px] font-mono uppercase tracking-[0.12em] text-[var(--bos-text-tertiary)] mb-1">
+            Additional information or remarks (optional)
+          </label>
+          <textarea
+            rows={2}
+            value={(draft?.answerData as any)?.extraNotes || ""}
+            onChange={(e) => {
+              const prevData = typeof draft?.answerData === "object" && draft?.answerData !== null ? (draft.answerData as Record<string, unknown>) : {};
+              setDraft(current, {
+                answer: draft?.answer || "",
+                answerData: { ...prevData, extraNotes: e.target.value },
+              });
+            }}
+            placeholder="Add any extra notes, operational rules, or edge cases..."
+            className="w-full px-3 py-2 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[12px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none focus:border-[var(--bos-accent)] transition-colors resize-none"
           />
         </div>
       </section>

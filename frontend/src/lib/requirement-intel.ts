@@ -57,18 +57,6 @@ export type IntelQuestion = {
 
 export type IntelConflict = { id: string; description: string; detail: string | null };
 
-export type IntelInput = {
-  request: IntelRequest;
-  client: IntelClient;
-  answers: IntelAnswerMap;
-  features: IntelFeature[];
-  states: Record<string, boolean>;
-  questions: IntelQuestion[];
-  conflicts: IntelConflict[];
-  proposalBlock: { blocked: boolean; blockers: { id: string; label: string; category: string }[] };
-  revisions?: { revision: number; changes: string[] }[];
-};
-
 /* ── Output model ────────────────────────────────────────────── */
 
 export type ItemMode = "REQUIRED" | "OPTIONAL" | "NOT_APPLICABLE";
@@ -92,11 +80,21 @@ export type IntelItem = {
 };
 
 export type Blocker = {
-  kind: "item" | "clarification";
+  kind: "item" | "clarification" | "conflict";
   id: string;
   label: string;
   section?: string;
   questionId?: string;
+  category?: string;
+  missing?: string;
+  whatMissing?: string;
+  why?: string;
+  whyItMatters?: string;
+  owner?: "CLIENT" | "INTERNAL_TEAM";
+  whoNeedsToAct?: "CLIENT" | "INTERNAL_TEAM";
+  afterResolution?: string;
+  actionKind?: "ask" | "review" | "decide" | "view";
+  status?: string;
 };
 
 export type ReadinessRow = { key: string; label: string; ok: boolean; note: string };
@@ -110,6 +108,19 @@ export type NextAction =
   | { kind: "approve"; text: string }
   | { kind: "proposal"; text: string }
   | { kind: "none"; text: string };
+
+export type IntelInput = {
+  request: IntelRequest;
+  client: IntelClient;
+  answers: IntelAnswerMap;
+  features: IntelFeature[];
+  states: Record<string, boolean>;
+  questions: IntelQuestion[];
+  conflicts: IntelConflict[];
+  proposalBlock: { blocked: boolean; blockers: { id: string; label: string; category: string }[] };
+  revisions?: { revision: number; changes: string[] }[];
+  discoverySession?: any;
+};
 
 export type Intel = {
   items: IntelItem[];
@@ -125,8 +136,37 @@ export type Intel = {
   readiness: { ok: boolean; percent: number; rows: ReadinessRow[] };
   nextAction: NextAction;
   known: { label: string; value: string; source: string }[];
-  waitingOnClient: { questionId: string; label: string; recipient: string; section: string; since: string }[];
-  needsReview: { questionId: string; label: string; section: string }[];
+  waitingOnClient: {
+    questionId: string;
+    label: string;
+    recipient: string;
+    section: string;
+    since: string;
+    status?: string;
+    missing?: string;
+    whatMissing?: string;
+    why?: string;
+    whyItMatters?: string;
+    owner?: "CLIENT";
+    whoNeedsToAct?: "CLIENT";
+    afterResolution?: string;
+  }[];
+  needsReview: {
+    questionId: string;
+    label: string;
+    section: string;
+    missing?: string;
+    whatMissing?: string;
+    why?: string;
+    whyItMatters?: string;
+    owner?: "INTERNAL_TEAM";
+    whoNeedsToAct?: "INTERNAL_TEAM";
+    afterResolution?: string;
+    actionKind?: "review";
+    status?: string;
+    answeredAt?: string | null;
+    answerText?: string | null;
+  }[];
   changed: string[];
 };
 
@@ -207,8 +247,138 @@ export function latestChanges(revisions: { revision: number; changes: string[] }
   return latest.revision === 1 ? [] : latest.changes;
 }
 
+export const SECTION_ACTION_DIAGNOSTICS: Record<string, {
+  label: string;
+  category: string;
+  missing: string;
+  why: string;
+  owner: "CLIENT" | "INTERNAL_TEAM";
+  afterResolution: string;
+  actionKind: "ask" | "review" | "decide" | "view";
+  status: string;
+}> = {
+  users: {
+    label: "Users & Roles",
+    category: "Users & Roles",
+    missing: "Target user personas, administrative permissions, and access tiers are not yet defined.",
+    why: "User roles define security boundaries, authorization matrices, and distinct workflows essential for proposal pricing.",
+    owner: "CLIENT",
+    afterResolution: "The confirmed user roles will establish authorization guardrails and user journeys in the project definition.",
+    actionKind: "ask",
+    status: "Client clarification required",
+  },
+  scope: {
+    label: "Scope Boundaries",
+    category: "Scope Boundaries",
+    missing: "The first release MVP scope boundaries, included capabilities, and excluded items are not clearly bounded.",
+    why: "The first release scope is not sufficiently defined to produce an accurate, fixed-price proposal.",
+    owner: "CLIENT",
+    afterResolution: "The approved scope radar will anchor milestone deliverables and proposal pricing.",
+    actionKind: "ask",
+    status: "Client clarification required",
+  },
+  features: {
+    label: "Capabilities & Features",
+    category: "Capabilities & Features",
+    missing: "Functional specifications, business logic, and acceptance criteria for core capabilities are incomplete.",
+    why: "Engineering estimators and staff allocation require explicit capability definitions to produce deliverables.",
+    owner: "INTERNAL_TEAM",
+    afterResolution: "Confirmed capabilities will generate proposal line items and engineering deliverables.",
+    actionKind: "ask",
+    status: "Needs internal review",
+  },
+  timeline: {
+    label: "Delivery Timeline",
+    category: "Timeline & Milestones",
+    missing: "Target launch dates and critical milestone pacing have not been confirmed.",
+    why: "Essential for project milestone scheduling, delivery phase gates, and sprint resourcing.",
+    owner: "CLIENT",
+    afterResolution: "Confirmed timeline will establish project phase gates and payment milestone dates.",
+    actionKind: "ask",
+    status: "Needs confirmation",
+  },
+  commercial: {
+    label: "Commercial Terms",
+    category: "Commercial & Budget",
+    missing: "Commercial framework and billing expectations are not yet confirmed.",
+    why: "Required to structure proposal pricing and milestone billing schedules.",
+    owner: "INTERNAL_TEAM",
+    afterResolution: "Approved commercial terms will generate the contract agreement and payment schedule.",
+    actionKind: "decide",
+    status: "Needs internal decision",
+  },
+  integrations: {
+    label: "Third-Party Integrations",
+    category: "Integrations & APIs",
+    missing: "External APIs and data exchange connections have not been confirmed.",
+    why: "Third-party APIs determine technical feasibility and external dependency risks.",
+    owner: "CLIENT",
+    afterResolution: "Integration specs will be incorporated into technical architecture and tasks.",
+    actionKind: "ask",
+    status: "Needs confirmation",
+  },
+  business: {
+    label: "Business Context",
+    category: "Business Context",
+    missing: "Core business model, operational domain, and target problem are unconfirmed.",
+    why: "Required to orient technical discovery and ensure alignment with business goals.",
+    owner: "CLIENT",
+    afterResolution: "Business objectives will anchor the executive project overview.",
+    actionKind: "ask",
+    status: "Client clarification required",
+  },
+  vision: {
+    label: "Goals & Outcomes",
+    category: "Core Goals & Outcomes",
+    missing: "Quantitative goals, business pain points, and target success signs are unconfirmed.",
+    why: "Defines the project acceptance criteria and ROI benchmarks.",
+    owner: "CLIENT",
+    afterResolution: "Confirmed outcomes will guide milestone acceptance criteria.",
+    actionKind: "ask",
+    status: "Needs confirmation",
+  },
+};
+
 export function buildRequirementIntel(input: IntelInput): Intel {
-  const { request, client, answers, features, states, questions, conflicts, proposalBlock } = input;
+  const { request, client, answers, features, states: rawStates, questions, conflicts, proposalBlock, discoverySession } = input;
+  const states = { ...rawStates };
+
+  /* Synchronize with DiscoverySession when present — real live understanding overrides static empty states */
+  if (discoverySession) {
+    const discAreas = discoverySession.areas ?? [];
+    const discFacts = discoverySession.facts ?? [];
+    const discCaps = discoverySession.capabilities ?? [];
+    const discJourneys = discoverySession.journeys ?? [];
+    const discScope = discoverySession.scopeItems ?? [];
+
+    const isAreaConfirmed = (key: string) =>
+      discAreas.some((a: any) => (a.areaKey === key || a.key === key) && a.status === "CONFIRMED");
+
+    if (isAreaConfirmed("USERS") || discCaps.some((c: any) => c.roleName && c.roleName !== "General") || discJourneys.some((j: any) => j.isConfirmed)) {
+      states["users"] = true;
+    }
+    if (isAreaConfirmed("SCOPE") || isAreaConfirmed("CORE_FEATURES") || discScope.some((s: any) => s.tier === "CORE")) {
+      states["scope"] = true;
+    }
+    if (isAreaConfirmed("CORE_FEATURES") || discCaps.length > 0) {
+      states["features"] = true;
+    }
+    if (isAreaConfirmed("BUSINESS") || discFacts.some((f: any) => f.category === "BUSINESS_PROBLEM" || f.category === "BUSINESS_CONTEXT")) {
+      states["business"] = true;
+    }
+    if (isAreaConfirmed("GOAL") || discFacts.some((f: any) => f.category === "GOAL" || f.category === "OUTCOME")) {
+      states["vision"] = true;
+    }
+    if (isAreaConfirmed("INTEGRATIONS") || discFacts.some((f: any) => f.category === "INTEGRATION")) {
+      states["integrations"] = true;
+    }
+    if (isAreaConfirmed("TIMELINE")) {
+      states["timeline"] = true;
+    }
+    if (isAreaConfirmed("BUDGET") || isAreaConfirmed("COMMERCIAL")) {
+      states["commercial"] = true;
+    }
+  }
 
   /* Items — section facts first, then features. */
   const items: IntelItem[] = [];
@@ -250,17 +420,51 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     }
   }
 
-  /* Real blockers — unresolved blocking clarifications + missing required
-     items. Optional and inactive items never block (spec 10, 11). */
-  const blockers: Blocker[] = proposalBlock.blockers.map((b) => ({
-    kind: "clarification",
-    id: b.id,
-    label: b.label,
-    questionId: b.id,
-  }));
+  /* Real Action Center Blockers — authentic items explaining WHAT, WHY, WHO, and IMPACT */
+  const blockers: Blocker[] = [];
+
+  // 1. Explicit proposal-blocking clarifications
+  for (const b of proposalBlock.blockers) {
+    const matchingQ = questions.find((q) => q.id === b.id);
+    blockers.push({
+      kind: "clarification",
+      id: b.id,
+      label: b.label,
+      questionId: b.id,
+      category: b.category || "Clarification",
+      missing: matchingQ?.clientQuestion || b.label,
+      whatMissing: matchingQ?.clientQuestion || b.label,
+      why: "Unresolved client clarification blocking formal proposal generation and pricing.",
+      whyItMatters: "Unresolved client clarification blocking formal proposal generation and pricing.",
+      owner: "CLIENT",
+      whoNeedsToAct: "CLIENT",
+      afterResolution: "Client response will be evaluated in internal review.",
+      actionKind: "view",
+      status: "Awaiting client response",
+    });
+  }
+
+  // 2. Genuine missing required sections with rich diagnostics
   const missingRequired = required.filter((i) => i.status === "ACTION_REQUIRED");
   for (const i of missingRequired) {
-    blockers.push({ kind: "item", id: i.id, label: i.label, section: i.section });
+    const secKey = i.section || "";
+    const diag = SECTION_ACTION_DIAGNOSTICS[secKey];
+    blockers.push({
+      kind: "item",
+      id: i.id,
+      label: diag?.label || i.label,
+      section: i.section,
+      category: diag?.category || i.label,
+      missing: diag?.missing || `Missing required information: ${i.label}.`,
+      whatMissing: diag?.missing || `Missing required information: ${i.label}.`,
+      why: diag?.why || `Required to establish full project scope and produce an accurate proposal.`,
+      whyItMatters: diag?.why || `Required to establish full project scope and produce an accurate proposal.`,
+      owner: diag?.owner || "CLIENT",
+      whoNeedsToAct: diag?.owner || "CLIENT",
+      afterResolution: diag?.afterResolution || "Confirmed information will become part of approved project definition.",
+      actionKind: diag?.actionKind || "ask",
+      status: diag?.status || "Client clarification required",
+    });
   }
 
   const requiredDone = required.filter((i) => i.status === "CONFIRMED").length;
@@ -269,7 +473,7 @@ export function buildRequirementIntel(input: IntelInput): Intel {
 
   const completion = {
     required: requiredTotal > 0 ? Math.round((requiredDone / requiredTotal) * 100) : 0,
-    optional: 0, // optional is never counted in completion (spec 13)
+    optional: 0,
     blocking:
       blockers.length > 0 ? Math.round(((requiredTotal - missingRequired.length) / requiredTotal) * 100) : 100,
   };
@@ -296,14 +500,11 @@ export function buildRequirementIntel(input: IntelInput): Intel {
      A section is confirmed when its data is complete OR an accepted
      clarification satisfied it — same rule as the items above. */
   const sectionConfirmed = (key: string) => states[key] === true || acceptedKeys.has(key);
-  // The client's data counts as received when they submitted OR when the
-  // required sections are all confirmed — the submit click is a formality;
-  // a fully-confirmed requirement is reviewable either way.
   const allRequiredConfirmed = SECTIONS.filter((s) => s.weight > 0).every((s) => sectionConfirmed(s.key));
   const submitted =
     ["SUBMITTED", "CHANGES_REQUESTED", "REVISION_SUBMITTED", "APPROVED"].includes(request.status) || allRequiredConfirmed;
   const scopeOk = sectionConfirmed("scope");
-  const featuresOk = features.length > 0;
+  const featuresOk = features.length > 0 || (discoverySession?.capabilities?.length ?? 0) > 0;
   const timelineOk = sectionConfirmed("timeline");
   const commercialOk = sectionConfirmed("commercial");
   const blockersOk = blockers.length === 0;
@@ -313,7 +514,7 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     { key: "client", label: "Client identified", ok: Boolean(client), note: client ? client.companyName : "No client is linked to this requirement." },
     { key: "submitted", label: "Requirement submitted", ok: submitted, note: submitted ? "Requirement received from the client" : "The client has not submitted the requirement yet." },
     { key: "scope", label: "Scope confirmed", ok: scopeOk, note: scopeOk ? "Scope captured" : "Scope has not been confirmed." },
-    { key: "features", label: "Core features confirmed", ok: featuresOk, note: featuresOk ? `${features.length} feature${features.length === 1 ? "" : "s"} selected` : "No features have been selected." },
+    { key: "features", label: "Core features confirmed", ok: featuresOk, note: featuresOk ? `${features.length || discoverySession?.capabilities?.length || 0} features/capabilities confirmed` : "No features have been selected." },
     { key: "timeline", label: "Timeline confirmed", ok: timelineOk, note: timelineOk ? "Timeline captured" : "Timeline has not been confirmed." },
     { key: "commercial", label: "Commercial information", ok: commercialOk, note: commercialOk ? "Budget model captured" : "Commercial information has not been provided." },
     { key: "blockers", label: "No blocking clarifications", ok: blockersOk, note: blockersOk ? "No blocking clarifications" : `${blockers.length} blocker${blockers.length === 1 ? "" : "s"} remain.` },
@@ -339,7 +540,8 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     }
     if (missingRequired.length > 0) {
       const first = missingRequired[0];
-      return { kind: "ask", text: `Gather missing information: ${first.label}.`, section: first.section ?? "business" };
+      const diag = SECTION_ACTION_DIAGNOSTICS[first.section ?? ""];
+      return { kind: "ask", text: `Request clarification: ${diag?.label || first.label}.`, section: first.section ?? "business" };
     }
     if (conflicts.length > 0) return { kind: "resolve-conflict", text: "Resolve the flagged requirement conflict." };
     if (request.status === "SUBMITTED" || request.status === "REVISION_SUBMITTED") {
@@ -347,9 +549,6 @@ export function buildRequirementIntel(input: IntelInput): Intel {
         ? { kind: "approve", text: "Everything is complete — approve the requirement." }
         : { kind: "review", text: "Review the requirement before approval." };
     }
-    // Collected but never formally submitted — the admin is the review
-    // authority and may approve once everything is confirmed (spec: admin
-    // reviews, not the submit button).
     if (request.status === "SENT" || request.status === "IN_PROGRESS") {
       return readiness.ok
         ? { kind: "approve", text: "Everything is complete — approve the requirement." }
@@ -360,7 +559,7 @@ export function buildRequirementIntel(input: IntelInput): Intel {
     return { kind: "none", text: "Nothing requires action right now." };
   })();
 
-  /* What we know — only actual confirmed values (spec 95). */
+  /* What we know — actual confirmed values from forms AND live discovery facts (spec 95). */
   const known: Intel["known"] = [];
   const business = answers.business ?? {};
   const vision = answers.vision ?? {};
@@ -370,7 +569,9 @@ export function buildRequirementIntel(input: IntelInput): Intel {
   const design = answers.design ?? {};
   const push = (label: string, value: unknown, source = "Client form") => {
     const v = str(value);
-    if (v) known.push({ label, value: v.length > 140 ? `${v.slice(0, 137)}…` : v, source });
+    if (v && !known.some((k) => k.label === label && k.value === v)) {
+      known.push({ label, value: v.length > 140 ? `${v.slice(0, 137)}…` : v, source });
+    }
   };
   push("Business", business.description);
   push("Goal", vision.description);
@@ -383,18 +584,67 @@ export function buildRequirementIntel(input: IntelInput): Intel {
   push("Design direction", design.style);
   push("Features", features.length > 0 ? features.map((f) => f.name).join(", ") : null);
 
-  /* What we are waiting for + what needs review. */
+  // Overlay live Discovery facts into What We Know
+  if (discoverySession) {
+    const facts = discoverySession.facts ?? [];
+    const caps = discoverySession.capabilities ?? [];
+    const journeys = discoverySession.journeys ?? [];
+    const scopeItems = discoverySession.scopeItems ?? [];
+
+    const problemFact = facts.find((f: any) => f.category === "BUSINESS_PROBLEM");
+    if (problemFact?.title) push("Problem Statement", problemFact.description || problemFact.title, "Discovery Consultant");
+
+    const goalFact = facts.find((f: any) => f.category === "GOAL");
+    if (goalFact?.title) push("Primary Objective", goalFact.description || goalFact.title, "Discovery Consultant");
+
+    if (caps.length > 0) {
+      const distinctRoles = Array.from(new Set(caps.map((c: any) => c.roleName).filter(Boolean)));
+      if (distinctRoles.length > 0) push("User Roles", distinctRoles.join(", "), "Discovery Consultant");
+      push("System Capabilities", `${caps.length} capabilities defined (${caps.slice(0, 3).map((c: any) => c.title).join(", ")}${caps.length > 3 ? "…" : ""})`, "Discovery Consultant");
+    }
+
+    if (journeys.length > 0) {
+      push("Mapped Journeys", journeys.map((j: any) => j.title || j.roleName).join(", "), "Discovery Consultant");
+    }
+
+    const coreScope = scopeItems.filter((s: any) => s.tier === "CORE");
+    if (coreScope.length > 0) {
+      push("Core Scope Radar", coreScope.map((s: any) => s.title).join(", "), "Discovery Consultant");
+    }
+  }
+
+  /* What we are waiting for + what needs review with rich action center fields */
   const waitingOnClient = awaiting.map((q) => ({
     questionId: q.id,
     label: q.clientQuestion,
     recipient: q.recipientName,
     section: q.sectionLabel,
     since: q.createdAt,
+    status: "Awaiting client response",
+    missing: `Awaiting response from client on ${q.sectionLabel}`,
+    whatMissing: `Awaiting response from client on ${q.sectionLabel}`,
+    why: "Scope definition cannot be locked without direct client confirmation.",
+    whyItMatters: "Scope definition cannot be locked without direct client confirmation.",
+    owner: "CLIENT" as const,
+    whoNeedsToAct: "CLIENT" as const,
+    afterResolution: "Client response will trigger internal review and feed into the discovery baseline.",
   }));
+
   const needsReview = answered.map((q) => ({
     questionId: q.id,
     label: q.clientQuestion,
     section: q.sectionLabel,
+    missing: `Client answered clarification question on ${q.sectionLabel}: "${q.response ? q.response.slice(0, 80) : q.clientQuestion}"`,
+    whatMissing: `Client answered clarification question on ${q.sectionLabel}: "${q.response ? q.response.slice(0, 80) : q.clientQuestion}"`,
+    why: "Client statements must be reviewed by the internal team and structured into confirmed requirements.",
+    whyItMatters: "Client statements must be reviewed by the internal team and structured into confirmed requirements.",
+    owner: "INTERNAL_TEAM" as const,
+    whoNeedsToAct: "INTERNAL_TEAM" as const,
+    afterResolution: "Accepting will update live project understanding and confirm the requirement.",
+    actionKind: "review" as const,
+    status: "Needs internal review",
+    answeredAt: q.respondedAt,
+    answerText: q.response,
   }));
 
   /* What changed — from the request's own version history. */
