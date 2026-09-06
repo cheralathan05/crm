@@ -2,7 +2,12 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getProposalForUser } from "@/lib/proposal";
-import { extractApprovedScopeAndPlan, launchProjectFromApprovedProposal, nextProjectCode } from "@/lib/projects";
+import {
+  extractApprovedScopeAndPlan,
+  launchProjectFromApprovedProposal,
+  nextProjectCode,
+  verifyProjectLaunchReadiness,
+} from "@/lib/projects";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +15,7 @@ type Ctx = { params: Promise<{ id: string }> };
 
 /* ── POST /api/proposals/[id]/create-project ───────────────────
    Converts an approved proposal into an active Business OS project
-   with traceable milestones, deliverables, and tasks. */
+   with authentic multi-workstream tasks. Enforces Project Quality Gate (Rule 31). */
 
 export async function POST(_req: Request, { params }: Ctx) {
   const session = await auth();
@@ -21,6 +26,17 @@ export async function POST(_req: Request, { params }: Ctx) {
   const proposal = await getProposalForUser(session.user.id, id);
   if (!proposal) {
     return NextResponse.json({ ok: false, message: "Proposal not found." }, { status: 404 });
+  }
+
+  // Strict Proposal Approval Gate (Rule 22 & 36)
+  if (proposal.status !== "APPROVED") {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: `Cannot launch project: Proposal ${proposal.reference || proposal.id} has status "${proposal.status}". Projects can only be established from client-approved proposals.`,
+      },
+      { status: 400 },
+    );
   }
 
   const user = await db.user.findUnique({
@@ -61,6 +77,20 @@ export async function POST(_req: Request, { params }: Ctx) {
     const code = await nextProjectCode(user.workspace.id);
     const plan = extractApprovedScopeAndPlan(proposal, requirementFeatures);
 
+    // Project Quality Gate Validation (Rule 31)
+    const launchCheck = verifyProjectLaunchReadiness({ proposal, plan });
+    if (!launchCheck.isEligible) {
+      return NextResponse.json(
+        {
+          ok: false,
+          message: "Project launch blocked by Project Quality Gate. Tasks must map to approved requirements.",
+          blockers: launchCheck.blockers,
+          warnings: launchCheck.warnings,
+        },
+        { status: 422 },
+      );
+    }
+
     const project = await launchProjectFromApprovedProposal({
       workspaceId: user.workspace.id,
       userId: session.user.id,
@@ -97,6 +127,7 @@ export async function POST(_req: Request, { params }: Ctx) {
       ok: true,
       project: { id: project.id, code: project.code, name: project.name, stage: project.stage },
       message: `Project ${project.code} successfully launched.`,
+      warnings: launchCheck.warnings,
     });
   } catch (err: any) {
     console.error("[proposal:create-project] failed", err);

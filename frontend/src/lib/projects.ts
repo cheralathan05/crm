@@ -769,6 +769,11 @@ export async function launchProjectFromApprovedProposal(input: {
   });
   if (!proposal) throw new Error("Proposal not found.");
 
+  // Strict Proposal Approval Gate (Rule 22 & 36)
+  if (proposal.status !== "APPROVED") {
+    throw new Error(`Cannot launch project: Proposal ${proposal.reference || proposal.id} has status "${proposal.status}". Projects can only be established from client-approved proposals.`);
+  }
+
   let requirementTitle: string | null = null;
   if (proposal.requirementRequestId) {
     const req = await db.requirementRequest.findUnique({
@@ -791,7 +796,7 @@ export async function launchProjectFromApprovedProposal(input: {
   const deadline = input.targetCompletion ? new Date(input.targetCompletion) : new Date(now.getTime() + 8 * 7 * 24 * 60 * 60 * 1000);
 
   return db.$transaction(async (tx) => {
-    // 1. Create Project linked to accepted proposal
+    // 1. Create Project linked to accepted proposal with immutable scope baseline (Rule 23)
     const project = await tx.clientProject.create({
       data: {
         clientId: input.clientId,
@@ -811,7 +816,20 @@ export async function launchProjectFromApprovedProposal(input: {
         startedAt: startDate,
         deadline: deadline,
         targetCompletion: deadline,
-        scopeSnapshot: JSON.stringify(input.scopeItems.filter((s) => s.included)),
+        scopeSnapshot: JSON.stringify({
+          proposalVersion: proposal.version,
+          proposalTitle: proposal.title,
+          proposalReference: proposal.reference,
+          requirementRequestId: proposal.requirementRequestId,
+          requirementTitle,
+          approvedAt: proposal.updatedAt ? proposal.updatedAt.toISOString() : now.toISOString(),
+          approverName: input.userName,
+          approvedScope: input.scopeItems.filter((s) => s.included),
+          approvedModules: input.modules || [],
+          baselineTasksCount: input.tasks.length,
+          baselineBudget: input.budget ?? proposal.amount ?? 0,
+          baselineCurrency: input.currency ?? proposal.currency ?? "INR",
+        }),
       },
     });
 
@@ -932,12 +950,26 @@ export async function launchProjectFromApprovedProposal(input: {
         },
       });
 
+      const respQa = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "QA",
+          title: `${m.name} Verification & Quality Assurance`,
+          description: `Execute automated Given-When-Then test suites and verify acceptance criteria for ${m.name}.`,
+          requiredRole: "QA Engineer",
+          deliverableOutcome: "Verified end-to-end user workflows with zero critical regressions.",
+          proofTypeRequired: "TEST_REPORT",
+          order: 4,
+        },
+      });
+
       moduleMap.set(mIdx, {
         productAreaId: pa.id,
         responsibilities: {
           DATABASE: respDb.id,
           BACKEND: respBe.id,
           FRONTEND: respFe.id,
+          QA: respQa.id,
         },
       });
     }
@@ -972,6 +1004,14 @@ export async function launchProjectFromApprovedProposal(input: {
           workspaceEmployees.find((e) => {
             const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
             return str.includes("frontend") || str.includes("ui") || str.includes("ux") || str.includes("web") || str.includes("design");
+          }) || workspaceEmployees[0]
+        );
+      }
+      if (ws === "QA" || ws === "TESTING") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("qa") || str.includes("test") || str.includes("quality");
           }) || workspaceEmployees[0]
         );
       }
