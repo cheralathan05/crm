@@ -1,12 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getSection, SECTIONS, sectionStates, type CompletionContext, type SectionDef } from "@/lib/requirement-config";
 import { BusinessOSMark } from "@/components/business-os-mark";
 import type { PublicBundle, PublicFeature, SaveState } from "./types";
 import { Landing } from "./landing";
+import { IntakeChooser } from "./intake-chooser";
+import { DiscoveryStudio } from "@/components/discovery-studio/discovery-studio";
+import type { DiscoverySessionDto } from "@/lib/discovery/discovery.types";
 import { ProgressRail } from "./progress-rail";
 import { MobileNav } from "./mobile-nav";
 import { SaveIndicator } from "./save-indicator";
@@ -21,10 +24,7 @@ import { WorkspaceError } from "./workspace-error";
 
 /* ────────────────────────────────────────────────────────────────
    REQUIREMENT WORKSPACE — SHELL
-   One-focus-at-a-time guided flow with a real autosave engine:
-   debounced text saves, immediate selection saves, offline retry,
-   local backup so no answer is ever lost, resume support, and a
-   clarification thread that jumps straight to the section in question.
+   Intelligent discovery studio + advanced technical intake.
 ──────────────────────────────────────────────────────────────── */
 
 type Stage =
@@ -37,7 +37,8 @@ const DRAFT_PREFIX = "req-draft:";
 export function WorkspaceShell({ token, initial }: { token: string; initial: PublicBundle }) {
   const [bundle, setBundle] = useState<PublicBundle>(initial);
   const [fatal, setFatal] = useState<string | null>(null);
-  const [view, setView] = useState<"landing" | "flow" | "success">("landing");
+  const [discoverySession, setDiscoverySession] = useState<DiscoverySessionDto | null>(null);
+  const [view, setView] = useState<"landing" | "chooser" | "guided" | "flow" | "success">("chooser");
   const [stage, setStage] = useState<Stage>({ kind: "section", key: initial.request.currentSection || "business" });
   const [draft, setDraft] = useState<Record<string, Record<string, unknown>>>(initial.answers);
   const [features, setFeatures] = useState<PublicFeature[]>(initial.features);
@@ -107,6 +108,20 @@ export function WorkspaceShell({ token, initial }: { token: string; initial: Pub
             revision: data.request.revision,
             resubmitted: status === "REVISION_SUBMITTED",
           });
+        }
+
+        // Also fetch Intelligent Discovery Session
+        try {
+          const discRes = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`);
+          const discData = await discRes.json();
+          if (discRes.ok && discData.ok && discData.session) {
+            setDiscoverySession(discData.session);
+            if (discData.session.intakePath === "GUIDED" && discData.session.completeness > 0) {
+              // Can continue directly or stay on chooser with resume
+            }
+          }
+        } catch {
+          /* ignore discovery fetch failure */
         }
       } catch {
         /* keep the server-rendered bundle on transient failures */
@@ -303,7 +318,7 @@ export function WorkspaceShell({ token, initial }: { token: string; initial: Pub
     if (idx > 0) {
       setStage({ kind: "section", key: SECTIONS[idx - 1].key });
     } else {
-      setView("landing");
+      setView("chooser");
     }
   }, [stage]);
 
@@ -366,6 +381,89 @@ export function WorkspaceShell({ token, initial }: { token: string; initial: Pub
     );
   }
 
+  if (view === "chooser") {
+    return (
+      <main className="min-h-dvh bg-[var(--bos-bg)] flex flex-col">
+        <WorkspaceTopbar reference={bundle.request.reference} />
+        <div className="flex-1 flex items-center justify-center">
+          <IntakeChooser
+            projectTitle={bundle.request.title}
+            companyName={bundle.request.companyName}
+            reference={bundle.request.reference}
+            existingSession={discoverySession}
+            onSelectTechnical={() => {
+              setStage({ kind: "section", key: bundle.request.currentSection || "business" });
+              setView("flow");
+            }}
+            onSelectGuided={async () => {
+              setView("guided");
+              if (!discoverySession) {
+                try {
+                  const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`);
+                  const data = await res.json();
+                  if (data.ok && data.session) setDiscoverySession(data.session);
+                } catch {
+                  /* ignore */
+                }
+              }
+            }}
+            onResumeGuided={async () => {
+              setView("guided");
+              if (!discoverySession) {
+                try {
+                  const res = await fetch(`/api/public/requirements/${encodeURIComponent(token)}/discovery`);
+                  const data = await res.json();
+                  if (data.ok && data.session) setDiscoverySession(data.session);
+                } catch {
+                  /* ignore */
+                }
+              }
+            }}
+          />
+        </div>
+        <WorkspaceFooter />
+      </main>
+    );
+  }
+
+  if (view === "guided") {
+    return (
+      <main className="h-dvh bg-[var(--bos-bg)] flex flex-col overflow-hidden">
+        <WorkspaceTopbar reference={bundle.request.reference}>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setStage({ kind: "section", key: bundle.request.currentSection || "business" });
+                setView("flow");
+              }}
+              className="inline-flex items-center gap-1.5 text-[11px] font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors px-2.5 py-1 rounded-sm border border-[var(--bos-line)] hover:bg-[var(--bos-surface)]"
+            >
+              Switch to Advanced Technical Intake →
+            </button>
+          </div>
+        </WorkspaceTopbar>
+
+        <div className="flex-1 min-h-0 overflow-hidden">
+          {discoverySession ? (
+            <DiscoveryStudio
+              token={token}
+              initialSession={discoverySession}
+              onSwitchToTechnical={() => {
+                setStage({ kind: "section", key: bundle.request.currentSection || "business" });
+                setView("flow");
+              }}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center">
+              <Loader2 className="w-6 h-6 animate-spin text-[var(--bos-accent)]" />
+            </div>
+          )}
+        </div>
+      </main>
+    );
+  }
+
   if (view === "landing") {
     return (
       <main className="min-h-dvh bg-[var(--bos-bg)] flex flex-col">
@@ -373,14 +471,8 @@ export function WorkspaceShell({ token, initial }: { token: string; initial: Pub
         <div className="flex-1">
           <Landing
             bundle={bundle}
-            onBegin={() => {
-              setStage({ kind: "section", key: bundle.request.currentSection || "business" });
-              setView("flow");
-            }}
-            onResume={() => {
-              setStage({ kind: "section", key: bundle.request.currentSection || "business" });
-              setView("flow");
-            }}
+            onBegin={() => setView("chooser")}
+            onResume={() => setView("chooser")}
           />
         </div>
         <WorkspaceFooter />
@@ -394,7 +486,17 @@ export function WorkspaceShell({ token, initial }: { token: string; initial: Pub
   return (
     <main className="min-h-dvh bg-[var(--bos-bg)] flex flex-col">
       <WorkspaceTopbar reference={bundle.request.reference}>
-        <SaveIndicator state={saveState} lastSavedAt={lastSavedAt} />
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setView("guided")}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm border border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] text-[11px] font-mono hover:bg-[var(--bos-accent)] hover:text-white transition-colors"
+          >
+            <Sparkles className="w-3 h-3" />
+            <span>Open Discovery Studio</span>
+          </button>
+          <SaveIndicator state={saveState} lastSavedAt={lastSavedAt} />
+        </div>
       </WorkspaceTopbar>
 
       <MobileNav

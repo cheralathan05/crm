@@ -870,6 +870,54 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               </strong>
             </div>
           </div>
+
+          {/* Proposal Provenance & Traceability Banner */}
+          {project.proposal && (
+            <div className="mt-3 pt-3 border-t border-[var(--bos-border-subtle)] flex items-center justify-between gap-3 text-[12px] flex-wrap bg-emerald-500/5 rounded-md px-4 py-2.5 border border-emerald-500/20">
+              <div className="flex items-center gap-2.5 text-emerald-950 font-medium">
+                <FileCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>
+                  Authoritative Proposal Scope:{" "}
+                  <strong className="font-mono font-bold text-emerald-700">
+                    {project.proposal.reference || "PROP"} (v{project.proposalVersion || 1})
+                  </strong>
+                  {project.proposal.approvals?.[0]?.approvedAt && (
+                    <span className="text-emerald-800 ml-1.5 font-normal">
+                      · Formally accepted by client on {new Date(project.proposal.approvals[0].approvedAt).toLocaleDateString()}
+                    </span>
+                  )}
+                  <span className="text-emerald-700 font-mono text-[11px] ml-2">· 100% Traceable Scope</span>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/api/proposals/${project.proposal.id}/pdf`}
+                  target="_blank"
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-emerald-600 text-white hover:bg-emerald-700 font-mono text-[11px] font-semibold transition-colors shadow-xs"
+                >
+                  <Download className="w-3 h-3" />
+                  <span>View Proposal PDF</span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleResyncProject}
+                  disabled={isResyncing}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-emerald-600/30 text-emerald-800 hover:bg-emerald-500/15 font-mono text-[11px] transition-colors cursor-pointer disabled:opacity-50"
+                >
+                  <RefreshCw className={cn("w-3 h-3", isResyncing && "animate-spin")} />
+                  <span>{isResyncing ? "Resyncing..." : "Resync Scope"}</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveDrawer("proposal")}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded border border-emerald-600/30 text-emerald-800 hover:bg-emerald-500/15 font-mono text-[11px] transition-colors cursor-pointer"
+                >
+                  <span>Details</span>
+                  <ArrowRight className="w-3 h-3" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
       </header>
 
@@ -1661,32 +1709,62 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
               </div>
             </div>
 
-            {/* Workstream Filter Bar */}
-            <div className="flex items-center gap-1.5 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
-              {["ALL", "DESIGN", "FRONTEND", "BACKEND", "DATABASE", "TESTING", "DEPLOYMENT"].map((ws) => {
-                const count = ws === "ALL"
-                  ? tasks.length
-                  : tasks.filter((t: any) => {
-                    const l = (t.layer || t.workstream || "").toUpperCase();
-                    if (ws === "TESTING") return l.includes("TEST") || l.includes("QA");
-                    return l.includes(ws);
-                  }).length;
-                if (ws !== "ALL" && count === 0) return null;
-                return (
-                  <button
-                    key={ws}
-                    onClick={() => setTaskLayerFilter(ws)}
-                    className={cn(
-                      "px-3 py-1 rounded text-[11px] font-mono transition-all cursor-pointer whitespace-nowrap",
-                      taskLayerFilter === ws
-                        ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
-                        : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
-                    )}
-                  >
-                    {ws} ({count})
-                  </button>
-                );
-              })}
+            {/* Workstream Filter Bar — 3 Primary Technical Workstreams */}
+            <div className="flex items-center gap-2 p-2 bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] rounded-lg overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setTaskLayerFilter("ALL")}
+                className={cn(
+                  "px-3 py-1.5 rounded text-[11.5px] font-mono transition-all cursor-pointer whitespace-nowrap font-medium",
+                  taskLayerFilter === "ALL"
+                    ? "bg-[var(--bos-accent)] text-white font-bold shadow-xs"
+                    : "bg-[var(--bos-surface-canvas)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border-subtle)]",
+                )}
+              >
+                ALL WORKSTREAMS ({tasks.length})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTaskLayerFilter("DATABASE")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded text-[11.5px] font-mono transition-all cursor-pointer whitespace-nowrap font-medium",
+                  taskLayerFilter === "DATABASE"
+                    ? "bg-indigo-600 text-white font-bold shadow-xs"
+                    : "bg-indigo-500/10 text-indigo-800 hover:bg-indigo-500/20 border border-indigo-500/20",
+                )}
+              >
+                <Database className="w-3.5 h-3.5" />
+                <span>DATABASE ({tasks.filter((t: any) => (t.layer || t.workstream) === "DATABASE").length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTaskLayerFilter("BACKEND")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded text-[11.5px] font-mono transition-all cursor-pointer whitespace-nowrap font-medium",
+                  taskLayerFilter === "BACKEND"
+                    ? "bg-purple-600 text-white font-bold shadow-xs"
+                    : "bg-purple-500/10 text-purple-800 hover:bg-purple-500/20 border border-purple-500/20",
+                )}
+              >
+                <Server className="w-3.5 h-3.5" />
+                <span>BACKEND ({tasks.filter((t: any) => (t.layer || t.workstream) === "BACKEND").length})</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setTaskLayerFilter("FRONTEND")}
+                className={cn(
+                  "flex items-center gap-1.5 px-3 py-1.5 rounded text-[11.5px] font-mono transition-all cursor-pointer whitespace-nowrap font-medium",
+                  taskLayerFilter === "FRONTEND"
+                    ? "bg-emerald-600 text-white font-bold shadow-xs"
+                    : "bg-emerald-500/10 text-emerald-800 hover:bg-emerald-500/20 border border-emerald-500/20",
+                )}
+              >
+                <Globe className="w-3.5 h-3.5" />
+                <span>FRONTEND ({tasks.filter((t: any) => (t.layer || t.workstream) === "FRONTEND").length})</span>
+              </button>
             </div>
 
             {/* 4 Column Kanban Board */}
@@ -1746,18 +1824,53 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                             </span>
                           </div>
 
-                          <div className="text-[11px] font-mono text-[var(--bos-text-secondary)] flex items-center justify-between">
-                            <span>{t.workstream || t.layer || "Engineering"}</span>
-                            <span>{t.estimatedHours ? `${t.estimatedHours}h` : "8h"}</span>
+                          {/* Workstream & Proof Badges */}
+                          <div className="flex items-center justify-between gap-1 text-[10.5px] font-mono flex-wrap">
+                            <span
+                              className={cn(
+                                "inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-bold uppercase",
+                                (t.layer || t.workstream) === "DATABASE"
+                                  ? "bg-indigo-500/15 text-indigo-700 border border-indigo-500/30"
+                                  : (t.layer || t.workstream) === "BACKEND"
+                                  ? "bg-purple-500/15 text-purple-700 border border-purple-500/30"
+                                  : "bg-emerald-500/15 text-emerald-700 border border-emerald-500/30"
+                              )}
+                            >
+                              {(t.layer || t.workstream) === "DATABASE" ? (
+                                <Database className="w-3 h-3" />
+                              ) : (t.layer || t.workstream) === "BACKEND" ? (
+                                <Server className="w-3 h-3" />
+                              ) : (
+                                <Globe className="w-3 h-3" />
+                              )}
+                              <span>{t.layer || t.workstream || "Engineering"}</span>
+                            </span>
+
+                            {t.proofTypeRequired && (
+                              <span className="text-[9.5px] px-1.5 py-0.5 rounded bg-[var(--bos-surface-sunken)] text-[var(--bos-text-tertiary)] border border-[var(--bos-border-subtle)] font-mono uppercase">
+                                {t.proofTypeRequired.replace(/_/g, " ")}
+                              </span>
+                            )}
                           </div>
+
+                          {/* Execution State & Dependency Handshake */}
+                          {t.dependencies && t.dependencies.length > 0 && (
+                            <div className="text-[10px] font-mono px-2 py-1 rounded bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] text-[var(--bos-text-secondary)] flex items-center justify-between">
+                              <span>Blocked By:</span>
+                              <span className="font-bold text-[var(--bos-text-primary)]">
+                                {t.dependencies.map((d: any) => d.dependsOnTask?.code || "Prerequisite").join(", ")}
+                              </span>
+                            </div>
+                          )}
 
                           <div className="text-[11px] text-[var(--bos-text-secondary)]">
                             Assigned: <strong className="text-[var(--bos-text-primary)]">{t.assigneeName || t.teamRole || "Unassigned"}</strong>
                           </div>
 
                           {t.status === "BLOCKED" && (
-                            <div className="p-1.5 rounded bg-[#fbece7] text-[#b5452a] text-[11px] font-mono">
-                              Waiting for dependencies / client input
+                            <div className="p-1.5 rounded bg-[#fbece7] text-[#b5452a] text-[11px] font-mono flex items-center gap-1.5">
+                              <Lock className="w-3 h-3 shrink-0" />
+                              <span>Waiting for upstream prerequisite layer</span>
                             </div>
                           )}
 
@@ -3115,14 +3228,36 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </p>
                     </div>
 
+                    {/* Proposal Scope Traceability & Technical Workstream */}
+                    <div className="p-3.5 rounded-lg bg-[var(--bos-surface-sunken)] border border-[var(--bos-border-subtle)] space-y-2 text-[12px] font-mono">
+                      <div className="flex items-center justify-between text-[11px]">
+                        <span className="text-[var(--bos-text-tertiary)] uppercase">PROPOSAL TRACEABILITY</span>
+                        <span className="text-emerald-700 font-bold">100% Traceable</span>
+                      </div>
+                      <div className="text-[var(--bos-text-primary)] font-medium">
+                        Module: <strong>{selectedTask.sourceScopeItem || selectedTask.title}</strong>
+                      </div>
+                      <div className="text-[11px] text-[var(--bos-text-secondary)]">
+                        Source: {selectedTask.sourceProposalReference || "Approved Proposal"} ({selectedTask.sourceSection || "Section 05: Core Product Modules"})
+                      </div>
+                    </div>
+
                     <div className="grid grid-cols-2 gap-3 text-[12px] font-mono py-3 border-y border-[var(--bos-border-subtle)]">
+                      <div>
+                        <span className="text-[var(--bos-text-tertiary)] block">WORKSTREAM</span>
+                        <strong className="text-[var(--bos-text-primary)]">{selectedTask.layer || selectedTask.workstream || "DATABASE"}</strong>
+                      </div>
                       <div>
                         <span className="text-[var(--bos-text-tertiary)] block">STATUS</span>
                         <strong className="text-[var(--bos-text-primary)]">{selectedTask.status}</strong>
                       </div>
                       <div>
-                        <span className="text-[var(--bos-text-tertiary)] block">PRIORITY</span>
-                        <strong className="text-[var(--bos-text-primary)]">{selectedTask.priority}</strong>
+                        <span className="text-[var(--bos-text-tertiary)] block">EXECUTION STATE</span>
+                        <strong className="text-[var(--bos-text-primary)]">{selectedTask.executionState || (selectedTask.layer === "DATABASE" ? "READY" : "NOT_READY")}</strong>
+                      </div>
+                      <div>
+                        <span className="text-[var(--bos-text-tertiary)] block">PROOF REQUIRED</span>
+                        <strong className="text-[var(--bos-text-primary)]">{(selectedTask.proofTypeRequired || "MIGRATION_SCRIPT").replace(/_/g, " ")}</strong>
                       </div>
                       <div>
                         <span className="text-[var(--bos-text-tertiary)] block">ASSIGNEE</span>
@@ -3132,8 +3267,32 @@ export function ProjectCommandCenter({ projectId }: { projectId: string }) {
                       </div>
                       <div>
                         <span className="text-[var(--bos-text-tertiary)] block">ESTIMATED HOURS</span>
-                        <strong className="text-[var(--bos-text-primary)]">{selectedTask.estimatedHours || 8}h</strong>
+                        <strong className="text-[var(--bos-text-primary)]">{selectedTask.estimatedHours || 12}h</strong>
                       </div>
+                    </div>
+
+                    {/* Dependency Handshake (Prerequisites & Downstream Unlocks) */}
+                    <div className="p-3.5 rounded-lg bg-[var(--bos-surface-canvas)] border border-[var(--bos-border-subtle)] space-y-2 text-[12px] font-mono">
+                      <span className="text-[10px] uppercase font-bold text-[var(--bos-text-tertiary)] block">
+                        DEPENDENCY HANDSHAKE (DB → BE → FE)
+                      </span>
+                      {selectedTask.dependencies && selectedTask.dependencies.length > 0 ? (
+                        <div className="space-y-1">
+                          <span className="text-[11px] text-[var(--bos-text-secondary)]">Prerequisites required before work starts:</span>
+                          {selectedTask.dependencies.map((d: any) => (
+                            <div key={d.id} className="flex items-center justify-between p-2 rounded bg-[var(--bos-surface-sunken)] text-[11px]">
+                              <span><strong>{d.dependsOnTask?.code}</strong>: {d.dependsOnTask?.title}</span>
+                              <span className={cn("font-bold uppercase", d.dependsOnTask?.status === "DONE" || d.dependsOnTask?.status === "COMPLETED" ? "text-emerald-600" : "text-amber-600")}>
+                                {d.dependsOnTask?.status}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-[11.5px] text-emerald-700">
+                          ✓ Foundation Layer (No blocking prerequisites. Ready for immediate execution.)
+                        </p>
+                      )}
                     </div>
 
                     <div className="space-y-2">

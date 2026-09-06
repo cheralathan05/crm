@@ -411,6 +411,7 @@ export type RequirementRequestWhereInput = {
   questions?: Prisma.RequirementQuestionListRelationFilter
   updateProposals?: Prisma.RequirementUpdateProposalListRelationFilter
   conflicts?: Prisma.RequirementConflictListRelationFilter
+  discoverySession?: Prisma.XOR<Prisma.DiscoverySessionNullableScalarRelationFilter, Prisma.DiscoverySessionWhereInput> | null
 }
 
 export type RequirementRequestOrderByWithRelationInput = {
@@ -452,6 +453,7 @@ export type RequirementRequestOrderByWithRelationInput = {
   questions?: Prisma.RequirementQuestionOrderByRelationAggregateInput
   updateProposals?: Prisma.RequirementUpdateProposalOrderByRelationAggregateInput
   conflicts?: Prisma.RequirementConflictOrderByRelationAggregateInput
+  discoverySession?: Prisma.DiscoverySessionOrderByWithRelationInput
 }
 
 export type RequirementRequestWhereUniqueInput = Prisma.AtLeast<{
@@ -496,6 +498,7 @@ export type RequirementRequestWhereUniqueInput = Prisma.AtLeast<{
   questions?: Prisma.RequirementQuestionListRelationFilter
   updateProposals?: Prisma.RequirementUpdateProposalListRelationFilter
   conflicts?: Prisma.RequirementConflictListRelationFilter
+  discoverySession?: Prisma.XOR<Prisma.DiscoverySessionNullableScalarRelationFilter, Prisma.DiscoverySessionWhereInput> | null
 }, "id" | "tokenHash">
 
 export type RequirementRequestOrderByWithAggregationInput = {
@@ -603,6 +606,7 @@ export type RequirementRequestCreateInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateInput = {
@@ -642,6 +646,7 @@ export type RequirementRequestUncheckedCreateInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUpdateInput = {
@@ -681,6 +686,7 @@ export type RequirementRequestUpdateInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateInput = {
@@ -720,6 +726,7 @@ export type RequirementRequestUncheckedUpdateInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateManyInput = {
@@ -1145,6 +1152,20 @@ export type RequirementRequestUpdateOneRequiredWithoutEventsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.RequirementRequestUpdateToOneWithWhereWithoutEventsInput, Prisma.RequirementRequestUpdateWithoutEventsInput>, Prisma.RequirementRequestUncheckedUpdateWithoutEventsInput>
 }
 
+export type RequirementRequestCreateNestedOneWithoutDiscoverySessionInput = {
+  create?: Prisma.XOR<Prisma.RequirementRequestCreateWithoutDiscoverySessionInput, Prisma.RequirementRequestUncheckedCreateWithoutDiscoverySessionInput>
+  connectOrCreate?: Prisma.RequirementRequestCreateOrConnectWithoutDiscoverySessionInput
+  connect?: Prisma.RequirementRequestWhereUniqueInput
+}
+
+export type RequirementRequestUpdateOneRequiredWithoutDiscoverySessionNestedInput = {
+  create?: Prisma.XOR<Prisma.RequirementRequestCreateWithoutDiscoverySessionInput, Prisma.RequirementRequestUncheckedCreateWithoutDiscoverySessionInput>
+  connectOrCreate?: Prisma.RequirementRequestCreateOrConnectWithoutDiscoverySessionInput
+  upsert?: Prisma.RequirementRequestUpsertWithoutDiscoverySessionInput
+  connect?: Prisma.RequirementRequestWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.RequirementRequestUpdateToOneWithWhereWithoutDiscoverySessionInput, Prisma.RequirementRequestUpdateWithoutDiscoverySessionInput>, Prisma.RequirementRequestUncheckedUpdateWithoutDiscoverySessionInput>
+}
+
 export type RequirementRequestCreateWithoutWorkspaceInput = {
   id?: string
   reference: string
@@ -1181,6 +1202,7 @@ export type RequirementRequestCreateWithoutWorkspaceInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutWorkspaceInput = {
@@ -1219,6 +1241,7 @@ export type RequirementRequestUncheckedCreateWithoutWorkspaceInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutWorkspaceInput = {
@@ -1315,6 +1338,7 @@ export type RequirementRequestCreateWithoutClientInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutClientInput = {
@@ -1353,6 +1377,7 @@ export type RequirementRequestUncheckedCreateWithoutClientInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutClientInput = {
@@ -1416,6 +1441,7 @@ export type RequirementRequestCreateWithoutAnswersInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutAnswersInput = {
@@ -1454,6 +1480,7 @@ export type RequirementRequestUncheckedCreateWithoutAnswersInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutAnswersInput = {
@@ -1508,6 +1535,7 @@ export type RequirementRequestUpdateWithoutAnswersInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutAnswersInput = {
@@ -1546,6 +1574,7 @@ export type RequirementRequestUncheckedUpdateWithoutAnswersInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutFeaturesInput = {
@@ -1584,6 +1613,7 @@ export type RequirementRequestCreateWithoutFeaturesInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutFeaturesInput = {
@@ -1622,6 +1652,7 @@ export type RequirementRequestUncheckedCreateWithoutFeaturesInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutFeaturesInput = {
@@ -1676,6 +1707,7 @@ export type RequirementRequestUpdateWithoutFeaturesInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutFeaturesInput = {
@@ -1714,6 +1746,7 @@ export type RequirementRequestUncheckedUpdateWithoutFeaturesInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutAttachmentsInput = {
@@ -1752,6 +1785,7 @@ export type RequirementRequestCreateWithoutAttachmentsInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutAttachmentsInput = {
@@ -1790,6 +1824,7 @@ export type RequirementRequestUncheckedCreateWithoutAttachmentsInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutAttachmentsInput = {
@@ -1844,6 +1879,7 @@ export type RequirementRequestUpdateWithoutAttachmentsInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutAttachmentsInput = {
@@ -1882,6 +1918,7 @@ export type RequirementRequestUncheckedUpdateWithoutAttachmentsInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutQuestionsInput = {
@@ -1920,6 +1957,7 @@ export type RequirementRequestCreateWithoutQuestionsInput = {
   events?: Prisma.RequirementEventCreateNestedManyWithoutRequestInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutQuestionsInput = {
@@ -1958,6 +1996,7 @@ export type RequirementRequestUncheckedCreateWithoutQuestionsInput = {
   events?: Prisma.RequirementEventUncheckedCreateNestedManyWithoutRequestInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutQuestionsInput = {
@@ -2012,6 +2051,7 @@ export type RequirementRequestUpdateWithoutQuestionsInput = {
   events?: Prisma.RequirementEventUpdateManyWithoutRequestNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutQuestionsInput = {
@@ -2050,6 +2090,7 @@ export type RequirementRequestUncheckedUpdateWithoutQuestionsInput = {
   events?: Prisma.RequirementEventUncheckedUpdateManyWithoutRequestNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutUpdateProposalsInput = {
@@ -2088,6 +2129,7 @@ export type RequirementRequestCreateWithoutUpdateProposalsInput = {
   events?: Prisma.RequirementEventCreateNestedManyWithoutRequestInput
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutUpdateProposalsInput = {
@@ -2126,6 +2168,7 @@ export type RequirementRequestUncheckedCreateWithoutUpdateProposalsInput = {
   events?: Prisma.RequirementEventUncheckedCreateNestedManyWithoutRequestInput
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutUpdateProposalsInput = {
@@ -2180,6 +2223,7 @@ export type RequirementRequestUpdateWithoutUpdateProposalsInput = {
   events?: Prisma.RequirementEventUpdateManyWithoutRequestNestedInput
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutUpdateProposalsInput = {
@@ -2218,6 +2262,7 @@ export type RequirementRequestUncheckedUpdateWithoutUpdateProposalsInput = {
   events?: Prisma.RequirementEventUncheckedUpdateManyWithoutRequestNestedInput
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutConflictsInput = {
@@ -2256,6 +2301,7 @@ export type RequirementRequestCreateWithoutConflictsInput = {
   events?: Prisma.RequirementEventCreateNestedManyWithoutRequestInput
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutConflictsInput = {
@@ -2294,6 +2340,7 @@ export type RequirementRequestUncheckedCreateWithoutConflictsInput = {
   events?: Prisma.RequirementEventUncheckedCreateNestedManyWithoutRequestInput
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutConflictsInput = {
@@ -2348,6 +2395,7 @@ export type RequirementRequestUpdateWithoutConflictsInput = {
   events?: Prisma.RequirementEventUpdateManyWithoutRequestNestedInput
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutConflictsInput = {
@@ -2386,6 +2434,7 @@ export type RequirementRequestUncheckedUpdateWithoutConflictsInput = {
   events?: Prisma.RequirementEventUncheckedUpdateManyWithoutRequestNestedInput
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutCommentsInput = {
@@ -2424,6 +2473,7 @@ export type RequirementRequestCreateWithoutCommentsInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutCommentsInput = {
@@ -2462,6 +2512,7 @@ export type RequirementRequestUncheckedCreateWithoutCommentsInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutCommentsInput = {
@@ -2516,6 +2567,7 @@ export type RequirementRequestUpdateWithoutCommentsInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutCommentsInput = {
@@ -2554,6 +2606,7 @@ export type RequirementRequestUncheckedUpdateWithoutCommentsInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutRevisionsInput = {
@@ -2592,6 +2645,7 @@ export type RequirementRequestCreateWithoutRevisionsInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutRevisionsInput = {
@@ -2630,6 +2684,7 @@ export type RequirementRequestUncheckedCreateWithoutRevisionsInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutRevisionsInput = {
@@ -2684,6 +2739,7 @@ export type RequirementRequestUpdateWithoutRevisionsInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutRevisionsInput = {
@@ -2722,6 +2778,7 @@ export type RequirementRequestUncheckedUpdateWithoutRevisionsInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestCreateWithoutEventsInput = {
@@ -2760,6 +2817,7 @@ export type RequirementRequestCreateWithoutEventsInput = {
   questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestUncheckedCreateWithoutEventsInput = {
@@ -2798,6 +2856,7 @@ export type RequirementRequestUncheckedCreateWithoutEventsInput = {
   questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
   conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedCreateNestedOneWithoutRequirementInput
 }
 
 export type RequirementRequestCreateOrConnectWithoutEventsInput = {
@@ -2852,6 +2911,7 @@ export type RequirementRequestUpdateWithoutEventsInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutEventsInput = {
@@ -2887,6 +2947,179 @@ export type RequirementRequestUncheckedUpdateWithoutEventsInput = {
   attachments?: Prisma.RequirementAttachmentUncheckedUpdateManyWithoutRequestNestedInput
   comments?: Prisma.RequirementCommentUncheckedUpdateManyWithoutRequestNestedInput
   revisions?: Prisma.RequirementRevisionUncheckedUpdateManyWithoutRequestNestedInput
+  questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
+  updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
+  conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
+}
+
+export type RequirementRequestCreateWithoutDiscoverySessionInput = {
+  id?: string
+  reference: string
+  title: string
+  projectType?: $Enums.RequirementProjectType
+  status?: $Enums.RequirementRequestStatus
+  revision?: number
+  tokenHash: string
+  tokenExpiresAt?: Date | string | null
+  tokenRevokedAt?: Date | string | null
+  tokenRevokedReason?: string | null
+  sentTo?: string | null
+  sentAt?: Date | string | null
+  lastOpenedAt?: Date | string | null
+  submittedAt?: Date | string | null
+  approvedAt?: Date | string | null
+  currentSection?: string
+  completeness?: number
+  readiness?: number
+  responderName?: string | null
+  responderRole?: string | null
+  responderEmail?: string | null
+  createdById?: string | null
+  createdByName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  workspace: Prisma.WorkspaceCreateNestedOneWithoutRequirementRequestsInput
+  client: Prisma.ClientCreateNestedOneWithoutRequirementRequestsInput
+  answers?: Prisma.RequirementAnswerCreateNestedManyWithoutRequestInput
+  features?: Prisma.RequirementFeatureCreateNestedManyWithoutRequestInput
+  attachments?: Prisma.RequirementAttachmentCreateNestedManyWithoutRequestInput
+  comments?: Prisma.RequirementCommentCreateNestedManyWithoutRequestInput
+  revisions?: Prisma.RequirementRevisionCreateNestedManyWithoutRequestInput
+  events?: Prisma.RequirementEventCreateNestedManyWithoutRequestInput
+  questions?: Prisma.RequirementQuestionCreateNestedManyWithoutRequirementInput
+  updateProposals?: Prisma.RequirementUpdateProposalCreateNestedManyWithoutRequirementInput
+  conflicts?: Prisma.RequirementConflictCreateNestedManyWithoutRequirementInput
+}
+
+export type RequirementRequestUncheckedCreateWithoutDiscoverySessionInput = {
+  id?: string
+  workspaceId: string
+  clientId: string
+  reference: string
+  title: string
+  projectType?: $Enums.RequirementProjectType
+  status?: $Enums.RequirementRequestStatus
+  revision?: number
+  tokenHash: string
+  tokenExpiresAt?: Date | string | null
+  tokenRevokedAt?: Date | string | null
+  tokenRevokedReason?: string | null
+  sentTo?: string | null
+  sentAt?: Date | string | null
+  lastOpenedAt?: Date | string | null
+  submittedAt?: Date | string | null
+  approvedAt?: Date | string | null
+  currentSection?: string
+  completeness?: number
+  readiness?: number
+  responderName?: string | null
+  responderRole?: string | null
+  responderEmail?: string | null
+  createdById?: string | null
+  createdByName?: string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  answers?: Prisma.RequirementAnswerUncheckedCreateNestedManyWithoutRequestInput
+  features?: Prisma.RequirementFeatureUncheckedCreateNestedManyWithoutRequestInput
+  attachments?: Prisma.RequirementAttachmentUncheckedCreateNestedManyWithoutRequestInput
+  comments?: Prisma.RequirementCommentUncheckedCreateNestedManyWithoutRequestInput
+  revisions?: Prisma.RequirementRevisionUncheckedCreateNestedManyWithoutRequestInput
+  events?: Prisma.RequirementEventUncheckedCreateNestedManyWithoutRequestInput
+  questions?: Prisma.RequirementQuestionUncheckedCreateNestedManyWithoutRequirementInput
+  updateProposals?: Prisma.RequirementUpdateProposalUncheckedCreateNestedManyWithoutRequirementInput
+  conflicts?: Prisma.RequirementConflictUncheckedCreateNestedManyWithoutRequirementInput
+}
+
+export type RequirementRequestCreateOrConnectWithoutDiscoverySessionInput = {
+  where: Prisma.RequirementRequestWhereUniqueInput
+  create: Prisma.XOR<Prisma.RequirementRequestCreateWithoutDiscoverySessionInput, Prisma.RequirementRequestUncheckedCreateWithoutDiscoverySessionInput>
+}
+
+export type RequirementRequestUpsertWithoutDiscoverySessionInput = {
+  update: Prisma.XOR<Prisma.RequirementRequestUpdateWithoutDiscoverySessionInput, Prisma.RequirementRequestUncheckedUpdateWithoutDiscoverySessionInput>
+  create: Prisma.XOR<Prisma.RequirementRequestCreateWithoutDiscoverySessionInput, Prisma.RequirementRequestUncheckedCreateWithoutDiscoverySessionInput>
+  where?: Prisma.RequirementRequestWhereInput
+}
+
+export type RequirementRequestUpdateToOneWithWhereWithoutDiscoverySessionInput = {
+  where?: Prisma.RequirementRequestWhereInput
+  data: Prisma.XOR<Prisma.RequirementRequestUpdateWithoutDiscoverySessionInput, Prisma.RequirementRequestUncheckedUpdateWithoutDiscoverySessionInput>
+}
+
+export type RequirementRequestUpdateWithoutDiscoverySessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  projectType?: Prisma.EnumRequirementProjectTypeFieldUpdateOperationsInput | $Enums.RequirementProjectType
+  status?: Prisma.EnumRequirementRequestStatusFieldUpdateOperationsInput | $Enums.RequirementRequestStatus
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenRevokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenRevokedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentTo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  currentSection?: Prisma.StringFieldUpdateOperationsInput | string
+  completeness?: Prisma.IntFieldUpdateOperationsInput | number
+  readiness?: Prisma.IntFieldUpdateOperationsInput | number
+  responderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responderEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  workspace?: Prisma.WorkspaceUpdateOneRequiredWithoutRequirementRequestsNestedInput
+  client?: Prisma.ClientUpdateOneRequiredWithoutRequirementRequestsNestedInput
+  answers?: Prisma.RequirementAnswerUpdateManyWithoutRequestNestedInput
+  features?: Prisma.RequirementFeatureUpdateManyWithoutRequestNestedInput
+  attachments?: Prisma.RequirementAttachmentUpdateManyWithoutRequestNestedInput
+  comments?: Prisma.RequirementCommentUpdateManyWithoutRequestNestedInput
+  revisions?: Prisma.RequirementRevisionUpdateManyWithoutRequestNestedInput
+  events?: Prisma.RequirementEventUpdateManyWithoutRequestNestedInput
+  questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
+  updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
+  conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+}
+
+export type RequirementRequestUncheckedUpdateWithoutDiscoverySessionInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  workspaceId?: Prisma.StringFieldUpdateOperationsInput | string
+  clientId?: Prisma.StringFieldUpdateOperationsInput | string
+  reference?: Prisma.StringFieldUpdateOperationsInput | string
+  title?: Prisma.StringFieldUpdateOperationsInput | string
+  projectType?: Prisma.EnumRequirementProjectTypeFieldUpdateOperationsInput | $Enums.RequirementProjectType
+  status?: Prisma.EnumRequirementRequestStatusFieldUpdateOperationsInput | $Enums.RequirementRequestStatus
+  revision?: Prisma.IntFieldUpdateOperationsInput | number
+  tokenHash?: Prisma.StringFieldUpdateOperationsInput | string
+  tokenExpiresAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenRevokedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  tokenRevokedReason?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentTo?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  sentAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  lastOpenedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  submittedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  approvedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  currentSection?: Prisma.StringFieldUpdateOperationsInput | string
+  completeness?: Prisma.IntFieldUpdateOperationsInput | number
+  readiness?: Prisma.IntFieldUpdateOperationsInput | number
+  responderName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responderRole?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  responderEmail?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdById?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdByName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  answers?: Prisma.RequirementAnswerUncheckedUpdateManyWithoutRequestNestedInput
+  features?: Prisma.RequirementFeatureUncheckedUpdateManyWithoutRequestNestedInput
+  attachments?: Prisma.RequirementAttachmentUncheckedUpdateManyWithoutRequestNestedInput
+  comments?: Prisma.RequirementCommentUncheckedUpdateManyWithoutRequestNestedInput
+  revisions?: Prisma.RequirementRevisionUncheckedUpdateManyWithoutRequestNestedInput
+  events?: Prisma.RequirementEventUncheckedUpdateManyWithoutRequestNestedInput
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
@@ -2957,6 +3190,7 @@ export type RequirementRequestUpdateWithoutWorkspaceInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutWorkspaceInput = {
@@ -2995,6 +3229,7 @@ export type RequirementRequestUncheckedUpdateWithoutWorkspaceInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateManyWithoutWorkspaceInput = {
@@ -3091,6 +3326,7 @@ export type RequirementRequestUpdateWithoutClientInput = {
   questions?: Prisma.RequirementQuestionUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateWithoutClientInput = {
@@ -3129,6 +3365,7 @@ export type RequirementRequestUncheckedUpdateWithoutClientInput = {
   questions?: Prisma.RequirementQuestionUncheckedUpdateManyWithoutRequirementNestedInput
   updateProposals?: Prisma.RequirementUpdateProposalUncheckedUpdateManyWithoutRequirementNestedInput
   conflicts?: Prisma.RequirementConflictUncheckedUpdateManyWithoutRequirementNestedInput
+  discoverySession?: Prisma.DiscoverySessionUncheckedUpdateOneWithoutRequirementNestedInput
 }
 
 export type RequirementRequestUncheckedUpdateManyWithoutClientInput = {
@@ -3302,6 +3539,7 @@ export type RequirementRequestSelect<ExtArgs extends runtime.Types.Extensions.In
   questions?: boolean | Prisma.RequirementRequest$questionsArgs<ExtArgs>
   updateProposals?: boolean | Prisma.RequirementRequest$updateProposalsArgs<ExtArgs>
   conflicts?: boolean | Prisma.RequirementRequest$conflictsArgs<ExtArgs>
+  discoverySession?: boolean | Prisma.RequirementRequest$discoverySessionArgs<ExtArgs>
   _count?: boolean | Prisma.RequirementRequestCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["requirementRequest"]>
 
@@ -3412,6 +3650,7 @@ export type RequirementRequestInclude<ExtArgs extends runtime.Types.Extensions.I
   questions?: boolean | Prisma.RequirementRequest$questionsArgs<ExtArgs>
   updateProposals?: boolean | Prisma.RequirementRequest$updateProposalsArgs<ExtArgs>
   conflicts?: boolean | Prisma.RequirementRequest$conflictsArgs<ExtArgs>
+  discoverySession?: boolean | Prisma.RequirementRequest$discoverySessionArgs<ExtArgs>
   _count?: boolean | Prisma.RequirementRequestCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type RequirementRequestIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -3437,6 +3676,7 @@ export type $RequirementRequestPayload<ExtArgs extends runtime.Types.Extensions.
     questions: Prisma.$RequirementQuestionPayload<ExtArgs>[]
     updateProposals: Prisma.$RequirementUpdateProposalPayload<ExtArgs>[]
     conflicts: Prisma.$RequirementConflictPayload<ExtArgs>[]
+    discoverySession: Prisma.$DiscoverySessionPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -3871,6 +4111,7 @@ export interface Prisma__RequirementRequestClient<T, Null = never, ExtArgs exten
   questions<T extends Prisma.RequirementRequest$questionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RequirementRequest$questionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequirementQuestionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   updateProposals<T extends Prisma.RequirementRequest$updateProposalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RequirementRequest$updateProposalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequirementUpdateProposalPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   conflicts<T extends Prisma.RequirementRequest$conflictsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RequirementRequest$conflictsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RequirementConflictPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  discoverySession<T extends Prisma.RequirementRequest$discoverySessionArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.RequirementRequest$discoverySessionArgs<ExtArgs>>): Prisma.Prisma__DiscoverySessionClient<runtime.Types.Result.GetResult<Prisma.$DiscoverySessionPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -4539,6 +4780,25 @@ export type RequirementRequest$conflictsArgs<ExtArgs extends runtime.Types.Exten
   take?: number
   skip?: number
   distinct?: Prisma.RequirementConflictScalarFieldEnum | Prisma.RequirementConflictScalarFieldEnum[]
+}
+
+/**
+ * RequirementRequest.discoverySession
+ */
+export type RequirementRequest$discoverySessionArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DiscoverySession
+   */
+  select?: Prisma.DiscoverySessionSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DiscoverySession
+   */
+  omit?: Prisma.DiscoverySessionOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DiscoverySessionInclude<ExtArgs> | null
+  where?: Prisma.DiscoverySessionWhereInput
 }
 
 /**

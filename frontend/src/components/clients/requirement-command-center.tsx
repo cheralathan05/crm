@@ -478,6 +478,17 @@ export function RequirementCommandCenter({
                   {copied ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3 h-3" aria-hidden="true" />}
                   {copied ? "Copied" : "Copy link"}
                 </MicroButton>
+                {link && (
+                  <a
+                    href={link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 h-7 px-2.5 rounded-sm text-[11px] font-medium border border-[var(--bos-accent)] text-[var(--bos-accent)] hover:bg-[var(--bos-accent-subtle)] transition-colors duration-150 shadow-sm"
+                    title="Open Client Discovery Studio in new tab"
+                  >
+                    <Sparkles className="w-3 h-3 text-[var(--bos-accent)]" aria-hidden="true" /> Open Studio
+                  </a>
+                )}
               </>
             )}
             {canReview && (

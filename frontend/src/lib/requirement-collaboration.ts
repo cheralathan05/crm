@@ -124,13 +124,12 @@ export async function createClientRequestBundle(input: {
   );
 
   await recordAudit({
-    workspaceId: req.workspaceId,
+    clientId: req.clientId,
     actorId: input.actorId,
     actorName: input.actorName,
     action: "REQUIREMENT_REQUEST_SENT",
-    targetType: "REQUIREMENT_REQUEST",
-    targetId: req.id,
-    summary: `Sent focused request bundle with ${input.items.length} items to ${req.client.companyName}`,
+    entity: "REQUIREMENT_REQUEST",
+    entityId: req.id,
   });
 
   return { ok: true, count: createdQuestions.length, questions: createdQuestions };
@@ -147,7 +146,7 @@ export async function getChangeReviewQueue(requestId: string): Promise<ChangeRev
     db.requirementQuestion.findMany({
       where: {
         requirementId: requestId,
-        status: { in: ["ANSWERED", "UNDER_REVIEW", "NEEDS_CLARIFICATION", "RESOLVED"] },
+        status: { in: ["ANSWERED", "UNDER_REVIEW", "RESOLVED"] },
       },
       orderBy: { respondedAt: "desc" },
     }),
@@ -220,7 +219,7 @@ export async function getChangeReviewQueue(requestId: string): Promise<ChangeRev
         scope: "Directly clarifies user access and subsystem architecture.",
         timeline: "Stabilizes engineering requirements for proposal finalization.",
       },
-      status: q.status === "RESOLVED" ? "ACCEPTED" : q.status === "NEEDS_CLARIFICATION" ? "NEEDS_CLARIFICATION" : "PENDING",
+      status: q.status === "RESOLVED" ? "ACCEPTED" : "PENDING",
     });
   }
 
@@ -251,17 +250,20 @@ Respond strictly with JSON in this format:
   "recommendation": "Recommended admin action (e.g. approve, clarify scope, or adjust proposal pricing)"
 }`;
 
-      const res = await askOllamaJson<{ summary?: string; impact?: string; recommendation?: string }>({
-        prompt,
-        system: "You are an enterprise software architect analyzing requirement changes. Be precise, concise, and professional.",
+      const res = await askOllamaJson({
+        systemPrompt: "You are an enterprise software architect analyzing requirement changes. Be precise, concise, and professional.",
+        userPrompt: prompt,
       });
 
-      if (res?.data?.summary) {
-        return {
-          summary: res.data.summary,
-          impact: res.data.impact ?? "Review potential engineering and timeline effects.",
-          recommendation: res.data.recommendation ?? "Verify scope boundaries before approving.",
-        };
+      if (res?.ok && res?.content) {
+        try {
+          const parsed = JSON.parse(res.content);
+          return {
+            summary: parsed.summary || `Client updated ${input.section}.`,
+            impact: parsed.impact ?? "Review potential engineering and timeline effects.",
+            recommendation: parsed.recommendation ?? "Verify scope boundaries before approving.",
+          };
+        } catch {}
       }
     } catch {
       /* Fallback to deterministic */
@@ -378,7 +380,7 @@ export async function approveClientChange(input: {
     await tx.requirementEvent.create({
       data: {
         requestId: req.id,
-        type: "REVISION_CREATED",
+        type: "UPDATE_APPLIED",
         label: `Revision ${newRevisionNumber} created — ${input.section} approved`,
         detail: input.reason ?? `Approved by ${input.actorName}`,
         meta: JSON.stringify({ revision: newRevisionNumber, section: input.section }),
@@ -386,13 +388,12 @@ export async function approveClientChange(input: {
     });
 
     await recordAudit({
-      workspaceId: req.workspaceId,
+      clientId: req.clientId,
       actorId: input.actorId,
       actorName: input.actorName,
       action: "REQUIREMENT_CHANGE_APPROVED",
-      targetType: "REQUIREMENT_REQUEST",
-      targetId: req.id,
-      summary: `Approved change for ${input.section}. Revision ${newRevisionNumber} is now authoritative.`,
+      entity: "REQUIREMENT_REQUEST",
+      entityId: req.id,
     });
 
     return { ok: true, revision: newRevisionNumber };
@@ -440,13 +441,12 @@ export async function rejectClientChange(input: {
   );
 
   await recordAudit({
-    workspaceId: req.workspaceId,
+    clientId: req.clientId,
     actorId: input.actorId,
     actorName: input.actorName,
     action: "REQUIREMENT_CHANGE_REJECTED",
-    targetType: "REQUIREMENT_REQUEST",
-    targetId: req.id,
-    summary: `Rejected change for ${input.section}. Reason: ${input.reason.trim()}`,
+    entity: "REQUIREMENT_REQUEST",
+    entityId: req.id,
   });
 
   return { ok: true };
@@ -476,7 +476,7 @@ export async function requestClarificationOnChange(input: {
     .updateMany({
       where: { id: input.changeId, requirementId: req.id },
       data: {
-        status: "NEEDS_CLARIFICATION",
+        status: "UNDER_REVIEW",
         internalNote: input.clarificationNote.trim(),
         helpText: input.guidance?.trim() ?? null,
       },

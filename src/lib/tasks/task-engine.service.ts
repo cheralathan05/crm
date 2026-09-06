@@ -501,11 +501,12 @@ export async function cascadeDependencyResolution(completedTaskId: string, proje
 
     if (allUpstreamDone) {
       // Unlock task to READY
-      const newStatus = depTask.status === "TODO" ? "READY" : depTask.status;
+      const newStatus = depTask.status === "TODO" || depTask.status === "BLOCKED" ? "READY" : depTask.status;
       await db.clientTask.update({
         where: { id: depTask.id },
         data: {
           status: newStatus,
+          executionState: "READY",
           blockedReason: null,
         },
       });

@@ -292,6 +292,76 @@ export type ClientCopilotMessage = Prisma.ClientCopilotMessageModel
  */
 export type ClientCustomFieldDef = Prisma.ClientCustomFieldDefModel
 /**
+ * Model DiscoverySession
+ * 
+ */
+export type DiscoverySession = Prisma.DiscoverySessionModel
+/**
+ * Model DiscoveryMessage
+ * 
+ */
+export type DiscoveryMessage = Prisma.DiscoveryMessageModel
+/**
+ * Model DiscoveryTopicArea
+ * 
+ */
+export type DiscoveryTopicArea = Prisma.DiscoveryTopicAreaModel
+/**
+ * Model DiscoveryFact
+ * 
+ */
+export type DiscoveryFact = Prisma.DiscoveryFactModel
+/**
+ * Model DiscoveryDecision
+ * 
+ */
+export type DiscoveryDecision = Prisma.DiscoveryDecisionModel
+/**
+ * Model UserJourney
+ * 
+ */
+export type UserJourney = Prisma.UserJourneyModel
+/**
+ * Model SystemCapability
+ * 
+ */
+export type SystemCapability = Prisma.SystemCapabilityModel
+/**
+ * Model BusinessRule
+ * 
+ */
+export type BusinessRule = Prisma.BusinessRuleModel
+/**
+ * Model ScopeItem
+ * 
+ */
+export type ScopeItem = Prisma.ScopeItemModel
+/**
+ * Model ProjectAssumption
+ * 
+ */
+export type ProjectAssumption = Prisma.ProjectAssumptionModel
+/**
+ * Model AiRecommendation
+ * 
+ */
+export type AiRecommendation = Prisma.AiRecommendationModel
+/**
+ * Model DiscoveryReference
+ * 
+ */
+export type DiscoveryReference = Prisma.DiscoveryReferenceModel
+/**
+ * Model ProjectModelBlueprint
+ * 
+ */
+export type ProjectModelBlueprint = Prisma.ProjectModelBlueprintModel
+/**
+ * Model DiscoveryApprovalRecord
+ * 
+ */
+export type DiscoveryApprovalRecord = Prisma.DiscoveryApprovalRecordModel
+/**
  * Model Onboarding
  * 
  */

@@ -1196,6 +1196,7 @@ model RequirementRequest {
   questions    RequirementQuestion[]
   updateProposals RequirementUpdateProposal[]
   conflicts    RequirementConflict[]
+  discoverySession DiscoverySession?
 
   @@index([workspaceId, status])
   @@index([clientId])
@@ -1502,6 +1503,233 @@ model ClientCustomFieldDef {
 
   @@unique([workspaceId, label])
 }
+
+/* ── Business OS Intelligent Project Discovery Studio ──────────── */
+
+model DiscoverySession {
+  id                 String   @id @default(cuid())
+  requirement        RequirementRequest @relation(fields: [requirementId], references: [id], onDelete: Cascade)
+  requirementId      String   @unique
+  workspaceId        String
+  clientId           String
+  mode               String   @default("DISCOVERY") // "DISCOVERY" | "REVIEW" | "APPROVED"
+  intakePath         String?  // "TECHNICAL" | "GUIDED"
+  currentArea        String   @default("BUSINESS")
+  completeness       Int      @default(0)
+  readinessScore     Int      @default(0)
+  healthStatus       String   @default("READY") // "READY" | "NEEDS_CLARIFICATION" | "MISSING_CRITICAL_INFO"
+  lastDiscussedTopic String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  messages           DiscoveryMessage[]
+  areas              DiscoveryTopicArea[]
+  facts              DiscoveryFact[]
+  decisions          DiscoveryDecision[]
+  journeys           UserJourney[]
+  capabilities       SystemCapability[]
+  businessRules      BusinessRule[]
+  scopeItems         ScopeItem[]
+  assumptions        ProjectAssumption[]
+  recommendations    AiRecommendation[]
+  references         DiscoveryReference[]
+  blueprints         ProjectModelBlueprint[]
+  approvalRecords    DiscoveryApprovalRecord[]
+
+  @@index([workspaceId])
+  @@index([clientId])
+}
+
+model DiscoveryMessage {
+  id             String   @id @default(cuid())
+  session        DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId      String
+  role           String   // "user" | "consultant" | "system"
+  content        String
+  structuredData String?  @default("{}") // JSON for options, inline confirmation, "why we ask", etc.
+  modelUsed      String?
+  latencyMs      Int?
+  createdAt      DateTime @default(now())
+
+  @@index([sessionId, createdAt])
+}
+
+model DiscoveryTopicArea {
+  id          String   @id @default(cuid())
+  session     DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId   String
+  areaKey     String   // e.g. "BUSINESS", "GOAL", "USERS", "CUSTOMER_JOURNEY", etc.
+  label       String
+  status      String   @default("NOT_DISCUSSED") // "CONFIRMED" | "INFERRED" | "NEEDS_CLARIFICATION" | "NOT_DISCUSSED" | "NOT_APPLICABLE"
+  order       Int      @default(0)
+  updatedAt   DateTime @updatedAt
+
+  @@unique([sessionId, areaKey])
+  @@index([sessionId])
+}
+
+model DiscoveryFact {
+  id              String   @id @default(cuid())
+  session         DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId       String
+  category        String   // "BUSINESS_PROBLEM" | "GOAL" | "USER_ROLE" | "PROCESS_CURRENT" | "PROCESS_FUTURE" | "OUTCOME"
+  title           String
+  description     String   @default("")
+  status          String   @default("INFERRED") // "CONFIRMED" | "INFERRED" | "NEEDS_CLARIFICATION"
+  sourceMessageId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([sessionId, category])
+}
+
+model DiscoveryDecision {
+  id             String   @id @default(cuid())
+  session        DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId      String
+  title          String
+  options        String   @default("[]") // JSON array of option labels
+  selectedOption String?
+  reason         String?
+  source         String?
+  status         String   @default("UNDECIDED") // "CONFIRMED" | "UNDECIDED" | "LEAVE_FOR_LATER"
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model UserJourney {
+  id          String   @id @default(cuid())
+  session     DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId   String
+  roleName    String   @default("Customer")
+  title       String   @default("Customer Experience")
+  steps       String   @default("[]") // JSON array of step names e.g. ["Browse", "Cart", "Checkout"]
+  isConfirmed Boolean  @default(false)
+  order       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model SystemCapability {
+  id          String   @id @default(cuid())
+  session     DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId   String
+  roleName    String   // "Customer" | "Staff" | "Admin"
+  title       String
+  description String   @default("")
+  category    String   @default("General")
+  status      String   @default("INFERRED") // "CONFIRMED" | "INFERRED" | "POSSIBLE"
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId, roleName])
+}
+
+model BusinessRule {
+  id                String   @id @default(cuid())
+  session           DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId         String
+  rule              String
+  condition         String?
+  exceptionHandling String?
+  appliesToRole     String?
+  severity          String   @default("STANDARD") // "STANDARD" | "STRICT"
+  status            String   @default("INFERRED") // "CONFIRMED" | "INFERRED"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model ScopeItem {
+  id          String   @id @default(cuid())
+  session     DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId   String
+  title       String
+  description String   @default("")
+  tier        String   @default("CORE") // "CORE" | "POSSIBLE" | "UNKNOWN" | "OUT_OF_SCOPE"
+  rationale   String?
+  impact      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([sessionId, tier])
+}
+
+model ProjectAssumption {
+  id                 String   @id @default(cuid())
+  session            DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId          String
+  title              String
+  category           String   @default("GENERAL")
+  status             String   @default("ASSUMPTION") // "CONFIRMED" | "ASSUMPTION" | "RECOMMENDATION" | "UNKNOWN"
+  validationQuestion String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([sessionId, status])
+}
+
+model AiRecommendation {
+  id                String   @id @default(cuid())
+  session           DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId         String
+  title             String
+  description       String   @default("")
+  options           String   @default("[]") // JSON array of options
+  recommendedOption String?
+  rationale         String?
+  status            String   @default("PENDING") // "PENDING" | "ACCEPTED" | "DECLINED"
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([sessionId])
+}
+
+model DiscoveryReference {
+  id              String   @id @default(cuid())
+  session         DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId       String
+  type            String   // "IMAGE" | "SCREENSHOT" | "FILE" | "EXCEL" | "PDF" | "URL"
+  name            String
+  path            String?
+  observations    String   @default("[]") // JSON array of observed features
+  clientDecisions String   @default("{}") // JSON map of featureName -> "INCLUDE" | "EXCLUDE"
+  createdAt       DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+model ProjectModelBlueprint {
+  id           String   @id @default(cuid())
+  session      DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId    String
+  version      Int      @default(1)
+  stateJson    String   // Complete snapshot of project model
+  qualityScore Int      @default(100)
+  issues       String   @default("[]") // JSON array of identified gaps / issues
+  createdAt    DateTime @default(now())
+
+  @@index([sessionId])
+}
+
+model DiscoveryApprovalRecord {
+  id                 String   @id @default(cuid())
+  session            DiscoverySession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sessionId          String
+  approverName       String
+  approverEmail      String?
+  approvedAt         DateTime @default(now())
+  snapshotJson       String   // Immutable snapshot at time of approval
+  requirementVersion Int      @default(1)
+
+  @@index([sessionId])
+}
+
 
 model Onboarding {
   id                       String    @id @default(cuid())

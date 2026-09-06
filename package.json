@@ -13,6 +13,7 @@
     "build": "npm run build --workspace=@mainproject/frontend",
     "db:generate": "npm run generate --workspace=@mainproject/backend",
     "db:push": "npm run db:push --workspace=@mainproject/backend && node -e \"require('fs').copyFileSync('backend/dev.db','frontend/dev.db')\"",
+    "db:reset": "npm run db:reset --workspace=@mainproject/backend && npm run db:sync",
     "db:sync": "node -e \"require('fs').copyFileSync('backend/dev.db','frontend/dev.db')\"",
     "test:settings": "npm run test:settings --workspace=@mainproject/backend",
     "lint": "eslint"

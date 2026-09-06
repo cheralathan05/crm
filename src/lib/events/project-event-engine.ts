@@ -101,6 +101,7 @@ export async function processProjectEvent(input: ProjectEventInput): Promise<Pro
       milestones: plan.milestones,
       deliverables: plan.deliverables,
       tasks: plan.tasks,
+      modules: plan.modules,
     });
 
     // Record Event Activity
@@ -514,7 +515,7 @@ export async function processProjectEvent(input: ProjectEventInput): Promise<Pro
  * Propagates dependency readiness across all project tasks.
  * If task A depends on task B and task B is DONE, task A unlocks (BLOCKED -> READY).
  */
-async function updateTaskReadinessStates(projectId: string): Promise<number> {
+export async function updateTaskReadinessStates(projectId: string): Promise<number> {
   let unlockedCount = 0;
 
   const tasks = await db.clientTask.findMany({
@@ -526,7 +527,7 @@ async function updateTaskReadinessStates(projectId: string): Promise<number> {
     },
   });
 
-  const updates: Array<{ id: string; status: any }> = [];
+  const updates: Array<{ id: string; status: any; executionState: string }> = [];
 
   for (const t of tasks) {
     if (t.status === "DONE" || t.status === "COMPLETED" || t.status === "IN_PROGRESS" || t.status === "IN_REVIEW") {
@@ -534,13 +535,16 @@ async function updateTaskReadinessStates(projectId: string): Promise<number> {
     }
 
     const hasIncompleteDependencies = t.dependencies.some(
-      (d) => d.dependsOnTask.status !== "DONE" && d.dependsOnTask.status !== "COMPLETED",
+      (d) =>
+        d.dependsOnTask.status !== "DONE" &&
+        d.dependsOnTask.status !== "COMPLETED" &&
+        d.dependsOnTask.executionState !== "APPROVED",
     );
 
-    if (hasIncompleteDependencies && t.status !== "BLOCKED") {
-      updates.push({ id: t.id, status: "BLOCKED" });
-    } else if (!hasIncompleteDependencies && t.status === "BLOCKED") {
-      updates.push({ id: t.id, status: "TODO" });
+    if (hasIncompleteDependencies && (t.status !== "BLOCKED" || t.executionState !== "NOT_READY")) {
+      updates.push({ id: t.id, status: "BLOCKED", executionState: "NOT_READY" });
+    } else if (!hasIncompleteDependencies && (t.status === "BLOCKED" || t.executionState === "NOT_READY")) {
+      updates.push({ id: t.id, status: "TODO", executionState: "READY" });
       unlockedCount++;
     }
   }
@@ -550,7 +554,7 @@ async function updateTaskReadinessStates(projectId: string): Promise<number> {
       updates.map((u) =>
         db.clientTask.update({
           where: { id: u.id },
-          data: { status: u.status },
+          data: { status: u.status, executionState: u.executionState },
         }),
       ),
     );

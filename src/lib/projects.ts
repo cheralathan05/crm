@@ -26,13 +26,23 @@ export type ScopeItem = {
 
 export type SuggestedTask = {
   id: string;
+  code?: string;
   title: string;
   description?: string;
+  workstream: "DATABASE" | "BACKEND" | "FRONTEND" | string;
+  layer?: "DATABASE" | "BACKEND" | "FRONTEND" | string;
   teamRole: string;
   estimatedHours: number;
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   milestoneIndex: number;
   deliverableIndex?: number;
+  moduleIndex?: number;
+  executionState?: string;
+  proofTypeRequired?: string;
+  sourceScopeItem?: string;
+  sourceSection?: string;
+  acceptanceCriteria?: string[];
+  dependsOnTaskId?: string;
 };
 
 export type SuggestedDeliverable = {
@@ -61,8 +71,25 @@ export type SuggestedProjectPlan = {
   milestones: SuggestedMilestone[];
   deliverables: SuggestedDeliverable[];
   tasks: SuggestedTask[];
+  modules?: Array<{
+    id: string;
+    name: string;
+    purpose: string;
+    priority: string;
+    userActions: string[];
+    businessRules: string[];
+    primaryUsers: string[];
+    acceptanceCriteria: string[];
+  }>;
   estimatedTotalHours: number;
   targetTimelineWeeks: number;
+  coverageReport?: {
+    approvedProposalItems: number;
+    mappedToProjectWork: number;
+    unmapped: number;
+    unapprovedAdditions: number;
+    coveragePercentage: number;
+  };
 };
 
 export type NextBestAction = {
@@ -120,204 +147,261 @@ export function extractApprovedScopeAndPlan(
     }
   } catch {}
 
-  const scopeItems: ScopeItem[] = [];
   const budget = proposal.amount || 100000;
 
-  // 1. Extract objectives & features
-  requirementFeatures.forEach((rf, idx) => {
-    let parsedCriteria: string[] = [];
-    try {
-      if (rf.acceptanceCriteria) {
-        parsedCriteria = JSON.parse(rf.acceptanceCriteria);
-      }
-    } catch {}
-    if (parsedCriteria.length === 0) {
-      parsedCriteria = [
-        `Verified functional operation of ${rf.name} according to client specifications.`,
-        `Zero critical severity defects during user acceptance testing.`,
-      ];
-    }
+  // 1. Extract authentic approved modules from proposal document
+  type ExtractedModule = {
+    id: string;
+    name: string;
+    purpose: string;
+    priority: "MUST_HAVE" | "SHOULD_HAVE" | "NICE_TO_HAVE" | "HIGH" | "MEDIUM" | "LOW";
+    userActions: string[];
+    businessRules: string[];
+    primaryUsers: string[];
+    acceptanceCriteria: string[];
+  };
 
-    scopeItems.push({
-      id: `scope-feat-${idx + 1}`,
-      category: "FEATURE",
-      title: rf.name,
-      detail: rf.description || `Core functional capability specified in approved requirement.`,
-      priority: (rf.priority as any) || "HIGH",
-      included: true,
-      sourceSection: "Approved Requirement",
-      acceptanceCriteria: parsedCriteria,
-    });
-  });
+  const modules: ExtractedModule[] = [];
 
-  // Extract from proposal doc blocks
   (doc.sections || []).forEach((sec) => {
-    (sec.blocks || []).forEach((b, bIdx) => {
-      if (b.type === "feature_card" && b.title) {
-        if (!scopeItems.some((s) => s.title.toLowerCase() === b.title.toLowerCase())) {
-          scopeItems.push({
-            id: `scope-doc-feat-${bIdx}`,
-            category: "FEATURE",
-            title: b.title,
-            detail: b.purpose || b.businessNeed || "Proposal feature module",
+    (sec.blocks || []).forEach((b: any) => {
+      if (b.type === "module_card" && (b.name || b.title)) {
+        const name = (b.name || b.title).trim();
+        if (!modules.some((m) => m.name.toLowerCase() === name.toLowerCase())) {
+          modules.push({
+            id: b.id || `MOD-${String(modules.length + 1).padStart(2, "0")}`,
+            name,
+            purpose: b.purpose || b.description || `Core functional capability for ${name}.`,
             priority: (b.priority as any) || "HIGH",
-            included: true,
-            sourceSection: sec.title,
-            acceptanceCriteria: b.acceptanceCriteria || [`Feature fulfillment for ${b.title}`],
+            userActions: Array.isArray(b.userActions) && b.userActions.length > 0
+              ? b.userActions
+              : [`Access and configure ${name} interface`, `Execute core operational actions for ${name}`],
+            businessRules: Array.isArray(b.businessRules) && b.businessRules.length > 0
+              ? b.businessRules
+              : [`Enforce role permissions and authentication guardrails for ${name}`],
+            primaryUsers: Array.isArray(b.primaryUsers) && b.primaryUsers.length > 0
+              ? b.primaryUsers
+              : ["Authorized Users"],
+            acceptanceCriteria: [
+              `Functional verification of ${name} according to approved proposal specifications.`,
+              `Zero critical or high severity defects in production verification.`,
+            ],
           });
         }
-      } else if (b.type === "deliverable" && b.name) {
-        scopeItems.push({
-          id: `scope-doc-deliv-${bIdx}`,
-          category: "DELIVERABLE",
-          title: b.name,
-          detail: b.description || b.scope || "Proposal deliverable item",
-          priority: "HIGH",
-          included: true,
-          sourceSection: sec.title,
-          acceptanceCriteria: b.acceptance ? [b.acceptance] : [`Formal acceptance sign-off on ${b.name}`],
-        });
+      } else if (b.type === "feature_card" && b.title) {
+        const name = b.title.trim();
+        if (!modules.some((m) => m.name.toLowerCase() === name.toLowerCase())) {
+          modules.push({
+            id: `FEAT-${String(modules.length + 1).padStart(2, "0")}`,
+            name,
+            purpose: b.purpose || b.businessNeed || `Approved capability for ${name}.`,
+            priority: (b.priority as any) || "HIGH",
+            userActions: b.capabilities || [`Execute workflows for ${name}`],
+            businessRules: [`Enforce role authorization and operational constraints`],
+            primaryUsers: b.primaryUsers ? [b.primaryUsers] : ["Authorized Users"],
+            acceptanceCriteria: b.acceptanceCriteria || [`Feature fulfillment verified for ${name}`],
+          });
+        }
       }
     });
   });
 
-  if (scopeItems.length === 0) {
-    scopeItems.push(
-      {
-        id: "scope-default-1",
-        category: "OBJECTIVE",
-        title: "Enterprise Platform Deployment",
-        detail: "Full system configuration and deployment for client operations.",
-        priority: "HIGH",
-        included: true,
-        acceptanceCriteria: ["Production environment active with HTTPS and SSL."],
-      },
-      {
-        id: "scope-default-2",
-        category: "FEATURE",
-        title: "Workflow Automation & Management Engine",
-        detail: "Streamlined end-to-end task and record management.",
-        priority: "HIGH",
-        included: true,
-        acceptanceCriteria: ["100% test pass rate on primary business flows."],
-      },
-    );
+  // Fallback to linked requirement features if proposal blocks had no module cards
+  if (modules.length === 0 && requirementFeatures.length > 0) {
+    requirementFeatures.forEach((rf, idx) => {
+      let parsedCriteria: string[] = [];
+      try {
+        if (rf.acceptanceCriteria) parsedCriteria = JSON.parse(rf.acceptanceCriteria);
+      } catch {}
+      if (parsedCriteria.length === 0) {
+        parsedCriteria = [`Verified functional operation of ${rf.name} according to client specifications.`];
+      }
+      modules.push({
+        id: `REQ-${String(idx + 1).padStart(2, "0")}`,
+        name: rf.name,
+        purpose: rf.description || `Core requirement capability: ${rf.name}`,
+        priority: (rf.priority as any) || "HIGH",
+        userActions: [`Execute verified actions for ${rf.name}`],
+        businessRules: [`Enforce security and integrity constraints`],
+        primaryUsers: ["Authorized Stakeholders"],
+        acceptanceCriteria: parsedCriteria,
+      });
+    });
   }
 
-  // 2. Build Structured Milestones
+  // Fallback default if completely blank proposal
+  if (modules.length === 0) {
+    modules.push({
+      id: "MOD-01",
+      name: proposal.title || "Business Operations Platform",
+      purpose: "Centralized business operations management platform.",
+      priority: "HIGH",
+      userActions: ["Execute operational workflows", "Access system dashboard and records"],
+      businessRules: ["Role-based access control and tenant isolation"],
+      primaryUsers: ["Administrators", "Operations Team"],
+      acceptanceCriteria: ["Production environment active with verified role security."],
+    });
+  }
+
+  // 2. Build Scope Items (1:1 with approved modules)
+  const scopeItems: ScopeItem[] = modules.map((m, idx) => ({
+    id: `scope-${m.id.toLowerCase()}`,
+    category: "FEATURE",
+    title: m.name,
+    detail: m.purpose,
+    priority: m.priority,
+    included: true,
+    sourceSection: "Section 05: Core Product Modules",
+    acceptanceCriteria: m.acceptanceCriteria,
+  }));
+
+  // 3. Build Architectural Milestones (4 Phase Gates)
   const milestones: SuggestedMilestone[] = [
     {
       id: "ms-1",
-      title: "Phase 1: Architecture & Foundation Kickoff",
+      title: "Phase 1: Database Architecture & Relational Persistence Layer",
       phase: "PHASE_1",
-      description: "Technical environment setup, database schema validation, and baseline architecture deployment.",
+      description: "Establish relational data models, referential integrity, indexes, and migrations for all approved modules.",
       order: 1,
-      paymentPercentage: 30,
-      paymentAmount: Math.round(budget * 0.3),
+      paymentPercentage: 25,
+      paymentAmount: Math.round(budget * 0.25),
       targetWeek: 2,
     },
     {
       id: "ms-2",
-      title: "Phase 2: Core Engineering & Feature Delivery",
+      title: "Phase 2: Core API Services & Business Logic Engine",
       phase: "PHASE_2",
-      description: "Implementation of approved functional features, API endpoints, and user interfaces.",
+      description: "Implement validated REST endpoints, business rule validation, authorization guardrails, and integrations.",
       order: 2,
-      paymentPercentage: 40,
-      paymentAmount: Math.round(budget * 0.4),
+      paymentPercentage: 35,
+      paymentAmount: Math.round(budget * 0.35),
       targetWeek: 5,
     },
     {
       id: "ms-3",
-      title: "Phase 3: Integration, QA & User Acceptance (UAT)",
+      title: "Phase 3: Client Interface & Interactive Presentation Layer",
       phase: "PHASE_3",
-      description: "End-to-end testing, security audits, and collaborative client sandbox verification.",
+      description: "Build responsive client views, form inputs, interactive workflow components, and real-time state synchronization.",
       order: 3,
-      paymentPercentage: 20,
-      paymentAmount: Math.round(budget * 0.2),
+      paymentPercentage: 25,
+      paymentAmount: Math.round(budget * 0.25),
       targetWeek: 7,
     },
     {
       id: "ms-4",
-      title: "Phase 4: Production Cutover & Handover",
+      title: "Phase 4: System Integration, Client Acceptance & Handover",
       phase: "PHASE_4",
-      description: "Final release deployment, administrative training walkthrough, and warranty activation.",
+      description: "End-to-end user acceptance testing, security audits, production deployment cutover, and operational handover.",
       order: 4,
-      paymentPercentage: 10,
-      paymentAmount: Math.round(budget * 0.1),
+      paymentPercentage: 15,
+      paymentAmount: Math.round(budget * 0.15),
       targetWeek: 8,
     },
   ];
 
-  // 3. Build Structured Deliverables from Scope
-  const deliverables: SuggestedDeliverable[] = [
-    {
-      id: "deliv-1",
-      title: "System Architecture & Security Specification",
-      description: "Database schemas, API documentation, authentication guardrails, and cloud deployment topology.",
-      category: "ARCHITECTURE",
-      acceptanceCriteria: [
-        "Database schema verified with foreign key integrity and indexing.",
-        "Role-based access control (RBAC) configured and tested.",
-      ],
+  // 4. Build Deliverables (1 Deliverable per Approved Module)
+  const deliverables: SuggestedDeliverable[] = modules.map((m, idx) => ({
+    id: `deliv-${m.id.toLowerCase()}`,
+    title: `${m.name} Subsystem`,
+    description: m.purpose,
+    category: "ENGINEERING",
+    proposalFeatureName: m.name,
+    acceptanceCriteria: m.acceptanceCriteria,
+    milestoneIndex: idx < Math.ceil(modules.length / 2) ? 1 : 2,
+  }));
+
+  // 5. Build Strict Three-Workstream Technical Tasks (DATABASE, BACKEND, FRONTEND)
+  // For each approved module, create exactly 3 connected tasks:
+  // DATABASE (Ready) -> BACKEND (Blocked by DB) -> FRONTEND (Blocked by BE)
+  const tasks: SuggestedTask[] = [];
+
+  modules.forEach((m, idx) => {
+    const rawPriority = m.priority.toUpperCase();
+    const priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT" =
+      rawPriority.includes("MUST") || rawPriority.includes("HIGH") || rawPriority.includes("URGENT")
+        ? "HIGH"
+        : rawPriority.includes("NICE") || rawPriority.includes("LOW")
+        ? "LOW"
+        : "MEDIUM";
+
+    const dbTaskId = `task-db-${idx + 1}`;
+    const beTaskId = `task-be-${idx + 1}`;
+    const feTaskId = `task-fe-${idx + 1}`;
+
+    // ── DATABASE WORK ITEM ──────────────────────────────────────────
+    tasks.push({
+      id: dbTaskId,
+      code: `DB-${String(idx + 1).padStart(3, "0")}`,
+      title: `${m.name} — Relational Schema & Persistence`,
+      description: `Establish relational data models, database tables, referential integrity constraints, and indexes for ${m.name}.\nPurpose: ${m.purpose}`,
+      workstream: "DATABASE",
+      layer: "DATABASE",
+      teamRole: "Database Architect",
+      estimatedHours: 12,
+      priority,
       milestoneIndex: 0,
-    },
-    ...scopeItems.slice(0, 4).map((item, idx) => ({
-      id: `deliv-feat-${idx + 1}`,
-      title: item.title,
-      description: item.detail,
-      category: "ENGINEERING",
-      proposalFeatureName: item.title,
-      acceptanceCriteria: item.acceptanceCriteria && item.acceptanceCriteria.length > 0
-        ? item.acceptanceCriteria
-        : [`Verified functional implementation of ${item.title}`],
+      deliverableIndex: idx,
+      moduleIndex: idx,
+      executionState: "READY",
+      proofTypeRequired: "MIGRATION_SCRIPT",
+      sourceScopeItem: m.name,
+      sourceSection: "Section 05: Core Product Modules",
+      acceptanceCriteria: [
+        `Relational schema for ${m.name} defined with foreign keys, indexes, and unique constraints.`,
+        `Zero data loss migration script verified and validated.`,
+      ],
+    });
+
+    // ── BACKEND WORK ITEM ───────────────────────────────────────────
+    tasks.push({
+      id: beTaskId,
+      code: `BE-${String(idx + 1).padStart(3, "0")}`,
+      title: `${m.name} — API Services & Business Rules`,
+      description: `Implement REST/API endpoints, service layer business logic, input validation, and authorization rules for ${m.name}.\nBusiness Rules: ${(m.businessRules || []).join("; ") || "Enforce RBAC."}`,
+      workstream: "BACKEND",
+      layer: "BACKEND",
+      teamRole: "Backend Engineer",
+      estimatedHours: 16,
+      priority,
       milestoneIndex: 1,
-    })),
-    {
-      id: "deliv-qa",
-      title: "Quality Assurance & UAT Acceptance Suite",
-      description: "Comprehensive test execution report, issue resolution logs, and client acceptance confirmation.",
-      category: "QA",
+      deliverableIndex: idx,
+      moduleIndex: idx,
+      executionState: "NOT_READY",
+      proofTypeRequired: "API_CONTRACT",
+      sourceScopeItem: m.name,
+      sourceSection: "Section 05: Core Product Modules",
+      dependsOnTaskId: dbTaskId,
       acceptanceCriteria: [
-        "Zero open blocking or high severity defects.",
-        "Formal client stakeholder sign-off on staging environment.",
+        `REST/API endpoints operational with input validation, error handling, and authorization for ${m.name}.`,
+        `Business rules verified: ${(m.businessRules || []).slice(0, 2).join("; ") || "Role-based access permissions enforced."}`,
       ],
+    });
+
+    // ── FRONTEND WORK ITEM ──────────────────────────────────────────
+    tasks.push({
+      id: feTaskId,
+      code: `FE-${String(idx + 1).padStart(3, "0")}`,
+      title: `${m.name} — User Interface & Workflow Components`,
+      description: `Build responsive client interface components, interactive forms, validation states, and presentation views for ${m.name}.\nUser Actions: ${(m.userActions || []).join("; ") || "Execute operational workflows."}`,
+      workstream: "FRONTEND",
+      layer: "FRONTEND",
+      teamRole: "Frontend Developer",
+      estimatedHours: 16,
+      priority,
       milestoneIndex: 2,
-    },
-    {
-      id: "deliv-handover",
-      title: "Production System Handover & Operational Manual",
-      description: "Production cutover, system documentation, admin guides, and 30-day warranty initiation.",
-      category: "DOCUMENTATION",
+      deliverableIndex: idx,
+      moduleIndex: idx,
+      executionState: "NOT_READY",
+      proofTypeRequired: "PREVIEW",
+      sourceScopeItem: m.name,
+      sourceSection: "Section 05: Core Product Modules",
+      dependsOnTaskId: beTaskId,
       acceptanceCriteria: [
-        "Production environment accessible on client domain.",
-        "Administrator knowledge transfer session completed.",
+        `Interactive UI components rendered with loading, empty, active, and error states for ${m.name}.`,
+        `User workflows verified: ${(m.userActions || []).slice(0, 2).join("; ") || "Primary workflows executed cleanly."}`,
       ],
-      milestoneIndex: 3,
-    },
-  ];
-
-  // 4. Build Structured Tasks
-  const tasks: SuggestedTask[] = [
-    // Phase 1 Tasks
-    { id: "task-1", title: "Initialize repository, CI/CD pipeline, and staging environments", teamRole: "Solutions Architect", estimatedHours: 12, priority: "HIGH", milestoneIndex: 0, deliverableIndex: 0 },
-    { id: "task-2", title: "Implement relational database schemas and Prisma migration scripts", teamRole: "Lead Engineer", estimatedHours: 16, priority: "HIGH", milestoneIndex: 0, deliverableIndex: 0 },
-    { id: "task-3", title: "Configure authentication, session tokens, and security middleware", teamRole: "Lead Engineer", estimatedHours: 14, priority: "HIGH", milestoneIndex: 0, deliverableIndex: 0 },
-
-    // Phase 2 Tasks
-    ...deliverables.filter((d) => d.category === "ENGINEERING").flatMap((d, dIdx) => [
-      { id: `task-feat-ui-${dIdx}`, title: `Design & build UI components for ${d.title}`, teamRole: "Frontend Engineer", estimatedHours: 18, priority: "HIGH" as const, milestoneIndex: 1, deliverableIndex: dIdx + 1 },
-      { id: `task-feat-api-${dIdx}`, title: `Implement API routes, business logic & validation for ${d.title}`, teamRole: "Backend Engineer", estimatedHours: 20, priority: "HIGH" as const, milestoneIndex: 1, deliverableIndex: dIdx + 1 },
-      { id: `task-feat-test-${dIdx}`, title: `Write unit & integration tests for ${d.title}`, teamRole: "QA Specialist", estimatedHours: 10, priority: "MEDIUM" as const, milestoneIndex: 1, deliverableIndex: dIdx + 1 },
-    ]),
-
-    // Phase 3 Tasks
-    { id: "task-qa-1", title: "Execute end-to-end regression testing and cross-browser verification", teamRole: "QA Specialist", estimatedHours: 20, priority: "HIGH", milestoneIndex: 2, deliverableIndex: deliverables.length - 2 },
-    { id: "task-qa-2", title: "Conduct client UAT walkthrough and resolve feedback items", teamRole: "Project Manager", estimatedHours: 12, priority: "HIGH", milestoneIndex: 2, deliverableIndex: deliverables.length - 2 },
-
-    // Phase 4 Tasks
-    { id: "task-prod-1", title: "Execute production deployment cutover and DNS verification", teamRole: "DevOps Engineer", estimatedHours: 8, priority: "HIGH", milestoneIndex: 3, deliverableIndex: deliverables.length - 1 },
-    { id: "task-prod-2", title: "Deliver admin documentation and complete final project sign-off", teamRole: "Project Manager", estimatedHours: 6, priority: "MEDIUM", milestoneIndex: 3, deliverableIndex: deliverables.length - 1 },
-  ];
+    });
+  });
 
   const estimatedTotalHours = tasks.reduce((sum, t) => sum + t.estimatedHours, 0);
 
@@ -326,8 +410,16 @@ export function extractApprovedScopeAndPlan(
     milestones,
     deliverables,
     tasks,
+    modules,
     estimatedTotalHours,
     targetTimelineWeeks: 8,
+    coverageReport: {
+      approvedProposalItems: modules.length,
+      mappedToProjectWork: modules.length * 3,
+      unmapped: 0,
+      unapprovedAdditions: 0,
+      coveragePercentage: 100,
+    },
   };
 }
 
@@ -369,28 +461,28 @@ export async function getProjectForUser(userId: string, projectId: string) {
       },
       tasks: {
         orderBy: { createdAt: "asc" },
+        include: {
+          dependencies: {
+            include: { dependsOnTask: true },
+          },
+          acceptanceCriteria: true,
+          submissions: {
+            orderBy: { createdAt: "desc" },
+            take: 3,
+          },
+        },
+      },
+      productAreas: {
+        orderBy: { order: "asc" },
+        include: {
+          responsibilities: { orderBy: { order: "asc" } },
+        },
       },
       team: {
         orderBy: { joinedAt: "asc" },
       },
       changeRequests: {
         orderBy: { submittedAt: "desc" },
-      },
-      workConversations: {
-        orderBy: { lastMessageAt: "desc" },
-        include: {
-          task: { select: { id: true, title: true, code: true, status: true, layer: true } },
-          participants: {
-            include: {
-              employee: { select: { id: true, fullName: true, role: true } },
-              user: { select: { id: true, name: true } },
-            },
-          },
-          messages: {
-            orderBy: { createdAt: "asc" },
-            take: 30,
-          },
-        },
       },
       activities: {
         orderBy: { createdAt: "desc" },
@@ -416,7 +508,7 @@ export function computeProjectHealthAndActions(project: any): {
   const milestones = project.milestones || [];
   const changeRequests = project.changeRequests || [];
 
-  const completedTasks = tasks.filter((t: any) => t.status === "DONE").length;
+  const completedTasks = tasks.filter((t: any) => t.status === "DONE" || t.status === "COMPLETED").length;
   const totalTasks = tasks.length;
 
   const acceptedDeliverables = deliverables.filter((d: any) => d.status === "ACCEPTED").length;
@@ -531,6 +623,16 @@ export async function launchProjectFromApprovedProposal(input: {
   milestones: SuggestedMilestone[];
   deliverables: SuggestedDeliverable[];
   tasks: SuggestedTask[];
+  modules?: Array<{
+    id: string;
+    name: string;
+    purpose: string;
+    priority: string;
+    userActions: string[];
+    businessRules: string[];
+    primaryUsers: string[];
+    acceptanceCriteria: string[];
+  }>;
   teamMembers?: Array<{ name: string; role: string; email?: string; userId?: string }>;
 }) {
   const client = await db.client.findFirst({
@@ -543,12 +645,20 @@ export async function launchProjectFromApprovedProposal(input: {
   });
   if (!proposal) throw new Error("Proposal not found.");
 
+  // Idempotency: Check if project already exists for this proposal
+  const existingProject = await db.clientProject.findFirst({
+    where: { proposalId: proposal.id },
+  });
+  if (existingProject) {
+    return existingProject;
+  }
+
   const now = new Date();
   const startDate = input.startDate ? new Date(input.startDate) : now;
   const deadline = input.targetCompletion ? new Date(input.targetCompletion) : new Date(now.getTime() + 8 * 7 * 24 * 60 * 60 * 1000);
 
   return db.$transaction(async (tx) => {
-    // 1. Create Project
+    // 1. Create Project linked to accepted proposal
     const project = await tx.clientProject.create({
       data: {
         clientId: input.clientId,
@@ -613,50 +723,227 @@ export async function launchProjectFromApprovedProposal(input: {
       }),
     );
 
-    // 4. Create Tasks
+    // 4. Create ProductAreas and WorkResponsibilities for each approved module
+    // This creates permanent 100% traceability for all project work
+    const rawModules = input.modules && input.modules.length > 0
+      ? input.modules
+      : input.deliverables.map((d, dIdx) => ({
+          id: `MOD-${String(dIdx + 1).padStart(2, "0")}`,
+          name: d.proposalFeatureName || d.title.replace(" Subsystem", ""),
+          purpose: d.description,
+          priority: "HIGH",
+          userActions: [`Operate ${d.title}`],
+          businessRules: [`Role authorization required`],
+          primaryUsers: ["Authorized Users"],
+          acceptanceCriteria: d.acceptanceCriteria,
+        }));
+
+    type ModArtifacts = {
+      productAreaId: string;
+      responsibilities: Record<string, string>; // workstream -> responsibilityId
+    };
+    const moduleMap = new Map<number, ModArtifacts>();
+
+    for (let mIdx = 0; mIdx < rawModules.length; mIdx++) {
+      const m = rawModules[mIdx];
+      const pa = await tx.productArea.create({
+        data: {
+          projectId: project.id,
+          name: m.name,
+          code: `PA-${String(mIdx + 1).padStart(2, "0")}`,
+          description: m.purpose || `Approved module: ${m.name}`,
+          phase: "MVP",
+          status: "READY",
+          order: mIdx + 1,
+          acceptanceCriteria: JSON.stringify(m.acceptanceCriteria || []),
+          deliverableId: createdDeliverables[mIdx]?.id || null,
+        },
+      });
+
+      const respDb = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "DATABASE",
+          title: `${m.name} Relational Schema & Persistence`,
+          description: `Implement relational database schemas, tables, indexes, and migrations for ${m.name}.`,
+          requiredRole: "Database Architect",
+          deliverableOutcome: "Verified schema migrations and referential integrity.",
+          proofTypeRequired: "MIGRATION_SCRIPT",
+          order: 1,
+        },
+      });
+
+      const respBe = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "BACKEND",
+          title: `${m.name} API Endpoints & Business Logic`,
+          description: `Implement REST endpoints, service validation, and business logic for ${m.name}.`,
+          requiredRole: "Backend Engineer",
+          deliverableOutcome: "Operational API endpoints with input validation and security checks.",
+          proofTypeRequired: "API_CONTRACT",
+          order: 2,
+        },
+      });
+
+      const respFe = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "FRONTEND",
+          title: `${m.name} User Interface & Workflows`,
+          description: `Implement interactive UI components, state management, and user controls for ${m.name}.`,
+          requiredRole: "Frontend Developer",
+          deliverableOutcome: "Responsive interface with active, empty, error, and loading states.",
+          proofTypeRequired: "PREVIEW",
+          order: 3,
+        },
+      });
+
+      moduleMap.set(mIdx, {
+        productAreaId: pa.id,
+        responsibilities: {
+          DATABASE: respDb.id,
+          BACKEND: respBe.id,
+          FRONTEND: respFe.id,
+        },
+      });
+    }
+
+    // 5. Query active workspace employees for dynamic discipline matching
+    const workspaceEmployees = await tx.employee.findMany({
+      where: { workspaceId: input.workspaceId, status: "ACTIVE" },
+      include: { role: true },
+    });
+
+    const matchEmployee = (workstream: string) => {
+      if (workspaceEmployees.length === 0) return null;
+      const ws = workstream.toUpperCase();
+      if (ws === "DATABASE") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("data") || str.includes("database") || str.includes("backend") || str.includes("lead");
+          }) || workspaceEmployees[0]
+        );
+      }
+      if (ws === "BACKEND") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("backend") || str.includes("api") || str.includes("software") || str.includes("engineer");
+          }) || workspaceEmployees[0]
+        );
+      }
+      if (ws === "FRONTEND") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("frontend") || str.includes("ui") || str.includes("ux") || str.includes("web") || str.includes("design");
+          }) || workspaceEmployees[0]
+        );
+      }
+      return workspaceEmployees[0];
+    };
+
+    // 6. Create Tasks with 100% Traceability and Dependency Linking
     const validPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
-    await Promise.all(
-      input.tasks.map((t, idx) => {
-        const milestone = createdMilestones[t.milestoneIndex] ?? createdMilestones[0];
-        const deliverable = t.deliverableIndex !== undefined ? createdDeliverables[t.deliverableIndex] : undefined;
-        const priority = validPriorities.includes(t.priority as any) ? (t.priority as any) : "MEDIUM";
-        
-        let ws = "FRONTEND";
-        const titleLower = t.title.toLowerCase();
-        if (titleLower.includes("database") || titleLower.includes("schema")) ws = "DATABASE";
-        else if (titleLower.includes("auth") || titleLower.includes("security") || titleLower.includes("api") || titleLower.includes("backend")) ws = "BACKEND";
-        else if (titleLower.includes("test") || titleLower.includes("qa") || titleLower.includes("regression")) ws = "QA";
-        else if (titleLower.includes("deploy") || titleLower.includes("cutover") || titleLower.includes("devops")) ws = "DEPLOYMENT";
-        else if (titleLower.includes("design") || titleLower.includes("wireframe") || titleLower.includes("ui/ux")) ws = "DESIGN";
-        else if (titleLower.includes("uat") || titleLower.includes("walkthrough") || titleLower.includes("handover")) ws = "CLIENT_REVIEW";
+    const taskIdMap = new Map<string, string>(); // input task id -> created task id
 
-        return tx.clientTask.create({
-          data: {
-            code: `TSK-${String(idx + 1).padStart(3, "0")}`,
-            clientId: input.clientId,
-            projectId: project.id,
-            milestoneId: milestone?.id,
-            deliverableId: deliverable?.id,
-            title: t.title,
-            description: t.description,
-            workstream: ws,
-            teamRole: t.teamRole,
-            estimatedHours: t.estimatedHours,
-            priority,
-            status: "TODO",
-            order: idx + 1,
-            sourceType: "PROPOSAL_SCOPE",
-            sourceDeliverableTitle: deliverable?.title || null,
-            sourceProposalId: proposal.id,
-            sourceSection: milestone?.title || "Approved Proposal",
-          },
-        });
-      }),
-    );
+    for (let idx = 0; idx < input.tasks.length; idx++) {
+      const t = input.tasks[idx];
+      const milestone = createdMilestones[t.milestoneIndex] ?? createdMilestones[0];
+      const deliverable = t.deliverableIndex !== undefined ? createdDeliverables[t.deliverableIndex] : undefined;
+      const priority = validPriorities.includes(t.priority as any) ? (t.priority as any) : "MEDIUM";
+      const ws = t.workstream || "FRONTEND";
 
-    // 5. Create Team Members
+      const modIdx = t.moduleIndex !== undefined ? t.moduleIndex : (t.deliverableIndex !== undefined ? t.deliverableIndex : 0);
+      const modArtifacts = moduleMap.get(modIdx) || moduleMap.get(0);
+      const productAreaId = modArtifacts?.productAreaId || null;
+      const responsibilityId = modArtifacts?.responsibilities[ws] || null;
+
+      const matchedEmp = matchEmployee(ws);
+      const executionState = t.executionState || (ws === "DATABASE" ? "READY" : "NOT_READY");
+      const proofType = t.proofTypeRequired || (ws === "DATABASE" ? "MIGRATION_SCRIPT" : ws === "BACKEND" ? "API_CONTRACT" : "PREVIEW");
+
+      const created = await tx.clientTask.create({
+        data: {
+          code: t.code || `TSK-${String(idx + 1).padStart(3, "0")}`,
+          clientId: input.clientId,
+          projectId: project.id,
+          milestoneId: milestone?.id,
+          deliverableId: deliverable?.id,
+          productAreaId,
+          responsibilityId,
+          title: t.title,
+          description: t.description,
+          workstream: ws,
+          layer: t.layer || ws,
+          teamRole: matchedEmp?.primaryResponsibility || t.teamRole,
+          assigneeId: matchedEmp ? (matchedEmp.userId || matchedEmp.id) : null,
+          assigneeName: matchedEmp ? matchedEmp.fullName : null,
+          estimatedHours: t.estimatedHours,
+          priority,
+          status: "TODO",
+          executionState,
+          proofTypeRequired: proofType,
+          isInvalidWork: false,
+          invalidReason: null,
+          order: idx + 1,
+          sourceType: "PROPOSAL_SCOPE",
+          sourceDeliverableTitle: deliverable?.title || null,
+          sourceProposalId: proposal.id,
+          sourceProposalReference: proposal.reference || null,
+          sourceScopeItem: t.sourceScopeItem || t.title,
+          sourceSection: t.sourceSection || "Section 05: Core Product Modules",
+        },
+      });
+
+      taskIdMap.set(t.id, created.id);
+
+      // Create task acceptance criteria
+      if (t.acceptanceCriteria && t.acceptanceCriteria.length > 0) {
+        await Promise.all(
+          t.acceptanceCriteria.map((crit, cIdx) =>
+            tx.taskAcceptanceCriterion.create({
+              data: {
+                taskId: created.id,
+                criterion: crit,
+                order: cIdx + 1,
+                status: "NOT_STARTED",
+              },
+            }),
+          ),
+        );
+      }
+    }
+
+    // 7. Create Explicit Task Dependencies (BE blocked by DB; FE blocked by BE)
+    for (const t of input.tasks) {
+      if (t.dependsOnTaskId) {
+        const createdTaskId = taskIdMap.get(t.id);
+        const targetTaskId = taskIdMap.get(t.dependsOnTaskId);
+        if (createdTaskId && targetTaskId && createdTaskId !== targetTaskId) {
+          await tx.taskDependency.create({
+            data: {
+              taskId: createdTaskId,
+              dependsOnTaskId: targetTaskId,
+              dependencyType: "BLOCKED_BY",
+            },
+          });
+        }
+      }
+    }
+
+    // 8. Create Team Members
     const defaultTeam = input.teamMembers && input.teamMembers.length > 0
       ? input.teamMembers
+      : workspaceEmployees.length > 0
+      ? workspaceEmployees.slice(0, 4).map((e) => ({
+          name: e.fullName,
+          role: e.primaryResponsibility || "Engineer",
+          email: e.email,
+          userId: e.userId || e.id,
+        }))
       : [
           { name: input.managerName || input.userName, role: "Project Manager", userId: input.userId },
           { name: "Senior Full-Stack Engineer", role: "Lead Engineer" },
@@ -679,24 +966,24 @@ export async function launchProjectFromApprovedProposal(input: {
       ),
     );
 
-    // 6. Record Initial Project Activity
+    // 9. Record Initial Project Activity
     await tx.projectActivity.create({
       data: {
         projectId: project.id,
         type: "PROJECT_CREATED",
         title: "Project Launched from Approved Proposal",
-        detail: `Project ${project.code} initialized from proposal "${proposal.title}" (v${proposal.version}). ${createdMilestones.length} milestones, ${createdDeliverables.length} deliverables, and ${input.tasks.length} tasks generated.`,
+        detail: `Project ${project.code} initialized from proposal "${proposal.title}" (v${proposal.version}). ${createdMilestones.length} milestones, ${createdDeliverables.length} deliverables, and ${input.tasks.length} tasks generated across DATABASE, BACKEND, and FRONTEND workstreams with 100% traceability.`,
         actorName: input.userName,
       },
     });
 
-    // 7. Update Client Stage to PROJECT
+    // 10. Update Client Stage to PROJECT
     await tx.client.update({
       where: { id: input.clientId },
       data: { stage: "PROJECT", lastActivityAt: now },
     });
 
-    // 8. Record Workspace Audit Log
+    // 11. Record Workspace Audit Log
     await recordAudit({
       clientId: input.clientId,
       entity: "PROJECT",
@@ -710,3 +997,360 @@ export async function launchProjectFromApprovedProposal(input: {
     return project;
   });
 }
+
+/* ── Resynchronize Project from Approved Proposal Scope ────────── */
+
+export async function resyncProjectFromApprovedProposal(projectId: string) {
+  const project = await db.clientProject.findUnique({
+    where: { id: projectId },
+    include: {
+      proposal: true,
+      client: true,
+    },
+  });
+  if (!project) throw new Error("Project not found.");
+  if (!project.proposal) throw new Error("Project does not have an associated proposal.");
+
+  const proposal = project.proposal;
+  let requirementFeatures: Array<{ name: string; priority: string; description?: string; acceptanceCriteria?: string }> = [];
+  if (proposal.requirementRequestId) {
+    const reqFeatures = await db.requirementFeature.findMany({
+      where: { requestId: proposal.requirementRequestId },
+      orderBy: { order: "asc" },
+    });
+    requirementFeatures = reqFeatures.map((f) => ({
+      name: f.name,
+      priority: f.priority,
+      description: f.description,
+      acceptanceCriteria: f.acceptanceCriteria,
+    }));
+  }
+
+  const plan = extractApprovedScopeAndPlan(proposal, requirementFeatures);
+
+  return db.$transaction(async (tx) => {
+    // 1. Delete existing task dependencies, acceptance criteria, and tasks
+    const existingTasks = await tx.clientTask.findMany({
+      where: { projectId },
+      select: { id: true },
+    });
+    const taskIds = existingTasks.map((t) => t.id);
+
+    if (taskIds.length > 0) {
+      await tx.taskDependency.deleteMany({
+        where: {
+          OR: [
+            { taskId: { in: taskIds } },
+            { dependsOnTaskId: { in: taskIds } },
+          ],
+        },
+      });
+      await tx.taskAcceptanceCriterion.deleteMany({
+        where: { taskId: { in: taskIds } },
+      });
+      await tx.clientTask.deleteMany({
+        where: { id: { in: taskIds } },
+      });
+    }
+
+    // 2. Delete existing work responsibilities and product areas
+    const existingAreas = await tx.productArea.findMany({
+      where: { projectId },
+      select: { id: true },
+    });
+    const areaIds = existingAreas.map((a) => a.id);
+    if (areaIds.length > 0) {
+      await tx.workResponsibility.deleteMany({
+        where: { productAreaId: { in: areaIds } },
+      });
+      await tx.productArea.deleteMany({
+        where: { id: { in: areaIds } },
+      });
+    }
+
+    // 3. Delete existing deliverables and milestones
+    await tx.projectDeliverable.deleteMany({
+      where: { projectId },
+    });
+    await tx.projectMilestone.deleteMany({
+      where: { projectId },
+    });
+
+    const now = new Date();
+    const startDate = project.startedAt || now;
+
+    // 4. Create new Milestones
+    const createdMilestones = await Promise.all(
+      plan.milestones.map((m, idx) => {
+        const msTarget = new Date(startDate.getTime() + m.targetWeek * 7 * 24 * 60 * 60 * 1000);
+        return tx.projectMilestone.create({
+          data: {
+            projectId: project.id,
+            title: m.title,
+            phase: m.phase || `PHASE_${idx + 1}`,
+            description: m.description,
+            order: idx + 1,
+            status: idx === 0 ? "IN_PROGRESS" : "PLANNED",
+            progress: 0,
+            targetDate: msTarget,
+            paymentPercentage: m.paymentPercentage,
+            paymentAmount: m.paymentAmount,
+            invoiceStatus: "UNINVOICED",
+          },
+        });
+      }),
+    );
+
+    // 5. Create new Deliverables
+    const createdDeliverables = await Promise.all(
+      plan.deliverables.map((d) => {
+        const milestone = createdMilestones[d.milestoneIndex] ?? createdMilestones[0];
+        return tx.projectDeliverable.create({
+          data: {
+            projectId: project.id,
+            milestoneId: milestone?.id,
+            title: d.title,
+            description: d.description,
+            category: d.category || "ENGINEERING",
+            proposalFeatureName: d.proposalFeatureName,
+            acceptanceCriteria: JSON.stringify(d.acceptanceCriteria || []),
+            status: "DRAFT",
+          },
+        });
+      }),
+    );
+
+    // 6. Create ProductAreas and WorkResponsibilities for each approved module
+    const rawModules = plan.modules && plan.modules.length > 0
+      ? plan.modules
+      : plan.deliverables.map((d, dIdx) => ({
+          id: `MOD-${String(dIdx + 1).padStart(2, "0")}`,
+          name: d.proposalFeatureName || d.title.replace(" Subsystem", ""),
+          purpose: d.description,
+          priority: "HIGH",
+          userActions: [`Operate ${d.title}`],
+          businessRules: [`Role authorization required`],
+          primaryUsers: ["Authorized Users"],
+          acceptanceCriteria: d.acceptanceCriteria,
+        }));
+
+    type ModArtifacts = {
+      productAreaId: string;
+      responsibilities: Record<string, string>;
+    };
+    const moduleMap = new Map<number, ModArtifacts>();
+
+    for (let mIdx = 0; mIdx < rawModules.length; mIdx++) {
+      const m = rawModules[mIdx];
+      const pa = await tx.productArea.create({
+        data: {
+          projectId: project.id,
+          name: m.name,
+          code: `PA-${String(mIdx + 1).padStart(2, "0")}`,
+          description: m.purpose || `Approved module: ${m.name}`,
+          phase: "MVP",
+          status: "READY",
+          order: mIdx + 1,
+          acceptanceCriteria: JSON.stringify(m.acceptanceCriteria || []),
+          deliverableId: createdDeliverables[mIdx]?.id || null,
+        },
+      });
+
+      const respDb = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "DATABASE",
+          title: `${m.name} Relational Schema & Persistence`,
+          description: `Implement relational database schemas, tables, indexes, and migrations for ${m.name}.`,
+          requiredRole: "Database Architect",
+          deliverableOutcome: "Verified schema migrations and referential integrity.",
+          proofTypeRequired: "MIGRATION_SCRIPT",
+          order: 1,
+        },
+      });
+
+      const respBe = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "BACKEND",
+          title: `${m.name} API Endpoints & Business Logic`,
+          description: `Implement REST endpoints, service validation, and business logic for ${m.name}.`,
+          requiredRole: "Backend Engineer",
+          deliverableOutcome: "Operational API endpoints with input validation and security checks.",
+          proofTypeRequired: "API_CONTRACT",
+          order: 2,
+        },
+      });
+
+      const respFe = await tx.workResponsibility.create({
+        data: {
+          productAreaId: pa.id,
+          workstream: "FRONTEND",
+          title: `${m.name} User Interface & Workflows`,
+          description: `Implement interactive UI components, state management, and user controls for ${m.name}.`,
+          requiredRole: "Frontend Developer",
+          deliverableOutcome: "Responsive interface with active, empty, error, and loading states.",
+          proofTypeRequired: "PREVIEW",
+          order: 3,
+        },
+      });
+
+      moduleMap.set(mIdx, {
+        productAreaId: pa.id,
+        responsibilities: {
+          DATABASE: respDb.id,
+          BACKEND: respBe.id,
+          FRONTEND: respFe.id,
+        },
+      });
+    }
+
+    // 7. Workspace employees for discipline matching
+    const workspaceEmployees = await tx.employee.findMany({
+      where: { workspaceId: project.client.workspaceId, status: "ACTIVE" },
+      include: { role: true },
+    });
+
+    const matchEmployee = (workstream: string) => {
+      if (workspaceEmployees.length === 0) return null;
+      const ws = workstream.toUpperCase();
+      if (ws === "DATABASE") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("data") || str.includes("database") || str.includes("backend") || str.includes("lead");
+          }) || workspaceEmployees[0]
+        );
+      }
+      if (ws === "BACKEND") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("backend") || str.includes("api") || str.includes("software") || str.includes("engineer");
+          }) || workspaceEmployees[0]
+        );
+      }
+      if (ws === "FRONTEND") {
+        return (
+          workspaceEmployees.find((e) => {
+            const str = `${e.primaryResponsibility || ""} ${e.department || ""} ${e.role?.name || ""}`.toLowerCase();
+            return str.includes("frontend") || str.includes("ui") || str.includes("ux") || str.includes("web") || str.includes("design");
+          }) || workspaceEmployees[0]
+        );
+      }
+      return workspaceEmployees[0];
+    };
+
+    // 8. Create Tasks with 100% Traceability and Dependencies
+    const validPriorities = ["LOW", "MEDIUM", "HIGH", "URGENT"] as const;
+    const taskIdMap = new Map<string, string>();
+
+    for (let idx = 0; idx < plan.tasks.length; idx++) {
+      const t = plan.tasks[idx];
+      const milestone = createdMilestones[t.milestoneIndex] ?? createdMilestones[0];
+      const deliverable = t.deliverableIndex !== undefined ? createdDeliverables[t.deliverableIndex] : undefined;
+      const priority = validPriorities.includes(t.priority as any) ? (t.priority as any) : "MEDIUM";
+      const ws = t.workstream || "FRONTEND";
+
+      const modIdx = t.moduleIndex !== undefined ? t.moduleIndex : (t.deliverableIndex !== undefined ? t.deliverableIndex : 0);
+      const modArtifacts = moduleMap.get(modIdx) || moduleMap.get(0);
+      const productAreaId = modArtifacts?.productAreaId || null;
+      const responsibilityId = modArtifacts?.responsibilities[ws] || null;
+
+      const matchedEmp = matchEmployee(ws);
+      const executionState = t.executionState || (ws === "DATABASE" ? "READY" : "NOT_READY");
+      const proofType = t.proofTypeRequired || (ws === "DATABASE" ? "MIGRATION_SCRIPT" : ws === "BACKEND" ? "API_CONTRACT" : "PREVIEW");
+
+      const created = await tx.clientTask.create({
+        data: {
+          code: t.code || `TSK-${String(idx + 1).padStart(3, "0")}`,
+          clientId: project.clientId,
+          projectId: project.id,
+          milestoneId: milestone?.id,
+          deliverableId: deliverable?.id,
+          productAreaId,
+          responsibilityId,
+          title: t.title,
+          description: t.description,
+          workstream: ws,
+          layer: t.layer || ws,
+          teamRole: matchedEmp?.primaryResponsibility || t.teamRole,
+          assigneeId: matchedEmp ? (matchedEmp.userId || matchedEmp.id) : null,
+          assigneeName: matchedEmp ? matchedEmp.fullName : null,
+          estimatedHours: t.estimatedHours,
+          priority,
+          status: "TODO",
+          executionState,
+          proofTypeRequired: proofType,
+          isInvalidWork: false,
+          invalidReason: null,
+          order: idx + 1,
+          sourceType: "PROPOSAL_SCOPE",
+          sourceDeliverableTitle: deliverable?.title || null,
+          sourceProposalId: proposal.id,
+          sourceProposalReference: proposal.reference || null,
+          sourceScopeItem: t.sourceScopeItem || t.title,
+          sourceSection: t.sourceSection || "Section 05: Core Product Modules",
+        },
+      });
+
+      taskIdMap.set(t.id, created.id);
+
+      if (t.acceptanceCriteria && t.acceptanceCriteria.length > 0) {
+        await Promise.all(
+          t.acceptanceCriteria.map((crit, cIdx) =>
+            tx.taskAcceptanceCriterion.create({
+              data: {
+                taskId: created.id,
+                criterion: crit,
+                order: cIdx + 1,
+                status: "NOT_STARTED",
+              },
+            }),
+          ),
+        );
+      }
+    }
+
+    // 9. Task Dependencies
+    for (const t of plan.tasks) {
+      if (t.dependsOnTaskId) {
+        const createdTaskId = taskIdMap.get(t.id);
+        const targetTaskId = taskIdMap.get(t.dependsOnTaskId);
+        if (createdTaskId && targetTaskId && createdTaskId !== targetTaskId) {
+          await tx.taskDependency.create({
+            data: {
+              taskId: createdTaskId,
+              dependsOnTaskId: targetTaskId,
+              dependencyType: "BLOCKED_BY",
+            },
+          });
+        }
+      }
+    }
+
+    // 10. Update Project Scope Snapshot
+    await tx.clientProject.update({
+      where: { id: project.id },
+      data: {
+        scopeSnapshot: JSON.stringify(plan.scopeItems.filter((s) => s.included)),
+        updatedAt: now,
+      },
+    });
+
+    // 11. Record Activity
+    await tx.projectActivity.create({
+      data: {
+        projectId: project.id,
+        type: "SCOPE_SYNCED",
+        title: "Project Resynchronized with Approved Proposal",
+        detail: `Updated project with ${plan.tasks.length} tasks across ${rawModules.length} product areas and 3 technical workstreams (DATABASE, BACKEND, FRONTEND) with 100% proposal traceability.`,
+        actorName: "System",
+      },
+    });
+
+    return project;
+  });
+}
+
+

@@ -26,11 +26,11 @@ function createClient() {
 
 const cached = globalForPrisma.prisma;
 export const db =
-  cached && (cached as any)._schemaVersion === 6
+  cached && (cached as any)._schemaVersion === 7
     ? cached
     : (() => {
         const client = createClient();
-        (client as any)._schemaVersion = 6;
+        (client as any)._schemaVersion = 7;
         return client;
       })();
 
