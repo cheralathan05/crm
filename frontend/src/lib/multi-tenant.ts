@@ -108,7 +108,14 @@ export async function verifyPaymentAccess(workspaceId: string, paymentRequestId:
  */
 export async function verifyDocumentAccess(workspaceId: string, documentId: string) {
   const doc = await db.businessDocument.findFirst({
-    where: { id: documentId, workspaceId },
+    where: {
+      id: documentId,
+      OR: [
+        { client: { workspaceId } },
+        { project: { client: { workspaceId } } },
+        { proposal: { client: { workspaceId } } },
+      ],
+    },
   });
   if (!doc) {
     throw new TenantAccessDeniedError(`Document ${documentId} does not exist in this workspace.`);

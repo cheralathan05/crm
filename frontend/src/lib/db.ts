@@ -33,20 +33,13 @@ const globalForDb = globalThis as unknown as {
 
 function resolveDbPath(): string {
   const url = process.env.DATABASE_URL ?? "file:./dev.db";
-  let cleanPath = url.replace(/^file:/i, "").trim();
+  const cleanPath = url.replace(/^file:/i, "").trim();
 
-  // If path is relative, resolve from current working directory
-  if (!path.isAbsolute(cleanPath)) {
-    cleanPath = path.resolve(process.cwd(), cleanPath);
+  if (path.isAbsolute(cleanPath)) {
+    return cleanPath;
   }
 
-  // Ensure dev.db exists in fallback location if needed
-  if (!fs.existsSync(cleanPath)) {
-    const alt = path.resolve(process.cwd(), "dev.db");
-    if (fs.existsSync(alt)) return alt;
-  }
-
-  return cleanPath;
+  return path.join(process.cwd(), cleanPath || "dev.db");
 }
 
 function initializeDatabase(): { client: PrismaClient; raw: Database.Database } {
