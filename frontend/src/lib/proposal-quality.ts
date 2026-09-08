@@ -109,8 +109,8 @@ export async function verifyProposalReadiness(requestId: string): Promise<Propos
   // ── 1. Unresolved Clarifications & Blockers (Rule 28) ────────────────────
   const openQuestions = questions.filter(
     (q) =>
-      (q.status === "OPEN" || q.status === "SENT" || q.status === "CHANGES_REQUESTED") &&
-      q.isBlocking
+      q.isBlocking &&
+      !["RESOLVED", "CANCELLED"].includes(q.status)
   );
   if (openQuestions.length > 0) {
     blockers.push({

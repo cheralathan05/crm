@@ -39,44 +39,66 @@ function matches(path: string, prefix: string): boolean {
 }
 
 /**
- * Business OS — Proxy (middleware)
+ * Business OS — Production Edge Proxy (Next.js 16 convention)
  *
- * Protects authenticated routes, redirects authenticated users away from
- * public auth pages, and enforces role-based access on the server.
+ * Protects authenticated routes, enforces RBAC boundaries, redirects authenticated users
+ * away from public auth pages, and permits public client portals and health checks.
  */
 export default async function proxy(req: NextRequest) {
   const session = await auth();
   const path = req.nextUrl.pathname;
 
-  // Public routes that unauthenticated users may access
-  const isPublicRoute =
+  // Static assets & system endpoints — always pass through
+  const isStatic =
+    path.startsWith("/_next") ||
+    path.startsWith("/favicon") ||
+    path.startsWith("/images") ||
+    path.startsWith("/manifest") ||
+    path === "/sw.js" ||
+    path === "/";
+
+  // Auth, webhooks & health API routes
+  const isExemptApi =
+    path.startsWith("/api/auth") ||
+    path.startsWith("/api/health") ||
+    path.startsWith("/api/readiness") ||
+    path.startsWith("/api/liveness") ||
+    path.startsWith("/health") ||
+    path.startsWith("/readiness") ||
+    path.startsWith("/liveness") ||
+    path.startsWith("/api/public") ||
+    path.startsWith("/api/realtime") ||
+    path.startsWith("/api/payments/webhook");
+
+  if (isStatic || isExemptApi) {
+    return NextResponse.next();
+  }
+
+  // Public portal routes that unauthenticated clients may access
+  const isPublicPortalRoute =
+    path.startsWith("/pay") ||
+    path.startsWith("/client-proposal") ||
+    path.startsWith("/client-question") ||
+    path.startsWith("/client-requirement") ||
+    path.startsWith("/invite") ||
+    path.startsWith("/accept-invitation");
+
+  if (isPublicPortalRoute) {
+    return NextResponse.next();
+  }
+
+  // Public auth pages (login, signup, reset password)
+  const isAuthPage =
     path === "/login" ||
     path === "/signup" ||
     path === "/forgot-password" ||
     path === "/reset-password" ||
     path === "/verify-email" ||
-    path.startsWith("/auth/employee") ||
-    path.startsWith("/invite") ||
-    path.startsWith("/accept-invitation") ||
-    path.startsWith("/pay");
+    path.startsWith("/auth/employee");
 
   const isProtectedRoute = PROTECTED_ROUTES.some((r) => matches(path, r));
 
-  // Auth API routes
-  const isAuthApiRoute = path.startsWith("/api/auth");
-
-  // Static assets — always pass through
-  const isStatic =
-    path.startsWith("/_next") ||
-    path.startsWith("/favicon") ||
-    path.startsWith("/images") ||
-    path === "/";
-
-  if (isStatic || isAuthApiRoute) {
-    return NextResponse.next();
-  }
-
-  // Redirect unauthenticated users to login
+  // Redirect unauthenticated users to login if accessing protected route
   if (isProtectedRoute && !session?.user) {
     const isEmployeeRoute = path.startsWith("/employee");
     const loginUrl = new URL(isEmployeeRoute ? "/auth/employee/login" : "/login", req.url);
@@ -94,13 +116,12 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(new URL("/employee/work", req.url));
   }
 
-  // Redirect authenticated users away from auth pages — "/" resolves the
-  // correct destination (onboarding, dashboard, or employee workspace) from state.
-  if (isPublicRoute && session?.user) {
+  // Redirect authenticated users away from login/signup auth pages
+  if (isAuthPage && session?.user) {
     if (session.user.role === "MEMBER") {
       return NextResponse.redirect(new URL("/employee/work", req.url));
     }
-    return NextResponse.redirect(new URL("/", req.url));
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();

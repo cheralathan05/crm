@@ -4,6 +4,19 @@ type Bucket = { count: number; resetAt: number };
 
 const buckets = new Map<string, Bucket>();
 
+export const RATE_LIMIT_TIERS = {
+  AUTH: { limit: 5, windowMs: 60_000 },
+  OTP: { limit: 3, windowMs: 300_000 },
+  PAYMENT: { limit: 10, windowMs: 60_000 },
+  AI: { limit: 20, windowMs: 60_000 },
+  UPLOAD: { limit: 10, windowMs: 60_000 },
+  SEARCH: { limit: 40, windowMs: 60_000 },
+  PUBLIC: { limit: 60, windowMs: 60_000 },
+  AUTHENTICATED_API: { limit: 300, windowMs: 60_000 },
+} as const;
+
+export type RateLimitTier = keyof typeof RATE_LIMIT_TIERS;
+
 export async function clientIp(): Promise<string> {
   try {
     const h = await headers();
@@ -22,28 +35,17 @@ async function clientKey(): Promise<string> {
 }
 
 /**
- * Opportunistically bound the size of the in-memory bucket map. Expired
- * entries are deleted once the map grows past a threshold, so credential-
- * stuffing-style attacks cannot grow memory without bound.
+ * Opportunistically prune expired rate-limit buckets to preserve memory.
  */
 function pruneExpired(now: number) {
-  if (buckets.size < 1_000) return;
+  if (buckets.size < 2_000) return;
   for (const [key, entry] of buckets) {
     if (entry.resetAt <= now) buckets.delete(key);
   }
 }
 
 /**
- * In-memory rate limiter.
- *
- * Each call site passes a `scope` (e.g. "signup", "login", "forgot-password")
- * so every endpoint gets its own bucket per client. Without a scope, all
- * endpoints would share one bucket and a burst on one route (signup) would
- * 429 an unrelated route (forgot-password).
- *
- * ⚠️ DEVELOPMENT-GRADE: Uses a local Map that resets on server restart
- * and does NOT synchronize across instances. For production, replace
- * with a Redis-based limiter or database-backed implementation.
+ * In-memory rate limiter with tier support.
  */
 export async function rateLimit(
   limit: number,
@@ -59,8 +61,22 @@ export async function rateLimit(
 }
 
 /**
- * Bucket addressed by an explicit key — used for per-account limits such as
- * failed-login lockout (key = `failed-login:<email>`).
+ * Check rate limit by defined tier.
+ */
+export async function checkRateLimitByTier(
+  tier: RateLimitTier,
+  customScope?: string
+): Promise<{
+  ok: boolean;
+  retryAfterSeconds: number;
+  remaining: number;
+}> {
+  const config = RATE_LIMIT_TIERS[tier] || RATE_LIMIT_TIERS.AUTHENTICATED_API;
+  return rateLimit(config.limit, config.windowMs, customScope ?? tier.toLowerCase());
+}
+
+/**
+ * Bucket addressed by an explicit key — used for per-account or per-token limits.
  */
 export function rateLimitByKey(
   key: string,
@@ -92,7 +108,13 @@ export function rateLimitByKey(
   return { ok: true, retryAfterSeconds: 0, remaining: limit - entry.count };
 }
 
-/** Remove a bucket (e.g. reset the failed-login counter after a success). */
+/** Remove a bucket after successful authentication. */
 export function clearRateLimit(key: string) {
   buckets.delete(key);
+}
+
+export function getRateLimiterMetrics() {
+  return {
+    activeBuckets: buckets.size,
+  };
 }

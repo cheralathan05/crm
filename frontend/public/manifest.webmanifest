@@ -1,0 +1,47 @@
+{
+  "name": "Business OS",
+  "short_name": "BusinessOS",
+  "description": "The enterprise operating system for client intake, technical delivery, payments, and team execution.",
+  "start_url": "/",
+  "id": "/",
+  "display": "standalone",
+  "background_color": "#09090b",
+  "theme_color": "#09090b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "/next.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "finance"],
+  "shortcuts": [
+    {
+      "name": "My Work",
+      "url": "/employee/work",
+      "description": "View employee execution tasks"
+    },
+    {
+      "name": "Dashboard",
+      "url": "/dashboard",
+      "description": "Executive command center"
+    },
+    {
+      "name": "Clients",
+      "url": "/clients",
+      "description": "Manage client pipeline"
+    },
+    {
+      "name": "Projects",
+      "url": "/projects",
+      "description": "Active engineering projects"
+    }
+  ]
+}

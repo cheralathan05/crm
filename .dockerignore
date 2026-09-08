@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+.env*.local
+*.log
+scratch/
+test_out.pdf
+dev.db.backup*
+dev.db.bak*

@@ -11,11 +11,12 @@
     "dev:frontend": "npm run dev --workspace=@mainproject/frontend",
     "dev:backend": "npm run dev --workspace=@mainproject/backend",
     "build": "npm run build --workspace=@mainproject/frontend",
-    "db:generate": "npm run generate --workspace=@mainproject/backend",
-    "db:push": "npm run db:push --workspace=@mainproject/backend && node -e \"require('fs').copyFileSync('backend/dev.db','frontend/dev.db')\"",
-    "db:reset": "npm run db:reset --workspace=@mainproject/backend && npm run db:sync",
-    "db:sync": "node -e \"require('fs').copyFileSync('backend/dev.db','frontend/dev.db')\"",
+    "start": "npm run start --workspace=@mainproject/frontend",
+    "db:generate": "prisma generate --schema=frontend/prisma/schema.prisma",
     "test:settings": "npm run test:settings --workspace=@mainproject/backend",
+    "test:load": "tsx scripts/load-test.ts",
+    "test:security": "tsx scripts/security-audit-test.ts",
+    "test:backup": "tsx scripts/backup-restore-test.ts",
     "lint": "eslint"
   },
   "dependencies": {

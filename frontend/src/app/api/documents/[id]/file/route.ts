@@ -3,7 +3,6 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { readStored } from "@/lib/uploads";
 import path from "path";
-import fs from "fs";
 
 export const dynamic = "force-dynamic";
 
@@ -27,20 +26,11 @@ export async function GET(_req: Request, { params }: Ctx) {
   // 1. Try reading via readStored
   let stored = await readStored(doc.storagePath);
 
-  // 2. If not found via relative uploads path, try full path or canonical names
+  // 2. If not found via relative uploads path, try canonical names
   if (!stored) {
-    const candidates = [
-      path.join(process.cwd(), "uploads", doc.storagePath),
-      path.join(process.cwd(), "uploads", "proposals", `${doc.sourceId}-v${doc.version}.pdf`),
-      path.join(process.cwd(), "uploads", "proposals", doc.fileName),
-    ];
-    for (const c of candidates) {
-      if (fs.existsSync(c)) {
-        const buf = fs.readFileSync(c);
-        stored = { buffer: buf, size: buf.length };
-        break;
-      }
-    }
+    stored =
+      (await readStored(path.join("proposals", `${doc.sourceId}-v${doc.version}.pdf`))) ??
+      (await readStored(path.join("proposals", doc.fileName)));
   }
 
   if (!stored) {
