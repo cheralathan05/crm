@@ -8,6 +8,7 @@ import {
   ClipboardList,
   Copy,
   ExternalLink,
+  FileText,
   Layers,
   Loader2,
   Sparkles,
@@ -32,6 +33,8 @@ export function RequirementDetailWorkspace({
   const [portalLink, setPortalLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [generatingLink, setGeneratingLink] = useState(false);
+  const [generatingProposal, setGeneratingProposal] = useState(false);
+  const [proposalError, setProposalError] = useState<string | null>(null);
 
   const fetchDetail = useCallback(async () => {
     try {
@@ -98,6 +101,25 @@ export function RequirementDetailWorkspace({
       /* ignore */
     } finally {
       setGeneratingLink(false);
+    }
+  };
+
+  const handleGenerateProposal = async () => {
+    setGeneratingProposal(true);
+    setProposalError(null);
+    try {
+      const res = await fetch(`/api/requirements/${requestId}/proposal`, {
+        method: "POST",
+      });
+      const json = await res.json();
+      if (!res.ok || !json.ok) {
+        throw new Error(json.message ?? "Could not generate proposal. Please ensure requirements are submitted or approved.");
+      }
+      router.push(`/proposals/${json.proposal.id}`);
+    } catch (e: any) {
+      setProposalError(e.message ?? "Failed to generate proposal.");
+    } finally {
+      setGeneratingProposal(false);
     }
   };
 
@@ -203,12 +225,40 @@ export function RequirementDetailWorkspace({
               {copied ? "Copied" : "Copy Link"}
             </MicroButton>
 
-            <MicroButton variant="accent" onClick={() => void handleOpenPortal()} disabled={generatingLink}>
+            <MicroButton variant="ghost" onClick={() => void handleOpenPortal()} disabled={generatingLink}>
               <ExternalLink className="w-3 h-3" />
               Client Portal
             </MicroButton>
+
+            {req.proposalId ? (
+              <MicroButton
+                variant="accent"
+                onClick={() => router.push(`/proposals/${req.proposalId}`)}
+                title="Open the generated proposal studio"
+              >
+                <FileText className="w-3 h-3" />
+                View Proposal
+              </MicroButton>
+            ) : (
+              <MicroButton
+                variant="accent"
+                onClick={() => void handleGenerateProposal()}
+                disabled={generatingProposal}
+                title="Convert these requirements directly into a priced proposal"
+              >
+                {generatingProposal ? <Loader2 className="w-3 h-3 animate-spin" /> : <Sparkles className="w-3 h-3" />}
+                Generate Proposal
+              </MicroButton>
+            )}
           </div>
         </div>
+
+        {proposalError && (
+          <div className="mt-3 rounded-sm border border-[var(--bos-error)]/30 bg-[var(--bos-error)]/5 px-3 py-2 text-[12px] text-[var(--bos-error)] flex items-center justify-between">
+            <span>{proposalError}</span>
+            <button type="button" onClick={() => setProposalError(null)} className="text-[11px] font-medium underline">Dismiss</button>
+          </div>
+        )}
       </div>
 
       {/* ── Main View Content ─────────────────────────────────── */}

@@ -763,9 +763,29 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
       (delivery?.projects && delivery.projects.length > 0 ? delivery.projects[0] : null);
   }, [delivery?.projects, initial.proposal.id]);
 
-  const createProject = useCallback(() => {
-    router.push(`/projects/launch?proposalId=${initial.proposal.id}`);
-  }, [initial.proposal.id, router]);
+  const createProject = useCallback(async () => {
+    setIsCreatingProject(true);
+    setError(null);
+    try {
+      const res = await fetch(`/api/proposals/${initial.proposal.id}/create-project`, {
+        method: "POST",
+      });
+      const data = await res.json();
+      if (!res.ok || !data.ok) {
+        throw new Error(data.message ?? "Failed to create project.");
+      }
+      setProjectCreated(true);
+      setNotice(`Project "${data.project?.name || "New Project"}" initialized successfully! Redirecting...`);
+      await refreshDelivery();
+      setTimeout(() => {
+        router.push(`/projects/${data.project?.id || ""}`);
+      }, 1000);
+    } catch (err: any) {
+      setError(err.message ?? "Failed to create project.");
+    } finally {
+      setIsCreatingProject(false);
+    }
+  }, [initial.proposal.id, refreshDelivery, router]);
 
   const openProject = useCallback((projectId: string) => {
     router.push(`/projects/${projectId}`);
@@ -984,7 +1004,20 @@ export function ProposalStudio({ initial }: { initial: StudioInitial }) {
               window.open(`/api/proposals/${initial.proposal.id}/pdf`, "_blank");
               break;
             case "download":
-              window.open(`/api/proposals/${initial.proposal.id}/pdf`, "_blank");
+              window.open(`/api/proposals/${initial.proposal.id}/download`, "_blank");
+              break;
+            case "copy-client-link":
+              void fetch(`/api/proposals/${initial.proposal.id}/client-link`)
+                .then((r) => r.json())
+                .then((data) => {
+                  if (data?.ok && data.url) {
+                    void navigator.clipboard.writeText(data.url);
+                    setNotice("Client review link copied to clipboard!");
+                  } else {
+                    setError("Unable to generate client link.");
+                  }
+                })
+                .catch(() => setError("Unable to generate client link."));
               break;
             case "send":
               setSendOpen(true);

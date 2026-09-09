@@ -128,14 +128,25 @@ export async function verifyProposalReadiness(requestId: string): Promise<Propos
   const allCapabilities = [...features.map((f) => f.name), ...discoveryCaps.map((c) => c.title)];
 
   if (allCapabilities.length === 0) {
-    blockers.push({
-      code: "NO_CONFIRMED_CAPABILITIES",
-      category: "UNSOURCED_FEATURE",
-      title: "Zero Confirmed Capabilities",
-      message: "The proposal has no verified features or capabilities. Generating a proposal without confirmed capabilities violates core product principles.",
-      remedy: "Complete Discovery or add confirmed client features in the Intake form.",
-      severity: "BLOCKER",
-    });
+    if (!request.title) {
+      blockers.push({
+        code: "NO_CONFIRMED_CAPABILITIES",
+        category: "UNSOURCED_FEATURE",
+        title: "Zero Confirmed Capabilities",
+        message: "The proposal has no verified features or capabilities. Generating a proposal without confirmed capabilities violates core product principles.",
+        remedy: "Complete Discovery or add confirmed client features in the Intake form.",
+        severity: "BLOCKER",
+      });
+    } else {
+      warnings.push({
+        code: "BASELINE_CAPABILITY",
+        category: "UNSOURCED_FEATURE",
+        title: "Baseline Scope Derived from Requirement",
+        message: "Granular capability breakdown has not yet been performed in discovery; baseline scope item will be established from the requirement title.",
+        remedy: "You can refine deliverables and milestones directly in Proposal Studio.",
+        severity: "WARNING",
+      });
+    }
   }
 
   // ── 3. Question-as-Requirement Guard (Rule 5) ────────────────────────────

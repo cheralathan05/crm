@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -204,9 +205,17 @@ function CurrentStateBlock({ detail }: { detail: ClientDetail }) {
       </div>
       <div className="min-w-0">
         <div className="mb-1"><MonoLabel>Requirement</MonoLabel></div>
-        <div className="text-[12.5px] text-[var(--bos-text-primary)] truncate">
-          {topReq ? topReq.title : "Not captured yet"}
-        </div>
+        {topReq ? (
+          <Link
+            href={`/requirements/${topReq.id}`}
+            className="text-[12.5px] font-medium text-[var(--bos-text-primary)] hover:text-[var(--bos-accent)] hover:underline truncate block"
+            title="Open requirement workspace"
+          >
+            {topReq.title}
+          </Link>
+        ) : (
+          <div className="text-[12.5px] text-[var(--bos-text-tertiary)] truncate">Not captured yet</div>
+        )}
         {topReq && (
           <div className="mt-0.5 text-[10px] text-[var(--bos-text-tertiary)]">
             {topReq.status === "APPROVED" ? "Approved" : topReq.status.replace(/_/g, " ").toLowerCase()}
@@ -215,9 +224,17 @@ function CurrentStateBlock({ detail }: { detail: ClientDetail }) {
       </div>
       <div className="min-w-0">
         <div className="mb-1"><MonoLabel>Proposal</MonoLabel></div>
-        <div className="text-[12.5px] text-[var(--bos-text-primary)] truncate">
-          {topProposal ? topProposal.title : "None yet"}
-        </div>
+        {topProposal ? (
+          <Link
+            href={`/proposals/${topProposal.id}`}
+            className="text-[12.5px] font-medium text-[var(--bos-text-primary)] hover:text-[var(--bos-accent)] hover:underline truncate block"
+            title="Open proposal studio"
+          >
+            {topProposal.title}
+          </Link>
+        ) : (
+          <div className="text-[12.5px] text-[var(--bos-text-tertiary)] truncate">None yet</div>
+        )}
         {topProposal && (
           <div className="mt-0.5 text-[10px] text-[var(--bos-text-tertiary)]">
             {topProposal.status.replace(/_/g, " ").toLowerCase()}
@@ -226,9 +243,17 @@ function CurrentStateBlock({ detail }: { detail: ClientDetail }) {
       </div>
       <div className="min-w-0">
         <div className="mb-1"><MonoLabel>Project</MonoLabel></div>
-        <div className="text-[12.5px] text-[var(--bos-text-primary)] truncate">
-          {topProject ? topProject.name : "Not started"}
-        </div>
+        {topProject ? (
+          <Link
+            href={`/projects/${topProject.id}`}
+            className="text-[12.5px] font-medium text-[var(--bos-text-primary)] hover:text-[var(--bos-accent)] hover:underline truncate block"
+            title="Open project command center"
+          >
+            {topProject.name}
+          </Link>
+        ) : (
+          <div className="text-[12.5px] text-[var(--bos-text-tertiary)] truncate">Not started</div>
+        )}
         {topProject && (
           <div className="mt-0.5 flex items-center gap-2">
             <Progress value={topProject.progress} className="w-12" />
@@ -377,7 +402,7 @@ function ConnectedList({ detail }: { detail: ClientDetail }) {
         label={topReq.title}
         sub={`${topReq.reference} · ${topReq.completeness}% complete`}
         status={topReq.status}
-        onClick={() => document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" })}
+        onClick={() => router.push(`/requirements/${topReq.id}`)}
       />,
     );
   }
@@ -390,7 +415,7 @@ function ConnectedList({ detail }: { detail: ClientDetail }) {
         label={topProposal.title}
         sub={topProposal.amount ? `₹${topProposal.amount.toLocaleString("en-IN")}` : "Proposal"}
         status={topProposal.status}
-        onClick={() => router.push("/proposals")}
+        onClick={() => router.push(`/proposals/${topProposal.id}`)}
       />,
     );
   }
@@ -403,7 +428,7 @@ function ConnectedList({ detail }: { detail: ClientDetail }) {
         label={topProject.name}
         sub={`${topProject.progress}% complete`}
         status={topProject.health}
-        onClick={() => router.push("/projects")}
+        onClick={() => router.push(`/projects/${topProject.id}`)}
       />,
     );
   }

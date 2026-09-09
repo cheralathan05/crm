@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { getWorkspaceForUser } from "./clients";
 import { loadAnswers, loadFeatures } from "./requirements";
 import { serializeProposalDelivery, type ProposalDeliveryBundle } from "./proposal-delivery";
 import { PDFDocument } from "pdf-lib";
@@ -52,10 +53,10 @@ export function buildProposalDocument(ctx: BuildContext): ProposalDoc {
 /* ── Listing (workspace-scoped) ───────────────────────────────── */
 
 export async function listProposalsForUser(userId: string) {
-  const workspace = await db.workspace.findUnique({ where: { ownerId: userId } });
-  if (!workspace) return { rows: [], counts: { all: 0, DRAFT: 0, SENT: 0, APPROVED: 0 } };
+  const workspace = await getWorkspaceForUser(userId);
+  if (!workspace) return { rows: [], counts: { all: 0, DRAFT: 0, SENT: 0, APPROVED: 0 }, clients: [] };
 
-  const [rows, group] = await Promise.all([
+  const [rows, group, clients] = await Promise.all([
     db.clientProposal.findMany({
       where: { client: { workspaceId: workspace.id } },
       include: { client: { select: { companyName: true, id: true } } },
@@ -63,6 +64,12 @@ export async function listProposalsForUser(userId: string) {
       take: 100,
     }),
     db.clientProposal.groupBy({ by: ["status"], where: { client: { workspaceId: workspace.id } }, _count: { _all: true } }),
+    db.client.findMany({
+      where: { workspaceId: workspace.id },
+      select: { id: true, companyName: true },
+      orderBy: { companyName: "asc" },
+      take: 200,
+    }),
   ]);
 
   const counts: Record<string, number> = { all: rows.length };
@@ -83,6 +90,7 @@ export async function listProposalsForUser(userId: string) {
       updatedAt: p.updatedAt.toISOString(),
     })),
     counts,
+    clients,
   };
 }
 
@@ -122,7 +130,7 @@ export type ProposalStudioBundle = {
 
 /** Load a proposal only if it belongs to the user's workspace. */
 export async function getProposalForUser(userId: string, proposalId: string) {
-  const workspace = await db.workspace.findUnique({ where: { ownerId: userId } });
+  const workspace = await getWorkspaceForUser(userId);
   if (!workspace) return null;
   return db.clientProposal.findFirst({
     where: { id: proposalId, client: { workspaceId: workspace.id } },
@@ -133,14 +141,37 @@ export async function getProposalForUser(userId: string, proposalId: string) {
 }
 
 export async function serializeProposalForStudio(
-  proposal: ClientProposal & { client?: { id: string; companyName: string; industry: string | null; email: string | null; workspaceId: string } | null },
+  proposalOrId:
+    | string
+    | (ClientProposal & {
+        client?: { id: string; companyName: string; industry: string | null; email: string | null; workspaceId: string } | null;
+      }),
 ): Promise<ProposalStudioBundle> {
+  let proposal: ClientProposal & {
+    client?: { id: string; companyName: string; industry: string | null; email: string | null; workspaceId: string } | null;
+  };
+
+  if (typeof proposalOrId === "string") {
+    const found = await db.clientProposal.findUnique({
+      where: { id: proposalOrId },
+      include: {
+        client: { select: { id: true, companyName: true, industry: true, email: true, workspaceId: true } },
+      },
+    });
+    if (!found) throw new Error(`Proposal not found: ${proposalOrId}`);
+    proposal = found;
+  } else {
+    proposal = proposalOrId;
+  }
+
   const client =
     proposal.client ??
-    (await db.client.findUnique({
-      where: { id: proposal.clientId },
-      select: { id: true, companyName: true, industry: true, email: true, workspaceId: true },
-    }));
+    (proposal.clientId
+      ? await db.client.findUnique({
+          where: { id: proposal.clientId },
+          select: { id: true, companyName: true, industry: true, email: true, workspaceId: true },
+        })
+      : null);
 
   const workspaceId = client?.workspaceId;
 
@@ -152,6 +183,8 @@ export async function serializeProposalForStudio(
     db.contact.findFirst({ where: { clientId: proposal.clientId, isPrimary: true } }),
   ]);
 
+  const resolvedWorkspace = workspace ?? (await db.workspace.findFirst({ include: { profile: true } }));
+
   const requirementFeatures = request ? await loadFeatures(request.id) : [];
 
   let document: ProposalDoc;
@@ -161,14 +194,14 @@ export async function serializeProposalForStudio(
     document = {
       version: 1,
       meta: {
-        reference: "PROP",
+        reference: proposal.reference ?? "PROP",
         title: proposal.title,
         clientName: client?.companyName ?? "Client",
-        preparedBy: workspace?.companyName ?? "",
+        preparedBy: resolvedWorkspace?.companyName ?? "",
         preparedFor: null,
-        amount: null,
-        currency: "INR",
-        amountLabel: "To be confirmed",
+        amount: proposal.amount ?? null,
+        currency: proposal.currency ?? "INR",
+        amountLabel: proposal.amount ? `₹${proposal.amount.toLocaleString("en-IN")}` : "To be confirmed",
         timelineLabel: "",
         date: new Date().toISOString(),
       },
@@ -178,16 +211,21 @@ export async function serializeProposalForStudio(
 
   if (!document.sections || document.sections.length === 0) {
     const fullClient = await db.client.findUnique({ where: { id: proposal.clientId } });
-    if (!fullClient || !workspace) throw new Error("Proposal context missing.");
+    if (!fullClient || !resolvedWorkspace) throw new Error("Proposal context missing.");
     const answers = request ? await loadAnswers(request.id) : {};
     document = buildProposalDocument({
       proposal,
       client: fullClient,
-      workspace,
+      workspace: resolvedWorkspace,
       contact,
       answers,
       features: requirementFeatures,
     });
+    // Persist newly built document to avoid re-generating every time
+    await db.clientProposal.update({
+      where: { id: proposal.id },
+      data: { document: JSON.stringify(document) },
+    }).catch(() => undefined);
   }
 
   document = normalizeDoc(document);
@@ -228,10 +266,10 @@ export async function serializeProposalForStudio(
       email: proposal.sentTo ?? client?.email ?? contact?.email ?? null,
     },
     workspace: {
-      companyName: workspace?.companyName ?? "",
-      email: workspace?.profile?.businessEmail ?? null,
-      phone: workspace?.profile?.businessPhone ?? null,
-      website: workspace?.profile?.website ?? null,
+      companyName: resolvedWorkspace?.companyName ?? "Business OS",
+      email: resolvedWorkspace?.profile?.businessEmail ?? null,
+      phone: resolvedWorkspace?.profile?.businessPhone ?? null,
+      website: resolvedWorkspace?.profile?.website ?? null,
     },
     delivery: await serializeProposalDelivery(proposal),
   };

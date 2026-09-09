@@ -8,6 +8,8 @@ import {
   CheckCircle2,
   ClipboardList,
   Clock,
+  Copy,
+  ExternalLink,
   Eye,
   FileText,
   GitCompare,
@@ -16,6 +18,7 @@ import {
   Mail,
   RefreshCw,
   Send,
+  Share2,
   ThumbsDown,
   ThumbsUp,
   X,
@@ -435,18 +438,35 @@ export function SendDialog({
           )}
         </div>
         <div className="px-5 py-3.5 border-t border-[var(--bos-line)] flex items-center justify-end gap-2">
-          <button type="button" onClick={onClose} className="h-7 px-3 rounded-sm text-[11px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)]">
-            Cancel
-          </button>
           <button
             type="button"
-            onClick={() => onSend(email.trim())}
-            disabled={busy || !canSend}
-            className="inline-flex items-center gap-1.5 h-7 px-3.5 rounded-sm bg-[var(--bos-accent)] text-white text-[11px] font-medium hover:bg-[var(--bos-accent-hover)] disabled:opacity-40 shadow-sm"
+            onClick={() => {
+              void fetch(`/api/proposals/${delivery.proposal.id}/client-link`)
+                .then((r) => r.json())
+                .then((d) => {
+                  if (d?.ok && d.url) void navigator.clipboard.writeText(d.url);
+                });
+            }}
+            className="inline-flex items-center gap-1 h-7 px-2 rounded-sm text-[11px] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)]"
+            title="Copy secure link for manual sharing"
           >
-            {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Send className="w-3 h-3" aria-hidden="true" />}
-            {busy ? "Delivering…" : "Send proposal"}
+            <Copy className="w-3 h-3" />
+            <span>Copy review link</span>
           </button>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={onClose} className="h-7 px-3 rounded-sm text-[11px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)]">
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => onSend(email.trim())}
+              disabled={busy || !canSend}
+              className="inline-flex items-center gap-1.5 h-7 px-3.5 rounded-sm bg-[var(--bos-accent)] text-white text-[11px] font-medium hover:bg-[var(--bos-accent-hover)] disabled:opacity-40 shadow-sm"
+            >
+              {busy ? <Loader2 className="w-3 h-3 animate-spin" aria-hidden="true" /> : <Send className="w-3 h-3" aria-hidden="true" />}
+              {busy ? "Delivering…" : "Send proposal"}
+            </button>
+          </div>
         </div>
       </motion.div>
     </div>
@@ -478,7 +498,36 @@ export function DeliveryPanel({
   onCreateRevision: () => void;
 }) {
   const [response, setResponse] = useState<Record<string, string>>({});
+  const [clientLink, setClientLink] = useState<string | null>(null);
+  const [linkLoading, setLinkLoading] = useState(false);
+  const [copiedLink, setCopiedLink] = useState(false);
   const p = delivery.proposal;
+
+  useEffect(() => {
+    let active = true;
+    setLinkLoading(true);
+    fetch(`/api/proposals/${p.id}/client-link`)
+      .then((r) => r.json())
+      .then((data) => {
+        if (active && data?.ok && data.url) {
+          setClientLink(data.url);
+        }
+      })
+      .catch(() => undefined)
+      .finally(() => {
+        if (active) setLinkLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [p.id]);
+
+  const handleCopyLink = async () => {
+    if (!clientLink) return;
+    await navigator.clipboard.writeText(clientLink);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 2500);
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex justify-end">
@@ -527,6 +576,48 @@ export function DeliveryPanel({
                 <History className="w-3 h-3" aria-hidden="true" /> Start revision v{p.version + 1}
               </button>
             )}
+          </div>
+
+          {/* Client Review Link Card */}
+          <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/40 p-3.5 space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-mono uppercase tracking-[0.18em] text-[var(--bos-text-tertiary)]">
+                Direct Client Review Link
+              </span>
+              <span className="text-[10px] text-[var(--bos-text-tertiary)]">
+                Secure Token Access
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                readOnly
+                value={linkLoading ? "Generating secure link…" : clientLink ?? "Link unavailable"}
+                className="flex-1 h-8 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[11px] font-mono text-[var(--bos-text-primary)] select-all outline-none"
+              />
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                disabled={!clientLink || linkLoading}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[11px] font-medium text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-colors duration-150 shrink-0 disabled:opacity-40"
+              >
+                {copiedLink ? <Check className="w-3.5 h-3.5 text-[var(--bos-success)]" /> : <Copy className="w-3.5 h-3.5" />}
+                <span>{copiedLink ? "Copied" : "Copy"}</span>
+              </button>
+              {clientLink && (
+                <a
+                  href={clientLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center justify-center w-8 h-8 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:border-[var(--bos-border-strong)] transition-colors duration-150 shrink-0"
+                  title="Open client review in new tab"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                </a>
+              )}
+            </div>
+            <p className="text-[10.5px] text-[var(--bos-text-tertiary)]">
+              Clients can review the interactive breakdown, inspect verified requirements, download offline PDF copies, and formally record decisions without logging in.
+            </p>
           </div>
 
           <div>

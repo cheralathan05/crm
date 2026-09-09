@@ -211,7 +211,7 @@ export function ProposalReview({
   };
 
   if (step === "done") {
-    return <DoneState summary={summary} token={token} />;
+    return <DoneState summary={summary} token={token} onViewDoc={() => setStep("review")} />;
   }
 
   if (step === "review") {
@@ -1201,7 +1201,15 @@ function ModalShell({ title, onClose, children }: { title: string; onClose: () =
 
 /* ── Done state & Approval Certificate ── */
 
-function DoneState({ summary, token }: { summary: ProposalSummary; token: string }) {
+function DoneState({
+  summary,
+  token,
+  onViewDoc,
+}: {
+  summary: ProposalSummary;
+  token: string;
+  onViewDoc?: () => void;
+}) {
   const latest = summary.changeRequests[0] ?? null;
   return (
     <div className="text-center py-8 space-y-6">
@@ -1239,11 +1247,20 @@ function DoneState({ summary, token }: { summary: ProposalSummary; token: string
               <span className="text-[var(--bos-text-tertiary)]">Agreed Investment</span>
               <span className="font-bold text-[var(--bos-accent)]">{summary.amountLabel}</span>
             </div>
-            <div className="pt-2 border-t border-[var(--bos-line)] flex items-center justify-between">
+            <div className="pt-2 border-t border-[var(--bos-line)] flex items-center justify-between gap-3">
+              {onViewDoc && (
+                <button
+                  type="button"
+                  onClick={onViewDoc}
+                  className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-[var(--bos-accent)] hover:underline"
+                >
+                  <Eye className="w-3.5 h-3.5" /> View Proposal & Terms
+                </button>
+              )}
               <a
                 href={`/api/client/proposals/${token}/pdf`}
                 download
-                className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-[var(--bos-accent)] hover:underline"
+                className="inline-flex items-center gap-1.5 text-[11.5px] font-medium text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:underline ml-auto"
               >
                 <Download className="w-3.5 h-3.5" /> Download Final Approved PDF
               </a>
@@ -1262,6 +1279,17 @@ function DoneState({ summary, token }: { summary: ProposalSummary; token: string
             <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-secondary)] max-w-sm mx-auto">
               We&apos;ve recorded that you do not wish to proceed with <strong>{summary.title}</strong>.
             </p>
+            {onViewDoc && (
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={onViewDoc}
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--bos-accent)] hover:underline"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Review Proposal Document
+                </button>
+              </div>
+            )}
           </div>
         </>
       ) : latest ? (
@@ -1274,6 +1302,17 @@ function DoneState({ summary, token }: { summary: ProposalSummary; token: string
             <p className="mt-2 text-[13px] leading-relaxed text-[var(--bos-text-secondary)] max-w-md mx-auto">
               Your structured change request for <strong>{summary.title}</strong> has been received by the project team. A revision will be prepared.
             </p>
+            {onViewDoc && (
+              <div className="pt-4">
+                <button
+                  type="button"
+                  onClick={onViewDoc}
+                  className="inline-flex items-center gap-1.5 text-[12px] font-medium text-[var(--bos-accent)] hover:underline"
+                >
+                  <Eye className="w-3.5 h-3.5" /> Review Current Document
+                </button>
+              </div>
+            )}
           </div>
         </>
       ) : null}

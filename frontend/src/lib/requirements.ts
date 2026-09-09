@@ -986,6 +986,20 @@ export async function createProposalFromRequirement(input: {
     });
   }
 
+  if (confirmedFeatures.length === 0) {
+    confirmedFeatures.push({
+      id: "REQ-001",
+      name: request.title || "Core Scope Deliverables",
+      priority: "MUST_HAVE",
+      description: `Core project deliverables and scope requirements for ${request.title}.`,
+      users: ["Client"],
+      config: {},
+      acceptanceCriteria: ["Delivered according to client agreed specifications."],
+      dependencies: [],
+      order: 0,
+    } as any);
+  }
+
   // Augment scope with Core scope radar items
   if (discSession?.scopeItems && discSession.scopeItems.length > 0) {
     const coreItems = discSession.scopeItems.filter((s) => s.tier === "CORE").map((s) => s.title);

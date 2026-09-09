@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -8,7 +9,9 @@ import {
   Check,
   Download,
   ExternalLink,
+  Eye,
   FileStack,
+  FileText,
   GitBranch,
   Mail,
   MessageSquare,
@@ -198,26 +201,36 @@ export function Requirements({
         {requirements.slice(0, 5).map((r) => (
           <div key={r.id} className="rounded-sm border border-[var(--bos-line)] p-2.5">
             <div className="flex items-start justify-between gap-2">
-              <span className="text-[12px] text-[var(--bos-text-primary)] leading-snug line-clamp-2">{r.title}</span>
+              <Link
+                href={`/requirements/${r.id}`}
+                className="text-[12px] font-medium text-[var(--bos-text-primary)] leading-snug line-clamp-2 hover:text-[var(--bos-accent)] hover:underline"
+              >
+                {r.title}
+              </Link>
               <StatusChip status={r.status} />
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)]">
               <span className="font-mono uppercase tracking-[0.1em]">{r.priority}</span>
               <span>Submitted {formatDate(r.submittedAt)}</span>
             </div>
-            {(r.status === "SUBMITTED" || r.status === "UNDER_REVIEW") && (
-              <div className="mt-2 flex items-center gap-1.5">
-                <MicroButton variant="accent" onClick={() => onTransition("requirements", r.id, "UNDER_REVIEW")}>
-                  Review
+            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+              <Link href={`/requirements/${r.id}`}>
+                <MicroButton>
+                  <FileText className="w-3 h-3" aria-hidden="true" /> Open Studio
                 </MicroButton>
-                <MicroButton onClick={() => onTransition("requirements", r.id, "APPROVED")}>Approve</MicroButton>
-              </div>
-            )}
-            {r.status === "CHANGES_REQUESTED" && (
-              <div className="mt-2">
+              </Link>
+              {(r.status === "SUBMITTED" || r.status === "UNDER_REVIEW") && (
+                <>
+                  <MicroButton variant="accent" onClick={() => onTransition("requirements", r.id, "UNDER_REVIEW")}>
+                    Review
+                  </MicroButton>
+                  <MicroButton onClick={() => onTransition("requirements", r.id, "APPROVED")}>Approve</MicroButton>
+                </>
+              )}
+              {r.status === "CHANGES_REQUESTED" && (
                 <MicroButton onClick={() => onTransition("requirements", r.id, "UNDER_REVIEW")}>Re-review</MicroButton>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         ))}
       </div>
@@ -258,7 +271,12 @@ export function Proposals({
         {proposals.slice(0, 4).map((p) => (
           <div key={p.id} className="rounded-sm border border-[var(--bos-line)] p-2.5">
             <div className="flex items-start justify-between gap-2">
-              <span className="text-[12px] text-[var(--bos-text-primary)] leading-snug line-clamp-2">{p.title}</span>
+              <Link
+                href={`/proposals/${p.id}`}
+                className="text-[12px] font-medium text-[var(--bos-text-primary)] leading-snug line-clamp-2 hover:text-[var(--bos-accent)] hover:underline"
+              >
+                {p.title}
+              </Link>
               <StatusChip status={p.status} />
             </div>
             <div className="mt-1.5 flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)]">
@@ -269,21 +287,31 @@ export function Proposals({
               <span>Sent {formatDate(p.sentAt)}</span>
               {p.viewedAt && <span>Viewed {formatDate(p.viewedAt)}</span>}
             </div>
-            {(p.status === "DRAFT" || p.status === "CHANGES_REQUESTED") && (
-              <div className="mt-2">
+            <div className="mt-2 flex items-center gap-1.5 flex-wrap">
+              <Link href={`/proposals/${p.id}`}>
+                <MicroButton>
+                  <FileText className="w-3 h-3" aria-hidden="true" /> Open Studio
+                </MicroButton>
+              </Link>
+              <a href={`/api/proposals/${p.id}/pdf`} target="_blank" rel="noopener noreferrer">
+                <MicroButton>
+                  <Eye className="w-3 h-3" aria-hidden="true" /> PDF
+                </MicroButton>
+              </a>
+              {(p.status === "DRAFT" || p.status === "CHANGES_REQUESTED") && (
                 <MicroButton variant="accent" onClick={() => onTransition("proposals", p.id, "SENT")}>
                   <Send className="w-3 h-3" aria-hidden="true" /> Send
                 </MicroButton>
-              </div>
-            )}
-            {p.status === "SENT" && (
-              <div className="mt-2 flex items-center gap-1.5">
-                <MicroButton variant="accent" onClick={() => onTransition("proposals", p.id, "APPROVED")}>
-                  <Check className="w-3 h-3" aria-hidden="true" /> Approved
-                </MicroButton>
-                <MicroButton onClick={() => onTransition("proposals", p.id, "CHANGES_REQUESTED")}>Changes</MicroButton>
-              </div>
-            )}
+              )}
+              {p.status === "SENT" && (
+                <>
+                  <MicroButton variant="accent" onClick={() => onTransition("proposals", p.id, "APPROVED")}>
+                    <Check className="w-3 h-3" aria-hidden="true" /> Approved
+                  </MicroButton>
+                  <MicroButton onClick={() => onTransition("proposals", p.id, "CHANGES_REQUESTED")}>Changes</MicroButton>
+                </>
+              )}
+            </div>
           </div>
         ))}
       </div>

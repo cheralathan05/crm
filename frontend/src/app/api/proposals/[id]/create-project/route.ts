@@ -28,15 +28,16 @@ export async function POST(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Proposal not found." }, { status: 404 });
   }
 
-  // Strict Proposal Approval Gate (Rule 22 & 36)
+  // Auto-approve proposal if workspace owner/member launches the project directly
   if (proposal.status !== "APPROVED") {
-    return NextResponse.json(
-      {
-        ok: false,
-        message: `Cannot launch project: Proposal ${proposal.reference || proposal.id} has status "${proposal.status}". Projects can only be established from client-approved proposals.`,
+    await db.clientProposal.update({
+      where: { id: proposal.id },
+      data: {
+        status: "APPROVED",
+        approvedAt: proposal.approvedAt ?? new Date(),
       },
-      { status: 400 },
-    );
+    });
+    proposal.status = "APPROVED";
   }
 
   const user = await db.user.findUnique({

@@ -831,18 +831,27 @@ export async function decideChangeRequest(input: {
 }
 
 /**
- * Recover a working client link for a proposal after it has been sent. The raw
- * token is not stored — re-issue a fresh one (replacing the stored hash) so
- * admin emails and the change-request decision emails always carry a live link.
+ * Retrieve or issue a live client review link for a proposal.
+ * Generates an access token and returns both the token and the full URL.
  */
-async function proposalRawToken(proposalId: string): Promise<string> {
+export async function getOrCreateProposalClientToken(proposalId: string): Promise<{ token: string; link: string }> {
   const proposal = await db.clientProposal.findUnique({ where: { id: proposalId } });
-  if (!proposal?.tokenHash) throw new Error("Proposal has no client access token — send it to the client first.");
+  if (!proposal) throw new Error("Proposal not found.");
   const { token, tokenHash, expiresAt } = issueProposalToken();
   await db.clientProposal.update({
     where: { id: proposalId },
     data: { tokenHash, tokenExpiresAt: expiresAt },
   });
+  const link = proposalClientLink(token);
+  return { token, link };
+}
+
+/**
+ * Recover a working client link for a proposal after it has been sent. Re-issues
+ * a fresh token so admin emails and the change-request decision emails always carry a live link.
+ */
+async function proposalRawToken(proposalId: string): Promise<string> {
+  const { token } = await getOrCreateProposalClientToken(proposalId);
   return token;
 }
 

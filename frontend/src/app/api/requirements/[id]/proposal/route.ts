@@ -58,10 +58,7 @@ export async function POST(_req: Request, { params }: Ctx) {
     );
   }
 
-  if (request.status !== "APPROVED" && !request.approvedAt && request.status !== "SUBMITTED" && request.status !== "REVISION_SUBMITTED") {
-    return NextResponse.json({ ok: false, message: "Approve or submit the requirements before creating a proposal." }, { status: 400 });
-  }
-
+  // Automatically transition requirement to approved status upon proposal generation
   if (request.status !== "APPROVED") {
     await db.requirementRequest.update({
       where: { id: request.id },

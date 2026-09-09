@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { getClientForUser, recordAudit } from "@/lib/clients";
+import { buildProposalDocument, nextProposalReference } from "@/lib/proposal";
 
 export const dynamic = "force-dynamic";
 
@@ -141,19 +142,44 @@ export async function POST(req: Request, { params }: Ctx) {
     case "proposals": {
       const title = String(body.title ?? "").trim();
       if (!title) return NextResponse.json({ ok: false, message: "Proposal title is required." }, { status: 400 });
+      const reference = await nextProposalReference(client.workspaceId);
+      const amount = body.amount !== undefined && Number.isFinite(Number(body.amount)) ? Number(body.amount) : null;
       const proposal = await db.clientProposal.create({
         data: {
           clientId: client.id,
+          reference,
           title,
-          amount: body.amount !== undefined ? Number(body.amount) : null,
+          amount,
           status: String(body.status ?? "DRAFT") as never,
           validUntil: body.validUntil ? new Date(String(body.validUntil)) : null,
         },
       });
+
+      const [workspace, contact] = await Promise.all([
+        db.workspace.findUnique({ where: { id: client.workspaceId }, include: { profile: true } }),
+        db.contact.findFirst({ where: { clientId: client.id, isPrimary: true } }),
+      ]);
+      const resolvedWorkspace = workspace ?? (await db.workspace.findFirst({ include: { profile: true } }));
+
+      if (resolvedWorkspace) {
+        const document = buildProposalDocument({
+          proposal,
+          client,
+          workspace: resolvedWorkspace,
+          contact,
+          answers: {},
+          features: [],
+        });
+        await db.clientProposal.update({
+          where: { id: proposal.id },
+          data: { document: JSON.stringify(document) },
+        }).catch(() => undefined);
+      }
+
       const action = proposal.status === "SENT" ? "PROPOSAL_SENT" : "PROPOSAL_CREATED";
-      await recordAudit({ clientId: client.id, entity: "PROPOSAL", action: action as never, entityId: proposal.id, actorId, actorName, after: { title, status: proposal.status } });
+      await recordAudit({ clientId: client.id, entity: "PROPOSAL", action: action as never, entityId: proposal.id, actorId, actorName, after: { title, reference, status: proposal.status } });
       await touch();
-      return NextResponse.json({ ok: true, id: proposal.id }, { status: 201 });
+      return NextResponse.json({ ok: true, id: proposal.id, reference: proposal.reference }, { status: 201 });
     }
 
     case "projects": {

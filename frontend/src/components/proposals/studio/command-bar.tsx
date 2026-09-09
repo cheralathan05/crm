@@ -15,6 +15,7 @@ import {
   Eye,
   FileCheck,
   FileText,
+  FolderKanban,
   GitCompare,
   Layers,
   Loader2,
@@ -24,6 +25,7 @@ import {
   Save,
   Search,
   Send,
+  Share2,
   ShieldCheck,
   Sparkles,
   X,
@@ -57,7 +59,7 @@ const SAVE_CLS: Record<SaveState, string> = {
   error: "text-[var(--bos-error)]",
 };
 
-export type MoreAction = "save" | "view-pdf" | "download" | "send" | "finalize" | "delivery" | "compare" | "shortcuts";
+export type MoreAction = "save" | "view-pdf" | "download" | "send" | "finalize" | "delivery" | "compare" | "shortcuts" | "copy-client-link";
 
 export type ProposalHealthMetrics = {
   contentPercent: number;
@@ -354,6 +356,29 @@ export function CommandBar({
             </button>
           )}
 
+          {/* Project Button: Open Project if exists, or Create Project if approved */}
+          {existingProject ? (
+            <button
+              type="button"
+              onClick={() => onOpenProject?.(existingProject.id)}
+              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm border border-[#3f6e35] bg-[#3f6e35] text-white text-[10.5px] font-medium hover:brightness-110 transition-colors duration-150 shrink-0 shadow-sm cursor-pointer"
+              title="Open the active Delivery Project"
+            >
+              <FolderKanban className="w-3 h-3" aria-hidden="true" /> Open Project
+            </button>
+          ) : status === "APPROVED" && onCreateProject ? (
+            <button
+              type="button"
+              disabled={isCreatingProject || projectCreated}
+              onClick={onCreateProject}
+              className="inline-flex items-center gap-1.5 h-7 px-3 rounded-sm bg-[#3f6e35] text-white text-[10.5px] font-medium hover:brightness-110 disabled:opacity-50 transition-colors duration-150 shrink-0 shadow-sm cursor-pointer"
+              title="Initialize delivery project from approved proposal"
+            >
+              {isCreatingProject ? <Loader2 className="w-3 h-3 animate-spin" /> : <Plus className="w-3 h-3" />}
+              <span>{projectCreated ? "Project Created ✓" : "Create Project"}</span>
+            </button>
+          ) : null}
+
           {/* More actions dropdown */}
           <div className="relative shrink-0" ref={moreRef}>
             <button
@@ -408,6 +433,16 @@ export function CommandBar({
                   >
                     <Download className="w-3.5 h-3.5" aria-hidden="true" /> Download PDF
                   </button>
+                  <button
+                    type="button"
+                    className={moreItem}
+                    onClick={() => {
+                      setMoreOpen(false);
+                      onMore("copy-client-link");
+                    }}
+                  >
+                    <Share2 className="w-3.5 h-3.5" aria-hidden="true" /> Copy client review link
+                  </button>
                   {canSend && (
                     <button
                       type="button"
@@ -432,6 +467,29 @@ export function CommandBar({
                       <FileText className="w-3.5 h-3.5" aria-hidden="true" /> Finalize proposal
                     </button>
                   )}
+                  {existingProject ? (
+                    <button
+                      type="button"
+                      className={moreItem}
+                      onClick={() => {
+                        setMoreOpen(false);
+                        onOpenProject?.(existingProject.id);
+                      }}
+                    >
+                      <FolderKanban className="w-3.5 h-3.5 text-[#3f6e35]" aria-hidden="true" /> Open project ({existingProject.name})
+                    </button>
+                  ) : onCreateProject ? (
+                    <button
+                      type="button"
+                      className={moreItem}
+                      onClick={() => {
+                        setMoreOpen(false);
+                        onCreateProject();
+                      }}
+                    >
+                      <FolderKanban className="w-3.5 h-3.5 text-[#3f6e35]" aria-hidden="true" /> Launch project
+                    </button>
+                  ) : null}
                   <button
                     type="button"
                     className={moreItem}
