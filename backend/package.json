@@ -9,7 +9,9 @@
     "db:reset": "prisma db push --force-reset",
     "db:studio": "prisma studio",
     "test:settings": "tsx scripts/test_settings_control_plane.ts",
-    "dev": "tsx watch src/server.ts"
+    "dev": "tsx watch src/server.ts",
+    "build": "prisma generate && prisma db push",
+    "start": "tsx src/server.ts"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.9.1",
@@ -20,8 +22,10 @@
     "nodemailer": "^8.0.11",
     "pdf-lib": "^1.17.1",
     "pdfmake": "^0.3.11",
+    "prisma": "^7.9.1",
     "qrcode": "^1.5.4",
     "resend": "^6.19.0",
+    "tsx": "^4.23.12",
     "zod": "^4.4.3"
   },
   "devDependencies": {
@@ -30,8 +34,6 @@
     "@types/node": "^20",
     "@types/nodemailer": "^8.0.1",
     "@types/qrcode": "^1.5.6",
-    "prisma": "^7.9.1",
-    "tsx": "^4.23.12",
     "typescript": "^5"
   }
 }
