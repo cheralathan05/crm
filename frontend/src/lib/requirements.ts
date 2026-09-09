@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { generateToken, hashToken, tokenExpiry } from "./tokens";
-import { recordAudit } from "./clients";
+import { getWorkspaceForUser, recordAudit } from "./clients";
 import { buildProposalDocument, nextProposalReference } from "./proposal";
 import { estimateBudgetAmount } from "./proposal-doc";
 import {
@@ -1070,7 +1070,7 @@ export async function createProposalFromRequirement(input: {
 
 /** Load a request only if it belongs to the user's workspace. Never leaks existence. */
 export async function getRequirementForUser(userId: string, requestId: string) {
-  const workspace = await db.workspace.findUnique({ where: { ownerId: userId } });
+  const workspace = await getWorkspaceForUser(userId);
   if (!workspace) return null;
   return db.requirementRequest.findFirst({ where: { id: requestId, workspaceId: workspace.id } });
 }

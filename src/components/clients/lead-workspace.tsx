@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useLayoutEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
@@ -565,7 +565,15 @@ function Toast({ message }: { message: string | null }) {
 
 /* ── Lead Workspace ────────────────────────────────────────── */
 
-export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; actorName: string }) {
+export function LeadWorkspace({
+  initial,
+  actorName,
+  initialReqId,
+}: {
+  initial: ClientDetail;
+  actorName: string;
+  initialReqId?: string;
+}) {
   const router = useRouter();
   const reduced = useReducedMotion();
   const [detail, setDetail] = useState(initial);
@@ -574,12 +582,29 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const [toast, setToast] = useState<string | null>(null);
   const [timelineKey, setTimelineKey] = useState(0);
   const [reqConfigOpen, setReqConfigOpen] = useState(false);
-  const [openReqId, setOpenReqId] = useState<string | null>(null);
+  const [openReqId, setOpenReqId] = useState<string | null>(initialReqId ?? null);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copilotFullscreen, setCopilotFullscreen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
+
+  // Auto-expand and scroll to requirement when deep-linking
+  useEffect(() => {
+    if (initialReqId) {
+      setOpenReqId(initialReqId);
+      requestAnimationFrame(() => {
+        document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    } else if (typeof window !== "undefined" && (window.location.hash === "#requirement" || window.location.hash === "#requirement-requests")) {
+      if (detail.requirementRequests.length > 0) {
+        setOpenReqId(detail.requirementRequests[0].id);
+      }
+      requestAnimationFrame(() => {
+        document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+    }
+  }, [initialReqId, detail.requirementRequests]);
 
   // Only one copilot instance is ever mounted (desktop aside on lg+,
   // bottom sheet on smaller screens) so voice mode can never start two
@@ -874,6 +899,7 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         </motion.section>
 
         {/* Requirement */}
+        <div id="requirement-requests" className="relative -top-20" aria-hidden="true" />
         <motion.section
           {...(reduced ? {} : STORY_FADE)}
           transition={{ duration: 0.35, delay: 0.25 }}

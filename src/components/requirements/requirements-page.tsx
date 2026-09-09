@@ -3,15 +3,16 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowUpRight, ClipboardList, Search } from "lucide-react";
+import { ArrowUpRight, Check, ClipboardList, Copy, ExternalLink, Search } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { StatusChip, TimeAgo } from "@/components/clients/kit";
+import { MicroButton, StatusChip, TimeAgo } from "@/components/clients/kit";
+import { RequirementRequestModal } from "./requirement-request-modal";
 
 /* ────────────────────────────────────────────────────────────────
    REQUIREMENTS — ADMIN DASHBOARD
    Every requirement request in the workspace, with real counts and
-   statuses. Each row opens the client's Command Center where the full
-   Requirement Command Center lives. No fake numbers — everything is
+   statuses. Each row opens the dedicated Command Center and connects
+   to the Client Workspace. No fake numbers — everything is
    queried from the workspace's actual records.
 ──────────────────────────────────────────────────────────────── */
 
@@ -58,6 +59,8 @@ export function RequirementsPage() {
   const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   const seq = useRef(0);
 
   const fetchRows = useCallback(async () => {
@@ -103,6 +106,20 @@ export function RequirementsPage() {
     [counts, needsReview],
   );
 
+  const copyRowLink = async (rowId: string) => {
+    try {
+      const res = await fetch(`/api/requirements/${rowId}/regenerate`, { method: "POST" });
+      const data = await res.json();
+      if (res.ok && data.link) {
+        await navigator.clipboard.writeText(data.link);
+        setCopiedId(rowId);
+        setTimeout(() => setCopiedId(null), 2000);
+      }
+    } catch {
+      /* ignore */
+    }
+  };
+
   return (
     <div className="px-5 sm:px-8 py-6 max-w-6xl">
       {/* Header */}
@@ -118,13 +135,14 @@ export function RequirementsPage() {
             Every client discovery workspace, from submission to approval.
           </p>
         </div>
-        <Link
-          href="/clients"
+        <button
+          type="button"
+          onClick={() => setRequestModalOpen(true)}
           className="inline-flex items-center gap-1.5 h-9 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[12px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150"
         >
           <ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />
           Request requirements
-        </Link>
+        </button>
       </div>
 
       {/* Intelligence strip */}
@@ -203,44 +221,93 @@ export function RequirementsPage() {
             <div className="mt-2 text-[13px] text-[var(--bos-text-secondary)]">
               {q ? `No requirements match “${q}”.` : "No requirement requests here yet."}
             </div>
-            {!q && (
-              <div className="mt-3">
-                <Link href="/clients" className="inline-flex items-center gap-1.5 text-[12px] text-[var(--bos-accent)] hover:text-[var(--bos-accent-hover)]">
-                  <ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />
-                  Open a client to request requirements
-                </Link>
-              </div>
-            )}
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={() => setRequestModalOpen(true)}
+                className="inline-flex items-center gap-1.5 text-[12px] text-[var(--bos-accent)] hover:text-[var(--bos-accent-hover)] font-medium"
+              >
+                <ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />
+                Configure and request requirements
+              </button>
+            </div>
           </div>
         )}
         {rows.map((row) => (
           <RequirementRow
             key={row.id}
             row={row}
+            copied={copiedId === row.id}
+            onCopy={() => void copyRowLink(row.id)}
             onOpen={() => {
-              if (row.clientId) {
-                router.push(`/clients/${row.clientId}#requirement-requests`);
-              } else {
-                router.push("/clients");
-              }
+              router.push(`/requirements/${row.id}`);
+            }}
+            onOpenClient={(e) => {
+              e.stopPropagation();
+              router.push(`/clients/${row.clientId}?req=${row.id}#requirement`);
             }}
           />
         ))}
       </div>
 
       {!loading && !error && rows.length > 0 && (
-        <div className="mt-4 flex items-center justify-between text-[11px] text-[var(--bos-text-tertiary)]">
+        <div className="mt-4 flex items-center justify-between text-[11px] text-[var(--bos-text-tertiary)] flex-wrap gap-2">
           <span>
             {counts["all"] ?? 0} request{counts["all"] === 1 ? "" : "s"} in workspace · {needsReview} need review
           </span>
-          <span className="font-mono uppercase tracking-[0.1em]">Discovery · Review · Proposal</span>
+          <div className="flex items-center gap-1.5 font-mono uppercase tracking-[0.1em]">
+            <button
+              type="button"
+              onClick={() => router.push("/requirements?view=in-progress")}
+              className="hover:text-[var(--bos-accent)] transition-colors"
+            >
+              Discovery
+            </button>
+            <span>·</span>
+            <button
+              type="button"
+              onClick={() => router.push("/requirements?view=needs-review")}
+              className="hover:text-[var(--bos-accent)] transition-colors"
+            >
+              Review
+            </button>
+            <span>·</span>
+            <button
+              type="button"
+              onClick={() => router.push("/requirements?view=approved")}
+              className="hover:text-[var(--bos-accent)] transition-colors"
+            >
+              Proposal
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Interactive Modal */}
+      <RequirementRequestModal
+        open={requestModalOpen}
+        onClose={() => setRequestModalOpen(false)}
+        onCreated={() => {
+          void fetchRows();
+        }}
+      />
     </div>
   );
 }
 
-function RequirementRow({ row, onOpen }: { row: Row; onOpen: () => void }) {
+function RequirementRow({
+  row,
+  copied,
+  onCopy,
+  onOpen,
+  onOpenClient,
+}: {
+  row: Row;
+  copied?: boolean;
+  onCopy: () => void;
+  onOpen: () => void;
+  onOpenClient: (e: React.MouseEvent) => void;
+}) {
   const statusTone =
     row.status === "APPROVED"
       ? "text-[var(--bos-success)]"
@@ -249,16 +316,25 @@ function RequirementRow({ row, onOpen }: { row: Row; onOpen: () => void }) {
         : "text-[var(--bos-text-tertiary)]";
 
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onOpen}
-      className="group w-full text-left rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] px-4 py-3.5 transition-all duration-150 hover:border-[var(--bos-border-strong)] hover:shadow-[var(--bos-shadow-sm)]"
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen();
+        }
+      }}
+      className="group w-full text-left rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] px-4 py-3.5 transition-all duration-150 hover:border-[var(--bos-border-strong)] hover:shadow-[var(--bos-shadow-sm)] cursor-pointer"
     >
       <div className="flex items-start gap-4">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="font-mono text-[10px] tracking-[0.1em] text-[var(--bos-text-tertiary)]">{row.reference}</span>
-            <span className="text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)] truncate">{row.title}</span>
+            <span className="text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors truncate">
+              {row.title}
+            </span>
             <StatusChip status={row.status} />
           </div>
 
@@ -278,7 +354,13 @@ function RequirementRow({ row, onOpen }: { row: Row; onOpen: () => void }) {
           <div className="mt-2.5 flex items-center gap-x-4 gap-y-1 flex-wrap text-[10px]">
             <span className="flex items-center gap-1.5">
               <span className="text-[var(--bos-text-tertiary)]">Client</span>
-              <span className="text-[var(--bos-text-secondary)] font-medium">{row.companyName}</span>
+              <button
+                type="button"
+                onClick={onOpenClient}
+                className="text-[var(--bos-text-secondary)] font-medium hover:text-[var(--bos-accent)] underline-offset-2 hover:underline transition-colors"
+              >
+                {row.companyName}
+              </button>
             </span>
             <span className="flex items-center gap-1.5">
               <span className="text-[var(--bos-text-tertiary)]">Completeness</span>
@@ -305,13 +387,23 @@ function RequirementRow({ row, onOpen }: { row: Row; onOpen: () => void }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 shrink-0 pt-0.5">
+        <div className="flex items-center gap-2.5 shrink-0 pt-0.5">
+          <MicroButton
+            onClick={(e) => {
+              e.stopPropagation();
+              onCopy();
+            }}
+            title="Copy client portal link"
+          >
+            {copied ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3 h-3" aria-hidden="true" />}
+            {copied ? "Copied" : "Copy link"}
+          </MicroButton>
           <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">
             {row.projectType.replace("_", " ")}
           </span>
           <ArrowUpRight className="w-4 h-4 text-[var(--bos-text-tertiary)] transition-colors duration-150 group-hover:text-[var(--bos-accent)]" />
         </div>
       </div>
-    </button>
+    </div>
   );
 }
