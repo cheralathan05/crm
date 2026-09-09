@@ -11,6 +11,19 @@ const RESOURCES = [
 
 type Resource = (typeof RESOURCES)[number];
 
+const RESOURCE_MAP: Record<string, Resource> = {
+  requirement: "requirements",
+  requirements: "requirements",
+  proposal: "proposals",
+  proposals: "proposals",
+  project: "projects",
+  projects: "projects",
+  task: "tasks",
+  tasks: "tasks",
+  payment: "payments",
+  payments: "payments",
+};
+
 type Ctx = { params: Promise<{ id: string; resource: string; rid: string }> };
 
 /* ── PATCH /api/clients/[id]/[resource]/[rid] — status transitions ──
@@ -24,7 +37,8 @@ export async function PATCH(req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
   }
   const { id, resource, rid } = await params;
-  if (!(RESOURCES as readonly string[]).includes(resource)) {
+  const canonicalResource = RESOURCE_MAP[resource?.toLowerCase()];
+  if (!canonicalResource) {
     return NextResponse.json({ ok: false, message: "Unknown resource." }, { status: 400 });
   }
 

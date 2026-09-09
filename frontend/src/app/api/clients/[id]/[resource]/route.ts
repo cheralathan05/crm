@@ -12,10 +12,33 @@ const RESOURCES = [
 
 type Resource = (typeof RESOURCES)[number];
 
+const RESOURCE_MAP: Record<string, Resource> = {
+  contact: "contacts",
+  contacts: "contacts",
+  activity: "activities",
+  activities: "activities",
+  requirement: "requirements",
+  requirements: "requirements",
+  proposal: "proposals",
+  proposals: "proposals",
+  project: "projects",
+  projects: "projects",
+  task: "tasks",
+  tasks: "tasks",
+  payment: "payments",
+  payments: "payments",
+  document: "documents",
+  documents: "documents",
+  message: "messages",
+  messages: "messages",
+  note: "notes",
+  notes: "notes",
+};
+
 type Ctx = { params: Promise<{ id: string; resource: string }> };
 
-function isResource(r: string): r is Resource {
-  return (RESOURCES as readonly string[]).includes(r);
+function normalizeResource(r: string): Resource | null {
+  return RESOURCE_MAP[r?.toLowerCase()] ?? null;
 }
 
 /* ── POST /api/clients/[id]/[resource] — context-preserving create ──
@@ -28,7 +51,8 @@ export async function POST(req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
   }
   const { id, resource } = await params;
-  if (!isResource(resource)) {
+  const canonicalResource = normalizeResource(resource);
+  if (!canonicalResource) {
     return NextResponse.json({ ok: false, message: "Unknown resource." }, { status: 400 });
   }
 
@@ -50,7 +74,7 @@ export async function POST(req: Request, { params }: Ctx) {
   const touch = () =>
     db.client.update({ where: { id: client.id }, data: { lastActivityAt: new Date() } });
 
-  switch (resource) {
+  switch (canonicalResource) {
     case "contacts": {
       const name = String(body.name ?? "").trim();
       if (!name) return NextResponse.json({ ok: false, message: "Contact name is required." }, { status: 400 });

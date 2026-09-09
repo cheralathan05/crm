@@ -62,7 +62,6 @@ export async function POST(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Approve or submit the requirements before creating a proposal." }, { status: 400 });
   }
 
-  // If requirement wasn't marked APPROVED, mark it approved upon proposal creation
   if (request.status !== "APPROVED") {
     await db.requirementRequest.update({
       where: { id: request.id },
