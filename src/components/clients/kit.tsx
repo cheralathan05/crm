@@ -127,7 +127,7 @@ export function MicroButton({
   disabled,
 }: {
   children: React.ReactNode;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
   variant?: "default" | "accent" | "ghost";
   className?: string;
   type?: "button" | "submit";

@@ -39,7 +39,7 @@ function resolveDbPath(): string {
     return cleanPath;
   }
 
-  return path.join(process.cwd(), cleanPath || "dev.db");
+  return path.join(/* turbopackIgnore: true */ process.cwd(), cleanPath || "dev.db");
 }
 
 function initializeDatabase(): { client: PrismaClient; raw: Database.Database } {
