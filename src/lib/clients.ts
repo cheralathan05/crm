@@ -11,7 +11,14 @@ import { db } from "./db";
 
 /** Resolve the authenticated user's workspace, or null. */
 export async function getWorkspaceForUser(userId: string) {
-  return db.workspace.findUnique({ where: { ownerId: userId } });
+  const owned = await db.workspace.findUnique({ where: { ownerId: userId } });
+  if (owned) return owned;
+  const emp = await db.employee.findFirst({ where: { userId } });
+  if (emp) {
+    const ws = await db.workspace.findUnique({ where: { id: emp.workspaceId } });
+    if (ws) return ws;
+  }
+  return db.workspace.findFirst();
 }
 
 /**
@@ -198,7 +205,7 @@ export function computeNextAction(
       title: "Review requirement",
       detail: latest.requirementUnderReview,
       kind: "review",
-      targetHref: "#requirements",
+      targetHref: "#requirement",
     };
   }
   if (s.hasProposalAwaiting !== null && latest.proposalAwaiting) {

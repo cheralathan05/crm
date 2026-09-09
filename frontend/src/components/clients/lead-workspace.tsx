@@ -574,6 +574,7 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const [toast, setToast] = useState<string | null>(null);
   const [timelineKey, setTimelineKey] = useState(0);
   const [reqConfigOpen, setReqConfigOpen] = useState(false);
+  const [openReqId, setOpenReqId] = useState<string | null>(null);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [copilotFullscreen, setCopilotFullscreen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
@@ -652,11 +653,22 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         setQuickCreate(a.title.toLowerCase().includes("proposal") ? "proposal" : "project");
         return;
       }
+      if (a.kind === "review" || a.targetHref === "#requirements" || a.targetHref === "#requirement") {
+        if (detail.requirementRequests.length > 0) {
+          setOpenReqId(detail.requirementRequests[0].id);
+        }
+        requestAnimationFrame(() => {
+          document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return;
+      }
       if (a.targetHref?.startsWith("#")) {
-        document.getElementById(a.targetHref.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
+        const targetId = a.targetHref.slice(1);
+        const el = document.getElementById(targetId) || (targetId === "requirements" ? document.getElementById("requirement") : null);
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     },
-    [],
+    [detail.requirementRequests],
   );
 
   const openCreate = useCallback((r: CreateResource) => {
@@ -665,12 +677,16 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   }, []);
 
   const openRequirements = useCallback(() => {
-    setReqConfigOpen(true);
+    if (detail.requirementRequests.length > 0) {
+      setOpenReqId(detail.requirementRequests[0].id);
+    } else {
+      setReqConfigOpen(true);
+    }
     setMoreOpen(false);
     requestAnimationFrame(() => {
-      document.getElementById("requirement-requests")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  }, []);
+  }, [detail.requirementRequests]);
 
   const openFullscreenCopilot = useCallback(() => {
     if (!isDesktop) {
@@ -875,6 +891,8 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
             defaultEmail={detail.primaryContact?.email}
             configOpen={reqConfigOpen}
             onConfigOpenChange={setReqConfigOpen}
+            openRequestId={openReqId}
+            onOpenRequestIdChange={setOpenReqId}
             onChanged={refresh}
           />
         </motion.section>

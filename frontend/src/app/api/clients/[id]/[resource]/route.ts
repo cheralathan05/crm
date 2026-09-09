@@ -271,7 +271,8 @@ export async function GET(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Authentication required." }, { status: 401 });
   }
   const { id, resource } = await params;
-  if (!isResource(resource)) {
+  const canonicalResource = normalizeResource(resource);
+  if (!canonicalResource) {
     return NextResponse.json({ ok: false, message: "Unknown resource." }, { status: 400 });
   }
 
@@ -280,7 +281,7 @@ export async function GET(_req: Request, { params }: Ctx) {
     return NextResponse.json({ ok: false, message: "Client not found." }, { status: 404 });
   }
 
-  const rows = await listResource(client.id, resource);
+  const rows = await listResource(client.id, canonicalResource);
   return NextResponse.json({ ok: true, rows });
 }
 

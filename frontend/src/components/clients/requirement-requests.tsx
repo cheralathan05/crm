@@ -24,6 +24,8 @@ export function RequirementRequests({
   defaultEmail,
   configOpen,
   onConfigOpenChange,
+  openRequestId: externalOpenRequestId,
+  onOpenRequestIdChange,
   onChanged,
 }: {
   requests: RequestRow[];
@@ -31,6 +33,8 @@ export function RequirementRequests({
   defaultEmail?: string | null;
   configOpen?: boolean;
   onConfigOpenChange?: (open: boolean) => void;
+  openRequestId?: string | null;
+  onOpenRequestIdChange?: (id: string | null) => void;
   onChanged: () => Promise<void>;
 }) {
   // Only one requirement request per client — the secure workspace is a
@@ -45,7 +49,12 @@ export function RequirementRequests({
   const [projectType, setProjectType] = useState<string>("ECOMMERCE");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState<string | null>(null);
-  const [openRequestId, setOpenRequestId] = useState<string | null>(null);
+  const [internalOpenRequestId, setInternalOpenRequestId] = useState<string | null>(null);
+  const openRequestId = externalOpenRequestId !== undefined ? externalOpenRequestId : internalOpenRequestId;
+  const setOpenRequestId = (id: string | null) => {
+    setInternalOpenRequestId(id);
+    onOpenRequestIdChange?.(id);
+  };
   const [links, setLinks] = useState<Record<string, string>>({});
   const [toast, setToast] = useState<string | null>(null);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -86,12 +95,26 @@ export function RequirementRequests({
     }
   };
 
-  const copyLink = async (id: string, link?: string) => {
-    if (!link) return;
+  const copyLink = async (id: string, existingLink?: string) => {
+    let linkToCopy = existingLink || links[id];
+    if (!linkToCopy) {
+      try {
+        const res = await fetch(`/api/requirements/${id}/regenerate`, { method: "POST" });
+        const data = await res.json();
+        if (data.ok && data.link) {
+          linkToCopy = data.link;
+          setLinks((prev) => ({ ...prev, [id]: data.link }));
+        }
+      } catch {
+        /* fallback */
+      }
+    }
+    if (!linkToCopy) return;
     try {
-      await navigator.clipboard.writeText(link);
+      await navigator.clipboard.writeText(linkToCopy);
       setCopiedId(id);
       setTimeout(() => setCopiedId(null), 1600);
+      notify("✓ Link copied to clipboard.");
     } catch {
       /* clipboard unavailable */
     }
@@ -212,12 +235,10 @@ export function RequirementRequests({
                     </div>
                   </div>
                   <div className="flex items-center gap-1.5 shrink-0">
-                    {link && (
-                      <MicroButton onClick={() => void copyLink(r.id, link)}>
-                        {copiedId === r.id ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3 h-3" aria-hidden="true" />}
-                        {copiedId === r.id ? "Copied" : "Copy link"}
-                      </MicroButton>
-                    )}
+                    <MicroButton onClick={() => void copyLink(r.id, link)}>
+                      {copiedId === r.id ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3 h-3" aria-hidden="true" />}
+                      {copiedId === r.id ? "Copied" : "Copy link"}
+                    </MicroButton>
                     {r.status === "DRAFT" && !link && (
                       <MicroButton onClick={() => setOpenRequestId(r.id)}>
                         <Mail className="w-3 h-3" aria-hidden="true" /> Send

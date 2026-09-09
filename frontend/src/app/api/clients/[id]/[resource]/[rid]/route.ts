@@ -97,7 +97,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
   const audit = (action: string, entityId: string, beforeStatus: string, after: unknown) =>
     recordAudit({
       clientId: client.id,
-      entity: ENTITY[resource as Resource] as never,
+      entity: ENTITY[canonicalResource] as never,
       action,
       entityId,
       actorId,
@@ -106,7 +106,7 @@ export async function PATCH(req: Request, { params }: Ctx) {
       after,
     });
 
-  switch (resource as Resource) {
+  switch (canonicalResource) {
     case "requirements": {
       const existing = await db.clientRequirement.findFirst({ where: { id: rid, clientId: client.id } });
       if (!existing) return NextResponse.json({ ok: false, message: "Requirement not found." }, { status: 404 });

@@ -19,6 +19,7 @@ import {
   FolderKanban,
   History,
   Mail,
+  Maximize2,
   MessageSquare,
   MoreHorizontal,
   Pencil,
@@ -562,67 +563,6 @@ function Toast({ message }: { message: string | null }) {
 
 /* ── Mobile copilot sheet ──────────────────────────────────── */
 
-function MobileCopilotSheet({
-  detail,
-  open,
-  onClose,
-  onRefresh,
-  onVoiceModeChange,
-}: {
-  detail: ClientDetail;
-  open: boolean;
-  onClose: () => void;
-  onRefresh: () => void;
-  onVoiceModeChange?: (active: boolean) => void;
-}) {
-  const reduced = useReducedMotion();
-  return (
-    <AnimatePresence>
-      {open && (
-        <>
-          <motion.div
-            initial={reduced ? false : { opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            className="fixed inset-0 z-50 bg-black/30 lg:hidden"
-            onClick={onClose}
-            aria-hidden="true"
-          />
-          <motion.div
-            initial={reduced ? false : { y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
-            transition={{ duration: 0.24, ease: "easeOut" }}
-            className="fixed inset-x-0 bottom-0 z-50 lg:hidden h-[78vh] rounded-t-xl border-t border-[var(--bos-line-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] flex flex-col"
-            role="dialog"
-            aria-label="Lead Copilot"
-          >
-            <div className="flex items-center justify-between px-4 pt-3 pb-1">
-              <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">
-                <Bot className="w-3.5 h-3.5 text-[var(--bos-accent)]" aria-hidden="true" />
-                Lead Copilot
-              </div>
-              <button type="button" onClick={onClose} aria-label="Close" className="p-1.5 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
-                <X className="w-4 h-4" aria-hidden="true" />
-              </button>
-            </div>
-            <div className="flex-1 min-h-0 px-4 pb-4">
-              <LeadCopilot
-                clientId={detail.client.id}
-                clientName={detail.client.companyName}
-                className="h-full"
-                onChanged={onRefresh}
-                onVoiceModeChange={onVoiceModeChange}
-              />
-            </div>
-          </motion.div>
-        </>
-      )}
-    </AnimatePresence>
-  );
-}
-
 /* ── Lead Workspace ────────────────────────────────────────── */
 
 export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; actorName: string }) {
@@ -634,7 +574,9 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const [toast, setToast] = useState<string | null>(null);
   const [timelineKey, setTimelineKey] = useState(0);
   const [reqConfigOpen, setReqConfigOpen] = useState(false);
+  const [openReqId, setOpenReqId] = useState<string | null>(null);
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [copilotFullscreen, setCopilotFullscreen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [voiceMode, setVoiceMode] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
@@ -711,11 +653,22 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         setQuickCreate(a.title.toLowerCase().includes("proposal") ? "proposal" : "project");
         return;
       }
+      if (a.kind === "review" || a.targetHref === "#requirements" || a.targetHref === "#requirement") {
+        if (detail.requirementRequests.length > 0) {
+          setOpenReqId(detail.requirementRequests[0].id);
+        }
+        requestAnimationFrame(() => {
+          document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        return;
+      }
       if (a.targetHref?.startsWith("#")) {
-        document.getElementById(a.targetHref.slice(1))?.scrollIntoView({ behavior: "smooth", block: "start" });
+        const targetId = a.targetHref.slice(1);
+        const el = document.getElementById(targetId) || (targetId === "requirements" ? document.getElementById("requirement") : null);
+        el?.scrollIntoView({ behavior: "smooth", block: "start" });
       }
     },
-    [],
+    [detail.requirementRequests],
   );
 
   const openCreate = useCallback((r: CreateResource) => {
@@ -724,12 +677,23 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   }, []);
 
   const openRequirements = useCallback(() => {
-    setReqConfigOpen(true);
+    if (detail.requirementRequests.length > 0) {
+      setOpenReqId(detail.requirementRequests[0].id);
+    } else {
+      setReqConfigOpen(true);
+    }
     setMoreOpen(false);
     requestAnimationFrame(() => {
-      document.getElementById("requirement-requests")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      document.getElementById("requirement")?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
-  }, []);
+  }, [detail.requirementRequests]);
+
+  const openFullscreenCopilot = useCallback(() => {
+    if (!isDesktop) {
+      setCopilotOpen(true);
+    }
+    setCopilotFullscreen(true);
+  }, [isDesktop]);
 
   const moreActions: { label: string; icon: React.ReactNode; resource: CreateResource }[] = [
     { label: "Contact", icon: <UserRound className="w-3.5 h-3.5" aria-hidden="true" />, resource: "contact" },
@@ -746,7 +710,7 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
   const ownerName = detail.client.ownerName ?? actorName;
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-[1400px]">
+    <div className="px-4 sm:px-8 py-6 w-full max-w-full">
       <Toast message={toast} />
 
       {/* ── Top bar ──────────────────────────────────────── */}
@@ -768,6 +732,11 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
             <MicroButton onClick={openRequirements}>
               <ClipboardList className="w-3 h-3" aria-hidden="true" />
               Requirement
+            </MicroButton>
+            <MicroButton onClick={openFullscreenCopilot} title="Expand Lead Copilot full screen">
+              <Bot className="w-3 h-3 text-[var(--bos-accent)]" aria-hidden="true" />
+              Copilot
+              <Maximize2 className="w-2.5 h-2.5 text-[var(--bos-text-tertiary)] ml-0.5" aria-hidden="true" />
             </MicroButton>
             <MicroButton onClick={() => openCreate("proposal")}>
               <FileText className="w-3 h-3" aria-hidden="true" />
@@ -872,158 +841,202 @@ export function LeadWorkspace({ initial, actorName }: { initial: ClientDetail; a
         <NextActionBlock detail={detail} ownerName={ownerName} onTake={takeAction} />
       </motion.div>
 
-      {/* ── Two-column: story + copilot ───────────────────── */}
-      <div
-        className={cn(
-          "mt-9 grid gap-8 xl:gap-10 transition-[grid-template-columns] duration-300 ease-out",
-          voiceMode ? "lg:grid-cols-[minmax(0,1fr)_480px]" : "lg:grid-cols-[minmax(0,1fr)_360px]",
-        )}
-      >
-        {/* Story — dims slightly while voice mode is active */}
-        <div
-          className={cn(
-            "min-w-0 space-y-10 transition-opacity duration-300",
-            voiceMode && "opacity-[0.93]",
-          )}
+      {/* ── Main workspace content — full screen width ───────── */}
+      <div className="mt-9 w-full min-w-0 space-y-10">
+        <motion.section
+          {...(reduced ? {} : STORY_FADE)}
+          transition={{ duration: 0.35, delay: 0.2 }}
+          aria-labelledby="lead-state"
         >
-          <motion.section
-            {...(reduced ? {} : STORY_FADE)}
-            transition={{ duration: 0.35, delay: 0.2 }}
-            aria-labelledby="lead-state"
-          >
-            <StoryHeader icon={<ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />}>Current state</StoryHeader>
-            <CurrentStateBlock detail={detail} />
-            {signals.length > 0 && (
-              <div className="mt-5 pt-4 border-t border-[var(--bos-line)]">
-                <div className="mb-2"><MonoLabel>Opportunity</MonoLabel></div>
-                <div className="flex flex-wrap gap-1.5">
-                  {signals.map((s) => (
-                    <span
-                      key={s.label}
-                      className={cn(
-                        "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm border text-[10px] font-medium",
-                        s.positive
-                          ? "border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 text-[var(--bos-success)]"
-                          : "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 text-[var(--bos-warning)]",
-                      )}
-                    >
-                      {s.positive ? <Check className="w-2.5 h-2.5" aria-hidden="true" /> : <ShieldAlert className="w-2.5 h-2.5" aria-hidden="true" />}
-                      {s.label}
-                    </span>
-                  ))}
-                </div>
+          <StoryHeader icon={<ShieldAlert className="w-3.5 h-3.5" aria-hidden="true" />}>Current state</StoryHeader>
+          <CurrentStateBlock detail={detail} />
+          {signals.length > 0 && (
+            <div className="mt-5 pt-4 border-t border-[var(--bos-line)]">
+              <div className="mb-2"><MonoLabel>Opportunity</MonoLabel></div>
+              <div className="flex flex-wrap gap-1.5">
+                {signals.map((s) => (
+                  <span
+                    key={s.label}
+                    className={cn(
+                      "inline-flex items-center gap-1.5 px-2 py-1 rounded-sm border text-[10px] font-medium",
+                      s.positive
+                        ? "border-[var(--bos-success)]/25 bg-[var(--bos-success)]/5 text-[var(--bos-success)]"
+                        : "border-[var(--bos-warning)]/25 bg-[var(--bos-warning)]/5 text-[var(--bos-warning)]",
+                    )}
+                  >
+                    {s.positive ? <Check className="w-2.5 h-2.5" aria-hidden="true" /> : <ShieldAlert className="w-2.5 h-2.5" aria-hidden="true" />}
+                    {s.label}
+                  </span>
+                ))}
               </div>
-            )}
-          </motion.section>
-
-          {/* Requirement */}
-          <motion.section
-            {...(reduced ? {} : STORY_FADE)}
-            transition={{ duration: 0.35, delay: 0.25 }}
-            id="requirement"
-          >
-            <StoryHeader
-              icon={<ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />}
-              meta={detail.requirementRequests.length > 0 ? `${detail.requirementRequests.length} request${detail.requirementRequests.length === 1 ? "" : "s"}` : undefined}
-            >
-              Requirement
-            </StoryHeader>
-            <RequirementRequests
-              requests={detail.requirementRequests}
-              clientId={detail.client.id}
-              defaultEmail={detail.primaryContact?.email}
-              configOpen={reqConfigOpen}
-              onConfigOpenChange={setReqConfigOpen}
-              onChanged={refresh}
-            />
-          </motion.section>
-
-          {/* Activity */}
-          <motion.section
-            {...(reduced ? {} : STORY_FADE)}
-            transition={{ duration: 0.35, delay: 0.3 }}
-          >
-            <StoryHeader icon={<History className="w-3.5 h-3.5" aria-hidden="true" />}>Activity</StoryHeader>
-            <Timeline clientId={detail.client.id} initial={[]} refreshKey={timelineKey} />
-          </motion.section>
-
-          {/* Connected */}
-          <motion.section {...(reduced ? {} : STORY_FADE)} transition={{ duration: 0.35, delay: 0.35 }}>
-            <StoryHeader icon={<Users className="w-3.5 h-3.5" aria-hidden="true" />}>Connected</StoryHeader>
-            <ConnectedList detail={detail} />
-          </motion.section>
-
-          {/* Quick create panel */}
-          {quickCreate && (
-            <div className="max-w-xl">
-              <QuickCreate clientId={detail.client.id} resource={quickCreate} onClose={() => setQuickCreate(null)} onSaved={refresh} />
             </div>
           )}
+        </motion.section>
 
-          {/* Edit panel */}
-          {editOpen && (
-            <LeadEdit
-              detail={detail}
-              onClose={() => setEditOpen(false)}
-              onSaved={async () => {
-                await refresh();
-                setEditOpen(false);
-                notify("Lead details updated.");
-              }}
-            />
-          )}
-
-          {/* Full record — progressive disclosure */}
-          <FullRecord
-            detail={detail}
-            transition={transition}
-            openCreate={openCreate}
-            openRequirements={openRequirements}
+        {/* Requirement */}
+        <motion.section
+          {...(reduced ? {} : STORY_FADE)}
+          transition={{ duration: 0.35, delay: 0.25 }}
+          id="requirement"
+        >
+          <StoryHeader
+            icon={<ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />}
+            meta={detail.requirementRequests.length > 0 ? `${detail.requirementRequests.length} request${detail.requirementRequests.length === 1 ? "" : "s"}` : undefined}
+          >
+            Requirement
+          </StoryHeader>
+          <RequirementRequests
+            requests={detail.requirementRequests}
+            clientId={detail.client.id}
+            defaultEmail={detail.primaryContact?.email}
+            configOpen={reqConfigOpen}
+            onConfigOpenChange={setReqConfigOpen}
+            openRequestId={openReqId}
+            onOpenRequestIdChange={setOpenReqId}
+            onChanged={refresh}
           />
+        </motion.section>
 
-          <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)] pt-2">
-            <span>Everything here is derived from this lead&apos;s real records.</span>
-            <span className="font-mono uppercase tracking-[0.1em]">{leadCode(detail.client.id)}</span>
+        {/* Activity */}
+        <motion.section
+          {...(reduced ? {} : STORY_FADE)}
+          transition={{ duration: 0.35, delay: 0.3 }}
+        >
+          <StoryHeader icon={<History className="w-3.5 h-3.5" aria-hidden="true" />}>Activity</StoryHeader>
+          <Timeline clientId={detail.client.id} initial={[]} refreshKey={timelineKey} />
+        </motion.section>
+
+        {/* Connected */}
+        <motion.section {...(reduced ? {} : STORY_FADE)} transition={{ duration: 0.35, delay: 0.35 }}>
+          <StoryHeader icon={<Users className="w-3.5 h-3.5" aria-hidden="true" />}>Connected</StoryHeader>
+          <ConnectedList detail={detail} />
+        </motion.section>
+
+        {/* Quick create panel */}
+        {quickCreate && (
+          <div className="max-w-xl">
+            <QuickCreate clientId={detail.client.id} resource={quickCreate} onClose={() => setQuickCreate(null)} onSaved={refresh} />
           </div>
-        </div>
-
-        {/* Copilot — desktop */}
-        {isDesktop && (
-          <aside className="flex flex-col sticky top-20 self-start w-full">
-            <div className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/50 p-4 flex flex-col" style={{ height: "min(640px, calc(100vh - 8rem))" }}>
-              <LeadCopilot
-                clientId={detail.client.id}
-                clientName={detail.client.companyName}
-                className="h-full"
-                onChanged={refresh}
-                onVoiceModeChange={setVoiceMode}
-              />
-            </div>
-          </aside>
         )}
+
+        {/* Edit panel */}
+        {editOpen && (
+          <LeadEdit
+            detail={detail}
+            onClose={() => setEditOpen(false)}
+            onSaved={async () => {
+              await refresh();
+              setEditOpen(false);
+              notify("Lead details updated.");
+            }}
+          />
+        )}
+
+        {/* Full record — progressive disclosure */}
+        <FullRecord
+          detail={detail}
+          transition={transition}
+          openCreate={openCreate}
+          openRequirements={openRequirements}
+        />
+
+        <div className="flex items-center justify-between text-[10px] text-[var(--bos-text-tertiary)] pt-2">
+          <span>Everything here is derived from this lead&apos;s real records.</span>
+          <span className="font-mono uppercase tracking-[0.1em]">{leadCode(detail.client.id)}</span>
+        </div>
       </div>
 
-      {/* Mobile: Ask AI FAB + sheet (only when the desktop aside isn't mounted) */}
-      {!isDesktop && (
+      {/* ── Lead Copilot — Simple Floating Icon ──────────────── */}
+      {!copilotOpen && (
         <button
           type="button"
           onClick={() => setCopilotOpen(true)}
-          className="fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 h-11 px-4 rounded-full bg-[var(--bos-accent)] text-white text-[12px] font-medium shadow-[var(--bos-shadow-md)] hover:bg-[var(--bos-accent-hover)] transition-colors duration-150"
-          aria-label="Ask AI about this lead"
+          className="fixed bottom-6 right-6 z-40 flex items-center justify-center w-12 h-12 rounded-full bg-[var(--bos-accent)] text-white shadow-[var(--bos-shadow-lg)] hover:bg-[var(--bos-accent-hover)] hover:scale-105 active:scale-95 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[var(--bos-accent-ring)]"
+          aria-label="Lead Copilot"
+          title="Lead Copilot"
         >
-          <Bot className="w-4 h-4" aria-hidden="true" />
-          Ask AI
+          <Bot className="w-5 h-5" aria-hidden="true" />
+          <span
+            className="absolute top-0 right-0 w-3.5 h-3.5 rounded-full bg-[var(--bos-success)] border-2 border-[var(--bos-bg)] animate-pulse"
+            title="Copilot online"
+            aria-hidden="true"
+          />
         </button>
       )}
-      {!isDesktop && (
-        <MobileCopilotSheet
-          detail={detail}
-          open={copilotOpen}
-          onClose={() => setCopilotOpen(false)}
-          onRefresh={refresh}
-          onVoiceModeChange={setVoiceMode}
-        />
-      )}
+
+      {/* ── Lead Copilot — Floating Panel / Drawer ──────────── */}
+      <AnimatePresence>
+        {copilotOpen && (
+          <>
+            {/* Mobile backdrop */}
+            <motion.div
+              initial={reduced ? false : { opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+              className="fixed inset-0 z-50 bg-black/30 lg:hidden"
+              onClick={() => setCopilotOpen(false)}
+              aria-hidden="true"
+            />
+            <motion.div
+              initial={reduced ? false : { opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 16, scale: 0.96 }}
+              transition={{ duration: 0.2, ease: "easeOut" }}
+              className={cn(
+                "fixed z-50 shadow-[var(--bos-shadow-xl)] border border-[var(--bos-line-strong)] bg-[var(--bos-bg)] flex flex-col overflow-hidden",
+                isDesktop
+                  ? "bottom-20 right-6 w-[430px] max-w-[calc(100vw-3rem)] h-[min(680px,calc(100vh-6.5rem))] rounded-xl"
+                  : "inset-x-0 bottom-0 h-[80vh] rounded-t-xl",
+              )}
+              role="dialog"
+              aria-label="Lead Copilot"
+            >
+              {/* Floating Panel Header */}
+              <div className="flex items-center justify-between px-4 pt-3 pb-2 border-b border-[var(--bos-line)] bg-[var(--bos-surface)]/60 shrink-0">
+                <div className="flex items-center gap-2 text-[10px] font-mono uppercase tracking-[0.16em] text-[var(--bos-text-secondary)]">
+                  <Bot className="w-3.5 h-3.5 text-[var(--bos-accent)]" aria-hidden="true" />
+                  Lead Copilot
+                </div>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setCopilotFullscreen(true)}
+                    className="p-1 rounded-sm text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors"
+                    title="Full screen"
+                    aria-label="Full screen"
+                  >
+                    <Maximize2 className="w-3.5 h-3.5" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCopilotOpen(false)}
+                    aria-label="Close to icon"
+                    title="Close to icon"
+                    className="p-1 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] rounded-sm transition-colors"
+                  >
+                    <X className="w-4 h-4" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+              <div className="flex-1 min-h-0 px-4 pb-4">
+                <LeadCopilot
+                  clientId={detail.client.id}
+                  clientName={detail.client.companyName}
+                  className="h-full"
+                  isFullscreen={copilotFullscreen}
+                  onFullscreenChange={(fs) => {
+                    setCopilotFullscreen(fs);
+                    if (fs) setCopilotOpen(true);
+                  }}
+                  onChanged={refresh}
+                  onVoiceModeChange={setVoiceMode}
+                />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

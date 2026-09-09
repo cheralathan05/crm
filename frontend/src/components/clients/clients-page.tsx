@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ArrowRight, ArrowUpRight, Plus, Search, UserPlus } from "lucide-react";
+import { ArrowRight, ArrowUpRight, Plus, Search, UserPlus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { StatusChip, TimeAgo } from "./kit";
 import { CreateClientPanel } from "./create-client";
@@ -186,6 +186,7 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(initialNew);
+  const [showManageFields, setShowManageFields] = useState(false);
   const seq = useRef(0);
 
   const fetchRows = useCallback(async () => {
@@ -306,6 +307,7 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
           { key: "all", label: "All Clients" },
           { key: "active", label: "Active" },
           { key: "leads", label: "Leads" },
+          { key: "attention", label: "Needs Attention" },
           { key: "archived", label: "Archived" },
         ].map((f) => (
           <button
@@ -370,11 +372,191 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
           <span>
             {strip?.total ?? 0} clients in workspace · {strip?.active ?? 0} active
           </span>
-          <Link href="/clients" className="inline-flex items-center gap-1 hover:text-[var(--bos-text-secondary)] transition-colors duration-150">
+          <button
+            type="button"
+            onClick={() => setShowManageFields(true)}
+            className="inline-flex items-center gap-1 hover:text-[var(--bos-text-secondary)] transition-colors duration-150 cursor-pointer"
+          >
             Manage fields <ArrowRight className="w-3 h-3" aria-hidden="true" />
-          </Link>
+          </button>
         </div>
       )}
+
+      {showManageFields && (
+        <ManageFieldsModal onClose={() => setShowManageFields(false)} />
+      )}
+    </div>
+  );
+}
+
+function ManageFieldsModal({ onClose }: { onClose: () => void }) {
+  const [fields, setFields] = useState<{ id: string; label: string; type: string; options: string[] }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [newLabel, setNewLabel] = useState("");
+  const [newType, setNewType] = useState("text");
+  const [newOptions, setNewOptions] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  const loadFields = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/clients/fields");
+      const data = await res.json();
+      if (res.ok && data.ok) {
+        setFields(data.fields ?? []);
+      } else {
+        setError(data.message ?? "Failed to load custom fields.");
+      }
+    } catch {
+      setError("Network error loading fields.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void loadFields();
+  }, [loadFields]);
+
+  const handleAddField = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newLabel.trim() || saving) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const optionsArray = newType === "select" ? newOptions.split(",").map((s) => s.trim()).filter(Boolean) : [];
+      const res = await fetch("/api/clients/fields", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          label: newLabel.trim(),
+          type: newType,
+          options: optionsArray,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message ?? "Failed to add field.");
+        return;
+      }
+      setNewLabel("");
+      setNewOptions("");
+      await loadFields();
+    } catch {
+      setError("Network error adding field.");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      <div className="w-full max-w-lg rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-xl)] overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-3.5 border-b border-[var(--bos-line)]">
+          <div>
+            <h2 className="text-[14px] font-semibold text-[var(--bos-text-primary)]">Custom Client Fields</h2>
+            <p className="text-[11px] text-[var(--bos-text-tertiary)]">Configure custom attributes for clients in this workspace.</p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="p-1 rounded-sm text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors"
+          >
+            <X className="w-4 h-4" aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="p-5 max-h-[70vh] overflow-y-auto space-y-5">
+          {error && (
+            <div className="rounded-sm border border-[var(--bos-error)]/30 bg-[var(--bos-error)]/5 px-3 py-2 text-[12px] text-[var(--bos-error)]">
+              {error}
+            </div>
+          )}
+
+          <div>
+            <div className="text-[10px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)] mb-2">
+              Configured Fields ({fields.length})
+            </div>
+            {loading ? (
+              <div className="text-[12px] text-[var(--bos-text-tertiary)]">Loading fields…</div>
+            ) : fields.length === 0 ? (
+              <div className="text-[12px] text-[var(--bos-text-secondary)] italic">No custom fields created yet.</div>
+            ) : (
+              <div className="divide-y divide-[var(--bos-line)] rounded-sm border border-[var(--bos-line)]">
+                {fields.map((f) => (
+                  <div key={f.id} className="flex items-center justify-between px-3 py-2 text-[12px]">
+                    <span className="font-medium text-[var(--bos-text-primary)]">{f.label}</span>
+                    <span className="font-mono text-[10px] uppercase text-[var(--bos-text-tertiary)]">{f.type}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={(e) => void handleAddField(e)} className="rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/50 p-4 space-y-3">
+            <div className="text-[11px] font-semibold text-[var(--bos-text-primary)]">Add New Custom Field</div>
+            <div>
+              <label className="bos-label">Field Label</label>
+              <input
+                value={newLabel}
+                onChange={(e) => setNewLabel(e.target.value)}
+                placeholder="e.g. Tax ID, Region, Lead Tier"
+                required
+                className="w-full h-8 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[12px] outline-none focus:border-[var(--bos-accent)]"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="bos-label">Type</label>
+                <select
+                  value={newType}
+                  onChange={(e) => setNewType(e.target.value)}
+                  className="w-full h-8 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[12px] outline-none focus:border-[var(--bos-accent)]"
+                >
+                  <option value="text">Text</option>
+                  <option value="number">Number</option>
+                  <option value="date">Date</option>
+                  <option value="select">Dropdown Select</option>
+                </select>
+              </div>
+              {newType === "select" && (
+                <div>
+                  <label className="bos-label">Options (comma separated)</label>
+                  <input
+                    value={newOptions}
+                    onChange={(e) => setNewOptions(e.target.value)}
+                    placeholder="Option A, Option B, Option C"
+                    className="w-full h-8 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[12px] outline-none focus:border-[var(--bos-accent)]"
+                  />
+                </div>
+              )}
+            </div>
+            <div className="flex justify-end pt-1">
+              <button
+                type="submit"
+                disabled={!newLabel.trim() || saving}
+                className="inline-flex items-center gap-1.5 h-8 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[12px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors disabled:opacity-50"
+              >
+                <Plus className="w-3.5 h-3.5" aria-hidden="true" />
+                {saving ? "Adding…" : "Add Field"}
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div className="flex justify-end px-5 py-3 border-t border-[var(--bos-line)] bg-[var(--bos-surface)]/30">
+          <button
+            type="button"
+            onClick={onClose}
+            className="h-8 px-3 rounded-sm border border-[var(--bos-line)] text-[12px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)]"
+          >
+            Done
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

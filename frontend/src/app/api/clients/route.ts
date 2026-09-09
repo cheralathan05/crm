@@ -24,52 +24,23 @@ export async function GET(req: Request) {
   const page = Math.max(1, Number(url.searchParams.get("page") ?? "1"));
   const pageSize = Math.min(50, Math.max(5, Number(url.searchParams.get("pageSize") ?? "10")));
 
-  const statusFilter =
-    view === "active" ? "ACTIVE"
-    : view === "leads" ? "LEAD"
-    : view === "archived" ? "ARCHIVED"
-    : undefined;
-
-  const where = {
-    workspaceId: workspace.id,
-    ...(statusFilter ? { status: statusFilter as never } : {}),
-    ...(q
-      ? {
-          OR: [
-            { companyName: { contains: q } },
-            { email: { contains: q } },
-            { industry: { contains: q } },
-          ],
-        }
-      : {}),
-  };
-
-  const [total, clients] = await Promise.all([
-    db.client.count({ where }),
-    db.client.findMany({
-      where,
-      orderBy: { updatedAt: "desc" },
-      skip: (page - 1) * pageSize,
-      take: pageSize,
-    }),
-  ]);
-
-  // Serialize rows in parallel (each loads its own lightweight relation set).
-  const rows = await Promise.all(clients.map((c) => serializeClientListRow(c)));
-
-  // Intelligence strip — real counts from the workspace.
-  const [countTotal, countActive, countLeads, countArchived] = await Promise.all([
+  // Intelligence strip & attention items — workspace-wide real counts
+  const [
+    countTotal,
+    countActive,
+    countLeads,
+    countArchived,
+    attentionReqs,
+    attentionProps,
+    attentionPayments,
+    attentionTasks,
+    attentionProjects,
+    pipelineValue,
+  ] = await Promise.all([
     db.client.count({ where: { workspaceId: workspace.id } }),
     db.client.count({ where: { workspaceId: workspace.id, status: "ACTIVE" } }),
     db.client.count({ where: { workspaceId: workspace.id, status: "LEAD" } }),
     db.client.count({ where: { workspaceId: workspace.id, status: "ARCHIVED" } }),
-  ]);
-
-  // Needs attention — workspace-wide union of clients with any live issue
-  // (requirement to review, proposal awaiting response, overdue money,
-  // blocked task, or at-risk project). Real counts, independent of the
-  // current page/filter.
-  const [attentionReqs, attentionProps, attentionPayments, attentionTasks, attentionProjects] = await Promise.all([
     db.clientRequirement.findMany({
       where: { client: { workspaceId: workspace.id }, status: { in: ["SUBMITTED", "UNDER_REVIEW"] } },
       select: { clientId: true },
@@ -95,7 +66,12 @@ export async function GET(req: Request) {
       select: { clientId: true },
       distinct: ["clientId"],
     }),
+    db.clientPayment.aggregate({
+      where: { client: { workspaceId: workspace.id }, status: { in: ["PENDING", "OVERDUE"] } },
+      _sum: { amount: true },
+    }),
   ]);
+
   const attentionClientIds = new Set([
     ...attentionReqs.map((r) => r.clientId),
     ...attentionProps.map((p) => p.clientId),
@@ -104,10 +80,40 @@ export async function GET(req: Request) {
     ...attentionProjects.map((p) => p.clientId),
   ]);
 
-  const pipelineValue = await db.clientPayment.aggregate({
-    where: { client: { workspaceId: workspace.id }, status: { in: ["PENDING", "OVERDUE"] } },
-    _sum: { amount: true },
-  });
+  const statusFilter =
+    view === "active" ? "ACTIVE"
+    : view === "leads" ? "LEAD"
+    : view === "archived" ? "ARCHIVED"
+    : undefined;
+
+  const where = {
+    workspaceId: workspace.id,
+    ...(statusFilter ? { status: statusFilter as never } : {}),
+    ...(view === "attention" ? { id: { in: Array.from(attentionClientIds) } } : {}),
+    ...(q
+      ? {
+          OR: [
+            { companyName: { contains: q } },
+            { email: { contains: q } },
+            { industry: { contains: q } },
+            { contacts: { some: { name: { contains: q } } } },
+          ],
+        }
+      : {}),
+  };
+
+  const [total, clients] = await Promise.all([
+    db.client.count({ where }),
+    db.client.findMany({
+      where,
+      orderBy: { updatedAt: "desc" },
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+  ]);
+
+  // Serialize rows in parallel (each loads its own lightweight relation set).
+  const rows = await Promise.all(clients.map((c) => serializeClientListRow(c)));
 
   return NextResponse.json({
     ok: true,
