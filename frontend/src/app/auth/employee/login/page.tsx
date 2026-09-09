@@ -8,6 +8,11 @@ import { Eye, EyeOff, ArrowRight, Shield, Check, Lock, AlertCircle, Loader2 } fr
 import { BusinessOSLogo } from "@/components/business-os-mark";
 import { SystemGrid } from "@/components/system-grid";
 import { AmbientBackground } from "@/components/ambient-background";
+import {
+  NoticeBannerBar,
+  NoticeBoardModal,
+  NoticeFloatingBeacon,
+} from "@/components/notice-board";
 
 export default function EmployeeLoginPage() {
   return (
@@ -42,6 +47,7 @@ function EmployeeLoginContent() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [noticeModalOpen, setNoticeModalOpen] = useState(false);
 
   // Active step in the system map animation
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -99,9 +105,13 @@ function EmployeeLoginContent() {
   );
 
   return (
-    <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
-      <SystemGrid />
-      <AmbientBackground />
+    <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col overflow-hidden font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
+      {/* ── Persistent Top Notice Bar ──────────────────── */}
+      <NoticeBannerBar onOpenModal={() => setNoticeModalOpen(true)} />
+
+      <div className="relative flex-1 flex flex-col lg:flex-row overflow-hidden">
+        <SystemGrid />
+        <AmbientBackground />
 
       {/* ── LEFT PANEL (58%): Business OS Operating Environment ── */}
       <div className="hidden lg:flex lg:w-[58%] flex-col justify-between p-12 xl:p-16 border-r border-[var(--bos-line)] relative z-10">
@@ -373,6 +383,13 @@ function EmployeeLoginContent() {
           <span>SESSION PROTECTED</span>
         </div>
       </div>
+      </div>
+
+      {/* ── Interactive Notice Board Modal ──────────────── */}
+      <NoticeBoardModal isOpen={noticeModalOpen} onClose={() => setNoticeModalOpen(false)} />
+
+      {/* ── Corner Floating Beacon ──────────────────────── */}
+      {!noticeModalOpen && <NoticeFloatingBeacon onOpen={() => setNoticeModalOpen(true)} />}
     </div>
   );
 }

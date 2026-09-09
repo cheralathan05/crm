@@ -199,6 +199,19 @@ function LoginContent() {
             subtitle="Your workspace is waiting."
           />
 
+          {/* Active Development Notice on Login */}
+          <div className="mb-5 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 backdrop-blur-md flex items-start gap-2.5 shadow-sm">
+            <span className="w-2 h-2 rounded-full bg-amber-400 animate-ping mt-1 shrink-0" />
+            <div className="text-xs">
+              <span className="font-mono font-bold text-amber-300 uppercase tracking-wider block text-[10px]">
+                Work In Progress // Active Preview Build
+              </span>
+              <p className="text-[11px] text-[var(--bos-text-secondary)] mt-0.5 leading-snug">
+                This CRM deployment is under active development and is <strong className="text-amber-300 font-medium">not the final product</strong>. Continuous updates and feature iterations are actively deploying.
+              </p>
+            </div>
+          </div>
+
           {error && (
             <div className="mb-5">
               <AuthStatus type="error" message={error} />
