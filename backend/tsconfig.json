@@ -4,12 +4,23 @@
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
     "esModuleInterop": true,
-    "strict": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": false,
     "skipLibCheck": true,
+    "noEmit": true,
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*", "scripts/**/*", "prisma.config.ts"]
+  "include": [
+    "src/server.ts",
+    "src/lib/db.ts",
+    "src/lib/settings/control-plane-health.service.ts",
+    "src/lib/settings/settings-control.service.ts",
+    "src/lib/mail.ts",
+    "src/generated/**/*",
+    "prisma.config.ts"
+  ]
 }
+

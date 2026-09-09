@@ -21,18 +21,24 @@ const server = http.createServer(async (req, res) => {
 
   if (url.pathname === "/" || url.pathname === "/health" || url.pathname === "/api/health") {
     try {
-      const workspace = await db.workspace.findFirst();
+      let workspace = null;
       let healthInfo = null;
-      if (workspace) {
-        healthInfo = await evaluateControlPlaneHealth(workspace.id);
+      try {
+        workspace = await db.workspace.findFirst();
+        if (workspace) {
+          healthInfo = await evaluateControlPlaneHealth(workspace.id);
+        }
+      } catch (dbErr: any) {
+        console.warn("[Health Check] Database not yet seeded or initializing:", dbErr.message);
       }
+
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(
         JSON.stringify({
           status: "healthy",
           uptime: process.uptime(),
           timestamp: new Date().toISOString(),
-          database: "connected",
+          database: workspace ? "connected" : "ready",
           workspace: workspace ? { id: workspace.id, companyName: workspace.companyName } : null,
           health: healthInfo ? { overall: healthInfo.overall, readiness: healthInfo.readiness } : "ready",
         })

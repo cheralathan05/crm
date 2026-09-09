@@ -10,7 +10,7 @@
     "db:studio": "prisma studio",
     "test:settings": "tsx scripts/test_settings_control_plane.ts",
     "dev": "tsx watch src/server.ts",
-    "build": "prisma generate && prisma db push",
+    "build": "tsc && prisma db push",
     "start": "tsx src/server.ts"
   },
   "dependencies": {
