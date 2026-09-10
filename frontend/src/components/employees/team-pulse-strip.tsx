@@ -132,7 +132,7 @@ export function TeamPulseStrip({
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-2.5">
+    <div className="flex overflow-x-auto pb-2 snap-x no-scrollbar scrollbar-none md:grid md:grid-cols-5 lg:grid-cols-9 gap-2 sm:gap-2.5 max-w-full">
       {cards.map((c) => {
         const Icon = c.icon;
         const isSelected = activeFilter === c.key;
@@ -143,7 +143,7 @@ export function TeamPulseStrip({
             type="button"
             onClick={() => onSelectFilter(isSelected && c.key !== "ALL" ? "ALL" : c.key)}
             className={cn(
-              "p-3 rounded-xl border text-left transition-all duration-150 relative overflow-hidden group cursor-pointer flex flex-col justify-between min-h-[90px]",
+              "p-2.5 sm:p-3 rounded-xl border text-left transition-all duration-150 relative overflow-hidden group cursor-pointer flex flex-col justify-between min-h-[85px] sm:min-h-[90px] min-w-[130px] sm:min-w-0 snap-start shrink-0 md:shrink",
               c.bgColor,
               c.borderColor,
               isSelected

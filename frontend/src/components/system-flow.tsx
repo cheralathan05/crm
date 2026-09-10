@@ -84,6 +84,7 @@ export function SystemFlow({ className }: SystemFlowProps) {
 
 /**
  * Compact horizontal flow — used on mobile.
+ * Wraps neatly across multiple lines without blowing out the mobile viewport width.
  */
 export function SystemFlowCompact({ className }: SystemFlowProps) {
   const labels = nodes.map((n) => n.label);
@@ -91,13 +92,13 @@ export function SystemFlowCompact({ className }: SystemFlowProps) {
   return (
     <div
       className={cn(
-        "flex items-center gap-1.5 text-[9px] font-mono tracking-[0.12em] uppercase text-[var(--bos-text-tertiary)]",
+        "flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-[9px] font-mono tracking-[0.1em] uppercase text-[var(--bos-text-tertiary)] max-w-full text-center",
         className,
       )}
       aria-hidden="true"
     >
       {labels.map((label, i) => (
-        <span key={label} className="flex items-center gap-1.5">
+        <span key={label} className="inline-flex items-center gap-1.5 shrink-0">
           <span>{label}</span>
           {i < labels.length - 1 && <span className="opacity-30">→</span>}
         </span>

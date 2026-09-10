@@ -362,7 +362,7 @@ export default function EmployeeForgotPasswordPage() {
 
               <form onSubmit={handleVerifyOtp} className="space-y-5">
                 {/* 6-box OTP input */}
-                <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center justify-between gap-1.5 sm:gap-2 w-full max-w-full">
                   {otp.map((digit, idx) => (
                     <input
                       key={idx}
@@ -377,7 +377,7 @@ export default function EmployeeForgotPasswordPage() {
                       onChange={(e) => handleOtpChange(idx, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                       onPaste={handleOtpPaste}
-                      className="w-12 h-14 sm:w-14 sm:h-16 text-center text-xl sm:text-2xl font-mono font-bold bg-[var(--bos-surface)] border border-[var(--bos-border-strong)] rounded-sm text-[var(--bos-text-primary)] focus:outline-hidden focus:border-[var(--bos-accent)] focus:ring-1 focus:ring-[var(--bos-accent)]"
+                      className="flex-1 min-w-0 max-w-[48px] sm:max-w-[56px] h-12 sm:h-16 text-center text-lg sm:text-2xl font-mono font-bold bg-[var(--bos-surface)] border border-[var(--bos-border-strong)] rounded-sm text-[var(--bos-text-primary)] focus:outline-hidden focus:border-[var(--bos-accent)] focus:ring-1 focus:ring-[var(--bos-accent)]"
                     />
                   ))}
                 </div>

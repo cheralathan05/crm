@@ -7,6 +7,7 @@ import {
   Users,
   MessageSquare,
   AlertOctagon,
+  ArrowLeft,
   ArrowRight,
   Send,
   Plus,
@@ -34,6 +35,7 @@ export function WorkMessagesWorkspace() {
   const [selectedThreadId, setSelectedThreadId] = useState<string | null>(null);
   const [threadDetails, setThreadDetails] = useState<any>(null);
   const [threadLoading, setThreadLoading] = useState(false);
+  const [mobileView, setMobileView] = useState<"list" | "chat">("list");
 
   // Left sidebar active navigation
   const [navSection, setNavSection] = useState<"inbox" | "projects" | "team" | "direct" | "blockers">("inbox");
@@ -68,6 +70,7 @@ export function WorkMessagesWorkspace() {
         setHubData(json);
         if (preferredThreadId) {
           setSelectedThreadId(preferredThreadId);
+          setMobileView("chat");
         } else if (!selectedThreadId && json.conversations?.length > 0) {
           setSelectedThreadId(json.conversations[0].id);
         }
@@ -314,9 +317,12 @@ export function WorkMessagesWorkspace() {
   });
 
   return (
-    <div className="h-[calc(100vh-3.8rem)] flex overflow-hidden bg-[var(--bos-bg)] text-[var(--bos-text-primary)] border-t border-[var(--bos-border)]">
+    <div className="h-[calc(100vh-3.8rem)] flex overflow-hidden bg-[var(--bos-bg)] text-[var(--bos-text-primary)] border-t border-[var(--bos-border)] max-w-full">
       {/* ── COLUMN 1: LEFT SIDEBAR (WORK HUBS & ROSTERS) ──────────────────────── */}
-      <aside className="w-80 shrink-0 border-r border-[var(--bos-border)] bg-[var(--bos-surface)] flex flex-col justify-between overflow-hidden">
+      <aside className={cn(
+        "w-full md:w-80 shrink-0 border-r border-[var(--bos-border)] bg-[var(--bos-surface)] flex flex-col justify-between overflow-hidden",
+        mobileView === "chat" ? "hidden md:flex" : "flex",
+      )}>
         {/* Top Header & Search */}
         <div className="p-4 border-b border-[var(--bos-border)] space-y-3">
           <div className="flex items-center justify-between">
@@ -416,7 +422,10 @@ export function WorkMessagesWorkspace() {
                   return (
                     <button
                       key={c.id}
-                      onClick={() => setSelectedThreadId(c.id)}
+                      onClick={() => {
+                        setSelectedThreadId(c.id);
+                        setMobileView("chat");
+                      }}
                       className={cn(
                         "w-full p-2.5 rounded-xl border text-left transition-all block space-y-1 group cursor-pointer",
                         isSelected
@@ -677,16 +686,28 @@ export function WorkMessagesWorkspace() {
       </aside>
 
       {/* ── COLUMN 2: CENTER (CONVERSATION STREAM) ───────────────────────────── */}
-      <main className="flex-1 flex flex-col justify-between overflow-hidden bg-[var(--bos-bg)]">
+      <main className={cn(
+        "flex-1 flex flex-col justify-between overflow-hidden bg-[var(--bos-bg)] w-full",
+        mobileView === "list" ? "hidden md:flex" : "flex",
+      )}>
         {selectedThreadId && threadDetails ? (
           <>
             {/* Conversation Header */}
-            <div className="p-3.5 px-6 border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/80 backdrop-blur-md flex items-center justify-between">
-              <div className="space-y-0.5">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-[14px] font-bold text-[var(--bos-text-primary)]">
-                    {threadDetails.title}
-                  </h3>
+            <div className="p-3 sm:p-3.5 px-4 sm:px-6 border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/80 backdrop-blur-md flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
+                <button
+                  type="button"
+                  onClick={() => setMobileView("list")}
+                  aria-label="Back to conversations list"
+                  className="p-1.5 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-bg)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] md:hidden shrink-0 cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+                <div className="space-y-0.5 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <h3 className="text-[13.5px] sm:text-[14px] font-bold text-[var(--bos-text-primary)] truncate">
+                      {threadDetails.title}
+                    </h3>
                   {threadDetails.isBlocker && (
                     <span className="px-2 py-0.5 rounded bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono text-[10px] font-bold uppercase">
                       BLOCKER ACTIVE
@@ -709,8 +730,9 @@ export function WorkMessagesWorkspace() {
                   )}
                 </div>
               </div>
+            </div>
 
-              <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
                 {threadDetails.taskId && (
                   <Link
                     href={`/tasks?selected=${threadDetails.taskId}`}

@@ -25,7 +25,7 @@ export function ModulePlaceholder({
   const sectionName = href.split("/")[1] ?? "";
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-3xl">
+    <div className="px-4 sm:px-8 py-6 max-w-3xl">
       {/* Back */}
       <Link
         href="/dashboard"

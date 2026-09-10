@@ -122,10 +122,126 @@ export function EmployeeCommandTable({
 
       </div>
 
-      {/* ── ENTERPRISE DIRECTORY TABLE ─────────────────────────────── */}
-      <div className="bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl overflow-hidden shadow-xs">
+      {/* ── MOBILE DIRECTORY CARDS (Shown on mobile screens) ──────── */}
+      <div className="block md:hidden space-y-3">
+        {employees.map((emp) => {
+          const isOverCapacity = emp.capacityPercentage > 100;
+          const isBlocked = emp.blockedCount > 0;
+          const isOverdue = emp.overdueCount > 0;
+
+          return (
+            <div
+              key={emp.id}
+              onClick={() => onSelectEmployee(emp)}
+              className="p-4 rounded-xl bg-[var(--bos-surface)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)]/50 transition-all cursor-pointer space-y-3 shadow-xs"
+            >
+              {/* Header: Avatar, Name, Status */}
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-9 h-9 rounded-full bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] flex items-center justify-center font-bold font-mono text-[12px] shrink-0 border border-[var(--bos-accent)]/20">
+                    {emp.avatar ? (
+                      <img src={emp.avatar} alt={emp.fullName} className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      emp.fullName.slice(0, 2).toUpperCase()
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="font-bold text-[13.5px] text-[var(--bos-text-primary)] truncate">
+                        {emp.fullName}
+                      </span>
+                      <span className="text-[9.5px] font-mono px-1.5 py-0.2 rounded bg-[var(--bos-bg)] text-[var(--bos-text-tertiary)] border border-[var(--bos-border)] font-bold">
+                        {emp.employeeCode || "NEW"}
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-[var(--bos-text-secondary)] block truncate">
+                      {emp.role?.name || emp.department} · {emp.email}
+                    </span>
+                  </div>
+                </div>
+
+                <span
+                  className={cn(
+                    "text-[9px] font-mono font-bold px-2 py-0.5 rounded uppercase shrink-0",
+                    emp.status === "ACTIVE"
+                      ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
+                      : emp.status === "INVITED"
+                        ? "bg-purple-500/10 text-purple-600 border border-purple-500/20"
+                        : "bg-rose-500/10 text-rose-600 border border-rose-500/20",
+                  )}
+                >
+                  {emp.status}
+                </span>
+              </div>
+
+              {/* Projects & Work Stream */}
+              <div className="pt-2 border-t border-[var(--bos-border)]/60 grid grid-cols-2 gap-2 text-[11px] font-mono">
+                <div>
+                  <span className="text-[9.5px] text-[var(--bos-text-tertiary)] uppercase block">Project:</span>
+                  <span className="font-semibold text-[var(--bos-text-primary)] truncate block">
+                    {emp.currentProjects?.length > 0 ? emp.currentProjects[0].name : "Not assigned"}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[9.5px] text-[var(--bos-text-tertiary)] uppercase block">Work:</span>
+                  <span className="font-semibold text-[var(--bos-text-primary)] block">
+                    {emp.activeTaskCount || 0} active {isBlocked ? "· ⚠️ Blocked" : ""}
+                  </span>
+                </div>
+              </div>
+
+              {/* Capacity Progress Bar */}
+              <div className="space-y-1">
+                <div className="flex items-center justify-between text-[10.5px] font-mono">
+                  <span className="text-[var(--bos-text-tertiary)]">Capacity ({emp.allocatedHours || 0}h / {emp.weeklyCapacityHours || 40}h)</span>
+                  <span className={cn("font-bold", isOverCapacity ? "text-rose-500" : "text-emerald-600")}>
+                    {emp.capacityPercentage || 0}%
+                  </span>
+                </div>
+                <div className="w-full h-1.5 bg-[var(--bos-bg)] rounded-full overflow-hidden border border-[var(--bos-border)]/50">
+                  <div
+                    className={cn("h-full rounded-full transition-all duration-300", isOverCapacity ? "bg-rose-500" : "bg-emerald-500")}
+                    style={{ width: `${Math.min(emp.capacityPercentage || 0, 100)}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Action Bar */}
+              <div className="pt-2 border-t border-[var(--bos-border)]/60 flex items-center justify-between gap-2">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectEmployee(emp);
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[11px] font-mono font-medium hover:border-[var(--bos-accent)] transition-colors flex items-center gap-1 text-[var(--bos-text-primary)]"
+                >
+                  <ExternalLink className="w-3 h-3 text-[var(--bos-accent)]" />
+                  <span>Open Drawer</span>
+                </button>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onAssignTask(emp);
+                    }}
+                    className="px-2.5 py-1.5 rounded-lg bg-[var(--bos-accent)] text-white text-[11px] font-mono font-medium shadow-2xs"
+                  >
+                    + Assign
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ── ENTERPRISE DIRECTORY TABLE (Shown on desktop/tablet) ────── */}
+      <div className="hidden md:block bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse min-w-[1100px]">
+          <table className="w-full text-left border-collapse min-w-[1000px]">
             <thead>
               <tr className="border-b border-[var(--bos-border)] bg-[var(--bos-bg)]/60 text-[10px] font-mono uppercase tracking-wider text-[var(--bos-text-tertiary)]">
                 <th className="py-3 px-4">EMPLOYEE / ID</th>

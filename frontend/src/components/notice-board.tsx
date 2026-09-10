@@ -366,14 +366,14 @@ export function NoticeBoardModal({
 }
 
 /**
- * Floating corner beacon so users can re-open the notice board anytime.
+ * Floating corner beacon so users can re-open the notice board anytime (desktop/tablet).
  */
 export function NoticeFloatingBeacon({ onOpen }: { onOpen: () => void }) {
   return (
     <button
       type="button"
       onClick={onOpen}
-      className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-40 inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full bg-[#0e1017]/90 border border-amber-500/40 text-amber-300 shadow-xl backdrop-blur-md hover:border-amber-400 hover:bg-[#0e1017] transition-all group cursor-pointer"
+      className="fixed bottom-3 right-3 sm:bottom-4 sm:right-4 z-40 hidden sm:inline-flex items-center gap-1.5 sm:gap-2 px-2.5 py-1.5 sm:px-3 sm:py-2 rounded-full bg-[#0e1017]/90 border border-amber-500/40 text-amber-300 shadow-xl backdrop-blur-md hover:border-amber-400 hover:bg-[#0e1017] transition-all group cursor-pointer"
       title="View Active Development Notice"
     >
       <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-amber-400 animate-ping" />
@@ -397,23 +397,6 @@ export function DevelopmentNoticeSystem({
   showWidget?: boolean;
 }) {
   const [modalOpen, setModalOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      // Don't auto-open on mobile phones to avoid disrupting mobile access
-      if (typeof window !== "undefined" && window.innerWidth < 768) {
-        return;
-      }
-      const dismissed = localStorage.getItem("bos_notice_dismissed");
-      if (!dismissed) {
-        // Automatically reveal modal after brief delay on desktop/tablet load
-        const timer = setTimeout(() => {
-          setModalOpen(true);
-        }, 600);
-        return () => clearTimeout(timer);
-      }
-    } catch {}
-  }, []);
 
   return (
     <>

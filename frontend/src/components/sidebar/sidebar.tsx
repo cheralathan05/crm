@@ -122,9 +122,9 @@ export function Sidebar({
                 type="button"
                 onClick={onCloseDrawer}
                 aria-label="Close navigation"
-                className="ml-auto flex items-center justify-center w-7 h-7 rounded-sm text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors duration-150"
+                className="ml-auto flex items-center justify-center w-8 h-8 rounded-sm text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] active:bg-[var(--bos-overlay)] transition-colors duration-150"
               >
-                <X className="w-4 h-4" aria-hidden="true" />
+                <X className="w-4.5 h-4.5" aria-hidden="true" />
               </button>
             )}
           </>

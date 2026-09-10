@@ -259,7 +259,7 @@ export function BusinessCommandCenter() {
   }
 
   return (
-    <div className="px-5 sm:px-8 py-6 space-y-6 max-w-7xl mx-auto">
+    <div className="px-4 sm:px-8 py-5 sm:py-6 space-y-6 max-w-7xl mx-auto">
       {/* ──────────────────────────────────────────────────────────── */}
       {/* 01. HEADER: BUSINESS COMMAND CENTER & NAVIGATION TABS        */}
       {/* ──────────────────────────────────────────────────────────── */}
@@ -271,7 +271,7 @@ export function BusinessCommandCenter() {
               OPERATIONAL INTELLIGENCE & DECISION LAYER
             </span>
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-[var(--bos-text-primary)] mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-[var(--bos-text-primary)] mt-1">
             BUSINESS COMMAND CENTER
           </h1>
           <p className="text-xs text-[var(--bos-text-secondary)] mt-1">
@@ -279,10 +279,10 @@ export function BusinessCommandCenter() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
           <button
             onClick={() => handleAsk("What should I handle first?")}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)] hover:bg-[var(--bos-surface-sunken)] text-xs font-medium text-[var(--bos-text-primary)] transition-colors"
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)] hover:bg-[var(--bos-surface-sunken)] text-xs font-medium text-[var(--bos-text-primary)] transition-colors flex-1 sm:flex-initial cursor-pointer"
           >
             <Bot className="w-3.5 h-3.5 text-[var(--bos-accent)]" />
             <span>Ask Business OS</span>
@@ -291,20 +291,20 @@ export function BusinessCommandCenter() {
           <button
             onClick={handleGenerateReport}
             disabled={isGeneratingReport}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-medium shadow-xs transition-colors disabled:opacity-50"
+            className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-sm bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-medium shadow-xs transition-colors disabled:opacity-50 flex-1 sm:flex-initial cursor-pointer"
           >
             {isGeneratingReport ? (
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
             ) : (
               <Download className="w-3.5 h-3.5" />
             )}
-            <span>Generate Business Report</span>
+            <span>Generate Report</span>
           </button>
 
           <button
             onClick={fetchAllData}
             title="Refresh analytics data"
-            className="p-1.5 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors"
+            className="p-1.5 rounded-sm border border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors cursor-pointer shrink-0"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? "animate-spin" : ""}`} />
           </button>
@@ -312,7 +312,7 @@ export function BusinessCommandCenter() {
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center gap-1 border-b border-[var(--bos-line)] overflow-x-auto no-scrollbar">
+      <div className="flex items-center gap-1 border-b border-[var(--bos-line)] overflow-x-auto no-scrollbar scrollbar-none max-w-full pb-0.5">
         {[
           { id: "OVERVIEW", label: "Command Center" },
           { id: "ATTENTION", label: `Attention Center (${attentionItems.length})` },
@@ -325,7 +325,7 @@ export function BusinessCommandCenter() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as CommandCenterTab)}
-            className={`px-3.5 py-2 text-xs font-medium tracking-wide whitespace-nowrap transition-colors border-b-2 -mb-[1px] ${
+            className={`px-3.5 py-2 text-xs font-medium tracking-wide whitespace-nowrap transition-colors border-b-2 -mb-[1px] cursor-pointer shrink-0 ${
               activeTab === tab.id
                 ? "border-[var(--bos-accent)] text-[var(--bos-accent)] font-semibold"
                 : "border-transparent text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]"
@@ -351,7 +351,7 @@ export function BusinessCommandCenter() {
                 {overview.sinceLastVisitText}
               </span>
             </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
               {overview.pulse.map((p) => (
                 <div
                   key={p.category}
@@ -421,7 +421,7 @@ export function BusinessCommandCenter() {
                     },
                   });
                 }}
-                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-sm bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-semibold shadow-xs whitespace-nowrap transition-colors"
+                className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-sm bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-semibold shadow-xs whitespace-nowrap transition-colors w-full sm:w-auto cursor-pointer"
               >
                 <span>{overview.doThisNext.actionLabel}</span>
                 <ArrowRight className="w-3.5 h-3.5" />
@@ -945,7 +945,7 @@ export function BusinessCommandCenter() {
       {activeTab === "EARLY_DELIVERY" && earlyDelivery && (
         <div className="space-y-6">
           {/* Breakdown cards */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] space-y-1">
               <span className="text-[10px] font-mono uppercase text-[var(--bos-text-tertiary)]">
                 VERIFIED EARLY
@@ -1096,7 +1096,7 @@ export function BusinessCommandCenter() {
       {activeTab === "COMMERCIAL" && commercial && (
         <div className="space-y-6">
           {/* Top Commercial Overview */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="p-3.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface-panel)] space-y-1">
               <span className="text-[10px] font-mono uppercase text-[var(--bos-text-tertiary)]">
                 CONTRACT VALUE

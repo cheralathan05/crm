@@ -40,8 +40,8 @@ export function EmployeeOSHeader({
   onOpenCopilot,
 }: EmployeeOSHeaderProps) {
   return (
-    <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/95 backdrop-blur-xs sticky top-0 z-30 px-4 lg:px-8 py-3.5 transition-colors">
-      <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+    <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/95 backdrop-blur-xs relative md:sticky md:top-0 z-20 px-4 lg:px-8 py-3 sm:py-3.5 transition-colors">
+      <div className="max-w-[1600px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-3 sm:gap-4">
         
         {/* Left: Brand / Title / Hierarchy */}
         <div>
@@ -63,7 +63,7 @@ export function EmployeeOSHeader({
         </div>
 
         {/* Right: Actions & Tools */}
-        <div className="flex items-center flex-wrap gap-2 w-full md:w-auto justify-end">
+        <div className="flex items-center gap-2 max-w-full overflow-x-auto no-scrollbar scrollbar-none py-1 w-full md:w-auto justify-start md:justify-end shrink-0">
           
           {/* AI Workforce Intelligence button */}
           <button

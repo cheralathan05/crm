@@ -292,11 +292,11 @@ export function TasksCommandCenter({
   const devopsTasks = useMemo(() => filteredTasks.filter((t) => resolveTaskLayer(t) === "DEVOPS" || resolveTaskLayer(t) === "TESTING"), [filteredTasks]);
 
   return (
-    <div className="min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] pb-24">
+    <div className="min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] pb-24 max-w-full overflow-x-hidden">
       {/* ── 01. TASK PAGE HEADER ───────────────────────────────────── */}
-      <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/90 sticky top-0 z-30 backdrop-blur-md">
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-4 space-y-3">
-          <div className="flex items-center justify-between gap-4 flex-wrap">
+      <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/90 relative md:sticky md:top-0 z-20 backdrop-blur-md">
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-3.5 sm:py-4 space-y-3">
+          <div className="flex items-start sm:items-center justify-between gap-3 sm:gap-4 flex-wrap">
             {/* Title & Scope Toggle */}
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -419,7 +419,7 @@ export function TasksCommandCenter({
       {/* ── 02. TOP SUMMARY METRICS (Clickable Filter Cards) ────────── */}
       <section className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/60">
         <div className="max-w-[1600px] mx-auto px-4 lg:px-8 py-3">
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5 sm:gap-3">
             {/* 1. TODAY */}
             <button
               type="button"
@@ -505,7 +505,7 @@ export function TasksCommandCenter({
               type="button"
               onClick={() => setSelectedStatusFilter(selectedStatusFilter === "COMPLETED" ? "ALL" : "COMPLETED")}
               className={cn(
-                "p-3 rounded-xl border text-left transition-all cursor-pointer space-y-0.5",
+                "p-3 rounded-xl border text-left transition-all cursor-pointer space-y-0.5 col-span-2 sm:col-span-1",
                 selectedStatusFilter === "COMPLETED"
                   ? "bg-emerald-500/10 border-emerald-500 shadow-xs"
                   : "bg-[var(--bos-bg)] border-[var(--bos-border)] hover:border-emerald-500/40"
@@ -524,8 +524,8 @@ export function TasksCommandCenter({
       </section>
 
       {/* ── 03. NAVIGATION SUB-NAV (Primary List vs Advanced Views) ── */}
-      <div className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/80 sticky top-[73px] z-20 backdrop-blur-xs">
-        <div className="max-w-[1600px] mx-auto px-4 lg:px-8 flex items-center justify-between gap-4 overflow-x-auto">
+      <div className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)]/80 relative md:sticky md:top-[73px] z-10 backdrop-blur-xs">
+        <div className="max-w-[1600px] mx-auto px-4 lg:px-8 flex items-center justify-between gap-4 overflow-x-auto no-scrollbar scrollbar-none">
           {/* Main Views */}
           <div className="flex items-center gap-1 py-1.5">
             <button
@@ -640,7 +640,7 @@ export function TasksCommandCenter({
                 {/* ── LAYER TABS & VIEW TOGGLE BAR ── */}
                 <div className="flex items-center justify-between gap-4 flex-wrap pb-1 border-b border-[var(--bos-border)]">
                   {/* Layer Filter Pills */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1.5 max-w-full overflow-x-auto no-scrollbar scrollbar-none py-1">
                     <button
                       type="button"
                       onClick={() => setSelectedLayerFilter("ALL")}

@@ -105,7 +105,7 @@ export function AppShell({
   const toggleCollapsed = useCallback(() => setCollapsed((c) => !c), []);
 
   return (
-    <div className="min-h-screen bg-[var(--bos-bg)]">
+    <div className="min-h-screen bg-[var(--bos-bg)] w-full max-w-[100vw] overflow-x-hidden">
       {/* ── Slim top bar ─────────────────────────────── */}
       <header className="sticky top-0 z-40 h-14 border-b border-[var(--bos-line)] bg-[var(--bos-bg)]/85 backdrop-blur-sm">
         <div className="flex items-center gap-3 px-4 sm:px-6 h-full">
@@ -142,7 +142,7 @@ export function AppShell({
       </header>
 
       {/* ── Body: sidebar + content ───────────────────── */}
-      <div className="flex items-start">
+      <div className="flex items-start w-full max-w-full overflow-x-hidden">
         {/* Desktop / tablet sidebar */}
         <aside
           className={cn(
@@ -184,7 +184,7 @@ export function AppShell({
         </aside>
 
         {/* Content */}
-        <main className="flex-1 min-w-0">{children}</main>
+        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden">{children}</main>
       </div>
 
       {/* ── Mobile drawer ─────────────────────────────── */}
@@ -192,13 +192,14 @@ export function AppShell({
         {drawerOpen && (
           <div className="md:hidden">
             <motion.button
+              type="button"
               aria-label="Close navigation"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.18 }}
               onClick={() => setDrawerOpen(false)}
-              className="fixed inset-0 z-40 bg-[rgba(26,23,20,0.45)]"
+              className="fixed inset-0 w-full h-full z-40 bg-[rgba(26,23,20,0.55)] touch-none cursor-pointer border-0 outline-none"
             />
             <motion.div
               role="dialog"
@@ -218,6 +219,7 @@ export function AppShell({
                 githubConnected={githubConnected}
                 collapsed={false}
                 mobile
+                onNavigate={() => setDrawerOpen(false)}
                 onOpenCommand={() => {
                   setDrawerOpen(false);
                   setCommandOpen(true);

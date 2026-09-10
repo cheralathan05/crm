@@ -9,7 +9,6 @@ import { PasswordField } from "@/components/password-field";
 import { PrimaryAction } from "@/components/primary-action";
 import { SocialButton } from "@/components/social-button";
 import { AuthStatus } from "@/components/auth-status";
-import { BusinessOSLogo } from "@/components/business-os-mark";
 import { SystemFlowCompact } from "@/components/system-flow";
 
 export default function LoginPage() {

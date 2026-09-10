@@ -121,24 +121,24 @@ export function RequirementsPage() {
   };
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-6xl">
+    <div className="px-4 sm:px-8 py-5 sm:py-6 max-w-6xl w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 sm:gap-4">
         <div>
           <div className="section-number">
             <span className="opacity-30">—</span> REQUIREMENTS
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--bos-text-primary)] mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[var(--bos-text-primary)] mt-1">
             Requirement Command Center
           </h1>
-          <p className="text-[13px] text-[var(--bos-text-secondary)] mt-0.5">
+          <p className="text-[12.5px] sm:text-[13px] text-[var(--bos-text-secondary)] mt-0.5">
             Every client discovery workspace, from submission to approval.
           </p>
         </div>
         <button
           type="button"
           onClick={() => setRequestModalOpen(true)}
-          className="inline-flex items-center gap-1.5 h-9 px-3 rounded-sm bg-[var(--bos-accent)] text-white text-[12px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150"
+          className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-sm bg-[var(--bos-accent)] text-white text-[12px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 w-full sm:w-auto shrink-0"
         >
           <ClipboardList className="w-3.5 h-3.5" aria-hidden="true" />
           Request requirements
@@ -328,11 +328,11 @@ function RequirementRow({
       }}
       className="group w-full text-left rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] px-4 py-3.5 transition-all duration-150 hover:border-[var(--bos-border-strong)] hover:shadow-[var(--bos-shadow-sm)] cursor-pointer"
     >
-      <div className="flex items-start gap-4">
-        <div className="flex-1 min-w-0">
+      <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+        <div className="flex-1 min-w-0 w-full">
           <div className="flex items-center gap-2.5 flex-wrap">
             <span className="font-mono text-[10px] tracking-[0.1em] text-[var(--bos-text-tertiary)]">{row.reference}</span>
-            <span className="text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors truncate">
+            <span className="text-[14.5px] sm:text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)] group-hover:text-[var(--bos-accent)] transition-colors truncate">
               {row.title}
             </span>
             <StatusChip status={row.status} />
@@ -387,7 +387,7 @@ function RequirementRow({
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5 shrink-0 pt-0.5">
+        <div className="flex items-center gap-2.5 shrink-0 pt-2 sm:pt-0.5 border-t sm:border-t-0 border-[var(--bos-line)]/50 w-full sm:w-auto justify-between sm:justify-end">
           <MicroButton
             onClick={(e) => {
               e.stopPropagation();
@@ -398,10 +398,12 @@ function RequirementRow({
             {copied ? <Check className="w-3 h-3 text-[var(--bos-success)]" aria-hidden="true" /> : <Copy className="w-3 h-3" aria-hidden="true" />}
             {copied ? "Copied" : "Copy link"}
           </MicroButton>
-          <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">
-            {row.projectType.replace("_", " ")}
-          </span>
-          <ArrowUpRight className="w-4 h-4 text-[var(--bos-text-tertiary)] transition-colors duration-150 group-hover:text-[var(--bos-accent)]" />
+          <div className="flex items-center gap-2">
+            <span className="text-[9px] font-mono uppercase tracking-[0.14em] text-[var(--bos-text-tertiary)]">
+              {row.projectType.replace("_", " ")}
+            </span>
+            <ArrowUpRight className="w-4 h-4 text-[var(--bos-text-tertiary)] transition-colors duration-150 group-hover:text-[var(--bos-accent)]" />
+          </div>
         </div>
       </div>
     </div>

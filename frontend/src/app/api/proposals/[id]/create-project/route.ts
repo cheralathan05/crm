@@ -34,7 +34,6 @@ export async function POST(_req: Request, { params }: Ctx) {
       where: { id: proposal.id },
       data: {
         status: "APPROVED",
-        approvedAt: proposal.approvedAt ?? new Date(),
       },
     });
     proposal.status = "APPROVED";

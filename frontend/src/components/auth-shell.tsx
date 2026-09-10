@@ -20,7 +20,7 @@ export function AuthShell({ children, className }: AuthShellProps) {
   return (
     <div
       className={cn(
-        "relative z-10 flex flex-col w-full min-h-screen",
+        "relative z-10 flex flex-col w-full flex-1 min-h-0",
         "lg:flex-row",
         className,
       )}
@@ -78,7 +78,7 @@ export function AuthPanel({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="w-full max-w-sm"
+          className="w-full max-w-sm mx-auto lg:mx-0"
         >
           {children}
         </motion.div>

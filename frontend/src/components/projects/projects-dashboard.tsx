@@ -99,11 +99,11 @@ export function ProjectsDashboard() {
   }, [stageFilter, search]);
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 sm:space-y-8">
       {/* ── HEADER ──────────────────────────────────────────── */}
-      <div className="flex items-start justify-between flex-wrap gap-4 border-b border-[var(--bos-border-subtle)] pb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-[var(--bos-border-subtle)] pb-5 sm:pb-6">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs font-mono text-[10px] font-semibold uppercase bg-[var(--bos-accent)] text-white">
               <FolderKanban className="w-3 h-3" /> Delivery OS
             </span>
@@ -111,18 +111,18 @@ export function ProjectsDashboard() {
               Operational Delivery & Milestone Execution
             </span>
           </div>
-          <h1 className="text-[26px] font-serif font-bold text-[var(--bos-text-primary)]">
+          <h1 className="text-[22px] sm:text-[26px] font-serif font-bold text-[var(--bos-text-primary)]">
             Projects Portfolio
           </h1>
-          <p className="text-[13px] text-[var(--bos-text-secondary)] mt-1">
+          <p className="text-[12.5px] sm:text-[13px] text-[var(--bos-text-secondary)] mt-1">
             Traceable projects executing approved proposal scopes with phase-gate milestones and client reviews.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <Link
             href="/proposals?view=approved"
-            className="flex items-center gap-1.5 px-4 py-2 rounded-sm bg-[#3f6e35] text-white text-[12.5px] font-medium hover:brightness-95 transition-all shadow-sm"
+            className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-4 py-2 rounded-sm bg-[#3f6e35] text-white text-[12.5px] font-medium hover:brightness-95 transition-all shadow-sm"
           >
             <Rocket className="w-3.5 h-3.5" />
             <span>Launch from Approved Proposal</span>
@@ -132,7 +132,7 @@ export function ProjectsDashboard() {
 
       {/* ── KPI METRICS CARDS ────────────────────────────────── */}
       {stats && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-4 rounded-lg bg-[var(--bos-surface-panel)] border border-[var(--bos-border-subtle)] space-y-1">
             <span className="text-[11px] font-mono uppercase text-[var(--bos-text-tertiary)]">Active Projects</span>
             <p className="text-[22px] font-bold text-[var(--bos-text-primary)]">{stats.activeCount}</p>
@@ -164,15 +164,15 @@ export function ProjectsDashboard() {
       )}
 
       {/* ── FILTER & SEARCH BAR ──────────────────────────────── */}
-      <div className="flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-1 bg-[var(--bos-surface-panel)] p-1 rounded border border-[var(--bos-border-subtle)]">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 sm:gap-4">
+        <div className="flex items-center gap-1 bg-[var(--bos-surface-panel)] p-1 rounded border border-[var(--bos-border-subtle)] max-w-full overflow-x-auto no-scrollbar scrollbar-none">
           {["ALL", "PLANNING", "DEVELOPMENT", "TESTING", "DELIVERY", "COMPLETED"].map((st) => (
             <button
               key={st}
               type="button"
               onClick={() => setStageFilter(st)}
               className={cn(
-                "px-3 py-1.5 text-[11.5px] font-mono uppercase rounded transition-colors cursor-pointer",
+                "px-3 py-1.5 text-[11px] sm:text-[11.5px] font-mono uppercase rounded transition-colors cursor-pointer whitespace-nowrap shrink-0",
                 stageFilter === st
                   ? "bg-[var(--bos-accent)] text-white font-semibold shadow-xs"
                   : "text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)]",
@@ -183,7 +183,7 @@ export function ProjectsDashboard() {
           ))}
         </div>
 
-        <div className="relative w-72">
+        <div className="relative w-full sm:w-72">
           <Search className="w-3.5 h-3.5 absolute left-3 top-3 text-[var(--bos-text-tertiary)]" />
           <input
             type="text"
@@ -270,8 +270,8 @@ export function ProjectsDashboard() {
               </div>
 
               {/* Progress Bar & Submetrics */}
-              <div className="pt-3 border-t border-[var(--bos-border-subtle)] flex items-center justify-between gap-6 flex-wrap">
-                <div className="flex-1 min-w-[200px] space-y-1">
+              <div className="pt-3 border-t border-[var(--bos-border-subtle)] flex items-center justify-between gap-4 sm:gap-6 flex-wrap">
+                <div className="w-full sm:flex-1 sm:min-w-[200px] space-y-1">
                   <div className="flex justify-between text-[11px] font-mono text-[var(--bos-text-secondary)]">
                     <span>Delivery Progress</span>
                     <strong className="text-[var(--bos-accent)]">{p.metrics.progress}%</strong>
@@ -284,12 +284,12 @@ export function ProjectsDashboard() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 text-[11.5px] font-mono text-[var(--bos-text-secondary)]">
+                <div className="flex items-center gap-2 sm:gap-4 text-[11px] sm:text-[11.5px] font-mono text-[var(--bos-text-secondary)] flex-wrap w-full sm:w-auto justify-between sm:justify-end">
                   <span>{p.metrics.completedTasks}/{p.metrics.totalTasks} Tasks</span>
                   <span>·</span>
-                  <span>{p.metrics.acceptedDeliverables}/{p.metrics.totalDeliverables} Deliverables Accepted</span>
+                  <span>{p.metrics.acceptedDeliverables}/{p.metrics.totalDeliverables} Accepted</span>
                   <span className="flex items-center gap-1 text-[var(--bos-accent)] font-semibold">
-                    Open Command Center <ArrowRight className="w-3.5 h-3.5" />
+                    Open <ArrowRight className="w-3.5 h-3.5" />
                   </span>
                 </div>
               </div>

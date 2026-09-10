@@ -92,11 +92,11 @@ export function AdminPaymentsCommandCenter({ initialData }: AdminPaymentsCommand
     : requestsList;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 w-full overflow-x-hidden">
       {/* ── HEADER ──────────────────────────────────────────── */}
-      <div className="flex items-start justify-between flex-wrap gap-4 border-b border-[var(--bos-border-subtle)] pb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-[var(--bos-border-subtle)] pb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs font-mono text-[10px] font-semibold uppercase bg-[var(--bos-accent)] text-white">
               <IndianRupee className="w-3 h-3" /> Payments OS
             </span>
@@ -104,26 +104,26 @@ export function AdminPaymentsCommandCenter({ initialData }: AdminPaymentsCommand
               Authoritative Financial Operating Layer
             </span>
           </div>
-          <h1 className="text-[24px] sm:text-[26px] font-serif font-bold text-[var(--bos-text-primary)]">
+          <h1 className="text-[22px] sm:text-[26px] font-serif font-bold text-[var(--bos-text-primary)]">
             Financial Operating System
           </h1>
-          <p className="text-[13px] text-[var(--bos-text-secondary)] mt-1 max-w-3xl">
+          <p className="text-[12.5px] sm:text-[13px] text-[var(--bos-text-secondary)] mt-1 max-w-3xl">
             Real commercial workflow connecting clients, proposals, billing conditions, verified payments, and authoritative receipts.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => fetchDashboardData(true)}
             disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-sm border border-[var(--bos-border-subtle)] bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-sunken)] text-[var(--bos-text-primary)] text-[12.5px] font-medium transition-all shadow-xs cursor-pointer"
+            className="flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-sm border border-[var(--bos-border-subtle)] bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-sunken)] text-[var(--bos-text-primary)] text-[12.5px] font-medium transition-all shadow-xs cursor-pointer flex-1 sm:flex-initial"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[var(--bos-accent)]" : "text-[var(--bos-text-secondary)]"}`} />
             <span>Sync Ledger</span>
           </button>
           <button
             onClick={() => setShowRequestModal(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-sm bg-[var(--bos-accent)] hover:brightness-95 text-white text-[12.5px] font-semibold shadow-sm transition cursor-pointer"
+            className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-sm bg-[var(--bos-accent)] hover:brightness-95 text-white text-[12.5px] font-semibold shadow-sm transition cursor-pointer flex-1 sm:flex-initial"
           >
             <Plus className="w-4 h-4" />
             <span>Request Payment</span>
@@ -270,7 +270,7 @@ export function AdminPaymentsCommandCenter({ initialData }: AdminPaymentsCommand
 
       {/* ── NAVIGATION TABS & SEARCH ────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none max-w-full">
           {[
             { key: "overview", label: "Overview" },
             { key: "verification", label: "Awaiting Verification", count: awaitingList.length },

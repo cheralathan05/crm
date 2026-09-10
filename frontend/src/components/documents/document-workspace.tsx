@@ -87,11 +87,11 @@ export function DocumentWorkspace({ initialData, initialView = "all" }: Document
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-5 sm:py-8 space-y-6 w-full overflow-x-hidden">
       {/* ── HEADER ──────────────────────────────────────────── */}
-      <div className="flex items-start justify-between flex-wrap gap-4 border-b border-[var(--bos-border-subtle)] pb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 border-b border-[var(--bos-border-subtle)] pb-5">
         <div>
-          <div className="flex items-center gap-2 mb-1.5">
+          <div className="flex items-center gap-2 mb-1.5 flex-wrap">
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-xs font-mono text-[10px] font-semibold uppercase bg-[var(--bos-accent)] text-white">
               <FolderOpen className="w-3 h-3" /> Documents OS
             </span>
@@ -99,19 +99,19 @@ export function DocumentWorkspace({ initialData, initialView = "all" }: Document
               Authoritative Business Evidence Layer
             </span>
           </div>
-          <h1 className="text-[24px] sm:text-[26px] font-serif font-bold text-[var(--bos-text-primary)]">
+          <h1 className="text-[22px] sm:text-[26px] font-serif font-bold text-[var(--bos-text-primary)]">
             Document Operating Layer
           </h1>
-          <p className="text-[13px] text-[var(--bos-text-secondary)] mt-1 max-w-3xl">
+          <p className="text-[12.5px] sm:text-[13px] text-[var(--bos-text-secondary)] mt-1 max-w-3xl">
             Real documents automatically discovered and linked across Clients, Requirements, Proposals, and Project Deliverables.
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full sm:w-auto">
           <button
             onClick={() => fetchDocuments(true)}
             disabled={refreshing}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-sm border border-[var(--bos-border-subtle)] bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-sunken)] text-[var(--bos-text-primary)] text-[12.5px] font-medium transition-all shadow-xs"
+            className="flex items-center justify-center gap-1.5 w-full sm:w-auto px-3.5 py-1.5 rounded-sm border border-[var(--bos-border-subtle)] bg-[var(--bos-surface-panel)] hover:bg-[var(--bos-surface-sunken)] text-[var(--bos-text-primary)] text-[12.5px] font-medium transition-all shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin text-[var(--bos-accent)]" : "text-[var(--bos-text-secondary)]"}`} />
             <span>Sync Storage</span>
@@ -122,7 +122,7 @@ export function DocumentWorkspace({ initialData, initialView = "all" }: Document
       {/* ── SUB-NAVIGATION & SEARCH ─────────────────────────── */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
         {/* Navigation Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 max-w-full overflow-x-auto pb-1 no-scrollbar scrollbar-none">
           {navItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentView === item.key;

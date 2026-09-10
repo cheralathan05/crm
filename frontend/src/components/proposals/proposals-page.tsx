@@ -154,17 +154,17 @@ export function ProposalsPage({
   };
 
   return (
-    <div className="px-5 sm:px-8 py-6 max-w-6xl">
+    <div className="px-4 sm:px-8 py-5 sm:py-6 max-w-6xl w-full overflow-x-hidden">
       {/* Header */}
-      <div className="flex items-end justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-3 sm:gap-4">
         <div>
           <div className="section-number">
             <span className="opacity-30">—</span> PROPOSALS
           </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-[var(--bos-text-primary)] mt-1">
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight text-[var(--bos-text-primary)] mt-1">
             Proposal Studio
           </h1>
-          <p className="text-[13px] text-[var(--bos-text-secondary)] mt-0.5">
+          <p className="text-[12.5px] sm:text-[13px] text-[var(--bos-text-secondary)] mt-0.5">
             Proposals built from approved requirements — edit the document, then finalize to a real PDF.
           </p>
         </div>
@@ -177,7 +177,7 @@ export function ProposalsPage({
             }
             setModalOpen(true);
           }}
-          className="inline-flex items-center gap-1.5 h-9 px-3.5 rounded-sm bg-[var(--bos-accent)] text-white text-[12px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shadow-sm shrink-0"
+          className="inline-flex items-center justify-center gap-1.5 h-9 px-3.5 rounded-sm bg-[var(--bos-accent)] text-white text-[12px] font-medium hover:bg-[var(--bos-accent-hover)] transition-colors duration-150 shadow-sm w-full sm:w-auto shrink-0"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           <span>New Proposal</span>
@@ -274,8 +274,8 @@ export function ProposalsPage({
             key={row.id}
             className="group rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] px-4 py-3.5 transition-all duration-150 hover:border-[var(--bos-border-strong)] hover:shadow-[var(--bos-shadow-sm)]"
           >
-            <div className="flex items-start gap-4 flex-wrap sm:flex-nowrap">
-              <div className="flex-1 min-w-0">
+            <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
+              <div className="flex-1 min-w-0 w-full">
                 <div className="flex items-center gap-2.5 flex-wrap">
                   {row.reference && (
                     <span className="font-mono text-[10px] tracking-[0.1em] text-[var(--bos-text-tertiary)]">
@@ -284,7 +284,7 @@ export function ProposalsPage({
                   )}
                   <Link
                     href={`/proposals/${row.id}`}
-                    className="text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)] hover:text-[var(--bos-accent)] transition-colors duration-150 truncate"
+                    className="text-[14.5px] sm:text-[15px] font-semibold tracking-tight text-[var(--bos-text-primary)] hover:text-[var(--bos-accent)] transition-colors duration-150 truncate"
                   >
                     {row.title}
                   </Link>
@@ -317,7 +317,7 @@ export function ProposalsPage({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 shrink-0 pt-0.5 flex-wrap">
+              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0.5 border-t sm:border-t-0 border-[var(--bos-line)]/50 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
                 <Link
                   href={`/proposals/${row.id}`}
                   className="inline-flex items-center gap-1 h-7 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/60 text-[11px] font-medium text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors duration-150"
