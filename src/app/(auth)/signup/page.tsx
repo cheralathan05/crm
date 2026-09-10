@@ -137,11 +137,6 @@ export default function SignupPage() {
 
   return (
     <AuthPanel>
-      {/* Mobile logo */}
-      <div className="lg:hidden mb-8">
-        <BusinessOSLogo size="sm" />
-      </div>
-
       <AnimatePresence mode="wait">
         {success || existingUnverified ? (
           <motion.div

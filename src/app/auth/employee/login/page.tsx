@@ -4,10 +4,14 @@ import { useState, useCallback, FormEvent, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { signIn } from "next-auth/react";
-import { Eye, EyeOff, ArrowRight, Shield, Check, Lock, AlertCircle, Loader2 } from "lucide-react";
-import { BusinessOSLogo } from "@/components/business-os-mark";
+import { Eye, EyeOff, ArrowRight, Shield, AlertCircle, Loader2 } from "lucide-react";
 import { SystemGrid } from "@/components/system-grid";
 import { AmbientBackground } from "@/components/ambient-background";
+import {
+  NoticeBannerBar,
+  NoticeBoardModal,
+  NoticeFloatingBeacon,
+} from "@/components/notice-board";
 
 export default function EmployeeLoginPage() {
   return (
@@ -42,6 +46,7 @@ function EmployeeLoginContent() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [noticeModalOpen, setNoticeModalOpen] = useState(false);
 
   // Active step in the system map animation
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -89,8 +94,23 @@ function EmployeeLoginContent() {
             router.push(from);
           }, 400);
         }, 500);
-      } catch {
-        setError("Business OS couldn't reach the workspace. Check your connection.");
+      } catch (err: any) {
+        if (err?.code === "EMAIL_NOT_VERIFIED" || err?.message?.includes("EMAIL_NOT_VERIFIED")) {
+          setError("Your work email is not verified yet. Check your inbox for the verification link.");
+        } else if (err?.code === "RateLimit" || err?.message?.includes("RateLimit")) {
+          setError("Too many login attempts. Please wait a moment before trying again.");
+        } else if (
+          err?.code === "CredentialsSignin" ||
+          err?.name === "CredentialsSignin" ||
+          err?.message?.includes("CredentialsSignin") ||
+          err?.message?.includes("credential")
+        ) {
+          setError("Invalid work email or password. Verify your credentials.");
+        } else if (err?.message && !err.message.includes("fetch")) {
+          setError(err.message);
+        } else {
+          setError("Business OS couldn't reach the workspace. Check your connection.");
+        }
         setLoading(false);
         setStatusMessage(null);
       }
@@ -99,9 +119,13 @@ function EmployeeLoginContent() {
   );
 
   return (
-    <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col lg:flex-row overflow-hidden font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
-      <SystemGrid />
-      <AmbientBackground />
+    <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
+      {/* ── Persistent Top Notice Bar ──────────────────── */}
+      <NoticeBannerBar onOpenModal={() => setNoticeModalOpen(true)} />
+
+      <div className="relative flex-1 flex flex-col lg:flex-row overflow-x-hidden min-h-0">
+        <SystemGrid />
+        <AmbientBackground />
 
       {/* ── LEFT PANEL (58%): Business OS Operating Environment ── */}
       <div className="hidden lg:flex lg:w-[58%] flex-col justify-between p-12 xl:p-16 border-r border-[var(--bos-line)] relative z-10">
@@ -208,9 +232,9 @@ function EmployeeLoginContent() {
       </div>
 
       {/* ── RIGHT PANEL (42%): Pure Employee Authentication Workspace ── */}
-      <div className="w-full lg:w-[42%] flex flex-col justify-between p-8 sm:p-12 xl:p-16 relative z-10 bg-[var(--bos-bg)]">
+      <div className="w-full lg:w-[42%] flex flex-col justify-start lg:justify-between px-5 py-6 sm:px-10 sm:py-10 lg:p-12 xl:p-16 relative z-10 bg-[var(--bos-bg)] min-h-0 overflow-y-auto">
         {/* Mobile Header */}
-        <div className="lg:hidden flex items-center justify-between mb-8 pb-4 border-b border-[var(--bos-line)]">
+        <div className="lg:hidden flex items-center justify-between mb-6 pb-3.5 border-b border-[var(--bos-line)] shrink-0">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-sm bg-[var(--bos-accent)] text-white flex items-center justify-center font-bold text-xs">
               ⬡
@@ -226,7 +250,7 @@ function EmployeeLoginContent() {
 
         <div className="my-auto max-w-md w-full mx-auto">
           {/* Section Header */}
-          <div className="mb-8">
+          <div className="mb-6 sm:mb-8">
             <div className="flex items-center gap-2 mb-2">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-accent)]" />
               <span className="font-mono text-[11px] font-bold uppercase tracking-widest text-[var(--bos-accent)]">
@@ -257,7 +281,7 @@ function EmployeeLoginContent() {
           </AnimatePresence>
 
           {/* Authentication Form */}
-          <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5" noValidate>
             <div className="space-y-1.5">
               <label
                 htmlFor="work-email"
@@ -352,7 +376,7 @@ function EmployeeLoginContent() {
           </form>
 
           {/* Secure Access Information Callout */}
-          <div className="mt-8 pt-6 border-t border-[var(--bos-line)]">
+          <div className="mt-6 pt-5 sm:mt-8 sm:pt-6 border-t border-[var(--bos-line)]">
             <div className="flex items-start gap-2.5 text-xs text-[var(--bos-text-secondary)]">
               <Shield className="w-4 h-4 text-[var(--bos-text-tertiary)] shrink-0 mt-0.5" />
               <div>
@@ -368,11 +392,18 @@ function EmployeeLoginContent() {
         </div>
 
         {/* Small Quiet Enterprise Footer */}
-        <div className="mt-8 pt-4 border-t border-[var(--bos-line)] flex flex-wrap items-center justify-between text-[10.5px] font-mono text-[var(--bos-text-tertiary)] gap-2">
+        <div className="mt-6 pt-4 sm:mt-8 sm:pt-4 border-t border-[var(--bos-line)] flex flex-wrap items-center justify-between text-[10.5px] font-mono text-[var(--bos-text-tertiary)] gap-2 shrink-0">
           <span>BUSINESS OS · SECURE WORKSPACE</span>
           <span>SESSION PROTECTED</span>
         </div>
       </div>
+      </div>
+
+      {/* ── Interactive Notice Board Modal ──────────────── */}
+      <NoticeBoardModal isOpen={noticeModalOpen} onClose={() => setNoticeModalOpen(false)} />
+
+      {/* ── Corner Floating Beacon ──────────────────────── */}
+      {!noticeModalOpen && <NoticeFloatingBeacon onOpen={() => setNoticeModalOpen(true)} />}
     </div>
   );
 }

@@ -142,10 +142,6 @@ function VerifyEmailContent() {
 
   return (
     <AuthPanel>
-      <div className="lg:hidden mb-8">
-        <BusinessOSLogo size="sm" />
-      </div>
-
       <AnimatePresence mode="wait">
         {/* Success state — account verified */}
         {state === "verified" && (

@@ -108,9 +108,6 @@ function ResetPasswordContent() {
   if (!token) {
     return (
       <AuthPanel>
-        <div className="lg:hidden mb-8">
-          <BusinessOSLogo size="sm" />
-        </div>
         <AuthHeader
           section="SECURE ACCESS / 03"
           title="Invalid link"
@@ -125,10 +122,6 @@ function ResetPasswordContent() {
 
   return (
     <AuthPanel>
-      <div className="lg:hidden mb-8">
-        <BusinessOSLogo size="sm" />
-      </div>
-
       <AnimatePresence mode="wait">
         {success ? (
           <motion.div

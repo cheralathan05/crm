@@ -63,8 +63,8 @@ export function AuthPanel({
     <div
       className={cn(
         "flex-1 flex flex-col justify-center",
-        "px-6 py-12 sm:px-10 lg:px-14 xl:px-20",
-        "min-h-screen lg:min-h-0",
+        "px-5 py-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14 xl:px-20",
+        "min-h-0",
         "max-w-[520px] lg:max-w-none",
         "mx-auto lg:mx-0",
         "w-full",
@@ -100,15 +100,15 @@ export function AuthHeader({
   subtitle?: string;
 }) {
   return (
-    <div className="mb-10">
-      <div className="section-number mb-4">
+    <div className="mb-6 sm:mb-10">
+      <div className="section-number mb-2.5 sm:mb-4">
         <span className="opacity-30">—</span> {section}
       </div>
-      <h1 className="text-[28px] sm:text-[32px] font-semibold tracking-tight text-[var(--bos-text-primary)] leading-[1.15] mb-2">
+      <h1 className="text-2xl sm:text-[32px] font-semibold tracking-tight text-[var(--bos-text-primary)] leading-[1.15] mb-1.5 sm:mb-2">
         {title}
       </h1>
       {subtitle && (
-        <p className="text-sm text-[var(--bos-text-secondary)] leading-relaxed">
+        <p className="text-xs sm:text-sm text-[var(--bos-text-secondary)] leading-relaxed">
           {subtitle}
         </p>
       )}

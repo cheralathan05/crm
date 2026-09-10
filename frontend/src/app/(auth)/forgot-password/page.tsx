@@ -52,10 +52,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <AuthPanel>
-      <div className="lg:hidden mb-8">
-        <BusinessOSLogo size="sm" />
-      </div>
-
       <AnimatePresence mode="wait">
         {sent ? (
           <motion.div

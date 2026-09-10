@@ -228,7 +228,7 @@ export default function EmployeeForgotPasswordPage() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col justify-between p-6 sm:p-12 overflow-hidden font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
+    <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col justify-between px-4 py-5 sm:p-12 overflow-x-hidden overflow-y-auto font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
       <SystemGrid />
       <AmbientBackground />
 

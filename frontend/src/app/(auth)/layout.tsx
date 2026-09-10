@@ -28,6 +28,10 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     try {
+      // Don't auto-pop modal on mobile phones to avoid disrupting the login/signup view
+      if (typeof window !== "undefined" && window.innerWidth < 768) {
+        return;
+      }
       const dismissed = localStorage.getItem("bos_notice_dismissed");
       if (!dismissed) {
         const timer = setTimeout(() => {
@@ -43,7 +47,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       {/* ── Persistent Top Notice Bar ──────────────────── */}
       <NoticeBannerBar onOpenModal={() => setModalOpen(true)} />
 
-      <div className="relative flex-1 flex flex-col lg:flex-row overflow-hidden">
+      <div className="relative flex-1 flex flex-col lg:flex-row overflow-x-hidden min-h-0">
         {/* System Grid — full screen, behind everything */}
         <SystemGrid />
 
@@ -95,21 +99,21 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* ── Auth Panel ──────────────────────────────── */}
-        <main className="flex-1 flex flex-col relative z-10">
+        <main className="flex-1 flex flex-col relative z-10 min-h-0 overflow-y-auto">
           {/* Mobile header */}
-          <div className="lg:hidden flex items-center justify-between px-6 py-4 border-b border-[var(--bos-line)]">
+          <div className="lg:hidden flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-[var(--bos-line)] shrink-0 bg-[var(--bos-bg)]/80 backdrop-blur-xs">
             <BusinessOSLogo size="sm" />
             <div className="section-number text-[9px]">
               ACCESS <span className="opacity-30">—</span> 01
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 flex flex-col min-h-0">
             {children}
           </div>
 
           {/* Mobile footer */}
-          <div className="lg:hidden px-6 py-4">
+          <div className="lg:hidden px-5 sm:px-6 py-3.5 border-t border-[var(--bos-line)] shrink-0">
             <SystemFooter />
           </div>
         </main>
