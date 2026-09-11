@@ -490,8 +490,47 @@ export function SettingsControlPlane({ initialData }: SettingsControlPlaneProps)
       {/* ── MAIN LAYOUT: NAVIGATION & VIEWS (Section 125) ─────────────── */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex flex-col md:flex-row gap-6">
+          {/* Mobile Horizontal Category Rail */}
+          <div className="block md:hidden -mt-2 mb-2">
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar scrollbar-none pb-2 pt-1 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {[
+                { id: "overview", label: "Command Center", icon: Activity },
+                { id: "general", label: "General", icon: Sliders },
+                { id: "security", label: "Security", icon: Shield },
+                { id: "access", label: "Roles", icon: Users },
+                { id: "workflows", label: "Rules", icon: Workflow },
+                { id: "payments", label: "Payments", icon: CreditCard },
+                { id: "integrations", label: "Integrations", icon: Sliders },
+                { id: "automations", label: "Automations", icon: Zap },
+                { id: "portal", label: "Portal", icon: Globe },
+                { id: "email", label: "Email", icon: Mail },
+                { id: "audit", label: "Audit", icon: FileText },
+                { id: "health", label: "Health", icon: Activity },
+              ].map((item) => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => setActiveTab(item.id as NavTab)}
+                    className={cn(
+                      "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap shrink-0 transition-colors",
+                      isActive
+                        ? "bg-blue-600 text-white shadow-sm"
+                        : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] border border-[var(--bos-border)] hover:text-[var(--bos-text-primary)]"
+                    )}
+                  >
+                    <Icon className="w-3.5 h-3.5" />
+                    <span>{item.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Navigation Sidebar */}
-          <aside className="w-full md:w-60 shrink-0 space-y-6">
+          <aside className="hidden md:block w-60 shrink-0 space-y-6">
             {/* Category Groups */}
             <div className="space-y-4">
               <div>

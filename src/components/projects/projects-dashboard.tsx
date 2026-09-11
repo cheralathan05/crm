@@ -259,7 +259,7 @@ export function ProjectsDashboard() {
                   </div>
                 </div>
 
-                <div className="text-right space-y-1">
+                <div className="text-left sm:text-right space-y-1 w-full sm:w-auto pt-1 sm:pt-0">
                   <span className="text-[15px] font-bold font-mono text-[var(--bos-text-primary)] block">
                     {p.currency} {(p.budget || 0).toLocaleString()}
                   </span>

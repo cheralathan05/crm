@@ -267,51 +267,61 @@ export function EmployeeWorkspaceDrawer({
     <div className="fixed inset-0 z-50 bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col overflow-hidden animate-in fade-in duration-150">
       
       {/* ── TOP HEADER ────────────────────────────────────────────── */}
-      <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)] px-6 py-3 shrink-0 flex items-center justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={onClose}
-            className="flex items-center gap-1 text-[12px] font-mono text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] transition-colors pr-2 border-r border-[var(--bos-border)] cursor-pointer"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Directory</span>
-          </button>
+      <header className="border-b border-[var(--bos-border)] bg-[var(--bos-surface)] px-3 sm:px-6 py-2.5 sm:py-3 shrink-0 space-y-2">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              onClick={onClose}
+              className="flex items-center gap-1 text-[12px] font-mono text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] transition-colors pr-2 border-r border-[var(--bos-border)] cursor-pointer shrink-0"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span className="hidden sm:inline">Directory</span>
+            </button>
 
-          <div className="w-9 h-9 rounded-full bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] flex items-center justify-center font-bold font-mono text-[13px] border border-[var(--bos-accent)]/20 shrink-0">
-            {employee.avatar ? (
-              <img src={employee.avatar} alt={employee.fullName} className="w-full h-full rounded-full object-cover" />
-            ) : (
-              employee.fullName.slice(0, 2).toUpperCase()
-            )}
-          </div>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] flex items-center justify-center font-bold font-mono text-[12px] sm:text-[13px] border border-[var(--bos-accent)]/20 shrink-0">
+              {employee.avatar ? (
+                <img src={employee.avatar} alt={employee.fullName} className="w-full h-full rounded-full object-cover" />
+              ) : (
+                employee.fullName.slice(0, 2).toUpperCase()
+              )}
+            </div>
 
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-[16px] font-bold text-[var(--bos-text-primary)]">{employee.fullName}</h2>
-              <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[var(--bos-text-tertiary)] font-bold">
-                {employee.employeeCode}
-              </span>
-              <span className={cn(
-                "text-[9.5px] font-mono font-bold px-2 py-0.2 rounded uppercase",
-                employee.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
-                employee.status === "INVITED" ? "bg-purple-500/10 text-purple-600 border border-purple-500/20" :
-                "bg-rose-500/10 text-rose-600 border border-rose-500/20"
-              )}>
-                {employee.status}
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
+                <h2 className="text-[14px] sm:text-[16px] font-bold text-[var(--bos-text-primary)] truncate">{employee.fullName}</h2>
+                <span className="text-[9px] sm:text-[10px] font-mono px-1 sm:px-1.5 py-0.5 rounded bg-[var(--bos-bg)] border border-[var(--bos-border)] text-[var(--bos-text-tertiary)] font-bold shrink-0">
+                  {employee.employeeCode}
+                </span>
+                <span className={cn(
+                  "text-[9px] sm:text-[9.5px] font-mono font-bold px-1.5 sm:px-2 py-0.5 rounded uppercase shrink-0",
+                  employee.status === "ACTIVE" ? "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20" :
+                  employee.status === "INVITED" ? "bg-purple-500/10 text-purple-600 border border-purple-500/20" :
+                  "bg-rose-500/10 text-rose-600 border border-rose-500/20"
+                )}>
+                  {employee.status}
+                </span>
+              </div>
+              <span className="text-[10px] sm:text-[11px] font-mono text-[var(--bos-text-secondary)] block truncate">
+                {role?.name || "General Specialist"} · {team?.name || employee.department}
               </span>
             </div>
-            <span className="text-[11px] font-mono text-[var(--bos-text-secondary)]">
-              {role?.name || "General Specialist"} · {team?.name || employee.department} · {employee.email} · Last active: {employee.lastActiveAt ? new Date(employee.lastActiveAt).toLocaleDateString() : "Never"}
-            </span>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="p-1.5 rounded-md text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] cursor-pointer shrink-0"
+          >
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 flex-wrap">
+        {/* Action Buttons — horizontal scroll on mobile */}
+        <div className="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar scrollbar-none max-w-full pb-0.5">
           <button
             type="button"
             onClick={() => setShowEditProfile(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] text-[12px] font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-[var(--bos-accent)] text-[11px] sm:text-[12px] font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <Edit className="w-3.5 h-3.5 text-[var(--bos-text-secondary)]" />
             <span>Edit</span>
@@ -320,51 +330,43 @@ export function EmployeeWorkspaceDrawer({
           <button
             type="button"
             onClick={() => setShowChangeRole(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-purple-500 text-[12px] font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-purple-500 text-[11px] sm:text-[12px] font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <Shield className="w-3.5 h-3.5 text-purple-600" />
-            <span>Change Role</span>
+            <span>Role</span>
           </button>
 
           <button
             type="button"
             onClick={() => setShowMoveTeam(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-sky-500 text-[12px] font-medium transition-colors cursor-pointer"
+            className="flex items-center gap-1 px-2.5 sm:px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-sky-500 text-[11px] sm:text-[12px] font-medium transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             <FolderKanban className="w-3.5 h-3.5 text-sky-600" />
-            <span>Move Team</span>
+            <span>Team</span>
           </button>
 
           <button
             type="button"
             onClick={() => onOpenAssignTask?.(employee)}
-            className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-[12px] font-medium transition-all shadow-xs cursor-pointer"
+            className="flex items-center gap-1.5 px-3 sm:px-3.5 py-1.5 rounded-lg bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-[11px] sm:text-[12px] font-medium transition-all shadow-xs cursor-pointer whitespace-nowrap shrink-0"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>Assign Work</span>
+            <span>Assign</span>
           </button>
 
           <button
             type="button"
             onClick={() => onOpenOffboard?.(employee)}
-            className="px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-rose-500 text-[12px] font-medium text-rose-600 transition-colors cursor-pointer"
+            className="px-2.5 sm:px-3 py-1.5 rounded-lg bg-[var(--bos-bg)] border border-[var(--bos-border)] hover:border-rose-500 text-[11px] sm:text-[12px] font-medium text-rose-600 transition-colors cursor-pointer whitespace-nowrap shrink-0"
           >
             Suspend
-          </button>
-
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-md text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] cursor-pointer"
-          >
-            <X className="w-5 h-5" />
           </button>
         </div>
       </header>
 
       {/* ── EXECUTION HEALTH STRIP ─────────────────────────────────── */}
-      <div className="bg-[var(--bos-surface)]/80 border-b border-[var(--bos-border)] px-6 py-2.5 shrink-0">
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-3 text-[12px] font-mono">
+      <div className="bg-[var(--bos-surface)]/80 border-b border-[var(--bos-border)] px-3 sm:px-6 py-2 sm:py-2.5 shrink-0 overflow-x-auto no-scrollbar scrollbar-none">
+        <div className="flex sm:grid sm:grid-cols-3 lg:grid-cols-7 gap-2 sm:gap-3 text-[11px] sm:text-[12px] font-mono min-w-max sm:min-w-0">
           <div className="p-2 bg-[var(--bos-bg)] rounded-lg border border-[var(--bos-border)] flex items-center justify-between">
             <span className="text-[var(--bos-text-tertiary)]">PROJECTS:</span>
             <strong className="text-[var(--bos-text-primary)]">{executionHealth.activeProjectsCount}</strong>
@@ -401,7 +403,7 @@ export function EmployeeWorkspaceDrawer({
       </div>
 
       {/* ── WORKSPACE TABS NAVIGATION ───────────────────────────── */}
-      <div className="bg-[var(--bos-surface)] border-b border-[var(--bos-border)] px-6 shrink-0 flex items-center gap-1 overflow-x-auto">
+      <div className="bg-[var(--bos-surface)] border-b border-[var(--bos-border)] px-3 sm:px-6 shrink-0 flex items-center gap-0.5 sm:gap-1 overflow-x-auto no-scrollbar scrollbar-none max-w-full">
         {[
           { id: "overview", label: "Overview", icon: Zap },
           {
@@ -447,7 +449,7 @@ export function EmployeeWorkspaceDrawer({
       </div>
 
       {/* ── MAIN WORKSPACE BODY ────────────────────────────────────── */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-6 max-w-[1500px]">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-6 space-y-4 sm:space-y-6 max-w-[1500px]">
 
         {/* TAB 1: OVERVIEW */}
         {activeTab === "overview" && (

@@ -317,7 +317,7 @@ export function ProposalsPage({
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 shrink-0 pt-2 sm:pt-0.5 border-t sm:border-t-0 border-[var(--bos-line)]/50 w-full sm:w-auto justify-between sm:justify-end flex-wrap">
+              <div className="flex items-center gap-1.5 sm:gap-2 shrink-0 pt-2.5 sm:pt-0.5 border-t sm:border-t-0 border-[var(--bos-line)]/50 w-full sm:w-auto justify-start sm:justify-end flex-wrap">
                 <Link
                   href={`/proposals/${row.id}`}
                   className="inline-flex items-center gap-1 h-7 px-2.5 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-surface)]/60 text-[11px] font-medium text-[var(--bos-text-secondary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-primary)] transition-colors duration-150"

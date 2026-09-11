@@ -26,28 +26,12 @@ import {
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   const [modalOpen, setModalOpen] = useState(false);
 
-  useEffect(() => {
-    try {
-      // Don't auto-pop modal on mobile phones to avoid disrupting the login/signup view
-      if (typeof window !== "undefined" && window.innerWidth < 768) {
-        return;
-      }
-      const dismissed = localStorage.getItem("bos_notice_dismissed");
-      if (!dismissed) {
-        const timer = setTimeout(() => {
-          setModalOpen(true);
-        }, 500);
-        return () => clearTimeout(timer);
-      }
-    } catch {}
-  }, []);
-
   return (
-    <div className="auth-layout relative min-h-screen bg-[var(--bos-bg)] flex flex-col">
+    <div className="auth-layout relative min-h-screen bg-[var(--bos-bg)] flex flex-col w-full max-w-[100vw] overflow-x-hidden">
       {/* ── Persistent Top Notice Bar ──────────────────── */}
       <NoticeBannerBar onOpenModal={() => setModalOpen(true)} />
 
-      <div className="relative flex-1 flex flex-col lg:flex-row overflow-x-hidden min-h-0">
+      <div className="relative flex-1 flex flex-col lg:flex-row overflow-x-hidden min-h-0 w-full">
         {/* System Grid — full screen, behind everything */}
         <SystemGrid />
 
@@ -99,7 +83,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         </div>
 
         {/* ── Auth Panel ──────────────────────────────── */}
-        <main className="flex-1 flex flex-col relative z-10 min-h-0 overflow-y-auto">
+        <main className="flex-1 flex flex-col relative z-10 min-h-0 overflow-y-auto w-full max-w-full overflow-x-hidden">
           {/* Mobile header */}
           <div className="lg:hidden flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-[var(--bos-line)] shrink-0 bg-[var(--bos-bg)]/80 backdrop-blur-xs">
             <BusinessOSLogo size="sm" />
@@ -108,12 +92,12 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex-1 flex flex-col min-h-0 w-full">
             {children}
           </div>
 
           {/* Mobile footer */}
-          <div className="lg:hidden px-5 sm:px-6 py-3.5 border-t border-[var(--bos-line)] shrink-0">
+          <div className="lg:hidden px-4 sm:px-6 py-3 border-t border-[var(--bos-line)] shrink-0 w-full overflow-hidden">
             <SystemFooter />
           </div>
         </main>

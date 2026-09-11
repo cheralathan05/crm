@@ -99,6 +99,20 @@ export const ModelName = {
   RequirementEvent: 'RequirementEvent',
   ClientCopilotMessage: 'ClientCopilotMessage',
   ClientCustomFieldDef: 'ClientCustomFieldDef',
+  DiscoverySession: 'DiscoverySession',
+  DiscoveryMessage: 'DiscoveryMessage',
+  DiscoveryTopicArea: 'DiscoveryTopicArea',
+  DiscoveryFact: 'DiscoveryFact',
+  DiscoveryDecision: 'DiscoveryDecision',
+  UserJourney: 'UserJourney',
+  SystemCapability: 'SystemCapability',
+  BusinessRule: 'BusinessRule',
+  ScopeItem: 'ScopeItem',
+  ProjectAssumption: 'ProjectAssumption',
+  AiRecommendation: 'AiRecommendation',
+  DiscoveryReference: 'DiscoveryReference',
+  ProjectModelBlueprint: 'ProjectModelBlueprint',
+  DiscoveryApprovalRecord: 'DiscoveryApprovalRecord',
   Onboarding: 'Onboarding',
   WorkspaceProfile: 'WorkspaceProfile',
   BusinessProfile: 'BusinessProfile',
@@ -1101,6 +1115,214 @@ export const ClientCustomFieldDefScalarFieldEnum = {
 } as const
 
 export type ClientCustomFieldDefScalarFieldEnum = (typeof ClientCustomFieldDefScalarFieldEnum)[keyof typeof ClientCustomFieldDefScalarFieldEnum]
+
+
+export const DiscoverySessionScalarFieldEnum = {
+  id: 'id',
+  requirementId: 'requirementId',
+  workspaceId: 'workspaceId',
+  clientId: 'clientId',
+  mode: 'mode',
+  intakePath: 'intakePath',
+  currentArea: 'currentArea',
+  completeness: 'completeness',
+  readinessScore: 'readinessScore',
+  healthStatus: 'healthStatus',
+  lastDiscussedTopic: 'lastDiscussedTopic',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DiscoverySessionScalarFieldEnum = (typeof DiscoverySessionScalarFieldEnum)[keyof typeof DiscoverySessionScalarFieldEnum]
+
+
+export const DiscoveryMessageScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  role: 'role',
+  content: 'content',
+  structuredData: 'structuredData',
+  modelUsed: 'modelUsed',
+  latencyMs: 'latencyMs',
+  createdAt: 'createdAt'
+} as const
+
+export type DiscoveryMessageScalarFieldEnum = (typeof DiscoveryMessageScalarFieldEnum)[keyof typeof DiscoveryMessageScalarFieldEnum]
+
+
+export const DiscoveryTopicAreaScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  areaKey: 'areaKey',
+  label: 'label',
+  status: 'status',
+  order: 'order',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DiscoveryTopicAreaScalarFieldEnum = (typeof DiscoveryTopicAreaScalarFieldEnum)[keyof typeof DiscoveryTopicAreaScalarFieldEnum]
+
+
+export const DiscoveryFactScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  category: 'category',
+  title: 'title',
+  description: 'description',
+  status: 'status',
+  sourceMessageId: 'sourceMessageId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DiscoveryFactScalarFieldEnum = (typeof DiscoveryFactScalarFieldEnum)[keyof typeof DiscoveryFactScalarFieldEnum]
+
+
+export const DiscoveryDecisionScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  title: 'title',
+  options: 'options',
+  selectedOption: 'selectedOption',
+  reason: 'reason',
+  source: 'source',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DiscoveryDecisionScalarFieldEnum = (typeof DiscoveryDecisionScalarFieldEnum)[keyof typeof DiscoveryDecisionScalarFieldEnum]
+
+
+export const UserJourneyScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  roleName: 'roleName',
+  title: 'title',
+  steps: 'steps',
+  isConfirmed: 'isConfirmed',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserJourneyScalarFieldEnum = (typeof UserJourneyScalarFieldEnum)[keyof typeof UserJourneyScalarFieldEnum]
+
+
+export const SystemCapabilityScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  roleName: 'roleName',
+  title: 'title',
+  description: 'description',
+  category: 'category',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SystemCapabilityScalarFieldEnum = (typeof SystemCapabilityScalarFieldEnum)[keyof typeof SystemCapabilityScalarFieldEnum]
+
+
+export const BusinessRuleScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  rule: 'rule',
+  condition: 'condition',
+  exceptionHandling: 'exceptionHandling',
+  appliesToRole: 'appliesToRole',
+  severity: 'severity',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type BusinessRuleScalarFieldEnum = (typeof BusinessRuleScalarFieldEnum)[keyof typeof BusinessRuleScalarFieldEnum]
+
+
+export const ScopeItemScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  title: 'title',
+  description: 'description',
+  tier: 'tier',
+  rationale: 'rationale',
+  impact: 'impact',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ScopeItemScalarFieldEnum = (typeof ScopeItemScalarFieldEnum)[keyof typeof ScopeItemScalarFieldEnum]
+
+
+export const ProjectAssumptionScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  title: 'title',
+  category: 'category',
+  status: 'status',
+  validationQuestion: 'validationQuestion',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type ProjectAssumptionScalarFieldEnum = (typeof ProjectAssumptionScalarFieldEnum)[keyof typeof ProjectAssumptionScalarFieldEnum]
+
+
+export const AiRecommendationScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  title: 'title',
+  description: 'description',
+  options: 'options',
+  recommendedOption: 'recommendedOption',
+  rationale: 'rationale',
+  status: 'status',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type AiRecommendationScalarFieldEnum = (typeof AiRecommendationScalarFieldEnum)[keyof typeof AiRecommendationScalarFieldEnum]
+
+
+export const DiscoveryReferenceScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  type: 'type',
+  name: 'name',
+  path: 'path',
+  observations: 'observations',
+  clientDecisions: 'clientDecisions',
+  createdAt: 'createdAt'
+} as const
+
+export type DiscoveryReferenceScalarFieldEnum = (typeof DiscoveryReferenceScalarFieldEnum)[keyof typeof DiscoveryReferenceScalarFieldEnum]
+
+
+export const ProjectModelBlueprintScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  version: 'version',
+  stateJson: 'stateJson',
+  qualityScore: 'qualityScore',
+  issues: 'issues',
+  createdAt: 'createdAt'
+} as const
+
+export type ProjectModelBlueprintScalarFieldEnum = (typeof ProjectModelBlueprintScalarFieldEnum)[keyof typeof ProjectModelBlueprintScalarFieldEnum]
+
+
+export const DiscoveryApprovalRecordScalarFieldEnum = {
+  id: 'id',
+  sessionId: 'sessionId',
+  approverName: 'approverName',
+  approverEmail: 'approverEmail',
+  approvedAt: 'approvedAt',
+  snapshotJson: 'snapshotJson',
+  requirementVersion: 'requirementVersion'
+} as const
+
+export type DiscoveryApprovalRecordScalarFieldEnum = (typeof DiscoveryApprovalRecordScalarFieldEnum)[keyof typeof DiscoveryApprovalRecordScalarFieldEnum]
 
 
 export const OnboardingScalarFieldEnum = {

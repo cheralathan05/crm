@@ -24,7 +24,7 @@ RUN npx prisma generate --schema=frontend/prisma/schema.prisma
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 ENV NEXT_PRIVATE_WORKERS=1
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+ENV NODE_OPTIONS="--max-old-space-size=1536"
 RUN npm run build --workspace=@mainproject/frontend
 
 # ── Stage 3: Minimal Production Runner ─────────────────────────────
@@ -35,6 +35,7 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
+ENV DATABASE_URL="file:./dev.db"
 
 RUN groupadd --system --gid 1001 nodejs && \
     useradd --system --uid 1001 -g nodejs nextjs
@@ -44,6 +45,10 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/frontend/.next ./frontend/.next
 COPY --from=builder /app/frontend/public ./frontend/public
 COPY --from=builder /app/frontend/package.json ./frontend/package.json
+COPY --from=builder /app/frontend/next.config.ts ./frontend/next.config.ts
+COPY --from=builder /app/frontend/prisma.config.ts ./frontend/prisma.config.ts
+COPY --from=builder /app/frontend/prisma ./frontend/prisma
+COPY --from=builder /app/frontend/src/generated ./frontend/src/generated
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/frontend/dev.db ./frontend/dev.db
 
@@ -54,4 +59,4 @@ USER nextjs
 
 EXPOSE 3000
 
-CMD ["npm", "run", "start", "--workspace=@mainproject/frontend"]
+CMD ["sh", "-c", "npm run start --workspace=@mainproject/frontend"]

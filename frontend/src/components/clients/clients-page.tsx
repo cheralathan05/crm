@@ -272,18 +272,19 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
 
       {/* Intelligence strip */}
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        {stripStats.map((s) => (
-          <StripStat
-            key={s.key}
-            label={s.label}
-            value={s.value}
-            active={s.key !== "pipeline" && view === s.key}
-            onClick={
-              s.key === "pipeline"
-                ? undefined
-                : () => router.push(`/clients?view=${s.key}`)
-            }
-          />
+        {stripStats.map((s, idx) => (
+          <div key={s.key} className={cn(idx === 4 ? "col-span-2 sm:col-span-1" : "")}>
+            <StripStat
+              label={s.label}
+              value={s.value}
+              active={s.key !== "pipeline" && view === s.key}
+              onClick={
+                s.key === "pipeline"
+                  ? undefined
+                  : () => router.push(`/clients?view=${s.key}`)
+              }
+            />
+          </div>
         ))}
       </div>
 
@@ -302,30 +303,32 @@ export function ClientsPage({ initialNew = false }: { initialNew?: boolean }) {
       </div>
 
       {/* View filter chips */}
-      <div className="mt-4 flex items-center gap-1.5">
-        {[
-          { key: "all", label: "All Clients" },
-          { key: "active", label: "Active" },
-          { key: "leads", label: "Leads" },
-          { key: "attention", label: "Needs Attention" },
-          { key: "archived", label: "Archived" },
-        ].map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            onClick={() => router.push(`/clients?view=${f.key}`)}
-            className={cn(
-              "px-2.5 py-1 rounded-sm text-[11px] border transition-colors duration-150",
-              view === f.key
-                ? "border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
-                : "border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-secondary)]",
-            )}
-          >
-            {f.label}
-          </button>
-        ))}
+      <div className="mt-4 flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-1">
+        <div className="flex items-center gap-1.5 shrink-0">
+          {[
+            { key: "all", label: "All Clients" },
+            { key: "active", label: "Active" },
+            { key: "leads", label: "Leads" },
+            { key: "attention", label: "Needs Attention" },
+            { key: "archived", label: "Archived" },
+          ].map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              onClick={() => router.push(`/clients?view=${f.key}`)}
+              className={cn(
+                "px-2.5 py-1.5 rounded-sm text-[11px] border transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer",
+                view === f.key
+                  ? "border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
+                  : "border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-secondary)]",
+              )}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
         {q && (
-          <span className="ml-auto text-[11px] text-[var(--bos-text-tertiary)]">
+          <span className="ml-auto text-[11px] text-[var(--bos-text-tertiary)] whitespace-nowrap shrink-0 pl-2">
             {rows.length} result{rows.length === 1 ? "" : "s"}
           </span>
         )}

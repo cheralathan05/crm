@@ -10,7 +10,7 @@
     "dev": "npm run dev --workspace=@mainproject/frontend",
     "dev:frontend": "npm run dev --workspace=@mainproject/frontend",
     "dev:backend": "npm run dev --workspace=@mainproject/backend",
-    "build": "npm run build --workspace=@mainproject/frontend",
+    "build": "npm run db:generate && npm run build --workspace=@mainproject/frontend",
     "start": "npm run start --workspace=@mainproject/frontend",
     "db:generate": "prisma generate --schema=frontend/prisma/schema.prisma",
     "test:settings": "npm run test:settings --workspace=@mainproject/backend",

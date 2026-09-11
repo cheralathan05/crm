@@ -113,12 +113,12 @@ export function AppShell({
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="Open navigation"
-            className="flex items-center justify-center w-8 h-8 -ml-1.5 rounded-sm text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] transition-colors duration-150 md:hidden"
+            className="flex items-center justify-center w-9 h-9 -ml-1 rounded-md text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] active:scale-95 transition-all duration-150 md:hidden cursor-pointer"
           >
-            <Menu className="w-4.5 h-4.5" aria-hidden="true" />
+            <Menu className="w-5 h-5" aria-hidden="true" />
           </button>
 
-          <div className="md:hidden">
+          <div className="md:hidden flex items-center">
             <BusinessOSLogo size="sm" />
           </div>
 

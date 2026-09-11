@@ -147,13 +147,14 @@ export function RequirementsPage() {
 
       {/* Intelligence strip */}
       <div className="mt-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
-        {stripStats.map((s) => (
+        {stripStats.map((s, idx) => (
           <button
             key={s.key}
             type="button"
             onClick={() => router.push(`/requirements?view=${s.key}`)}
             className={cn(
-              "flex flex-col gap-0.5 rounded-sm border px-3.5 py-2.5 min-w-[96px] transition-colors duration-150",
+              "flex flex-col gap-0.5 rounded-sm border px-3.5 py-2.5 min-w-[96px] transition-colors duration-150 text-left cursor-pointer",
+              idx === 4 ? "col-span-2 sm:col-span-1" : "",
               view === s.key
                 ? "border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)]"
                 : "hover:border-[var(--bos-border-strong)] hover:bg-[var(--bos-overlay)]",
@@ -177,24 +178,26 @@ export function RequirementsPage() {
             className="w-full h-10 pl-9 pr-3 rounded-sm border border-[var(--bos-line)] bg-[var(--bos-bg)] text-[13px] text-[var(--bos-text-primary)] placeholder:text-[var(--bos-text-tertiary)] outline-none transition-colors duration-150 focus:border-[var(--bos-border-strong)]"
           />
         </div>
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {VIEWS.map((f) => (
-            <button
-              key={f.key}
-              type="button"
-              onClick={() => router.push(`/requirements?view=${f.key}`)}
-              className={cn(
-                "px-2.5 py-1 rounded-sm text-[11px] border transition-colors duration-150",
-                view === f.key
-                  ? "border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
-                  : "border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-secondary)]",
-              )}
-            >
-              {f.label}
-            </button>
-          ))}
+        <div className="flex items-center gap-1.5 overflow-x-auto no-scrollbar scrollbar-none py-1">
+          <div className="flex items-center gap-1.5 shrink-0">
+            {VIEWS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => router.push(`/requirements?view=${f.key}`)}
+                className={cn(
+                  "px-2.5 py-1.5 rounded-sm text-[11px] border transition-colors duration-150 whitespace-nowrap shrink-0 cursor-pointer",
+                  view === f.key
+                    ? "border-[var(--bos-accent-ring)] bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
+                    : "border-[var(--bos-line)] text-[var(--bos-text-tertiary)] hover:border-[var(--bos-border-strong)] hover:text-[var(--bos-text-secondary)]",
+                )}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
           {q && (
-            <span className="ml-auto text-[11px] text-[var(--bos-text-tertiary)]">
+            <span className="ml-auto text-[11px] text-[var(--bos-text-tertiary)] whitespace-nowrap shrink-0 pl-2">
               {rows.length} result{rows.length === 1 ? "" : "s"}
             </span>
           )}

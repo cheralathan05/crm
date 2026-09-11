@@ -9,5 +9,5 @@ export default async function ProposalsRoute() {
   const session = await auth();
   if (!session?.user?.id) redirect("/login");
   const data = await listProposalsForUser(session.user.id);
-  return <ProposalsPage rows={data.rows} counts={data.counts} />;
+  return <ProposalsPage rows={data.rows} counts={data.counts} clients={data.clients} />;
 }

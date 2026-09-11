@@ -259,7 +259,7 @@ export function BusinessCommandCenter() {
   }
 
   return (
-    <div className="px-5 sm:px-8 py-6 space-y-6 max-w-7xl mx-auto">
+    <div className="px-3 sm:px-8 py-4 sm:py-6 space-y-6 max-w-7xl mx-auto w-full max-w-full overflow-x-hidden">
       {/* ──────────────────────────────────────────────────────────── */}
       {/* 01. HEADER: BUSINESS COMMAND CENTER & NAVIGATION TABS        */}
       {/* ──────────────────────────────────────────────────────────── */}

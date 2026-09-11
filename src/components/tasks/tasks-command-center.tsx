@@ -398,17 +398,17 @@ export function TasksCommandCenter({
           </div>
 
           {/* Search bar */}
-          <div className="flex items-center gap-2 max-w-md bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg px-3 py-1.5 text-[12px]">
-            <Search className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)]" />
+          <div className="flex items-center gap-2 w-full max-w-md bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-lg px-3 py-2 text-[12px]">
+            <Search className="w-3.5 h-3.5 text-[var(--bos-text-tertiary)] shrink-0" />
             <input
               type="text"
               placeholder="Search tasks by title, code, owner, or deliverable..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1 bg-transparent text-[var(--bos-text-primary)] placeholder-[var(--bos-text-tertiary)] focus:outline-hidden text-[12.5px]"
+              className="flex-1 min-w-0 bg-transparent text-[var(--bos-text-primary)] placeholder-[var(--bos-text-tertiary)] focus:outline-hidden text-[12.5px]"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery("")} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]">
+              <button onClick={() => setSearchQuery("")} className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] shrink-0 p-1">
                 <X className="w-3.5 h-3.5" />
               </button>
             )}
@@ -640,12 +640,12 @@ export function TasksCommandCenter({
                 {/* ── LAYER TABS & VIEW TOGGLE BAR ── */}
                 <div className="flex items-center justify-between gap-4 flex-wrap pb-1 border-b border-[var(--bos-border)]">
                   {/* Layer Filter Pills */}
-                  <div className="flex items-center gap-1.5 flex-wrap">
+                  <div className="flex items-center gap-1.5 max-w-full overflow-x-auto no-scrollbar scrollbar-none py-1">
                     <button
                       type="button"
                       onClick={() => setSelectedLayerFilter("ALL")}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0",
                         selectedLayerFilter === "ALL"
                           ? "bg-[var(--bos-accent)] text-white shadow-xs"
                           : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] border border-[var(--bos-border)]"
@@ -662,7 +662,7 @@ export function TasksCommandCenter({
                       type="button"
                       onClick={() => setSelectedLayerFilter("FRONTEND")}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0",
                         selectedLayerFilter === "FRONTEND"
                           ? "bg-sky-600 text-white shadow-xs"
                           : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] hover:text-sky-600 border border-[var(--bos-border)]"
@@ -679,7 +679,7 @@ export function TasksCommandCenter({
                       type="button"
                       onClick={() => setSelectedLayerFilter("BACKEND")}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0",
                         selectedLayerFilter === "BACKEND"
                           ? "bg-emerald-600 text-white shadow-xs"
                           : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] hover:text-emerald-600 border border-[var(--bos-border)]"
@@ -696,7 +696,7 @@ export function TasksCommandCenter({
                       type="button"
                       onClick={() => setSelectedLayerFilter("DATABASE")}
                       className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer",
+                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0",
                         selectedLayerFilter === "DATABASE"
                           ? "bg-purple-600 text-white shadow-xs"
                           : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] hover:text-purple-600 border border-[var(--bos-border)]"
@@ -714,7 +714,7 @@ export function TasksCommandCenter({
                         type="button"
                         onClick={() => setSelectedLayerFilter("DEVOPS")}
                         className={cn(
-                          "inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer",
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-mono font-semibold transition-all cursor-pointer whitespace-nowrap shrink-0",
                           selectedLayerFilter === "DEVOPS"
                             ? "bg-teal-600 text-white shadow-xs"
                             : "bg-[var(--bos-surface)] text-[var(--bos-text-secondary)] hover:text-teal-600 border border-[var(--bos-border)]"
