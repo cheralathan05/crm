@@ -73,101 +73,149 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "jwt" },
   trustHost: true,
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "7df8924b1d62c3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8",
-  pages: { signIn: "/login" },
+  pages: { signIn: "/login", error: "/login" },
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google" && user.email) {
-        const normalizedEmail = user.email.trim().toLowerCase();
-        const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
-        const providerAccountId = account.providerAccountId ?? (account as any).id ?? (profile as any)?.sub;
+      if (account?.provider === "google" && user?.email) {
+        try {
+          const normalizedEmail = user.email.trim().toLowerCase();
+          const providerAccountId = String(
+            account.providerAccountId ||
+            (account as any).id ||
+            (profile as any)?.sub ||
+            ""
+          ).trim();
 
-        if (existing) {
-          // Suspended/disabled accounts cannot sign in through any provider.
-          if (existing.status !== "ACTIVE") return false;
-          // Link the Google identity to the existing account without overwriting existing company name or data.
-          await db.user.update({
-            where: { id: existing.id },
-            data: {
-              googleId: existing.googleId || providerAccountId,
-              emailVerified: existing.emailVerified ?? new Date(),
-              lastLoginAt: new Date(),
-            },
-          });
-        } else {
-          // First-time Google sign up: create user with empty companyName so onboarding prompts for company name.
-          await db.user.create({
-            data: {
-              name: user.name ?? "Workspace owner",
-              companyName: "",
-              email: normalizedEmail,
-              passwordHash: "",
-              emailVerified: new Date(),
-              provider: "GOOGLE",
-              googleId: providerAccountId,
-              lastLoginAt: new Date(),
-            },
-          });
+          // 1. Detach providerAccountId from any other user to prevent unique constraint (P2002) violations
+          if (providerAccountId) {
+            await db.user.updateMany({
+              where: {
+                googleId: providerAccountId,
+                NOT: { email: normalizedEmail },
+              },
+              data: { googleId: null },
+            });
+          }
+
+          const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
+
+          if (existing) {
+            // Suspended/disabled accounts cannot sign in through any provider.
+            if (existing.status !== "ACTIVE") return false;
+            // Link the Google identity to the existing account without overwriting existing company name or data.
+            await db.user.update({
+              where: { id: existing.id },
+              data: {
+                ...(providerAccountId ? { googleId: providerAccountId } : {}),
+                emailVerified: existing.emailVerified ?? new Date(),
+                lastLoginAt: new Date(),
+              },
+            });
+          } else {
+            // First-time Google sign up: create user with empty companyName so onboarding prompts for company name.
+            await db.user.create({
+              data: {
+                name: user.name?.trim() || "Workspace owner",
+                companyName: "",
+                email: normalizedEmail,
+                passwordHash: "",
+                emailVerified: new Date(),
+                provider: "GOOGLE",
+                ...(providerAccountId ? { googleId: providerAccountId } : {}),
+                lastLoginAt: new Date(),
+              },
+            });
+          }
+        } catch (error) {
+          console.error("[auth] Google signIn callback error:", error);
+          return true;
         }
       }
       return true;
     },
     async jwt({ token, user, account }) {
-      const userEmail = (user?.email || token.email || "") as string;
-      const normalizedEmail = userEmail ? userEmail.trim().toLowerCase() : null;
-      const dbUser = normalizedEmail
-        ? await db.user.findUnique({ where: { email: normalizedEmail } })
-        : (token.id ? await db.user.findUnique({ where: { id: token.id as string } }) : null);
+      try {
+        const userEmail = (user?.email || token.email || "") as string;
+        const normalizedEmail = userEmail ? userEmail.trim().toLowerCase() : null;
+        let dbUser = normalizedEmail
+          ? await db.user.findUnique({ where: { email: normalizedEmail } })
+          : (token.id ? await db.user.findUnique({ where: { id: token.id as string } }) : null);
 
-      if (dbUser) {
-        token.id = dbUser.id;
-        token.email = dbUser.email;
-        token.emailVerified = dbUser.emailVerified instanceof Date;
-        token.companyName = dbUser.companyName;
-        token.role = dbUser.role;
-        token.status = dbUser.status;
-        token.sessionVersion = dbUser.sessionVersion;
-      } else if (user) {
-        token.id = user.id as string;
-        token.emailVerified = user.emailVerified instanceof Date;
-        token.companyName = user.companyName ?? null;
-        token.role = user.role ?? "OWNER";
-        token.status = user.status ?? "ACTIVE";
-        token.sessionVersion = user.sessionVersion ?? 1;
-      }
-      if (account?.provider) {
-        token.provider = account.provider === "google" ? "GOOGLE" : "EMAIL";
+        if (!dbUser && normalizedEmail && account?.provider === "google") {
+          try {
+            dbUser = await db.user.create({
+              data: {
+                name: user?.name?.trim() || "Workspace owner",
+                companyName: "",
+                email: normalizedEmail,
+                passwordHash: "",
+                emailVerified: new Date(),
+                provider: "GOOGLE",
+                lastLoginAt: new Date(),
+              },
+            });
+          } catch (createErr) {
+            console.error("[auth] jwt fallback user creation error:", createErr);
+          }
+        }
+
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.email = dbUser.email;
+          token.emailVerified = dbUser.emailVerified instanceof Date;
+          token.companyName = dbUser.companyName;
+          token.role = dbUser.role;
+          token.status = dbUser.status;
+          token.sessionVersion = dbUser.sessionVersion;
+        } else if (user) {
+          token.id = user.id as string;
+          token.emailVerified = user.emailVerified instanceof Date;
+          token.companyName = (user as any).companyName ?? null;
+          token.role = (user as any).role ?? "OWNER";
+          token.status = (user as any).status ?? "ACTIVE";
+          token.sessionVersion = (user as any).sessionVersion ?? 1;
+        }
+        if (account?.provider) {
+          token.provider = account.provider === "google" ? "GOOGLE" : "EMAIL";
+        }
+      } catch (err) {
+        console.error("[auth] jwt callback error:", err);
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user && token.id) {
-        // Enforce account state on every session read (server pages, proxy,
-        // and API routes). This is what makes password resets and account
-        // suspensions actually revoke existing JWT sessions.
-        const dbUser = await db.user.findUnique({
-          where: { id: token.id as string },
-        });
-        const stillValid =
-          dbUser &&
-          dbUser.status === "ACTIVE" &&
-          dbUser.sessionVersion === (token.sessionVersion ?? 1);
+      try {
+        if (session.user && token.id) {
+          // Enforce account state on every session read (server pages, proxy,
+          // and API routes). This is what makes password resets and account
+          // suspensions actually revoke existing JWT sessions.
+          const dbUser = await db.user.findUnique({
+            where: { id: token.id as string },
+          });
+          const stillValid =
+            dbUser &&
+            dbUser.status === "ACTIVE" &&
+            dbUser.sessionVersion === (token.sessionVersion ?? 1);
 
-        if (!stillValid) {
-          // Session revoked (password reset) or account no longer active —
-          // present the session as signed out. The JSON response omits `user`,
-          // so the client/proxy treat the request as unauthenticated.
-          session.user = undefined as unknown as typeof session.user;
-          return session;
+          if (!stillValid) {
+            // Session revoked (password reset) or account no longer active —
+            // present the session as signed out. The JSON response omits `user`,
+            // so the client/proxy treat the request as unauthenticated.
+            session.user = undefined as unknown as typeof session.user;
+            return session;
+          }
+
+          session.user.id = dbUser.id;
+          // The augmented Session type intersects emailVerified with the
+          // AdapterUser field; assign via a boolean-typed view.
+          (session.user as { emailVerified: boolean }).emailVerified =
+            dbUser.emailVerified instanceof Date;
+          session.user.companyName = dbUser.companyName;
+          session.user.role = dbUser.role;
+          session.user.status = dbUser.status;
         }
-
-        session.user.id = dbUser.id;
-        // The augmented Session type intersects emailVerified with the
-        // AdapterUser field; assign via a boolean-typed view.
-        (session.user as { emailVerified: boolean }).emailVerified =
-          dbUser.emailVerified instanceof Date;
-        session.user.companyName = dbUser.companyName;
-        session.user.role = dbUser.role;
-        session.user.status = dbUser.status;
+      } catch (err) {
+        console.error("[auth] session callback error:", err);
       }
       return session;
     },
