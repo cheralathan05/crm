@@ -36,6 +36,8 @@ export type StepProps = {
   config: WorkspaceConfig;
   update: (fn: (prev: WorkspaceConfig) => WorkspaceConfig) => void;
   onNext: () => void;
+  onQuickFinish?: () => void;
+  quickSaving?: boolean;
 };
 
 function ContinueButton({ enabled, onNext, label = "Continue" }: { enabled: boolean; onNext: () => void; label?: string }) {
@@ -59,7 +61,7 @@ function ContinueButton({ enabled, onNext, label = "Continue" }: { enabled: bool
 
 /* ── 01 · IDENTITY ─────────────────────────────── */
 
-export function CompanyStep({ config, update, onNext }: StepProps) {
+export function CompanyStep({ config, update, onNext, onQuickFinish, quickSaving }: StepProps) {
   const name = config.companyName;
   const valid = name.trim().length >= 2;
 
@@ -112,7 +114,35 @@ export function CompanyStep({ config, update, onNext }: StepProps) {
         </div>
       </Question>
 
-      <ContinueButton enabled={valid} onNext={onNext} />
+      <div className="flex flex-col sm:flex-row items-center gap-3 mt-7">
+        <button
+          type="button"
+          onClick={onNext}
+          disabled={!valid}
+          className={cn(
+            "w-full sm:flex-1 h-11 rounded-sm text-[12px] font-semibold tracking-[0.02em] flex items-center justify-center gap-2 transition-all",
+            valid
+              ? "bg-[var(--bos-accent)] text-white hover:bg-[var(--bos-accent-hover)] cursor-pointer"
+              : "bg-[var(--bos-overlay)] text-[var(--bos-text-tertiary)] cursor-not-allowed",
+          )}
+        >
+          Continue Setup
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
+        {onQuickFinish && (
+          <button
+            type="button"
+            onClick={onQuickFinish}
+            disabled={!valid || quickSaving}
+            className={cn(
+              "w-full sm:w-auto px-5 h-11 rounded-sm text-[12px] font-medium border border-[var(--bos-line)] text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-surface)] flex items-center justify-center gap-2 transition-colors",
+              (!valid || quickSaving) && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            {quickSaving ? "Saving..." : "Save & Open Dashboard"}
+          </button>
+        )}
+      </div>
     </div>
   );
 }

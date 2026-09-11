@@ -45,6 +45,22 @@ function LoginContent() {
     return () => clearInterval(timer);
   }, [resendCountdown]);
 
+  // Display OAuth error parameters if returned from provider callback.
+  useEffect(() => {
+    const oauthError = searchParams.get("error");
+    if (oauthError) {
+      if (oauthError === "OAuthAccountNotLinked") {
+        setError("This email is already registered. Automatic linking is enabled, please try again.");
+      } else if (oauthError === "AccessDenied") {
+        setError("Access was denied. Please try signing in again.");
+      } else if (oauthError === "Configuration") {
+        setError("Authentication service configuration error. Please check server settings.");
+      } else {
+        setError("Unable to complete Google sign-in. Please try again.");
+      }
+    }
+  }, [searchParams]);
+
   const handleSubmit = useCallback(
     async (e: FormEvent) => {
       e.preventDefault();

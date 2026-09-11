@@ -60,6 +60,7 @@ if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID,
       clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      allowDangerousEmailAccountLinking: true,
     }),
   );
 }
@@ -71,29 +72,36 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "7df8924b1d62c3e4f5a6b7c8d9e0f1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8",
   pages: { signIn: "/login" },
   callbacks: {
-    async signIn({ user, account }) {
+    async signIn({ user, account, profile }) {
       if (account?.provider === "google" && user.email) {
-        const existing = await db.user.findUnique({ where: { email: user.email } });
+        const normalizedEmail = user.email.trim().toLowerCase();
+        const existing = await db.user.findUnique({ where: { email: normalizedEmail } });
+        const providerAccountId = account.providerAccountId ?? (account as any).id ?? (profile as any)?.sub;
+
         if (existing) {
           // Suspended/disabled accounts cannot sign in through any provider.
           if (existing.status !== "ACTIVE") return false;
-          // Link the Google identity to the existing account on first use.
-          if (!existing.googleId) {
-            await db.user.update({
-              where: { id: existing.id },
-              data: { googleId: account.providerAccountId },
-            });
-          }
+          // Link the Google identity to the existing account without overwriting existing company name or data.
+          await db.user.update({
+            where: { id: existing.id },
+            data: {
+              googleId: existing.googleId || providerAccountId,
+              emailVerified: existing.emailVerified ?? new Date(),
+              lastLoginAt: new Date(),
+            },
+          });
         } else {
+          // First-time Google sign up: create user with empty companyName so onboarding prompts for company name.
           await db.user.create({
             data: {
               name: user.name ?? "Workspace owner",
-              companyName: "Untitled workspace",
-              email: user.email,
+              companyName: "",
+              email: normalizedEmail,
               passwordHash: "",
               emailVerified: new Date(),
               provider: "GOOGLE",
-              googleId: account.providerAccountId,
+              googleId: providerAccountId,
+              lastLoginAt: new Date(),
             },
           });
         }
@@ -101,31 +109,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return true;
     },
     async jwt({ token, user, account }) {
-      if (user) {
-        // Always normalize the session identity to the DATABASE user id.
-        // For OAuth sign-ins the `user.id` from the provider is the Google
-        // subject — NOT the DB record — which would silently break any
-        // user-scoped query built on session.user.id.
-        const dbUser = user.email
-          ? await db.user.findUnique({ where: { email: user.email } })
-          : null;
+      const userEmail = (user?.email || token.email || "") as string;
+      const normalizedEmail = userEmail ? userEmail.trim().toLowerCase() : null;
+      const dbUser = normalizedEmail
+        ? await db.user.findUnique({ where: { email: normalizedEmail } })
+        : (token.id ? await db.user.findUnique({ where: { id: token.id as string } }) : null);
 
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.emailVerified = dbUser.emailVerified instanceof Date;
-          token.companyName = dbUser.companyName;
-          token.role = dbUser.role;
-          token.status = dbUser.status;
-          token.sessionVersion = dbUser.sessionVersion;
-        } else {
-          token.id = user.id as string;
-          token.emailVerified = user.emailVerified instanceof Date;
-          token.companyName = user.companyName ?? null;
-          token.role = user.role ?? "OWNER";
-          token.status = user.status ?? "ACTIVE";
-          token.sessionVersion = user.sessionVersion ?? 1;
-        }
-        token.provider = account?.provider === "google" ? "GOOGLE" : "EMAIL";
+      if (dbUser) {
+        token.id = dbUser.id;
+        token.email = dbUser.email;
+        token.emailVerified = dbUser.emailVerified instanceof Date;
+        token.companyName = dbUser.companyName;
+        token.role = dbUser.role;
+        token.status = dbUser.status;
+        token.sessionVersion = dbUser.sessionVersion;
+      } else if (user) {
+        token.id = user.id as string;
+        token.emailVerified = user.emailVerified instanceof Date;
+        token.companyName = user.companyName ?? null;
+        token.role = user.role ?? "OWNER";
+        token.status = user.status ?? "ACTIVE";
+        token.sessionVersion = user.sessionVersion ?? 1;
+      }
+      if (account?.provider) {
+        token.provider = account.provider === "google" ? "GOOGLE" : "EMAIL";
       }
       return token;
     },

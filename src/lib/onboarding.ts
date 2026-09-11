@@ -12,25 +12,31 @@ export type OnboardingState = {
  * Every authenticated user has exactly one independent record.
  */
 export async function getOnboardingState(userId: string): Promise<OnboardingState> {
-  const [onboarding, workspace] = await Promise.all([
+  const [onboarding, workspace, user] = await Promise.all([
     db.onboarding.findUnique({ where: { userId } }),
     db.workspace.findUnique({ where: { ownerId: userId }, select: { companyName: true } }),
+    db.user.findUnique({ where: { id: userId }, select: { companyName: true } }),
   ]);
+
+  const rawCompany = (workspace?.companyName?.trim() || user?.companyName?.trim() || "");
+  const hasValidCompany = rawCompany.length >= 2 && rawCompany !== "Untitled workspace";
 
   return {
     overviewComplete: onboarding?.overviewComplete ?? false,
-    workspaceSetupComplete: onboarding?.workspaceSetupComplete ?? false,
-    companyName: workspace?.companyName ?? null,
+    workspaceSetupComplete: (onboarding?.workspaceSetupComplete ?? false) && hasValidCompany,
+    companyName: hasValidCompany ? rawCompany : null,
   };
 }
 
 /**
  * Where should an authenticated user land, based on their state?
+ *   no valid company name      → /onboarding/workspace (enter company name)
  *   overview not complete      → /onboarding/overview
  *   overview done, no setup    → /onboarding/workspace
  *   workspace configured       → /dashboard
  */
 export function resolvePostAuthPath(state: OnboardingState): string {
+  if (!state.companyName) return "/onboarding/workspace";
   if (!state.overviewComplete) return "/onboarding/overview";
   if (!state.workspaceSetupComplete) return "/onboarding/workspace";
   return "/dashboard";

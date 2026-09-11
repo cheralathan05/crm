@@ -3,7 +3,9 @@
 import { useState, useCallback, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { AuthPanel, AuthHeader, AuthField, AuthBottomAction } from "@/components/auth-shell";
+import { AuthPanel, AuthHeader, AuthField, AuthBottomAction, AuthDivider } from "@/components/auth-shell";
+import { SocialButton } from "@/components/social-button";
+import { signIn } from "next-auth/react";
 import { PasswordField } from "@/components/password-field";
 import { PasswordStrength } from "@/components/password-strength";
 import { PrimaryAction } from "@/components/primary-action";
@@ -31,6 +33,17 @@ export default function SignupPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [existingUnverified, setExistingUnverified] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogle = useCallback(async () => {
+    setGoogleLoading(true);
+    if (formData.companyName.trim()) {
+      try {
+        localStorage.setItem("bos_pending_company", formData.companyName.trim());
+      } catch {}
+    }
+    await signIn("google", { redirectTo: "/onboarding/workspace" });
+  }, [formData.companyName]);
 
   const updateField = useCallback((field: keyof typeof formData) => {
     return (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -294,6 +307,15 @@ export default function SignupPage() {
                 </PrimaryAction>
               </div>
             </form>
+
+            <AuthDivider />
+
+            <SocialButton
+              provider="google"
+              onClick={handleGoogle}
+              disabled={loading}
+              loading={googleLoading}
+            />
 
             <AuthBottomAction
               label="Already have a workspace?"

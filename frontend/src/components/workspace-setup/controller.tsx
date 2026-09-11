@@ -48,7 +48,8 @@ function canContinue(step: number, config: WorkspaceConfig): boolean {
 }
 
 function resumeStep(config: WorkspaceConfig): number {
-  if (!config.companyName.trim()) return 0;
+  const cName = config.companyName.trim();
+  if (!cName || cName === "Untitled workspace") return 0;
   if (!config.business.industry) return 1;
   if (config.setup.leadSources.length === 0) return 2;
   if (!config.setup.teamSize) return 3;
@@ -72,9 +73,16 @@ export function WorkspaceSetupController({
   prefillCompany: string;
 }) {
   const [phase, setPhase] = useState<Phase>("intro");
-  const [step, setStep] = useState(() => resumeStep(initialConfig ?? emptyConfig(prefillCompany)));
+  const effectivePrefill = prefillCompany === "Untitled workspace" ? "" : prefillCompany;
+  const [config, setConfig] = useState<WorkspaceConfig>(() => {
+    const base = initialConfig ?? emptyConfig(effectivePrefill);
+    if (base.companyName === "Untitled workspace") {
+      base.companyName = "";
+    }
+    return base;
+  });
+  const [step, setStep] = useState(() => resumeStep(config));
   const [direction, setDirection] = useState(1);
-  const [config, setConfig] = useState<WorkspaceConfig>(() => initialConfig ?? emptyConfig(prefillCompany));
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [creating, setCreating] = useState(false);
   const [createError, setCreateError] = useState("");
@@ -210,6 +218,44 @@ export function WorkspaceSetupController({
     }
   }, [creating, config]);
 
+  const quickFinish = useCallback(async () => {
+    const cName = config.companyName.trim();
+    if (cName.length < 2) return;
+    if (busyRef.current || creating) return;
+    busyRef.current = true;
+    setCreating(true);
+    setCreateError("");
+    try {
+      const res = await fetch("/api/onboarding/workspace", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ companyName: cName }),
+      });
+      const data = await res.json();
+      if (!data.ok) {
+        busyRef.current = false;
+        setCreating(false);
+        setCreateError(data.message ?? "Unable to create your workspace. Please try again.");
+        return;
+      }
+      setPhase("creating");
+    } catch {
+      busyRef.current = false;
+      setCreating(false);
+      setCreateError("Unable to create your workspace. Please try again.");
+    }
+  }, [creating, config.companyName]);
+
+  useEffect(() => {
+    try {
+      const pending = localStorage.getItem("bos_pending_company");
+      if (pending && pending.trim().length >= 2 && (!config.companyName || config.companyName === "Untitled workspace")) {
+        setConfig((prev) => ({ ...prev, companyName: pending.trim() }));
+        localStorage.removeItem("bos_pending_company");
+      }
+    } catch {}
+  }, []);
+
   // creating → ready transition — cleaned up if the user leaves mid-creation.
   useEffect(() => {
     if (phase !== "creating") return;
@@ -314,7 +360,13 @@ export function WorkspaceSetupController({
                 <WorkspacePreview config={config} activeStep={step} />
                 <div className="w-full max-w-md justify-self-end">
                   <div className="max-h-[520px] overflow-y-auto pr-1">
-                    <ActiveStep config={config} update={update} onNext={next} />
+                    <ActiveStep
+                      config={config}
+                      update={update}
+                      onNext={next}
+                      onQuickFinish={quickFinish}
+                      quickSaving={creating}
+                    />
                   </div>
                 </div>
               </motion.div>

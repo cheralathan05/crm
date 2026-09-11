@@ -10,6 +10,10 @@ export default async function OnboardingOverviewPage() {
   }
 
   const state = await getOnboardingState(session.user.id);
+  // Users without a company name are directed to enter their company first.
+  if (!state.companyName) {
+    redirect("/onboarding/workspace");
+  }
   // Returning users who already completed the overview move on.
   if (state.overviewComplete) {
     redirect(resolvePostAuthPath(state));
