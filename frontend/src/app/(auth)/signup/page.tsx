@@ -37,12 +37,18 @@ export default function SignupPage() {
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
+    setError("");
     if (formData.companyName.trim()) {
       try {
         localStorage.setItem("bos_pending_company", formData.companyName.trim());
       } catch {}
     }
-    await signIn("google", { redirectTo: "/onboarding/workspace" });
+    try {
+      await signIn("google", { redirectTo: "/onboarding/workspace" });
+    } catch {
+      setGoogleLoading(false);
+      setError("Unable to connect with Google. Please try again.");
+    }
   }, [formData.companyName]);
 
   const updateField = useCallback((field: keyof typeof formData) => {

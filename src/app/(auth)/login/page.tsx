@@ -144,7 +144,17 @@ function LoginContent() {
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
-    await signIn("google", { redirectTo: from });
+    setError("");
+    try {
+      let target = "/";
+      if (from && from.startsWith("/") && !from.startsWith("//")) {
+        target = from;
+      }
+      await signIn("google", { redirectTo: target });
+    } catch {
+      setGoogleLoading(false);
+      setError("Unable to connect with Google. Please try again.");
+    }
   }, [from]);
 
   return (
@@ -208,19 +218,6 @@ function LoginContent() {
             title="Welcome back"
             subtitle="Your workspace is waiting."
           />
-
-          {/* Active Development Notice on Login */}
-          <div className="mb-4 sm:mb-5 p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 backdrop-blur-md flex items-start gap-2.5 shadow-xs">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping mt-1 shrink-0" />
-            <div className="text-xs">
-              <span className="font-mono font-bold text-amber-700 dark:text-amber-300 uppercase tracking-wider block text-[10px]">
-                Work In Progress // Active Preview Build
-              </span>
-              <p className="text-[11px] text-[var(--bos-text-secondary)] mt-0.5 leading-snug">
-                This CRM deployment is under active development and is <strong className="text-amber-800 dark:text-amber-300 font-semibold">not the final product</strong>. Continuous updates and feature iterations are actively deploying.
-              </p>
-            </div>
-          </div>
 
           {error && (
             <div className="mb-5">
