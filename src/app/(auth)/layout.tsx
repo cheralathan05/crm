@@ -1,36 +1,20 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import { BusinessOSLogo } from "@/components/business-os-mark";
 import { SystemGrid } from "@/components/system-grid";
 import { AmbientBackground } from "@/components/ambient-background";
 import { SystemFooter } from "@/components/system-footer";
 import { SystemFlow } from "@/components/system-flow";
-import {
-  NoticeBannerBar,
-  NoticeBoardWidget,
-  NoticeBoardModal,
-  NoticeFloatingBeacon,
-} from "@/components/notice-board";
 
 /**
  * Shared authentication layout.
  *
  * Provides the full-screen Business OS experience:
- * - Persistent development preview notice banner
- * - Interactive notice board modal & roadmap telemetry
  * - System grid + ambient background
- * - Desktop: brand zone with preview widget + auth panel
- * - Mobile: auth panel with responsive banner & notice beacon
+ * - Desktop: brand zone + auth panel
+ * - Mobile: auth panel with responsive header & footer
  */
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
-  const [modalOpen, setModalOpen] = useState(false);
-
   return (
     <div className="auth-layout relative min-h-screen bg-[var(--bos-bg)] flex flex-col w-full max-w-[100vw] overflow-x-hidden">
-      {/* ── Persistent Top Notice Bar ──────────────────── */}
-      <NoticeBannerBar onOpenModal={() => setModalOpen(true)} />
-
       <div className="relative flex-1 flex flex-col lg:flex-row overflow-x-hidden min-h-0 w-full">
         {/* System Grid — full screen, behind everything */}
         <SystemGrid />
@@ -67,9 +51,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
               </p>
             </div>
 
-            {/* Development Notice Board Widget with generated visual & telemetry */}
-            <NoticeBoardWidget onOpenModal={() => setModalOpen(true)} />
-
             {/* System flow visualization */}
             <div className="mt-5">
               <SystemFlow />
@@ -102,12 +83,6 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
         </main>
       </div>
-
-      {/* ── Interactive Modal ───────────────────────── */}
-      <NoticeBoardModal isOpen={modalOpen} onClose={() => setModalOpen(false)} />
-
-      {/* ── Corner Floating Beacon ───────────────────── */}
-      {!modalOpen && <NoticeFloatingBeacon onOpen={() => setModalOpen(true)} />}
     </div>
   );
 }

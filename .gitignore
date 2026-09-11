@@ -18,7 +18,10 @@ dist/
 backup_pre_separation/
 
 # Local environment files
-.env*.local
+.env
+.env.*
+!.env.example
+!git-backup/.env.example
 
 # TypeScript cache
 tsconfig.tsbuildinfo

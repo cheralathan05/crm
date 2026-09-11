@@ -7,11 +7,6 @@ import { signIn } from "next-auth/react";
 import { Eye, EyeOff, ArrowRight, Shield, AlertCircle, Loader2 } from "lucide-react";
 import { SystemGrid } from "@/components/system-grid";
 import { AmbientBackground } from "@/components/ambient-background";
-import {
-  NoticeBannerBar,
-  NoticeBoardModal,
-  NoticeFloatingBeacon,
-} from "@/components/notice-board";
 
 export default function EmployeeLoginPage() {
   return (
@@ -46,7 +41,6 @@ function EmployeeLoginContent() {
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [noticeModalOpen, setNoticeModalOpen] = useState(false);
 
   // Active step in the system map animation
   const [activeStageIndex, setActiveStageIndex] = useState(0);
@@ -120,9 +114,6 @@ function EmployeeLoginContent() {
 
   return (
     <div className="relative min-h-screen bg-[var(--bos-bg)] text-[var(--bos-text-primary)] flex flex-col font-sans selection:bg-[var(--bos-accent-subtle)] selection:text-[var(--bos-accent)]">
-      {/* ── Persistent Top Notice Bar ──────────────────── */}
-      <NoticeBannerBar onOpenModal={() => setNoticeModalOpen(true)} />
-
       <div className="relative flex-1 flex flex-col lg:flex-row overflow-x-hidden min-h-0">
         <SystemGrid />
         <AmbientBackground />
@@ -398,12 +389,6 @@ function EmployeeLoginContent() {
         </div>
       </div>
       </div>
-
-      {/* ── Interactive Notice Board Modal ──────────────── */}
-      <NoticeBoardModal isOpen={noticeModalOpen} onClose={() => setNoticeModalOpen(false)} />
-
-      {/* ── Corner Floating Beacon ──────────────────────── */}
-      {!noticeModalOpen && <NoticeFloatingBeacon onOpen={() => setNoticeModalOpen(true)} />}
     </div>
   );
 }
