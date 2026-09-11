@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   AlertTriangle,
@@ -164,6 +164,26 @@ export function CommandBar({
     setMoreOpen((v) => !v);
   };
 
+  useEffect(() => {
+    if (!moreOpen) return;
+    const handleOutsideClick = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) {
+        setMoreOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMoreOpen(false);
+      }
+    };
+    window.addEventListener("mousedown", handleOutsideClick);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("mousedown", handleOutsideClick);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [moreOpen]);
+
   const moreItem =
     "w-full flex items-center gap-2 px-2.5 py-1.5 rounded-sm text-left text-[11.5px] text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)] hover:text-[var(--bos-text-primary)] transition-colors duration-150";
 
@@ -179,7 +199,7 @@ export function CommandBar({
   })();
 
   return (
-    <div className="shrink-0 border-b border-[var(--bos-line)] bg-[var(--bos-bg)]/95 backdrop-blur-sm">
+    <div className="relative z-30 shrink-0 border-b border-[var(--bos-line)] bg-[var(--bos-bg)]">
       {/* ═══ PRIMARY COMMAND ROW ═══ */}
       <div className="px-3 sm:px-4 py-2 flex items-center gap-2 sm:gap-3 flex-wrap">
         <Link
@@ -392,7 +412,7 @@ export function CommandBar({
             {moreOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} aria-hidden="true" />
-                <div className="absolute right-0 top-8 z-40 w-52 rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] p-1">
+                <div className="absolute right-0 top-8 z-40 w-56 rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-surface-panel)] shadow-[var(--bos-shadow-lg)] p-1">
                   <button
                     type="button"
                     className={moreItem}

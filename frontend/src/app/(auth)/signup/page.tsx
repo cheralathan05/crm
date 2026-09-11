@@ -38,12 +38,22 @@ export default function SignupPage() {
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     setError("");
-    if (formData.companyName.trim()) {
-      try {
-        localStorage.setItem("bos_pending_company", formData.companyName.trim());
-      } catch {}
-    }
     try {
+      const res = await fetch("/api/auth/providers");
+      const providers = await res.json().catch(() => ({}));
+      if (!providers?.google) {
+        setGoogleLoading(false);
+        setError(
+          "Google Sign-Up is not configured on this server. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the Render Environment Variables."
+        );
+        return;
+      }
+
+      if (formData.companyName.trim()) {
+        try {
+          localStorage.setItem("bos_pending_company", formData.companyName.trim());
+        } catch {}
+      }
       await signIn("google", { redirectTo: "/onboarding/workspace" });
     } catch {
       setGoogleLoading(false);

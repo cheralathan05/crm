@@ -229,7 +229,7 @@ export function IntelPanel({
             type="button"
             onClick={() => onTabChange(key)}
             className={cn(
-              "relative shrink-0 px-2 h-6 rounded-sm text-[10px] font-medium uppercase tracking-[0.08em] transition-colors duration-150 flex items-center gap-1",
+              "shrink-0 px-2 h-6 rounded-sm text-[10px] font-medium uppercase tracking-[0.08em] transition-colors duration-150 flex items-center gap-1",
               tab === key ? "bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-semibold" : "text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]",
               key === "block" && !selected ? "opacity-40 pointer-events-none" : "",
             )}

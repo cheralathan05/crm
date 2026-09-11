@@ -22,9 +22,21 @@ export default function LoginPage() {
 function LoginContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const rawFrom = searchParams.get("from") || searchParams.get("callbackUrl") || "/";
   // Default destination is "/" so the server resolves the correct post-auth
   // path (onboarding or dashboard) from the user's onboarding state.
-  const from = searchParams.get("from") ?? "/";
+  // Sanitize destination to avoid open redirects or localhost leaks in production
+  let from = "/";
+  if (rawFrom.startsWith("/") && !rawFrom.startsWith("//")) {
+    from = rawFrom;
+  } else {
+    try {
+      const parsed = new URL(rawFrom, typeof window !== "undefined" ? window.location.origin : "http://localhost:3000");
+      if (typeof window !== "undefined" && parsed.origin === window.location.origin) {
+        from = parsed.pathname + parsed.search;
+      }
+    } catch {}
+  }
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -146,11 +158,18 @@ function LoginContent() {
     setGoogleLoading(true);
     setError("");
     try {
-      let target = "/";
-      if (from && from.startsWith("/") && !from.startsWith("//")) {
-        target = from;
+      // Verify if Google OAuth provider is available on this deployment
+      const res = await fetch("/api/auth/providers");
+      const providers = await res.json().catch(() => ({}));
+      if (!providers?.google) {
+        setGoogleLoading(false);
+        setError(
+          "Google Sign-In is not configured on this server. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the Render Environment Variables."
+        );
+        return;
       }
-      await signIn("google", { redirectTo: target });
+
+      await signIn("google", { redirectTo: from });
     } catch {
       setGoogleLoading(false);
       setError("Unable to connect with Google. Please try again.");

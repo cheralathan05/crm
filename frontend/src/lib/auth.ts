@@ -55,8 +55,22 @@ const providers: ReturnType<typeof Credentials | typeof Google>[] = [
   }),
 ];
 
-const googleClientId = process.env.GOOGLE_CLIENT_ID;
-const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
+// Auto-detect Render external URL if NEXTAUTH_URL or AUTH_URL is missing or incorrectly set to localhost
+if (
+  process.env.RENDER_EXTERNAL_URL &&
+  (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("localhost"))
+) {
+  process.env.NEXTAUTH_URL = process.env.RENDER_EXTERNAL_URL;
+}
+if (
+  process.env.RENDER_EXTERNAL_URL &&
+  (!process.env.AUTH_URL || process.env.AUTH_URL.includes("localhost"))
+) {
+  process.env.AUTH_URL = process.env.RENDER_EXTERNAL_URL;
+}
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID;
+const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || process.env.AUTH_GOOGLE_SECRET;
 
 if (googleClientId && googleClientSecret) {
   providers.push(
