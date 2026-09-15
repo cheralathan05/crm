@@ -17,6 +17,7 @@ import { TeamHealthReport, AttentionItem } from "@/lib/employees/employee.servic
 
 export type WorkforceHealthSectionProps = {
   health: TeamHealthReport | null;
+  roleCount?: number;
   onSelectEmployee: (empId: string) => void;
   onOpenInvitations: () => void;
   onOpenTasks: () => void;
@@ -24,6 +25,7 @@ export type WorkforceHealthSectionProps = {
 
 export function WorkforceHealthSection({
   health,
+  roleCount = 5,
   onSelectEmployee,
   onOpenInvitations,
   onOpenTasks,
@@ -156,7 +158,7 @@ export function WorkforceHealthSection({
 
           <div className="pt-1 border-t border-[var(--bos-border)]/60 text-[11px] font-mono text-[var(--bos-text-tertiary)] flex items-center justify-between">
             <span>Pending invites: {health.pendingInvitations}</span>
-            <span>System roles: 5 active</span>
+            <span>System roles: {roleCount} active</span>
           </div>
         </div>
 

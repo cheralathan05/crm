@@ -101,7 +101,7 @@ export function SidebarItem({
           onClick={onNavigate}
           aria-current={active ? "page" : undefined}
           className={cn(
-            "flex items-center gap-2.5 h-8 px-2.5 pr-6 rounded-sm text-[13px] transition-colors duration-150",
+            "flex items-center gap-2.5 h-10 px-2.5 pr-6 rounded-sm text-[13px] transition-colors duration-150",
             active
               ? "bg-[var(--bos-accent-subtle)] text-[var(--bos-accent)] font-medium"
               : "text-[var(--bos-text-secondary)] hover:bg-[var(--bos-overlay)] hover:text-[var(--bos-text-primary)]",
@@ -176,7 +176,7 @@ export function SidebarItem({
                       onClick={onNavigate}
                       aria-current={childActive ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-2 h-7 pl-[38px] pr-2.5 rounded-sm text-[12px] transition-colors duration-150",
+                        "flex items-center gap-2 h-9 pl-[38px] pr-2.5 rounded-sm text-[12px] transition-colors duration-150",
                         childActive
                           ? "text-[var(--bos-accent)] font-medium"
                           : "text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)]",

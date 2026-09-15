@@ -137,6 +137,13 @@ body {
   margin: 0;
   padding: 0;
   min-height: 100dvh;
+  /* Momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Remove iOS tap highlight flash on all interactive elements */
+a, button, [role="button"], input, select, textarea, label {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ── Selection ───────────────────────────── */
@@ -270,6 +277,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  /* Min 44px for WCAG touch target compliance */
+  min-height: 44px;
   height: 44px;
   padding: 0 24px;
   font-size: 13px;
@@ -281,6 +290,11 @@ body {
   transition: all var(--bos-duration-fast) ease;
   position: relative;
   overflow: hidden;
+  /* Faster tap response on mobile */
+  touch-action: manipulation;
+  /* Prevent text selection on double-tap */
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .bos-btn:disabled {
@@ -410,6 +424,22 @@ body {
   }
 }
 
+/* ── iOS input zoom prevention ─────────────── */
+/* iOS Safari auto-zooms inputs with font-size < 16px. Prevent this. */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input[type="number"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
 /* ── Responsive grid unit ───────────────── */
 @media (max-width: 1024px) {
   :root {
@@ -472,4 +502,48 @@ body {
 
 .scrollbar-none::-webkit-scrollbar {
   display: none;
+}
+
+/* ── Mobile touch utilities ────────────────── */
+/* Fast tap — disables 300ms delay on mobile browsers */
+.touch-fast {
+  touch-action: manipulation;
+}
+
+/* Swipe-safe horizontal rail */
+.swipe-x {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x proximity;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.swipe-x::-webkit-scrollbar { display: none; }
+
+/* Scrollable vertical area with momentum */
+.scroll-y-momentum {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* ── Mobile bottom navigation bar ─────────── */
+.mobile-bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: var(--bos-bg);
+  border-top: 1px solid var(--bos-line);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background: color-mix(in srgb, var(--bos-bg) 90%, transparent);
+}
+
+/* Content area extra bottom pad on mobile so last item isn't behind bottom nav */
+.mobile-content-pad {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }

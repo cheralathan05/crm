@@ -65,8 +65,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
 
         {/* ── Auth Panel ──────────────────────────────── */}
         <main className="flex-1 flex flex-col relative z-10 min-h-0 overflow-y-auto w-full max-w-full overflow-x-hidden">
-          {/* Mobile header */}
-          <div className="lg:hidden flex items-center justify-between px-5 sm:px-6 py-3.5 border-b border-[var(--bos-line)] shrink-0 bg-[var(--bos-bg)]/80 backdrop-blur-xs">
+          {/* Mobile header — sticky with safe area */}
+          <div className="lg:hidden sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[var(--bos-line)] shrink-0 bg-[var(--bos-bg)]/90 backdrop-blur-sm" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 14px)" }}>
             <BusinessOSLogo size="sm" />
             <div className="section-number text-[9px]">
               ACCESS <span className="opacity-30">—</span> 01
@@ -78,7 +78,7 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           </div>
 
           {/* Mobile footer */}
-          <div className="lg:hidden px-4 sm:px-6 py-3 border-t border-[var(--bos-line)] shrink-0 w-full overflow-hidden">
+          <div className="lg:hidden px-4 sm:px-6 py-3 border-t border-[var(--bos-line)] shrink-0 w-full overflow-hidden" style={{ paddingBottom: "max(env(safe-area-inset-bottom, 0px), 12px)" }}>
             <SystemFooter />
           </div>
         </main>

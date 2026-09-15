@@ -54,7 +54,9 @@ export default function SignupPage() {
           localStorage.setItem("bos_pending_company", formData.companyName.trim());
         } catch {}
       }
-      await signIn("google", { redirectTo: "/onboarding/workspace" });
+      // Route through the root so resolvePostAuthPath picks the correct
+      // onboarding step (workspace setup for new Google users).
+      await signIn("google", { callbackUrl: "/" });
     } catch {
       setGoogleLoading(false);
       setError("Unable to connect with Google. Please try again.");

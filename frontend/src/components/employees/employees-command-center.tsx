@@ -67,6 +67,13 @@ export function EmployeesCommandCenter() {
   // Modal / Drawer State
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string | null>(null);
   const [showProjectSquadInvite, setShowProjectSquadInvite] = useState(false);
+  const [inviteTargetTeam, setInviteTargetTeam] = useState<{
+    id: string;
+    name: string;
+    projectId?: string;
+    projectName?: string;
+    projectCode?: string;
+  } | null>(null);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInvitations, setShowInvitations] = useState(false);
   // Navigate to full-page assignment flow instead of modal
@@ -142,6 +149,7 @@ export function EmployeesCommandCenter() {
         {/* Workforce Health & WHAT NEEDS ATTENTION */}
         <WorkforceHealthSection
           health={health}
+          roleCount={roles.length}
           onSelectEmployee={(empId) => setSelectedEmployeeId(empId)}
           onOpenInvitations={() => setShowInvitations(true)}
           onOpenTasks={() => openAssignWork()}
@@ -314,6 +322,11 @@ export function EmployeesCommandCenter() {
           employees={employees}
           onClose={() => setShowCreateTeam(false)}
           onTeamCreated={() => loadData()}
+          onInviteMemberToTeam={(target) => {
+            setShowCreateTeam(false);
+            setInviteTargetTeam(target);
+            setShowProjectSquadInvite(true);
+          }}
         />
       )}
 
@@ -350,10 +363,26 @@ export function EmployeesCommandCenter() {
       {showProjectSquadInvite && (
         <AdminInviteMemberModal
           isOpen={showProjectSquadInvite}
-          onClose={() => setShowProjectSquadInvite(false)}
+          onClose={() => {
+            setShowProjectSquadInvite(false);
+            setInviteTargetTeam(null);
+          }}
           allowProjectChange={true}
+          projectId={inviteTargetTeam?.projectId}
+          projectName={inviteTargetTeam?.projectName}
+          projectCode={inviteTargetTeam?.projectCode}
+          defaultTeam={
+            inviteTargetTeam?.name?.toUpperCase().includes("BACKEND")
+              ? "BACKEND"
+              : inviteTargetTeam?.name?.toUpperCase().includes("DATABASE")
+              ? "DATABASE"
+              : inviteTargetTeam?.name?.toUpperCase().includes("QA")
+              ? "QA"
+              : "FRONTEND"
+          }
           onSuccess={() => {
             setShowProjectSquadInvite(false);
+            setInviteTargetTeam(null);
             loadData();
           }}
         />

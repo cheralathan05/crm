@@ -169,7 +169,7 @@ function LoginContent() {
         return;
       }
 
-      await signIn("google", { redirectTo: from });
+      await signIn("google", { callbackUrl: from });
     } catch {
       setGoogleLoading(false);
       setError("Unable to connect with Google. Please try again.");

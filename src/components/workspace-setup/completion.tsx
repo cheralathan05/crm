@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion } from "framer-motion";
 import { ArrowRight, Check } from "lucide-react";
 import { BusinessOSMark } from "@/components/business-os-mark";
@@ -9,12 +10,27 @@ import { Tag } from "../onboarding/kit";
 
 export function WorkspaceCompletion({ companyName }: { companyName: string }) {
   const router = useRouter();
+  const { update } = useSession();
+
+  // Refresh the session so useSession() picks up the new companyName / workspace
+  // state before the dashboard mounts — prevents stale JWT cache on first load.
+  useEffect(() => {
+    update();
+  }, [update]);
 
   // Gentle auto-enter as a fallback — the button is the primary action.
   useEffect(() => {
-    const t = window.setTimeout(() => router.push("/dashboard"), 4200);
+    const t = window.setTimeout(async () => {
+      await update();
+      router.push("/dashboard");
+    }, 4200);
     return () => window.clearTimeout(t);
-  }, [router]);
+  }, [router, update]);
+
+  const handleEnter = useCallback(async () => {
+    await update();
+    router.push("/dashboard");
+  }, [update, router]);
 
   return (
     <div className="flex-1 flex items-center justify-center px-5 py-10">
@@ -66,7 +82,7 @@ export function WorkspaceCompletion({ companyName }: { companyName: string }) {
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.4 }}
-          onClick={() => router.push("/dashboard")}
+          onClick={handleEnter}
           className="bos-btn bos-btn--primary w-full max-w-xs"
         >
           Enter my Business OS

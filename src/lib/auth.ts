@@ -30,6 +30,8 @@ const providers: ReturnType<typeof Credentials | typeof Google>[] = [
       // Suspended/disabled accounts are rejected with the generic message —
       // never reveal account state to the caller.
       if (user.status !== "ACTIVE") return null;
+      // Google-only accounts have no password hash — reject credential login.
+      if (!user.passwordHash) return null;
       const valid = await compare(password, user.passwordHash);
       if (!valid) return null;
       if (!user.emailVerified) {
@@ -142,55 +144,50 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
         } catch (error) {
           console.error("[auth] Google signIn callback error:", error);
-          return true;
+          // Return false on error so the user is not silently let through
+          // with a broken or missing database record.
+          return false;
         }
       }
       return true;
     },
     async jwt({ token, user, account }) {
       try {
-        const userEmail = (user?.email || token.email || "") as string;
-        const normalizedEmail = userEmail ? userEmail.trim().toLowerCase() : null;
-        let dbUser = normalizedEmail
-          ? await db.user.findUnique({ where: { email: normalizedEmail } })
-          : (token.id ? await db.user.findUnique({ where: { id: token.id as string } }) : null);
+        // Only hit the DB on the initial sign-in (user/account present) or
+        // when the token hasn't been populated yet. Subsequent JWT reads skip
+        // the DB lookup so every request doesn't pay a query cost.
+        const isFirstCall = !!(user || account || !token.id);
 
-        if (!dbUser && normalizedEmail && account?.provider === "google") {
-          try {
-            dbUser = await db.user.create({
-              data: {
-                name: user?.name?.trim() || "Workspace owner",
-                companyName: "",
-                email: normalizedEmail,
-                passwordHash: "",
-                emailVerified: new Date(),
-                provider: "GOOGLE",
-                lastLoginAt: new Date(),
-              },
-            });
-          } catch (createErr) {
-            console.error("[auth] jwt fallback user creation error:", createErr);
+        if (isFirstCall) {
+          const userEmail = (user?.email || token.email || "") as string;
+          const normalizedEmail = userEmail ? userEmail.trim().toLowerCase() : null;
+          const dbUser = normalizedEmail
+            ? await db.user.findUnique({ where: { email: normalizedEmail } })
+            : (token.id ? await db.user.findUnique({ where: { id: token.id as string } }) : null);
+
+          if (dbUser) {
+            token.id = dbUser.id;
+            token.email = dbUser.email;
+            token.name = dbUser.name;
+            token.emailVerified = dbUser.emailVerified instanceof Date;
+            token.companyName = dbUser.companyName;
+            token.role = dbUser.role;
+            token.status = dbUser.status;
+            token.sessionVersion = dbUser.sessionVersion;
+          } else if (user) {
+            // Fallback: populate from NextAuth user object (credentials provider)
+            token.id = user.id as string;
+            token.name = user.name ?? null;
+            token.emailVerified = user.emailVerified instanceof Date;
+            token.companyName = (user as any).companyName ?? null;
+            token.role = (user as any).role ?? "OWNER";
+            token.status = (user as any).status ?? "ACTIVE";
+            token.sessionVersion = (user as any).sessionVersion ?? 1;
           }
-        }
 
-        if (dbUser) {
-          token.id = dbUser.id;
-          token.email = dbUser.email;
-          token.emailVerified = dbUser.emailVerified instanceof Date;
-          token.companyName = dbUser.companyName;
-          token.role = dbUser.role;
-          token.status = dbUser.status;
-          token.sessionVersion = dbUser.sessionVersion;
-        } else if (user) {
-          token.id = user.id as string;
-          token.emailVerified = user.emailVerified instanceof Date;
-          token.companyName = (user as any).companyName ?? null;
-          token.role = (user as any).role ?? "OWNER";
-          token.status = (user as any).status ?? "ACTIVE";
-          token.sessionVersion = (user as any).sessionVersion ?? 1;
-        }
-        if (account?.provider) {
-          token.provider = account.provider === "google" ? "GOOGLE" : "EMAIL";
+          if (account?.provider) {
+            token.provider = account.provider === "google" ? "GOOGLE" : "EMAIL";
+          }
         }
       } catch (err) {
         console.error("[auth] jwt callback error:", err);
@@ -220,6 +217,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           }
 
           session.user.id = dbUser.id;
+          session.user.name = dbUser.name;
+          session.user.email = dbUser.email;
           // The augmented Session type intersects emailVerified with the
           // AdapterUser field; assign via a boolean-typed view.
           (session.user as { emailVerified: boolean }).emailVerified =
