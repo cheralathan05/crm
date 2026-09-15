@@ -49,6 +49,8 @@ function LoginContent() {
   const [resending, setResending] = useState(false);
   const [resendMessage, setResendMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [resendCountdown, setResendCountdown] = useState(0);
+  // Whether Google OAuth is available on this deployment
+  const [googleAvailable, setGoogleAvailable] = useState(true);
 
   // Resend countdown timer.
   useEffect(() => {
@@ -56,6 +58,16 @@ function LoginContent() {
     const timer = setInterval(() => setResendCountdown((c) => c - 1), 1000);
     return () => clearInterval(timer);
   }, [resendCountdown]);
+
+  // Check Google provider availability once on mount — hide button if not configured.
+  useEffect(() => {
+    fetch("/api/auth/providers")
+      .then((r) => r.json())
+      .then((providers) => {
+        if (!providers?.google) setGoogleAvailable(false);
+      })
+      .catch(() => setGoogleAvailable(false));
+  }, []);
 
   // Display OAuth error parameters if returned from provider callback.
   useEffect(() => {
@@ -158,17 +170,6 @@ function LoginContent() {
     setGoogleLoading(true);
     setError("");
     try {
-      // Verify if Google OAuth provider is available on this deployment
-      const res = await fetch("/api/auth/providers");
-      const providers = await res.json().catch(() => ({}));
-      if (!providers?.google) {
-        setGoogleLoading(false);
-        setError(
-          "Google Sign-In is not configured on this server. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the Render Environment Variables."
-        );
-        return;
-      }
-
       await signIn("google", { callbackUrl: from });
     } catch {
       setGoogleLoading(false);
@@ -327,12 +328,14 @@ function LoginContent() {
 
           <AuthDivider />
 
-          <SocialButton
-            provider="google"
-            onClick={handleGoogle}
-            disabled={loading}
-            loading={googleLoading}
-          />
+          {googleAvailable && (
+            <SocialButton
+              provider="google"
+              onClick={handleGoogle}
+              disabled={loading}
+              loading={googleLoading}
+            />
+          )}
 
           <AuthBottomAction
             label="New to Business OS?"
