@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, FormEvent } from "react";
+import { useState, useCallback, FormEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { AuthPanel, AuthHeader, AuthField, AuthBottomAction, AuthDivider } from "@/components/auth-shell";
@@ -34,27 +34,29 @@ export default function SignupPage() {
   const [success, setSuccess] = useState(false);
   const [existingUnverified, setExistingUnverified] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  // Whether Google OAuth is available on this deployment
+  const [googleAvailable, setGoogleAvailable] = useState(true);
+
+  // Check Google provider availability once on mount — hide button if not configured.
+  useEffect(() => {
+    fetch("/api/auth/providers")
+      .then((r) => r.json())
+      .then((providers) => {
+        if (!providers?.google) setGoogleAvailable(false);
+      })
+      .catch(() => setGoogleAvailable(false));
+  }, []);
 
   const handleGoogle = useCallback(async () => {
     setGoogleLoading(true);
     setError("");
     try {
-      const res = await fetch("/api/auth/providers");
-      const providers = await res.json().catch(() => ({}));
-      if (!providers?.google) {
-        setGoogleLoading(false);
-        setError(
-          "Google Sign-Up is not configured on this server. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the Render Environment Variables."
-        );
-        return;
-      }
-
       if (formData.companyName.trim()) {
         try {
           localStorage.setItem("bos_pending_company", formData.companyName.trim());
         } catch {}
       }
-      // Route through the root so resolvePostAuthPath picks the correct
+      // Route through root so resolvePostAuthPath picks the correct
       // onboarding step (workspace setup for new Google users).
       await signIn("google", { callbackUrl: "/" });
     } catch {
@@ -328,12 +330,14 @@ export default function SignupPage() {
 
             <AuthDivider />
 
-            <SocialButton
-              provider="google"
-              onClick={handleGoogle}
-              disabled={loading}
-              loading={googleLoading}
-            />
+            {googleAvailable && (
+              <SocialButton
+                provider="google"
+                onClick={handleGoogle}
+                disabled={loading}
+                loading={googleLoading}
+              />
+            )}
 
             <AuthBottomAction
               label="Already have a workspace?"
