@@ -55,18 +55,22 @@ const providers: ReturnType<typeof Credentials | typeof Google>[] = [
   }),
 ];
 
-// Auto-detect Render external URL if NEXTAUTH_URL or AUTH_URL is missing or incorrectly set to localhost
+// Auto-detect Render or Vercel external URL if NEXTAUTH_URL or AUTH_URL is missing or incorrectly set to localhost
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL;
+const vercelUrl = vercelHost ? `https://${vercelHost.replace(/^https?:\/\//, "")}` : null;
+const detectedDeployUrl = process.env.RENDER_EXTERNAL_URL || vercelUrl;
+
 if (
-  process.env.RENDER_EXTERNAL_URL &&
+  detectedDeployUrl &&
   (!process.env.NEXTAUTH_URL || process.env.NEXTAUTH_URL.includes("localhost"))
 ) {
-  process.env.NEXTAUTH_URL = process.env.RENDER_EXTERNAL_URL;
+  process.env.NEXTAUTH_URL = detectedDeployUrl;
 }
 if (
-  process.env.RENDER_EXTERNAL_URL &&
+  detectedDeployUrl &&
   (!process.env.AUTH_URL || process.env.AUTH_URL.includes("localhost"))
 ) {
-  process.env.AUTH_URL = process.env.RENDER_EXTERNAL_URL;
+  process.env.AUTH_URL = detectedDeployUrl;
 }
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID || process.env.AUTH_GOOGLE_ID;

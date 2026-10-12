@@ -164,7 +164,7 @@ function LoginContent() {
       if (!providers?.google) {
         setGoogleLoading(false);
         setError(
-          "Google Sign-In is not configured on this server. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to the Render Environment Variables."
+          "Google Sign-In is not configured on this server. Please add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET to your hosting provider's Environment Variables (e.g. Vercel or Render)."
         );
         return;
       }
