@@ -3,6 +3,7 @@ import { SystemGrid } from "@/components/system-grid";
 import { AmbientBackground } from "@/components/ambient-background";
 import { SystemFooter } from "@/components/system-footer";
 import { SystemFlow } from "@/components/system-flow";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 /**
  * Shared authentication layout.
@@ -66,10 +67,13 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
         {/* ── Auth Panel ──────────────────────────────── */}
         <main className="flex-1 flex flex-col relative z-10 min-h-0 overflow-y-auto w-full max-w-full overflow-x-hidden">
           {/* Mobile header — sticky with safe area */}
-          <div className="lg:hidden sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[var(--bos-line)] shrink-0 bg-[var(--bos-bg)]/90 backdrop-blur-sm" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 14px)" }}>
+          <div className="lg:hidden sticky top-0 z-10 flex items-center justify-between px-4 sm:px-6 py-3 border-b border-[var(--bos-line)] shrink-0 bg-[var(--bos-bg)]/90 backdrop-blur-sm" style={{ paddingTop: "max(env(safe-area-inset-top, 0px), 12px)" }}>
             <BusinessOSLogo size="sm" />
-            <div className="section-number text-[9px]">
-              ACCESS <span className="opacity-30">—</span> 01
+            <div className="flex items-center gap-3">
+              <div className="section-number text-[9px]">
+                ACCESS <span className="opacity-30">—</span> 01
+              </div>
+              <ThemeToggle className="w-8 h-8 rounded-lg" />
             </div>
           </div>
 

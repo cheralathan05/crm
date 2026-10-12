@@ -147,7 +147,7 @@ export function DashboardOverview({ config }: { config: WorkspaceConfig }) {
   ];
 
   return (
-    <div className="px-5 sm:px-8 py-6 space-y-5">
+    <div className="px-4 sm:px-8 py-4 sm:py-6 space-y-4 sm:space-y-5">
       {/* Hero */}
       <motion.div
         initial={{ opacity: 0, y: 8 }}

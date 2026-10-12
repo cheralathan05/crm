@@ -67,7 +67,7 @@ export function EmployeeWorkspaceDrawer({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "reviews" | "work" | "projects" | "tasks" | "deliverables" | "teams" | "permissions" | "activity" | "security" | "invitations" | "performance"
+    "overview" | "reviews" | "work" | "projects" | "tasks" | "deliverables" | "teams" | "permissions" | "activity" | "security" | "invitations" | "performance" | "github"
   >("overview");
 
   // Build Review Decisions
@@ -422,6 +422,12 @@ export function EmployeeWorkspaceDrawer({
           { id: "security", label: "Security", icon: ShieldCheck },
           { id: "invitations", label: `Invitations (${invitations.length})`, icon: Mail },
           { id: "performance", label: "Performance", icon: TrendingUp },
+          {
+            id: "github",
+            label: data?.github?.handle ? `GitHub (@${data.github.handle})` : "GitHub & Code",
+            icon: GitBranch,
+            badge: data?.github?.toolStatus === "CONNECTED" ? "Linked" : undefined,
+          },
         ].map((t) => {
           const Icon = t.icon;
           const isActive = activeTab === t.id;
@@ -1057,6 +1063,194 @@ export function EmployeeWorkspaceDrawer({
                 <span className="text-[var(--bos-text-tertiary)] text-[10px] block">TOTAL EFFORT</span>
                 <strong className="text-[18px] text-[var(--bos-accent)]">{executionHealth.totalAssignedHours}h</strong>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 12: GITHUB & CODE INTELLIGENCE */}
+        {activeTab === "github" && (
+          <div className="space-y-6">
+            {/* Header Card */}
+            <div className="p-5 rounded-2xl bg-[var(--bos-surface)] border border-[var(--bos-border)] flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3.5">
+                <div className="w-12 h-12 rounded-xl bg-[var(--bos-bg)] border border-[var(--bos-border)] flex items-center justify-center text-[var(--bos-accent)]">
+                  <GitBranch className="w-6 h-6" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-base font-bold text-[var(--bos-text-primary)]">
+                      {data.github?.handle ? `@${data.github.handle}` : "No GitHub Handle Linked"}
+                    </h3>
+                    <span
+                      className={cn(
+                        "text-[10px] font-mono px-2 py-0.5 rounded font-bold uppercase",
+                        data.github?.toolStatus === "CONNECTED"
+                          ? "bg-emerald-500/10 text-emerald-500 border border-emerald-500/30"
+                          : "bg-amber-500/10 text-amber-500 border border-amber-500/30",
+                      )}
+                    >
+                      {data.github?.toolStatus || "NOT CONFIGURED"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[var(--bos-text-secondary)] mt-0.5">
+                    Git commits, pull requests, and deliverable evidence attributed to {employee.fullName}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                {data.github?.handle && (
+                  <a
+                    href={`https://github.com/${data.github.handle}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[var(--bos-border)] bg-[var(--bos-bg)] text-xs font-mono text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] transition-colors"
+                  >
+                    <span>View GitHub Profile</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                )}
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const handle = prompt("Enter GitHub username for " + employee.fullName, data.github?.handle || "");
+                    if (handle !== null && handle.trim() !== "") {
+                      await fetch("/api/github", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          action: "LINK_EMPLOYEE",
+                          employeeId: employee.id,
+                          githubHandle: handle.trim(),
+                        }),
+                      });
+                      loadDetails();
+                      onUpdated?.();
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-lg bg-[var(--bos-accent)] hover:bg-[var(--bos-accent-hover)] text-white text-xs font-semibold transition-colors"
+                >
+                  {data.github?.handle ? "Edit Handle" : "Connect GitHub"}
+                </button>
+              </div>
+            </div>
+
+            {/* Metrics */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="p-3 bg-[var(--bos-bg)] rounded-xl border border-[var(--bos-border)]">
+                <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] block">COMMITS</span>
+                <strong className="text-lg font-mono text-[var(--bos-text-primary)]">
+                  {data.github?.commitsCount || 0}
+                </strong>
+              </div>
+              <div className="p-3 bg-[var(--bos-bg)] rounded-xl border border-[var(--bos-border)]">
+                <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] block">PULL REQUESTS</span>
+                <strong className="text-lg font-mono text-purple-400">
+                  {data.github?.pullRequests?.length || 0}
+                </strong>
+              </div>
+              <div className="p-3 bg-[var(--bos-bg)] rounded-xl border border-[var(--bos-border)]">
+                <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] block">ASSIGNED ISSUES</span>
+                <strong className="text-lg font-mono text-amber-400">
+                  {data.github?.assignedIssues?.length || 0}
+                </strong>
+              </div>
+              <div className="p-3 bg-[var(--bos-bg)] rounded-xl border border-[var(--bos-border)]">
+                <span className="text-[10px] font-mono text-[var(--bos-text-tertiary)] block">VERIFIED PROOFS</span>
+                <strong className="text-lg font-mono text-emerald-400">
+                  {data.github?.contributions?.length || 0}
+                </strong>
+              </div>
+            </div>
+
+            {/* Commits Stream */}
+            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl space-y-3">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-[var(--bos-text-secondary)] font-bold">
+                Recent Git Commits
+              </h4>
+              {!data.github?.recentCommits || data.github.recentCommits.length === 0 ? (
+                <p className="text-xs text-[var(--bos-text-tertiary)] py-4 text-center">
+                  No commits recorded yet for this engineer.
+                </p>
+              ) : (
+                <div className="divide-y divide-[var(--bos-border)]">
+                  {data.github.recentCommits.map((c: any) => (
+                    <div key={c.sha} className="py-2.5 flex items-start justify-between gap-3 text-xs">
+                      <div className="space-y-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-[11px] px-1.5 py-0.2 rounded bg-[var(--bos-bg)] text-[var(--bos-accent)] border border-[var(--bos-border)]">
+                            {c.shortSha}
+                          </span>
+                          <span className="font-medium text-[var(--bos-text-primary)]">{c.message}</span>
+                        </div>
+                        <div className="text-[10px] font-mono text-[var(--bos-text-tertiary)] flex items-center gap-2">
+                          <span>{new Date(c.committedAt).toLocaleString()}</span>
+                          <span>·</span>
+                          <span className="text-emerald-500">+{c.additions}</span>
+                          <span className="text-rose-400">-{c.deletions}</span>
+                        </div>
+                      </div>
+                      <a
+                        href={c.htmlUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Pull Requests */}
+            <div className="p-5 bg-[var(--bos-surface)] border border-[var(--bos-border)] rounded-2xl space-y-3">
+              <h4 className="text-xs font-mono uppercase tracking-wider text-[var(--bos-text-secondary)] font-bold">
+                Pull Requests & Deliverable Proofs
+              </h4>
+              {!data.github?.pullRequests || data.github.pullRequests.length === 0 ? (
+                <p className="text-xs text-[var(--bos-text-tertiary)] py-4 text-center">
+                  No pull requests associated with this engineer.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {data.github.pullRequests.map((pr: any) => (
+                    <div
+                      key={pr.id}
+                      className="p-3 bg-[var(--bos-bg)] border border-[var(--bos-border)] rounded-xl flex items-center justify-between gap-3 text-xs"
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono text-xs font-bold text-purple-400">#{pr.number}</span>
+                          <span className="font-semibold text-[var(--bos-text-primary)]">{pr.title}</span>
+                          <span
+                            className={cn(
+                              "text-[9px] font-mono px-1.5 py-0.2 rounded uppercase",
+                              pr.state === "MERGED"
+                                ? "bg-purple-500/10 text-purple-400 border border-purple-500/30"
+                                : "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30",
+                            )}
+                          >
+                            {pr.state}
+                          </span>
+                        </div>
+                        <div className="text-[10px] font-mono text-[var(--bos-text-tertiary)] mt-1">
+                          {pr.sourceBranch} → {pr.targetBranch} · CI: {pr.ciStatus}
+                        </div>
+                      </div>
+                      <a
+                        href={pr.htmlUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-1 rounded hover:bg-[var(--bos-surface)] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-primary)]"
+                      >
+                        <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         )}

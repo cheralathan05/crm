@@ -11,6 +11,7 @@ import {
   MessageSquare,
   PanelLeft,
   PanelLeftClose,
+  Search,
   Users,
   FolderKanban,
 } from "lucide-react";
@@ -187,6 +188,16 @@ export function AppShell({
           </div>
 
           <div className="ml-auto flex items-center gap-1.5 sm:gap-3">
+            {/* Quick search button on mobile */}
+            <button
+              type="button"
+              onClick={() => setCommandOpen(true)}
+              aria-label="Search and command menu"
+              className="md:hidden flex items-center justify-center w-10 h-10 rounded-xl text-[var(--bos-text-secondary)] hover:text-[var(--bos-text-primary)] hover:bg-[var(--bos-overlay)] active:scale-95 transition-all duration-150 cursor-pointer touch-fast"
+            >
+              <Search className="w-4 h-4" aria-hidden="true" />
+            </button>
+
             <div className="hidden lg:flex items-center gap-2 text-[9px] tracking-[0.14em] uppercase text-[var(--bos-text-tertiary)]">
               <span className="w-1.5 h-1.5 rounded-full bg-[var(--bos-success)] animate-pulse" />
               <span>System online</span>
@@ -239,7 +250,7 @@ export function AppShell({
         </aside>
 
         {/* Content — extra bottom padding on mobile to clear the bottom nav bar */}
-        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden md:pb-0 pb-[calc(56px+env(safe-area-inset-bottom,0px))]">
+        <main className="flex-1 min-w-0 max-w-full overflow-x-hidden md:pb-0 pb-[calc(68px+env(safe-area-inset-bottom,0px))]">
           {children}
         </main>
       </div>
@@ -292,12 +303,19 @@ export function AppShell({
 
       {/* ── Mobile bottom navigation bar ──────────────── */}
       <nav aria-label="Quick navigation" className="mobile-bottom-nav md:hidden">
-        <div className="relative flex items-stretch h-[56px]">
+        <div className="relative flex items-stretch h-[60px] px-1">
           {BOTTOM_NAV.map(({ href, icon: Icon, label }) => {
             const isActive =
               href === "/dashboard"
                 ? pathname === "/dashboard"
                 : pathname.startsWith(href);
+            const count =
+              href === "/tasks"
+                ? counts?.tasks
+                : href === "/messages"
+                ? counts?.messages
+                : 0;
+
             return (
               <Link
                 key={href}
@@ -305,18 +323,29 @@ export function AppShell({
                 aria-label={label}
                 aria-current={isActive ? "page" : undefined}
                 className={cn(
-                  "relative flex-1 flex flex-col items-center justify-center gap-[3px] touch-fast transition-colors duration-150",
+                  "relative flex-1 flex flex-col items-center justify-center gap-1 py-1 touch-fast transition-all duration-150 active:scale-95",
                   isActive
-                    ? "text-[var(--bos-accent)]"
-                    : "text-[var(--bos-text-tertiary)]",
+                    ? "text-[var(--bos-accent)] font-semibold"
+                    : "text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)]",
                 )}
               >
-                {/* Active indicator bar at top */}
+                {/* Active indicator glowing pill */}
                 {isActive && (
-                  <span className="absolute top-0 left-1/2 -translate-x-1/2 w-7 h-[2px] rounded-b-full bg-[var(--bos-accent)]" />
+                  <motion.span
+                    layoutId="mobileNavActivePill"
+                    className="absolute inset-x-1 inset-y-1.5 rounded-xl bg-[var(--bos-accent)]/10 -z-10"
+                    transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  />
                 )}
-                <Icon className="w-[19px] h-[19px] shrink-0" aria-hidden="true" />
-                <span className="text-[8.5px] font-medium tracking-[0.06em] leading-none">
+                <div className="relative">
+                  <Icon className="w-5 h-5 shrink-0" aria-hidden="true" />
+                  {count > 0 && (
+                    <span className="absolute -top-1 -right-2 min-w-[15px] h-[15px] px-1 flex items-center justify-center rounded-full bg-[var(--bos-accent)] text-[9px] font-mono font-bold text-[var(--bos-accent-contrast)] leading-none shadow-sm">
+                      {count > 99 ? "99+" : count}
+                    </span>
+                  )}
+                </div>
+                <span className="text-[9px] tracking-[0.03em] leading-tight">
                   {label}
                 </span>
               </Link>
@@ -328,10 +357,15 @@ export function AppShell({
             type="button"
             onClick={() => setDrawerOpen(true)}
             aria-label="All modules"
-            className="flex-1 flex flex-col items-center justify-center gap-[3px] text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)] touch-fast transition-colors duration-150"
+            className="relative flex-1 flex flex-col items-center justify-center gap-1 py-1 text-[var(--bos-text-tertiary)] hover:text-[var(--bos-text-secondary)] active:scale-95 touch-fast transition-all duration-150"
           >
-            <Menu className="w-[19px] h-[19px] shrink-0" aria-hidden="true" />
-            <span className="text-[8.5px] font-medium tracking-[0.06em] leading-none">More</span>
+            <div className="relative">
+              <Menu className="w-5 h-5 shrink-0" aria-hidden="true" />
+              {(counts?.requirements > 0 || counts?.notifications > 0) && (
+                <span className="absolute -top-0.5 -right-1 w-2 h-2 rounded-full bg-[var(--bos-accent)]" />
+              )}
+            </div>
+            <span className="text-[9px] tracking-[0.03em] leading-tight">More</span>
           </button>
         </div>
       </nav>

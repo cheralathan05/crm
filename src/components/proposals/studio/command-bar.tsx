@@ -367,7 +367,7 @@ export function CommandBar({
             {moreOpen && (
               <>
                 <div className="fixed inset-0 z-30" onClick={() => setMoreOpen(false)} aria-hidden="true" />
-                <div className="absolute right-0 top-8 z-40 w-52 rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] p-1">
+                <div className="absolute right-0 top-8 z-40 w-52 min-w-max max-w-[calc(100vw-1rem)] rounded-sm border border-[var(--bos-border-strong)] bg-[var(--bos-bg)] shadow-[var(--bos-shadow-lg)] p-1 overflow-y-auto max-h-[calc(100dvh-7rem)]">
                   <button
                     type="button"
                     className={moreItem}

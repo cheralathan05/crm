@@ -56,6 +56,47 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  if (url.pathname === "/api/github" || url.pathname === "/github") {
+    try {
+      const workspace = await db.workspace.findFirst();
+      if (!workspace) {
+        res.writeHead(404, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ ok: false, message: "Workspace not found" }));
+        return;
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const Database = require("better-sqlite3");
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const path = require("path");
+      const sqlite = new Database(path.join(process.cwd(), "..", "dev.db"));
+      const integration = sqlite.prepare("SELECT * FROM GithubIntegration WHERE workspaceId = ?").get(workspace.id);
+      const repos = sqlite.prepare("SELECT * FROM GithubRepository WHERE workspaceId = ?").all(workspace.id);
+      const prs = sqlite.prepare("SELECT * FROM GithubPullRequest WHERE workspaceId = ?").all(workspace.id);
+      const issues = sqlite.prepare("SELECT * FROM GithubIssue WHERE workspaceId = ?").all(workspace.id);
+      const commits = sqlite.prepare("SELECT * FROM GithubCommit WHERE workspaceId = ? LIMIT 10").all(workspace.id);
+      const employees = sqlite.prepare("SELECT id, fullName, email, employeeCode FROM Employee WHERE workspaceId = ?").all(workspace.id);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(
+        JSON.stringify({
+          ok: true,
+          integration,
+          repositories: repos,
+          pullRequests: prs,
+          issues,
+          commits,
+          employees,
+        })
+      );
+      return;
+    } catch (err: any) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ ok: false, message: err.message }));
+      return;
+    }
+  }
+
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: "Not Found", path: url.pathname }));
 });

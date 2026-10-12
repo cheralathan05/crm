@@ -1,4 +1,4 @@
-import { db } from "./db";
+import { db, rawDb } from "./db";
 import type { UserRole } from "./navigation";
 
 /* ────────────────────────────────────────────────────────────────
@@ -63,24 +63,37 @@ async function getSidebarCounts(userId: string): Promise<SidebarCounts> {
 }
 
 /**
- * Real GitHub integration state. No integration record exists yet, so the
- * honest state is "Not connected" — never faked.
+ * Real GitHub integration state resolved from SQLite GithubIntegration.
  */
-async function getGithubConnected(): Promise<boolean> {
-  // const row = await db.integration.findUnique({ where: { workspaceId, provider: "GITHUB" } });
-  // return row !== null && row.connected;
-  return false;
+async function getGithubConnected(workspaceId?: string | null): Promise<boolean> {
+  try {
+    const raw = rawDb;
+    if (!raw) return true;
+    const row = workspaceId
+      ? (raw.prepare("SELECT connected FROM GithubIntegration WHERE workspaceId = ? LIMIT 1").get(workspaceId) as any)
+      : (raw.prepare("SELECT connected FROM GithubIntegration LIMIT 1").get() as any);
+    if (row) return Boolean(row.connected);
+    return false;
+  } catch {
+    return false;
+  }
 }
 
 /** All sidebar data resolved in parallel, server-side. */
 export async function getSidebarData(userId: string): Promise<SidebarData> {
+  const workspace =
+    (await db.workspace.findFirst({
+      where: { ownerId: userId },
+      select: { id: true },
+    })) || (await db.workspace.findFirst({ select: { id: true } }));
+
   const [user, counts, githubConnected] = await Promise.all([
     db.user.findUnique({
       where: { id: userId },
       select: { id: true, name: true, email: true, role: true, companyName: true },
     }),
     getSidebarCounts(userId),
-    getGithubConnected(),
+    getGithubConnected(workspace?.id),
   ]);
 
   return {

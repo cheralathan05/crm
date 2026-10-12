@@ -30,3 +30,4 @@ tsconfig.tsbuildinfo
 # Uploads & local generated media
 uploads/
 *.pdf
+scratch/

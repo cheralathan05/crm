@@ -63,7 +63,7 @@ export function AuthPanel({
     <div
       className={cn(
         "flex-1 flex flex-col justify-center",
-        "px-5 py-6 sm:px-10 sm:py-10 lg:px-14 lg:py-14 xl:px-20",
+        "px-4 py-5 sm:px-10 sm:py-10 lg:px-14 lg:py-14 xl:px-20",
         "min-h-0",
         "max-w-[520px] lg:max-w-none",
         "mx-auto lg:mx-0",
@@ -78,7 +78,7 @@ export function AuthPanel({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -8 }}
           transition={{ duration: 0.3, ease: [0.25, 0.1, 0.25, 1] }}
-          className="w-full max-w-sm mx-auto lg:mx-0"
+          className="w-full max-w-sm sm:max-w-md mx-auto lg:mx-0"
         >
           {children}
         </motion.div>
@@ -100,11 +100,11 @@ export function AuthHeader({
   subtitle?: string;
 }) {
   return (
-    <div className="mb-6 sm:mb-10">
-      <div className="section-number mb-2.5 sm:mb-4">
+    <div className="mb-4 sm:mb-8">
+      <div className="section-number mb-2 sm:mb-4">
         <span className="opacity-30">—</span> {section}
       </div>
-      <h1 className="text-2xl sm:text-[32px] font-semibold tracking-tight text-[var(--bos-text-primary)] leading-[1.15] mb-1.5 sm:mb-2">
+      <h1 className="text-xl sm:text-[28px] lg:text-[32px] font-semibold tracking-tight text-[var(--bos-text-primary)] leading-[1.15] mb-1 sm:mb-2">
         {title}
       </h1>
       {subtitle && (
@@ -131,14 +131,14 @@ export function AuthField({
   className?: string;
 }) {
   return (
-    <div className={cn("mb-5", className)}>
+    <div className={cn("mb-3.5 sm:mb-5", className)}>
       <label className="bos-label">{label}</label>
       {children}
       {error && (
         <motion.p
           initial={{ opacity: 0, y: -4 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-xs text-[var(--bos-error)] mt-1.5"
+          className="text-xs text-[var(--bos-error)] mt-1"
           role="alert"
         >
           {error}
@@ -153,7 +153,7 @@ export function AuthField({
  */
 export function AuthDivider({ label = "OR" }: { label?: string }) {
   return (
-    <div className="flex items-center gap-4 my-6">
+    <div className="flex items-center gap-4 my-4 sm:my-6">
       <div className="flex-1 h-px bg-[var(--bos-line)]" />
       <span className="text-[10px] tracking-[0.18em] text-[var(--bos-text-tertiary)] uppercase font-medium">
         {label}
@@ -172,7 +172,7 @@ export function AuthFooterLinks({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between mt-6">
+    <div className="flex items-center justify-between mt-4 sm:mt-6">
       {children}
     </div>
   );
@@ -193,7 +193,7 @@ export function AuthBottomAction({
   onClick?: () => void;
 }) {
   return (
-    <p className="mt-8 text-center text-xs text-[var(--bos-text-tertiary)]">
+    <p className="mt-5 sm:mt-8 text-center text-xs text-[var(--bos-text-tertiary)]">
       {label}{" "}
       {onClick ? (
         <button

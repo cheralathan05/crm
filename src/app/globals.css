@@ -538,12 +538,23 @@ a, button, [role="button"], input, select, textarea, label {
   background: var(--bos-bg);
   border-top: 1px solid var(--bos-line);
   padding-bottom: env(safe-area-inset-bottom, 0px);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  background: color-mix(in srgb, var(--bos-bg) 90%, transparent);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background: color-mix(in srgb, var(--bos-bg) 88%, transparent);
+  box-shadow: 0 -4px 20px -2px rgba(0, 0, 0, 0.08);
 }
 
 /* Content area extra bottom pad on mobile so last item isn't behind bottom nav */
 .mobile-content-pad {
-  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(68px + env(safe-area-inset-bottom, 0px));
+}
+
+/* Mobile input zoom prevention & touch improvements */
+@media (max-width: 640px) {
+  .bos-input {
+    font-size: 16px; /* Prevents iOS auto-zoom on input focus */
+  }
+  .bos-input::placeholder {
+    font-size: 15px;
+  }
 }
